@@ -1,0 +1,7 @@
+{
+  "request_id": "example-hegemony-0001",
+  "trigger": "hegemony_detected",
+  "snapshot_path": "resources/snapshot.example.json",
+  "output_doctrine_path": "exchange/response.json",
+  "async": true
+}

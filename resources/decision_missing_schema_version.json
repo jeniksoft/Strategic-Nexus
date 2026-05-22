@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "sequence_id": 8,
+  "created_unix_ms": 10000,
+  "ttl_ms": 30000,
+  "bridge_available": true,
+  "strategy_dimensions": {
+    "military_posture": "defensive"
+  },
+  "confidence": 0.68,
+  "fallback_required": false
+}

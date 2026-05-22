@@ -1,0 +1,15 @@
+﻿{
+  "schema_version": 1,
+  "sequence_id": 7,
+  "created_unix_ms": 10000,
+  "ttl_ms": 30000,
+  "bridge_available": true,
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "strategy_dimensions": {
+    "military_posture": "defensive"
+  },
+  "confidence": 0.68,
+  "fallback_required": false,
+  "command": "event strategic_nexus.1300"
+}

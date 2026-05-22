@@ -1,0 +1,461 @@
+namespace = strategic_nexus
+
+# Development-only singleplayer on_action probe.
+# This verifies whether on_game_start_country fires at all in a simple SP game.
+country_event = {
+    id = strategic_nexus.1201
+    title = strategic_nexus.1201.name
+    desc = strategic_nexus.1201.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    trigger = {
+        is_ai = no
+        NOT = { has_country_flag = strategic_nexus_poc_sp_on_game_start_seen }
+    }
+
+    immediate = {
+        set_country_flag = strategic_nexus_poc_sp_on_game_start_seen
+        log = "Strategic Nexus: SP on_game_start_country probe fired"
+    }
+
+    option = {
+        name = strategic_nexus.1201.a
+    }
+}
+
+# Development-only load-safe monthly pulse probe.
+# This verifies whether a country-scoped on_action can fire after starting or
+# loading a game, which is closer to drop-in/drop-out behavior.
+country_event = {
+    id = strategic_nexus.1202
+    title = strategic_nexus.1202.name
+    desc = strategic_nexus.1202.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    trigger = {
+        is_ai = no
+        NOT = { has_country_flag = strategic_nexus_poc_monthly_probe_seen }
+    }
+
+    immediate = {
+        set_country_flag = strategic_nexus_poc_monthly_probe_seen
+        log = "Strategic Nexus: monthly pulse country probe fired"
+    }
+
+    option = {
+        name = strategic_nexus.1202.a
+    }
+}
+
+# Development-only MP bounded payload PoC.
+# Pure Stellaris script does not currently expose a verified is_host trigger, so
+# this is a single-authority approximation: exactly one human country writes a
+# tiny predefined payload into synchronized game state, then other human
+# countries observe that state on their monthly pulse.
+country_event = {
+    id = strategic_nexus.1300
+    title = strategic_nexus.1300.name
+    desc = strategic_nexus.1300.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    trigger = {
+        is_multiplayer = yes
+        is_ai = no
+        is_country_type = default
+        NOT = { has_global_flag = strategic_nexus_poc_mp_payload_generated }
+    }
+
+    immediate = {
+        set_global_flag = strategic_nexus_poc_mp_payload_generated
+        set_global_flag = strategic_nexus_bridge_available
+        set_global_flag = strategic_nexus_doctrine_balance_against_hegemon
+        set_global_flag = strategic_nexus_military_posture_defensive
+        set_global_flag = strategic_nexus_research_bias_economy
+        set_country_flag = strategic_nexus_poc_mp_payload_authority
+        set_country_flag = strategic_nexus_bridge_available
+        set_country_flag = strategic_nexus_doctrine_balance_against_hegemon
+        set_country_flag = strategic_nexus_military_posture_defensive
+        set_country_flag = strategic_nexus_research_bias_economy
+        set_variable = {
+            which = strategic_nexus_pressure
+            value = 0.74
+        }
+
+        log = "Strategic Nexus: MP bounded payload generated once by script authority"
+        country_event = { id = strategic_nexus.1002 }
+        country_event = { id = strategic_nexus.1400 }
+    }
+
+    option = {
+        name = strategic_nexus.1300.a
+    }
+}
+
+# Development-only MP payload observation PoC.
+# This verifies whether another human country can react to the synchronized
+# global payload created by the single authority without running local AI logic.
+country_event = {
+    id = strategic_nexus.1302
+    title = strategic_nexus.1302.name
+    desc = strategic_nexus.1302.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    trigger = {
+        is_multiplayer = yes
+        is_ai = no
+        is_country_type = default
+        has_global_flag = strategic_nexus_poc_mp_payload_generated
+        NOT = { has_country_flag = strategic_nexus_poc_mp_payload_authority }
+        NOT = { has_country_flag = strategic_nexus_poc_mp_payload_observed }
+    }
+
+    immediate = {
+        set_country_flag = strategic_nexus_poc_mp_payload_observed
+        log = "Strategic Nexus: MP bounded payload observed by non-authority country"
+        country_event = { id = strategic_nexus.1002 }
+        country_event = { id = strategic_nexus.1400 }
+    }
+
+    option = {
+        name = strategic_nexus.1302.a
+    }
+}
+
+# Non-Ironman v0.x PoC only.
+# This event verifies whether bounded flags/variables can be detected by ordinary Stellaris mod script.
+country_event = {
+    id = strategic_nexus.1002
+    title = strategic_nexus.1002.name
+    desc = strategic_nexus.1002.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = {
+        remove_country_flag = strategic_nexus_poc_event_seen
+        remove_country_flag = strategic_nexus_poc_fallback_seen
+        remove_country_flag = strategic_nexus_poc_global_bridge_available_seen
+        remove_country_flag = strategic_nexus_poc_country_bridge_available_seen
+        remove_country_flag = strategic_nexus_poc_balance_doctrine_seen
+        remove_country_flag = strategic_nexus_poc_pressure_variable_seen
+        remove_modifier = strategic_nexus_poc_bridge_seen
+
+        set_country_flag = strategic_nexus_poc_event_seen
+
+        if = {
+            limit = {
+                NOR = {
+                    has_global_flag = strategic_nexus_bridge_available
+                    has_country_flag = strategic_nexus_bridge_available
+                }
+            }
+            log = "Strategic Nexus: fallback path selected, no bridge availability flag detected"
+            set_country_flag = strategic_nexus_poc_fallback_seen
+            country_event = { id = strategic_nexus.1104 }
+        }
+
+        if = {
+            limit = {
+                has_global_flag = strategic_nexus_bridge_available
+            }
+            log = "Strategic Nexus: global bridge flag detected"
+            set_country_flag = strategic_nexus_poc_global_bridge_available_seen
+            country_event = { id = strategic_nexus.1100 }
+        }
+
+        if = {
+            limit = {
+                has_country_flag = strategic_nexus_bridge_available
+            }
+            log = "Strategic Nexus: country bridge flag detected"
+            set_country_flag = strategic_nexus_poc_country_bridge_available_seen
+            country_event = { id = strategic_nexus.1101 }
+        }
+
+        if = {
+            limit = {
+                OR = {
+                    has_global_flag = strategic_nexus_doctrine_balance_against_hegemon
+                    has_country_flag = strategic_nexus_doctrine_balance_against_hegemon
+                }
+            }
+            log = "Strategic Nexus: doctrine balance against hegemon flag detected"
+            set_country_flag = strategic_nexus_poc_balance_doctrine_seen
+            country_event = { id = strategic_nexus.1102 }
+        }
+
+        if = {
+            limit = {
+                check_variable = {
+                    which = strategic_nexus_pressure
+                    value > 0.5
+                }
+            }
+            log = "Strategic Nexus: strategic pressure variable detected above threshold"
+            set_country_flag = strategic_nexus_poc_pressure_variable_seen
+            country_event = { id = strategic_nexus.1103 }
+        }
+
+        # Harmless diagnostic marker. This is intentionally tiny and temporary.
+        # It exists only to make the PoC visible in non-Ironman v0.x testing.
+        if = {
+            limit = {
+                has_country_flag = strategic_nexus_poc_balance_doctrine_seen
+            }
+            add_modifier = {
+                modifier = strategic_nexus_poc_bridge_seen
+                days = 360
+            }
+            log = "Strategic Nexus: diagnostic bridge modifier applied"
+            country_event = { id = strategic_nexus.1105 }
+        }
+    }
+
+    option = {
+        name = strategic_nexus.1002.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1100
+    title = strategic_nexus.1100.name
+    desc = strategic_nexus.1100.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1100.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1101
+    title = strategic_nexus.1101.name
+    desc = strategic_nexus.1101.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1101.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1102
+    title = strategic_nexus.1102.name
+    desc = strategic_nexus.1102.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1102.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1103
+    title = strategic_nexus.1103.name
+    desc = strategic_nexus.1103.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1103.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1104
+    title = strategic_nexus.1104.name
+    desc = strategic_nexus.1104.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1104.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1105
+    title = strategic_nexus.1105.name
+    desc = strategic_nexus.1105.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1105.a
+    }
+}
+
+# Development-only modular strategy dimension receiver.
+# This is the new PoC receiver for bridge-core `strategy_dimensions`. It keeps
+# gameplay behavior tiny and visible while avoiding legacy doctrine_id semantics.
+country_event = {
+    id = strategic_nexus.1400
+    title = strategic_nexus.1400.name
+    desc = strategic_nexus.1400.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = {
+        remove_country_flag = strategic_nexus_poc_dimension_receiver_seen
+        remove_country_flag = strategic_nexus_poc_military_posture_defensive_seen
+        remove_country_flag = strategic_nexus_poc_military_posture_aggressive_seen
+        remove_country_flag = strategic_nexus_poc_research_bias_economy_seen
+        remove_country_flag = strategic_nexus_poc_research_bias_military_industry_seen
+        remove_country_flag = strategic_nexus_poc_dimension_fallback_seen
+
+        set_country_flag = strategic_nexus_poc_dimension_receiver_seen
+
+        if = {
+            limit = {
+                NOR = {
+                    has_global_flag = strategic_nexus_military_posture_defensive
+                    has_global_flag = strategic_nexus_military_posture_aggressive
+                    has_global_flag = strategic_nexus_research_bias_economy
+                    has_global_flag = strategic_nexus_research_bias_military_industry
+                    has_country_flag = strategic_nexus_military_posture_defensive
+                    has_country_flag = strategic_nexus_military_posture_aggressive
+                    has_country_flag = strategic_nexus_research_bias_economy
+                    has_country_flag = strategic_nexus_research_bias_military_industry
+                }
+            }
+            log = "Strategic Nexus: modular strategy dimension fallback selected"
+            set_country_flag = strategic_nexus_poc_dimension_fallback_seen
+            country_event = { id = strategic_nexus.1414 }
+        }
+
+        if = {
+            limit = {
+                OR = {
+                    has_global_flag = strategic_nexus_military_posture_defensive
+                    has_country_flag = strategic_nexus_military_posture_defensive
+                }
+            }
+            log = "Strategic Nexus: military_posture defensive dimension detected"
+            set_country_flag = strategic_nexus_poc_military_posture_defensive_seen
+            country_event = { id = strategic_nexus.1410 }
+        }
+
+        if = {
+            limit = {
+                OR = {
+                    has_global_flag = strategic_nexus_military_posture_aggressive
+                    has_country_flag = strategic_nexus_military_posture_aggressive
+                }
+            }
+            log = "Strategic Nexus: military_posture aggressive dimension detected"
+            set_country_flag = strategic_nexus_poc_military_posture_aggressive_seen
+            country_event = { id = strategic_nexus.1411 }
+        }
+
+        if = {
+            limit = {
+                OR = {
+                    has_global_flag = strategic_nexus_research_bias_economy
+                    has_country_flag = strategic_nexus_research_bias_economy
+                }
+            }
+            log = "Strategic Nexus: research_bias economy dimension detected"
+            set_country_flag = strategic_nexus_poc_research_bias_economy_seen
+            country_event = { id = strategic_nexus.1412 }
+        }
+
+        if = {
+            limit = {
+                OR = {
+                    has_global_flag = strategic_nexus_research_bias_military_industry
+                    has_country_flag = strategic_nexus_research_bias_military_industry
+                }
+            }
+            log = "Strategic Nexus: research_bias military_industry dimension detected"
+            set_country_flag = strategic_nexus_poc_research_bias_military_industry_seen
+            country_event = { id = strategic_nexus.1413 }
+        }
+    }
+
+    option = {
+        name = strategic_nexus.1400.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1410
+    title = strategic_nexus.1410.name
+    desc = strategic_nexus.1410.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1410.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1411
+    title = strategic_nexus.1411.name
+    desc = strategic_nexus.1411.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1411.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1412
+    title = strategic_nexus.1412.name
+    desc = strategic_nexus.1412.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1412.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1413
+    title = strategic_nexus.1413.name
+    desc = strategic_nexus.1413.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1413.a
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1414
+    title = strategic_nexus.1414.name
+    desc = strategic_nexus.1414.desc
+    picture = GFX_evt_space_station
+    show_sound = event_default
+    is_triggered_only = yes
+
+    option = {
+        name = strategic_nexus.1414.a
+    }
+}

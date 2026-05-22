@@ -1,0 +1,14 @@
+﻿{
+  "schema_version": 1,
+  "sequence_id": 3,
+  "created_unix_ms": 0,
+  "ttl_ms": 1,
+  "bridge_available": true,
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "strategy_dimensions": {
+    "military_posture": "defensive"
+  },
+  "confidence": 0.74,
+  "fallback_required": false
+}

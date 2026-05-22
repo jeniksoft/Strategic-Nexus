@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "context_id": "context_military_002",
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "ministry": "military",
+  "turn_context": {
+    "year": 2242,
+    "is_at_war": true,
+    "strategic_pressure": 0.82
+  },
+  "known_facts": [
+    "Empire is at war.",
+    "Strategic pressure is high in the v0 fixture."
+  ],
+  "uncertainties": [
+    "Theater details are not parsed in v0."
+  ],
+  "current_agenda": {
+    "military_posture": "defensive",
+    "research_bias": "economy"
+  }
+}

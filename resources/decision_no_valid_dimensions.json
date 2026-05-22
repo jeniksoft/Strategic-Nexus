@@ -1,0 +1,14 @@
+﻿{
+  "schema_version": 1,
+  "sequence_id": 4,
+  "created_unix_ms": 10000,
+  "ttl_ms": 30000,
+  "bridge_available": true,
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "strategy_dimensions": {
+    "military_posture": "hyper_optimal_oracle"
+  },
+  "confidence": 0.64,
+  "fallback_required": false
+}

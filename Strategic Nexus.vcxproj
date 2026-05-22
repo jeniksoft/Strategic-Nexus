@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{7e758aab-10f0-4057-8901-92d0ac89c7e8}</ProjectGuid>
+    <RootNamespace>StrategicNexus</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Strategic Nexus.cpp" />
+    <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\bridge_core\BridgeCorePipeline.cpp" />
+    <ClCompile Include="src\bridge_core\BridgeState.cpp" />
+    <ClCompile Include="src\bridge_core\BridgeValidator.cpp" />
+    <ClCompile Include="src\bridge_core\DecisionFileReader.cpp" />
+    <ClCompile Include="src\bridge_core\EffectBatchEmitter.cpp" />
+    <ClCompile Include="src\bridge_core\EffectBatchFileWriter.cpp" />
+    <ClCompile Include="src\bridge_core\ScriptIntentMapper.cpp" />
+    <ClCompile Include="src\bridge_core\SequenceStateStore.cpp" />
+    <ClCompile Include="src\BridgeContract.cpp" />
+    <ClCompile Include="src\DaemonRunner.cpp" />
+    <ClCompile Include="src\DoctrinePlanner.cpp" />
+    <ClCompile Include="src\GalaxyAnalyzer.cpp" />
+    <ClCompile Include="src\LlmClient.cpp" />
+    <ClCompile Include="src\strategic_pipeline\DeterministicMinistry.cpp" />
+    <ClCompile Include="src\strategic_pipeline\LightweightCabinet.cpp" />
+    <ClCompile Include="src\strategic_pipeline\MinistryInputReader.cpp" />
+    <ClCompile Include="src\strategic_pipeline\StatelessClerk.cpp" />
+    <ClCompile Include="src\strategic_pipeline\V0StrategicPipeline.cpp" />
+    <ClCompile Include="src\MemoryStore.cpp" />
+    <ClCompile Include="src\ModIntegration.cpp" />
+    <ClCompile Include="src\PersonalityEngine.cpp" />
+    <ClCompile Include="src\RequestFileReader.cpp" />
+    <ClCompile Include="src\SaveParser.cpp" />
+    <ClCompile Include="src\StrategicRequest.cpp" />
+    <ClCompile Include="src\StrategicWorker.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\bridge_core\BridgeCorePipeline.h" />
+    <ClInclude Include="src\bridge_core\BridgeState.h" />
+    <ClInclude Include="src\bridge_core\BridgeValidator.h" />
+    <ClInclude Include="src\bridge_core\DecisionFileReader.h" />
+    <ClInclude Include="src\bridge_core\EffectBatchEmitter.h" />
+    <ClInclude Include="src\bridge_core\EffectBatchFileWriter.h" />
+    <ClInclude Include="src\bridge_core\ScriptIntentMapper.h" />
+    <ClInclude Include="src\bridge_core\SequenceStateStore.h" />
+    <ClInclude Include="src\BridgeContract.h" />
+    <ClInclude Include="src\CoreTypes.h" />
+    <ClInclude Include="src\DaemonRunner.h" />
+    <ClInclude Include="src\DoctrinePlanner.h" />
+    <ClInclude Include="src\GalaxyAnalyzer.h" />
+    <ClInclude Include="src\LlmClient.h" />
+    <ClInclude Include="src\strategic_pipeline\DeterministicMinistry.h" />
+    <ClInclude Include="src\strategic_pipeline\LightweightCabinet.h" />
+    <ClInclude Include="src\strategic_pipeline\MinistryInputReader.h" />
+    <ClInclude Include="src\strategic_pipeline\StatelessClerk.h" />
+    <ClInclude Include="src\strategic_pipeline\StrategicPipelineTypes.h" />
+    <ClInclude Include="src\strategic_pipeline\V0StrategicPipeline.h" />
+    <ClInclude Include="src\MemoryStore.h" />
+    <ClInclude Include="src\ModIntegration.h" />
+    <ClInclude Include="src\PersonalityEngine.h" />
+    <ClInclude Include="src\RequestFileReader.h" />
+    <ClInclude Include="src\SaveParser.h" />
+    <ClInclude Include="src\StrategicRequest.h" />
+    <ClInclude Include="src\StrategicWorker.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

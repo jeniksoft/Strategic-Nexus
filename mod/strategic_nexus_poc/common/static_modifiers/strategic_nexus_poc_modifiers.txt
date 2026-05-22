@@ -1,0 +1,5 @@
+# Non-Ironman v0.x PoC only.
+# Empty marker modifier used to make successful bridge-state detection visible
+# in the country modifier list without changing gameplay values.
+strategic_nexus_poc_bridge_seen = {
+}

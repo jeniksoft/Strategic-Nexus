@@ -1,0 +1,7 @@
+{
+  "request_id": "example-scheduled-0001",
+  "trigger": "scheduled_decade",
+  "snapshot_path": "resources/snapshot.example.json",
+  "output_doctrine_path": "resources/doctrine_output.json",
+  "async": true
+}

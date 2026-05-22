@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "context_id": "context_research_002",
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "ministry": "research",
+  "turn_context": {
+    "year": 2248,
+    "is_at_war": true,
+    "strategic_pressure": 0.78
+  },
+  "known_facts": [
+    "The empire is under high strategic pressure in this fixture.",
+    "Research should bias toward military industry in v0."
+  ],
+  "uncertainties": [
+    "Current tech draw and research alternatives are not parsed in v0."
+  ],
+  "current_agenda": {
+    "military_posture": "defensive",
+    "research_bias": "economy"
+  }
+}

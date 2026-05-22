@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "context_id": "context_unknown_001",
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "ministry": "unknown",
+  "turn_context": {
+    "year": 2245,
+    "is_at_war": false,
+    "strategic_pressure": 0.20
+  },
+  "known_facts": [
+    "Unknown ministry fixture should not create a new proposal."
+  ],
+  "uncertainties": [
+    "This fixture verifies agenda preservation under low confidence."
+  ],
+  "current_agenda": {
+    "military_posture": "aggressive",
+    "research_bias": "military_industry"
+  }
+}

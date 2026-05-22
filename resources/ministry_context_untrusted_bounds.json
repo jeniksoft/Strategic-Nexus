@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "context_id": "context_untrusted_bounds_001",
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "ministry": "military",
+  "turn_context": {
+    "year": 2230,
+    "is_at_war": false,
+    "strategic_pressure": 0.35
+  },
+  "known_facts": [
+    "bounded_fact_01",
+    "bounded_fact_02",
+    "bounded_fact_03",
+    "bounded_fact_04",
+    "bounded_fact_05",
+    "bounded_fact_06",
+    "bounded_fact_07",
+    "bounded_fact_08",
+    "bounded_fact_09",
+    "bounded_fact_10",
+    "bounded_fact_11",
+    "bounded_fact_12",
+    "bounded_fact_13",
+    "bounded_fact_14",
+    "bounded_fact_15",
+    "bounded_fact_16",
+    "bounded_fact_17"
+  ],
+  "uncertainties": [
+    "Input arrays should be bounded before audit and future LLM context."
+  ],
+  "current_agenda": {
+    "military_posture": "defensive",
+    "research_bias": "economy"
+  }
+}

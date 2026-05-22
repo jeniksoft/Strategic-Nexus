@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "context_id": "context_missing_optional_001",
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "ministry": "military",
+  "turn_context": {
+    "year": 2250,
+    "is_at_war": false,
+    "strategic_pressure": 0.25
+  }
+}

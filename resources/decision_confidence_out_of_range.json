@@ -1,0 +1,14 @@
+﻿{
+  "schema_version": 1,
+  "sequence_id": 5,
+  "created_unix_ms": 10000,
+  "ttl_ms": 30000,
+  "bridge_available": true,
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "strategy_dimensions": {
+    "research_bias": "strike_craft"
+  },
+  "confidence": 1.74,
+  "fallback_required": false
+}

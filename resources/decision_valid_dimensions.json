@@ -1,0 +1,22 @@
+﻿{
+  "schema_version": 1,
+  "sequence_id": 1,
+  "created_unix_ms": 10000,
+  "ttl_ms": 30000,
+  "bridge_available": true,
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "strategy_dimensions": {
+    "military_posture": "defensive",
+    "fleet_philosophy": "carrier",
+    "border_strategy": "fortress_border",
+    "expansion_policy": "cautious",
+    "diplomatic_behavior": "paranoid",
+    "research_bias": "strike_craft",
+    "economic_focus": "alloy_focus",
+    "crisis_policy": "prepare",
+    "espionage_policy": "gather_military_intel"
+  },
+  "confidence": 0.68,
+  "fallback_required": false
+}

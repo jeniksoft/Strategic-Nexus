@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "context_id": "context_malformed_001",
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "ministry": "military",
+  "turn_context": {
+    "year": 2230,
+    "is_at_war": false,
+    "strategic_pressure": 0.35
+  },
+  "current_agenda": {
+    "military_posture": "defensive",
+    "research_bias": "economy"
+  }

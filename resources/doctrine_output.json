@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "request": {
+    "request_id": "example-scheduled-0001",
+    "trigger": "scheduled_decade",
+    "async": true
+  },
+  "decision": {
+    "doctrine": "balance_against_hegemon",
+    "confidence": 0.74,
+    "safe_mode": true
+  },
+  "bridge": {
+    "available": true,
+    "doctrine": "balance_against_hegemon",
+    "strategic_pressure": 0.74,
+    "fallback_required": false
+  }
+}
