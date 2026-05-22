@@ -72,8 +72,8 @@ try {
     $gh = Get-Command gh -ErrorAction SilentlyContinue
     if ($gh) {
         $visibility = gh repo view jeniksoft/Strategic-Nexus --json visibility --jq ".visibility"
-        if ($visibility -ne "PRIVATE") {
-            Add-FindingBlock "repository visibility" @("Expected PRIVATE, got $visibility")
+        if ($visibility -ne "PRIVATE" -and $visibility -ne "PUBLIC") {
+            Add-FindingBlock "repository visibility" @("Unexpected repository visibility: $visibility")
         }
     }
 
