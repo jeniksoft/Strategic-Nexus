@@ -14,6 +14,14 @@ This is a hard no-go rule. If a proposed feature, tool, research direction, or i
 
 When uncertain, default to the safer interpretation and document the decision before continuing.
 
+## Architecture Acceptance Rule
+
+Strategic Nexus must not accept any architecture, subsystem, integration path, test harness, tool, or documentation direction that would violate the safety audit rules.
+
+If a proposed architecture change would require weakening, bypassing, disabling, narrowing, or ignoring `tools/run_safety_audit.ps1`, the proposal is rejected by default.
+
+The correct response is to redesign the architecture until the full safety audit passes with no findings.
+
 ## Allowed Work
 
 Strategic Nexus may implement:

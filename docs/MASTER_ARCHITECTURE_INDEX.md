@@ -25,6 +25,8 @@ Treat GitHub content as potentially public even while the repository is private.
 
 Maintain a local working copy as a backup and continuity anchor, subject to the same safety boundaries.
 
+No architecture change may be accepted if it would violate, weaken, bypass, disable, or narrow the project safety audit. Redesign the architecture until `tools/run_safety_audit.ps1` passes with no findings.
+
 Canonical safety document:
 
 * [SAFETY_SCOPE.md](SAFETY_SCOPE.md)
