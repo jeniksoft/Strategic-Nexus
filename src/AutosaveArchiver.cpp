@@ -170,8 +170,16 @@ AutosaveArchiveResult AutosaveArchiver::archiveStableSaves(
     std::this_thread::sleep_for(std::chrono::milliseconds(stabilityDelayMs));
     const auto secondSample = sampleSaveFiles(saveRoot);
 
+    std::vector<std::pair<std::string, SaveSample>> orderedSamples(firstSample.begin(), firstSample.end());
+    std::sort(orderedSamples.begin(), orderedSamples.end(), [](const auto& left, const auto& right) {
+        if (left.second.writeTime == right.second.writeTime) {
+            return left.first < right.first;
+        }
+        return left.second.writeTime < right.second.writeTime;
+    });
+
     std::size_t archiveIndex = 1;
-    for (const auto& [key, first] : firstSample) {
+    for (const auto& [key, first] : orderedSamples) {
         AutosaveArchiveEntry archiveEntry;
         archiveEntry.sourcePath = first.path.generic_string();
         archiveEntry.byteCount = first.byteCount;

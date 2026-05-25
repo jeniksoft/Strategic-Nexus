@@ -3,9 +3,11 @@
 
 #include "AutosaveArchiver.h"
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <system_error>
 #include <string>
 
 namespace {
@@ -38,6 +40,11 @@ int main()
     writeFile(sourceRoot / "manual_save.sav", "fixture two");
     writeFile(sourceRoot / "notes.txt", "ignored");
 
+    std::error_code error;
+    const auto baseTime = std::filesystem::file_time_type::clock::now();
+    std::filesystem::last_write_time(sourceRoot / "manual_save.sav", baseTime - std::chrono::seconds(5), error);
+    std::filesystem::last_write_time(sourceRoot / "autosave_2230.sav", baseTime + std::chrono::seconds(5), error);
+
     const strategic_nexus::AutosaveArchiver archiver;
     const auto result = archiver.archiveStableSaves(sourceRoot, archiveRoot, "session_001", 0);
 
@@ -45,8 +52,8 @@ int main()
     requireCondition(result.copiedCount == 2, "archiver should copy stable .sav files");
     requireCondition(result.skippedCount == 0, "archiver should ignore non-save files without recording skips");
     requireCondition(std::filesystem::exists(archiveRoot / "session_001" / "manifest.json"), "archiver should write manifest");
-    requireCondition(std::filesystem::exists(archiveRoot / "session_001" / "saves" / "001_autosave_2230.sav"), "archiver should copy first save");
-    requireCondition(std::filesystem::exists(archiveRoot / "session_001" / "saves" / "002_manual_save.sav"), "archiver should copy second save");
+    requireCondition(std::filesystem::exists(archiveRoot / "session_001" / "saves" / "001_manual_save.sav"), "archiver should copy oldest save first");
+    requireCondition(std::filesystem::exists(archiveRoot / "session_001" / "saves" / "002_autosave_2230.sav"), "archiver should copy newest save second");
     requireCondition(!result.entries[0].contentHash.empty(), "archiver should hash archived save copy");
 
     const auto manifest = strategic_nexus::serializeAutosaveArchiveManifest(result);
