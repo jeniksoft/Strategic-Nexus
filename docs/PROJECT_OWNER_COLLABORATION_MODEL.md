@@ -139,6 +139,14 @@ Use suggestions for:
 * implementation-order improvements
 * risks that are not immediate blockers but should shape future direction
 
+Suggestion next-step rule:
+
+* `DOPORUCENY KROK` means "what should happen if this suggestion is accepted".
+* If a suggestion is rejected, its recommended step is not active work.
+* If a suggestion is accepted and still has a concrete next step, Task Board hygiene should promote that step into a separate follow-up suggestion instead of leaving it hidden in the accepted suggestion detail.
+* Follow-up suggestions must keep `source_suggestion_id` so the same accepted suggestion does not create duplicates.
+* Completed suggestions may show only follow-up monitoring or verification, not a new active recommended step.
+
 ---
 
 # Durable Collaboration Rules

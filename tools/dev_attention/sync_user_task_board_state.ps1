@@ -4,7 +4,8 @@ param(
     [string]$GamingQuietSessionStatePath = ".codex_local/gaming_quiet_session_state.json",
     [string]$GamingQuietSessionLogPath = ".codex_local/gaming_quiet_session_log.csv",
     [string]$ProjectProgressFilePath = "dist/private_reports/project_progress_estimate.json",
-    [string]$RoadmapComplexityOutputPath = "dist/private_reports/roadmap_complexity_estimate.json"
+    [string]$RoadmapComplexityOutputPath = "dist/private_reports/roadmap_complexity_estimate.json",
+    [string]$SuggestionFilePath = "dist/private_reports/user_suggestions.json"
 )
 
 $ErrorActionPreference = "Stop"
@@ -203,14 +204,33 @@ function Update-MaintenanceBalance {
     return $true
 }
 
+function Promote-AcceptedSuggestionNextSteps {
+    param([string]$SuggestionPath)
+
+    $promotionScript = Join-Path $PSScriptRoot "promote_accepted_suggestion_next_steps.ps1"
+    if (-not (Test-Path -LiteralPath $promotionScript)) {
+        return $false
+    }
+
+    & powershell `
+        -NoProfile `
+        -ExecutionPolicy RemoteSigned `
+        -File $promotionScript `
+        -SuggestionFilePath $SuggestionPath | Out-Null
+
+    return $true
+}
+
 $taskPath = Resolve-ProjectPath $TaskFilePath
 $gamingQuietProcessPath = Resolve-ProjectPath $GamingQuietProcessFilePath
 $gamingQuietSessionState = Resolve-ProjectPath $GamingQuietSessionStatePath
 $gamingQuietSessionLog = Resolve-ProjectPath $GamingQuietSessionLogPath
 $projectProgressPath = Resolve-ProjectPath $ProjectProgressFilePath
 $roadmapComplexityPath = Resolve-ProjectPath $RoadmapComplexityOutputPath
+$suggestionPath = Resolve-ProjectPath $SuggestionFilePath
 $projectProgressUpdated = Update-ProjectProgressEstimate -ProgressPath $projectProgressPath -ComplexityPath $roadmapComplexityPath
 $maintenanceBalanceUpdated = Update-MaintenanceBalance
+$acceptedSuggestionFollowupsUpdated = Promote-AcceptedSuggestionNextSteps -SuggestionPath $suggestionPath
 $quietProcessNames = @(Read-GamingQuietProcessNames -Path $gamingQuietProcessPath)
 $runningQuietProcesses = @()
 
@@ -257,3 +277,4 @@ Write-Host "gaming_quiet_session_log=$gamingQuietSessionLog"
 Write-Host "project_progress_updated=$projectProgressUpdated"
 Write-Host "project_progress_file=$projectProgressPath"
 Write-Host "roadmap_complexity_file=$roadmapComplexityPath"
+Write-Host "accepted_suggestion_followups_updated=$acceptedSuggestionFollowupsUpdated"
