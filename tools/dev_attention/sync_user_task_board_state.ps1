@@ -189,6 +189,20 @@ function Update-ProjectProgressEstimate {
     return $true
 }
 
+function Update-MaintenanceBalance {
+    $balanceScript = Join-Path $PSScriptRoot "measure_maintenance_balance.ps1"
+    if (-not (Test-Path -LiteralPath $balanceScript)) {
+        return $false
+    }
+
+    & powershell `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $balanceScript | Out-Null
+
+    return $true
+}
+
 $taskPath = Resolve-ProjectPath $TaskFilePath
 $gamingQuietProcessPath = Resolve-ProjectPath $GamingQuietProcessFilePath
 $gamingQuietSessionState = Resolve-ProjectPath $GamingQuietSessionStatePath
@@ -196,6 +210,7 @@ $gamingQuietSessionLog = Resolve-ProjectPath $GamingQuietSessionLogPath
 $projectProgressPath = Resolve-ProjectPath $ProjectProgressFilePath
 $roadmapComplexityPath = Resolve-ProjectPath $RoadmapComplexityOutputPath
 $projectProgressUpdated = Update-ProjectProgressEstimate -ProgressPath $projectProgressPath -ComplexityPath $roadmapComplexityPath
+$maintenanceBalanceUpdated = Update-MaintenanceBalance
 $quietProcessNames = @(Read-GamingQuietProcessNames -Path $gamingQuietProcessPath)
 $runningQuietProcesses = @()
 

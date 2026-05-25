@@ -311,6 +311,9 @@ Bad maintenance behavior:
 
 The target is lean coordination: enough structure to keep autonomous implementation safe and fast, not enough structure to become the project.
 
+Codex should periodically compare maintenance time against implementation time.
+If maintenance becomes disproportionate, Codex should propose simplification and move back to product/runtime roadmap work unless the maintenance is blocking, safety-critical, privacy-critical, or repeatedly wasting owner/Codex time.
+
 Deferred TB ergonomics should use practical human-readability thresholds instead of being implemented immediately.
 For example, report/suggestion filtering should become implementation work when `Navrhy` has about 30 active or unresolved items, `Reporty` has about 75 total items, or the owner says the list is becoming hard to navigate.
 

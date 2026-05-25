@@ -695,6 +695,25 @@ Until this exists, multiplayer generated overlays remain a private host-side pla
 Current progress:
 `MULTIPLAYER_SEASON_ORCHESTRATOR.md` defines the host-coordinated package model, low-friction join assumptions, host rotation handoff packages, client manual save recovery fallback, checksum-gated hotjoin assumptions, and save-persisted MP markers.
 
+Next worker-ready slice:
+
+Implement a minimal multiplayer generated-overlay package manifest/export/verify harness.
+
+The first slice should include:
+
+* campaign id
+* overlay version
+* game version
+* Strategic Nexus mod version
+* checksum-sensitive generated gameplay file hashes and byte counts
+* local-only diagnostic file classification
+* export package manifest generation
+* import/verify command that fails closed on drift
+* degraded handoff status when the previous host is unavailable
+
+This slice must not require knowing all future participants before the season.
+It must assume the previous host may be absent from the next season entirely.
+
 ---
 
 # Updating This Document

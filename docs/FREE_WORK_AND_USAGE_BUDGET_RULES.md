@@ -581,6 +581,29 @@ Background Free Work must not:
 * spend significant time on maintenance unless it removes repeated friction, fixes automation reliability, protects owner attention, or unblocks implementation
 * sneak new architecture philosophy into implementation without a foreground decision or `Navrhy` proposal
 
+Maintenance balance rule:
+
+Codex should track whether recent work is mostly product/runtime implementation or mostly maintenance.
+
+Maintenance is justified when it:
+
+* removes repeated owner friction
+* fixes automation reliability
+* protects privacy, safety, or repository integrity
+* unblocks implementation
+* prevents repeated wasted compute
+
+Maintenance should be deferred or simplified when it:
+
+* only polishes coordination tools
+* adds process without a concrete pain
+* creates more owner-facing items than it removes
+* consumes Free Work time while safe roadmap implementation is available
+
+The local helper `tools/dev_attention/measure_maintenance_balance.ps1` writes `dist/private_reports/maintenance_balance.json` from `.codex_local/codex_work_log.csv`.
+Task-board sync may refresh that cached measurement.
+If maintenance exceeds a practical share of recent logged work, Free Work should prefer the next safe product/runtime roadmap slice and turn further maintenance ideas into `Navrhy` instead of implementing them immediately.
+
 Codex should keep going while:
 
 * the next work item is clear
