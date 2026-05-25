@@ -318,6 +318,16 @@ The target is lean coordination: enough structure to keep autonomous implementat
 Codex should periodically compare maintenance time against implementation time.
 If maintenance becomes disproportionate, Codex should propose simplification and move back to product/runtime roadmap work unless the maintenance is blocking, safety-critical, privacy-critical, or repeatedly wasting owner/Codex time.
 
+The current efficiency target is roughly:
+
+```text
+maintenance: 25%
+implementation/product work: 75%
+```
+
+Treat this as a planning signal while data is sparse.
+If the ratio stays high for several days, Codex should identify which checks, audits, reports, or helper workflows are too broad, too frequent, or too noisy and suggest simplification.
+
 Deferred TB ergonomics should use practical human-readability thresholds instead of being implemented immediately.
 For example, report/suggestion filtering should become implementation work when `Navrhy` has about 30 active or unresolved items, `Reporty` has about 75 total items, or the owner says the list is becoming hard to navigate.
 

@@ -662,6 +662,17 @@ Maintenance balance rule:
 
 Codex should track whether recent work is mostly product/runtime implementation or mostly maintenance.
 
+Planning target:
+
+```text
+maintenance around 25% of recent logged work
+implementation and product/runtime progress around 75%
+```
+
+This is an efficiency target, not a hard law.
+Early data is sparse, so Codex should use it as a trend signal for several days before over-optimizing.
+The target exists to simplify or defer maintenance that is too broad, repetitive, or low-value.
+
 Maintenance is justified when it:
 
 * removes repeated owner friction
@@ -680,6 +691,15 @@ Maintenance should be deferred or simplified when it:
 The local helper `tools/dev_attention/measure_maintenance_balance.ps1` writes `dist/private_reports/maintenance_balance.json` from `.codex_local/codex_work_log.csv`.
 Task-board sync may refresh that cached measurement.
 If maintenance exceeds a practical share of recent logged work, Free Work should prefer the next safe product/runtime roadmap slice and turn further maintenance ideas into `Navrhy` instead of implementing them immediately.
+
+Suggested response by ratio:
+
+* below 25% maintenance: normal support range
+* 25-30% maintenance: watch the trend
+* above 30% maintenance: prefer product/runtime implementation when safe
+* above 40% maintenance: pause nonessential maintenance unless it is blocking, safety-critical, privacy-critical, or prevents repeated wasted work
+
+After several days of data, Codex should review which recurring checks are too broad, too frequent, or poorly scoped and propose simplifications instead of blindly keeping them.
 
 Codex should keep going while:
 

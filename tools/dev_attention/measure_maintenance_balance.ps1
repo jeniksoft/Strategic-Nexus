@@ -107,10 +107,14 @@ $maintenancePercent = if ($total -gt 0) { [Math]::Round(($buckets.maintenance / 
 $implementationPercent = if ($total -gt 0) { [Math]::Round(($buckets.implementation / $total) * 100, 1) } else { 0 }
 
 $recommendation = "balanced"
-$reason = "maintenance is within the normal support range"
-if ($buckets.maintenance -gt 90 -and $maintenancePercent -gt 35) {
+$reason = "maintenance is near the target support range"
+if ($buckets.maintenance -gt 60 -and $maintenancePercent -gt 30) {
     $recommendation = "prefer-product-implementation"
-    $reason = "maintenance consumed more than 35% of recent logged work and more than 90 minutes"
+    $reason = "maintenance is above the 25% target and should be simplified or deferred when implementation is safe"
+}
+if ($buckets.maintenance -gt 90 -and $maintenancePercent -gt 40) {
+    $recommendation = "pause-nonessential-maintenance"
+    $reason = "maintenance consumed more than 40% of recent logged work and more than 90 minutes"
 }
 if ($buckets.implementation -lt 30 -and $buckets.maintenance -gt 60) {
     $recommendation = "pause-nonessential-maintenance"
@@ -132,9 +136,12 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
     other_minutes = [Math]::Round([double]$buckets.other, 1)
     maintenance_percent = $maintenancePercent
     implementation_percent = $implementationPercent
+    target_maintenance_percent = 25
+    warning_maintenance_percent = 30
+    high_maintenance_percent = 40
     recommendation = $recommendation
     reason = $reason
-    policy = "Nonessential maintenance should wait when product/runtime roadmap work is safe and unblocked."
+    policy = "Target maintenance around 25% of logged work. Above 30%, prefer product/runtime implementation when safe. Above 40%, pause nonessential maintenance unless it is blocking, safety-critical, privacy-critical, or prevents repeated wasted work."
     recent_entries = @($classified | Select-Object -Last 20)
 } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $output -Encoding UTF8
 
