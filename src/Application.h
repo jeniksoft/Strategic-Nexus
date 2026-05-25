@@ -33,6 +33,7 @@ struct RunConfig {
     bool discoverStellarisSaveRootsMode = false;
     bool exportMpOverlayPackageMode = false;
     bool verifyMpOverlayPackageMode = false;
+    bool sncStatusSnapshotMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -85,11 +86,15 @@ struct RunConfig {
     std::filesystem::path stellarisSaveRootsOutputPath;
     std::filesystem::path mpOverlaySourceDirectory;
     std::filesystem::path mpOverlayPackageDirectory;
+    std::filesystem::path sncArchiveRoot;
+    std::filesystem::path sncGeneratedOverlayDirectory;
+    std::filesystem::path sncStatusOutputPath;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;
     std::string mpOverlayStrategicNexusModVersion;
     bool mpOverlayPreviousHostAvailable = true;
+    bool sncStartWithWindowsEnabled = false;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;
     std::int64_t v0SequenceId = 1;
     std::int64_t v0CreatedUnixMs = 0;

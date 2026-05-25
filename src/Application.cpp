@@ -14,6 +14,7 @@
 #include "SeasonDeltaLedgerBuilder.h"
 #include "SeasonEmpireBriefBuilder.h"
 #include "StellarisSavePathResolver.h"
+#include "StrategicNexusCompanion.h"
 #include "StrategicWorker.h"
 #include "bridge_core/BridgeCorePipeline.h"
 #include "common/FileUtil.h"
@@ -168,6 +169,22 @@ RunConfig parseRunConfig(int argc, char* argv[])
         if (argc > 2) {
             config.mpOverlayPackageDirectory = argv[2];
         }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--snc-status-snapshot") {
+        config.sncStatusSnapshotMode = true;
+
+        if (argc > 2) {
+            config.sncArchiveRoot = argv[2];
+        }
+        if (argc > 3) {
+            config.sncGeneratedOverlayDirectory = argv[3];
+        }
+        if (argc > 4) {
+            config.sncStatusOutputPath = argv[4];
+        }
+        config.sncStartWithWindowsEnabled = argc > 5 ? std::string(argv[5]) == "true" : false;
         return config;
     }
 
@@ -636,6 +653,33 @@ int Application::run(const RunConfig& config) const
                 std::cout << "mp_overlay_package_unexpected_file=" << file << "\n";
             }
             return result.ok ? 0 : 1;
+        }
+
+        if (config.sncStatusSnapshotMode) {
+            const StrategicNexusCompanion companion;
+            const auto snapshot = companion.buildStatusSnapshot({
+                config.sncArchiveRoot,
+                config.sncGeneratedOverlayDirectory,
+                config.sncStartWithWindowsEnabled
+            });
+            const auto json = serializeCompanionStatusSnapshot(snapshot);
+            const bool outputRequested = !config.sncStatusOutputPath.empty();
+            const bool written = outputRequested
+                ? common::writeTextFileAtomically(config.sncStatusOutputPath, json)
+                : true;
+            const bool success = written;
+
+            std::cout << "snc_status_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_app_name=" << snapshot.appName << "\n";
+            std::cout << "snc_abbreviation=" << snapshot.abbreviation << "\n";
+            std::cout << "snc_archive_state=" << snapshot.archive.state << "\n";
+            std::cout << "snc_generated_overlay_state=" << snapshot.generatedOverlay.state << "\n";
+            std::cout << "snc_status_center_state=" << snapshot.statusCenter.state << "\n";
+            std::cout << "snc_status_output_written=" << (outputRequested && written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "snc_status_reason=failed to write status snapshot\n";
+            }
+            return success ? 0 : 1;
         }
 
         if (config.archiveStableSavesMode) {

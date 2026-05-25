@@ -163,6 +163,11 @@ $stellarisSavePathResolverSourceFiles = @(
     (Join-Path $repoRoot "tests/stellaris_save_path_resolver_test.cpp"),
     (Join-Path $repoRoot "src/StellarisSavePathResolver.cpp")
 )
+$strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_companion_test.exe"
+$strategicNexusCompanionSourceFiles = @(
+    (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
+    (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp")
+)
 
 Push-Location $repoRoot
 try {
@@ -182,6 +187,7 @@ try {
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignSaveScannerSourceFiles /Fe:$campaignSaveScannerExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignLibraryPlannerSourceFiles /Fe:$campaignLibraryPlannerExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $stellarisSavePathResolverSourceFiles /Fe:$stellarisSavePathResolverExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $strategicNexusCompanionSourceFiles /Fe:$strategicNexusCompanionExePath
 } finally {
     Pop-Location
 }
@@ -794,6 +800,49 @@ function Invoke-StellarisSaveRootDiscoveryCase {
     Write-Host "[PASS] stellaris_save_roots"
 }
 
+function Invoke-SncStatusSnapshotCase {
+    $archiveRoot = Join-Path $repoRoot "dist/snc_status_archive"
+    $overlayRoot = Join-Path $repoRoot "dist/snc_status_overlay"
+    $outputPath = Join-Path $repoRoot "dist/snc_status_snapshot.json"
+    Remove-Item -LiteralPath $archiveRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $overlayRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $outputPath -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $overlayRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $overlayRoot "strategic_nexus_generated_manifest.json") -Value "{ `"schema_version`": 1 }" -Encoding ASCII
+
+    $sncOutput = & $exePath `
+        --snc-status-snapshot `
+        $archiveRoot `
+        $overlayRoot `
+        $outputPath `
+        true
+    $sncExitCode = $LASTEXITCODE
+    $sncText = $sncOutput -join "`n"
+
+    if ($sncExitCode -ne 0) {
+        throw "snc_status_snapshot app failed. Actual output:`n$sncText"
+    }
+
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_success=true"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_app_name=Strategic Nexus Companion"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_abbreviation=SNC"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=ready"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_state=ready"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=ready"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_output_written=true"
+
+    $snapshotJson = Get-Content -Raw -LiteralPath $outputPath
+    $null = $snapshotJson | ConvertFrom-Json
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"app_name": "Strategic Nexus Companion"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"abbreviation": "SNC"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"window_close_behavior": "minimize_to_tray"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"status_center":'
+
+    Write-Host "[PASS] snc_status_snapshot"
+}
+
 function Invoke-AutosaveArchiveCase {
     $sourceRoot = Join-Path $repoRoot "dist/autosave_archive_cli_source"
     $archiveRoot = Join-Path $repoRoot "dist/autosave_archive_cli_archive"
@@ -1303,6 +1352,7 @@ Invoke-CampaignSaveDiffCase
 Invoke-CampaignLibraryPlanCase
 Invoke-CampaignLibraryOverlayCase
 Invoke-StellarisSaveRootDiscoveryCase
+Invoke-SncStatusSnapshotCase
 Invoke-AutosaveArchiveCase
 Invoke-AutosaveArchiveVerifyMismatchCase
 
@@ -1379,6 +1429,11 @@ if ($LASTEXITCODE -ne 0) {
 & $stellarisSavePathResolverExePath
 if ($LASTEXITCODE -ne 0) {
     throw "stellaris save path resolver tests failed."
+}
+
+& $strategicNexusCompanionExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "strategic nexus companion tests failed."
 }
 
 Write-Host "V0 strategic pipeline tests passed."

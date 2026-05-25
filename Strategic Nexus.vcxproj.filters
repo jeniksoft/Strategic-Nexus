@@ -150,6 +150,9 @@
     <ClCompile Include="src\StellarisSavePathResolver.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\StrategicNexusCompanion.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\StrategicRequest.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -300,6 +303,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\StellarisSavePathResolver.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StrategicNexusCompanion.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\StrategicRequest.h">

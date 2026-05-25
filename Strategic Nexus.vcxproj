@@ -188,6 +188,7 @@
     <ClCompile Include="src\SeasonDeltaLedgerBuilder.cpp" />
     <ClCompile Include="src\SeasonEmpireBriefBuilder.cpp" />
     <ClCompile Include="src\StellarisSavePathResolver.cpp" />
+    <ClCompile Include="src\StrategicNexusCompanion.cpp" />
     <ClCompile Include="src\StrategicRequest.cpp" />
     <ClCompile Include="src\StrategicWorker.cpp" />
   </ItemGroup>
@@ -240,6 +241,7 @@
     <ClInclude Include="src\SeasonDeltaLedgerBuilder.h" />
     <ClInclude Include="src\SeasonEmpireBriefBuilder.h" />
     <ClInclude Include="src\StellarisSavePathResolver.h" />
+    <ClInclude Include="src\StrategicNexusCompanion.h" />
     <ClInclude Include="src\StrategicRequest.h" />
     <ClInclude Include="src\StrategicWorker.h" />
   </ItemGroup>
