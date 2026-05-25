@@ -28,11 +28,28 @@ function Get-SafeSuggestionIdPart {
     return $safe
 }
 
-function Test-AcceptedSuggestionStatus {
+function Test-PromotableSuggestionStatus {
     param([string]$Status)
 
     $normalized = ([string]$Status).Trim().ToLowerInvariant()
-    return @("prijato", "schvaleno", "prijato-k-implementaci", "schvaleno-k-implementaci") -contains $normalized
+    return @(
+        "prijato",
+        "schvaleno",
+        "prijato-k-implementaci",
+        "schvaleno-k-implementaci",
+        "realizovano"
+    ) -contains $normalized
+}
+
+function Test-ConcreteNextStep {
+    param([string]$Next)
+
+    $trimmed = ([string]$Next).Trim()
+    if ([string]::IsNullOrWhiteSpace($trimmed)) {
+        return $false
+    }
+
+    return -not ($trimmed -match "^(?i:hotovo)\s*:")
 }
 
 $createdIds = New-Object System.Collections.Generic.List[string]
@@ -59,10 +76,10 @@ Invoke-TaskBoardJsonMutation -Path $suggestionPath -Mutate {
         $sourceId = [string]$suggestion.id
         $next = [string]$suggestion.next
 
-        if (-not (Test-AcceptedSuggestionStatus -Status $suggestion.status)) {
+        if (-not (Test-PromotableSuggestionStatus -Status $suggestion.status)) {
             continue
         }
-        if ([string]::IsNullOrWhiteSpace($next)) {
+        if (-not (Test-ConcreteNextStep -Next $next)) {
             continue
         }
         if ($existingFollowupSourceIds.Contains($sourceId)) {
@@ -84,8 +101,8 @@ Invoke-TaskBoardJsonMutation -Path $suggestionPath -Mutate {
             severity = if ($suggestion.severity) { $suggestion.severity } else { "normal" }
             status = "navrh"
             proposal = $next
-            benefit = "Dalsi prace z prijateho navrhu bude videt jako samostatna polozka a nezapadne v detailu."
-            why = "Majitel nemusi rucne hledat navazujici kroky v uz prijatych navrzich."
+            benefit = "Dalsi prace z prijateho nebo realizovaneho navrhu bude videt jako samostatna polozka a nezapadne v detailu."
+            why = "Majitel nemusi rucne hledat navazujici kroky v uz prijatych nebo hotovych navrzich."
             next = "Rozhodnout, jestli se tenhle navazujici krok ma prijmout a naplanovat."
             source_suggestion_id = $sourceId
             source_suggestion_title = [string]$suggestion.title

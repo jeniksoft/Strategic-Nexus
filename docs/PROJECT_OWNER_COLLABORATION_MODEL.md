@@ -143,9 +143,10 @@ Suggestion next-step rule:
 
 * `DOPORUCENY KROK` means "what should happen if this suggestion is accepted".
 * If a suggestion is rejected, its recommended step is not active work.
-* If a suggestion is accepted and still has a concrete next step, Task Board hygiene should promote that step into a separate follow-up suggestion instead of leaving it hidden in the accepted suggestion detail.
+* If a suggestion is accepted or completed and still has a concrete next step, Task Board hygiene should promote that step into a separate follow-up suggestion instead of leaving it hidden in the suggestion detail.
 * Follow-up suggestions must keep `source_suggestion_id` so the same accepted suggestion does not create duplicates.
-* Completed suggestions may show only follow-up monitoring or verification, not a new active recommended step.
+* Completed suggestions may show follow-up monitoring or verification, but concrete follow-up work should become a separate suggestion.
+* Legacy `Hotovo:` next-step summaries are completion notes, not follow-up work, and should not be promoted.
 
 ---
 
