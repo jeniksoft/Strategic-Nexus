@@ -17,7 +17,7 @@ These Codex app automations have been created, not merely proposed:
 
 * `sn-task-board-hygiene` - hourly Task Board hygiene
 * `sn-safety-boundary-audit` - every 6 hours safety boundary audit
-* `sn-usage-budget-check` - daily usage budget check
+* `sn-usage-budget-check` - hourly usage budget check
 * `sn-free-work-readiness` - daily Free Work readiness review
 * `sn-bounded-free-work-execution` - frequent bounded Free Work execution gate
 * `sn-architecture-consistency-review` - weekly architecture consistency review
@@ -108,7 +108,7 @@ RECOMMENDED
 Suggested cadence:
 
 ```text
-daily, 09:00 Europe/Prague
+hourly
 ```
 
 Why:
@@ -116,6 +116,7 @@ Why:
 * Codex cannot see account usage directly
 * work mode depends on user-reported remaining weekly budget
 * stale budget data can cause either underuse or waste
+* hourly readings make burn-rate estimates useful without asking the owner to check the UI
 
 Expected output:
 

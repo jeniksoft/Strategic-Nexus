@@ -68,6 +68,44 @@ If the reader fails during scheduled Free Work, the worker should use conservati
 
 ---
 
+# Scheduled Rate-Limit Logging Rule
+
+Codex should refresh and log Codex rate-limit state regularly through the local app-server reader.
+
+Default cadence:
+
+```text
+hourly
+```
+
+Reason:
+
+* manual limit checking is annoying and unreliable as a long-term workflow
+* Free Work cadence depends on current remaining budget
+* burn-rate estimates require enough timestamped readings
+* missing budget data can make Codex either too timid or wasteful
+
+Scheduled logging should run:
+
+```text
+tools/dev_attention/read_codex_rate_limits.ps1 -UpdateUsageBudgetState
+tools/dev_attention/tune_freework_cadence.ps1
+```
+
+Expected outputs:
+
+* `dist/private_reports/codex_rate_limits.json`
+* `.codex_local/usage_budget_state.md`
+* `.codex_local/usage_budget_log.csv`
+* `dist/private_reports/freework_cadence_recommendation.json`
+
+The check is lightweight and may run even when no Free Work implementation chunk is safe.
+
+If the local reader fails, Codex should diagnose and repair the reader path when the fix is mechanical and safe.
+Only ask the owner for manual screenshots or readings after the local reader path is unavailable, unsafe, or repeatedly failing.
+
+---
+
 # Declared Budget Rule
 
 When the user declares a remaining weekly limit percentage, Codex may use that value as the current working budget estimate.
