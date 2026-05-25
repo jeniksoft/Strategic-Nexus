@@ -20,6 +20,7 @@
 #include "generated_overlay/DslParser.h"
 #include "generated_overlay/DslValidator.h"
 #include "generated_overlay/ManifestVerifier.h"
+#include "generated_overlay/MpOverlayPackage.h"
 #include "generated_overlay/OverlayCompiler.h"
 #include "strategic_pipeline/EmpireProcessingQueue.h"
 #include "strategic_pipeline/MinistryInputReader.h"
@@ -133,6 +134,40 @@ RunConfig parseRunConfig(int argc, char* argv[])
             config.generatedOverlayVerifyDirectory = argv[2];
         }
 
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--export-mp-overlay-package") {
+        config.exportMpOverlayPackageMode = true;
+
+        if (argc > 2) {
+            config.mpOverlaySourceDirectory = argv[2];
+        }
+        if (argc > 3) {
+            config.mpOverlayCampaignId = argv[3];
+        }
+        if (argc > 4) {
+            config.mpOverlayOverlayVersion = argv[4];
+        }
+        if (argc > 5) {
+            config.mpOverlayGameVersion = argv[5];
+        }
+        if (argc > 6) {
+            config.mpOverlayStrategicNexusModVersion = argv[6];
+        }
+        if (argc > 7) {
+            config.mpOverlayPackageDirectory = argv[7];
+        }
+        config.mpOverlayPreviousHostAvailable = argc > 8 ? std::string(argv[8]) != "false" : true;
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--verify-mp-overlay-package") {
+        config.verifyMpOverlayPackageMode = true;
+
+        if (argc > 2) {
+            config.mpOverlayPackageDirectory = argv[2];
+        }
         return config;
     }
 
@@ -555,6 +590,50 @@ int Application::run(const RunConfig& config) const
                           << ";hash_matches=" << (file.hashMatches ? "true" : "false")
                           << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
                           << "\n";
+            }
+            return result.ok ? 0 : 1;
+        }
+
+        if (config.exportMpOverlayPackageMode) {
+            const generated_overlay::MpOverlayPackageExporter exporter;
+            const auto result = exporter.exportPackage(
+                config.mpOverlaySourceDirectory,
+                config.mpOverlayCampaignId,
+                config.mpOverlayOverlayVersion,
+                config.mpOverlayGameVersion,
+                config.mpOverlayStrategicNexusModVersion,
+                config.mpOverlayPackageDirectory,
+                config.mpOverlayPreviousHostAvailable);
+
+            std::cout << "mp_overlay_package_export_ok=" << (result.ok ? "true" : "false") << "\n";
+            std::cout << "mp_overlay_package_export_reason=" << result.reason << "\n";
+            std::cout << "mp_overlay_package_export_file_count=" << result.files.size() << "\n";
+            for (const auto& file : result.files) {
+                std::cout << "mp_overlay_package_export_file=" << file.path
+                          << ";exists=" << (file.exists ? "true" : "false")
+                          << ";hash_matches=" << (file.hashMatches ? "true" : "false")
+                          << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
+                          << "\n";
+            }
+            return result.ok ? 0 : 1;
+        }
+
+        if (config.verifyMpOverlayPackageMode) {
+            const generated_overlay::MpOverlayPackageVerifier verifier;
+            const auto result = verifier.verify(config.mpOverlayPackageDirectory);
+
+            std::cout << "mp_overlay_package_ok=" << (result.ok ? "true" : "false") << "\n";
+            std::cout << "mp_overlay_package_reason=" << result.reason << "\n";
+            std::cout << "mp_overlay_package_file_count=" << result.files.size() << "\n";
+            for (const auto& file : result.files) {
+                std::cout << "mp_overlay_package_file=" << file.path
+                          << ";exists=" << (file.exists ? "true" : "false")
+                          << ";hash_matches=" << (file.hashMatches ? "true" : "false")
+                          << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
+                          << "\n";
+            }
+            for (const auto& file : result.unexpectedFiles) {
+                std::cout << "mp_overlay_package_unexpected_file=" << file << "\n";
             }
             return result.ok ? 0 : 1;
         }

@@ -93,6 +93,9 @@
     <ClCompile Include="src\generated_overlay\ManifestVerifier.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\generated_overlay\MpOverlayPackage.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\generated_overlay\OverlayCompiler.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -234,6 +237,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\generated_overlay\ManifestVerifier.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\generated_overlay\MpOverlayPackage.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\generated_overlay\OverlayCompiler.h">

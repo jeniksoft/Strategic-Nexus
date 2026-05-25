@@ -169,6 +169,7 @@
     <ClCompile Include="src\generated_overlay\DslParser.cpp" />
     <ClCompile Include="src\generated_overlay\DslValidator.cpp" />
     <ClCompile Include="src\generated_overlay\ManifestVerifier.cpp" />
+    <ClCompile Include="src\generated_overlay\MpOverlayPackage.cpp" />
     <ClCompile Include="src\generated_overlay\OverlayCompiler.cpp" />
     <ClCompile Include="src\LlmClient.cpp" />
     <ClCompile Include="src\strategic_pipeline\DeterministicMinistry.cpp" />
@@ -218,6 +219,7 @@
     <ClInclude Include="src\generated_overlay\DslRule.h" />
     <ClInclude Include="src\generated_overlay\DslValidator.h" />
     <ClInclude Include="src\generated_overlay\ManifestVerifier.h" />
+    <ClInclude Include="src\generated_overlay\MpOverlayPackage.h" />
     <ClInclude Include="src\generated_overlay\OverlayCompiler.h" />
     <ClInclude Include="src\LlmClient.h" />
     <ClInclude Include="src\strategic_pipeline\DeterministicMinistry.h" />

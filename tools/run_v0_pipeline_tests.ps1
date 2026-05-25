@@ -132,6 +132,18 @@ $generatedOverlayVerifierSourceFiles = @(
     (Join-Path $repoRoot "src/generated_overlay/DslParser.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/DslValidator.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/MpOverlayPackage.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/OverlayCompiler.cpp")
+)
+$mpOverlayPackageVerifierExePath = Join-Path $repoRoot "dist/mp_overlay_package_verifier_test.exe"
+$mpOverlayPackageVerifierSourceFiles = @(
+    (Join-Path $repoRoot "tests/mp_overlay_package_verifier_test.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslParser.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslValidator.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/MpOverlayPackage.cpp"),
     (Join-Path $repoRoot "src/common/FileUtil.cpp"),
     (Join-Path $repoRoot "src/common/JsonSanity.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/OverlayCompiler.cpp")
@@ -166,6 +178,7 @@ try {
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $processingQueueSourceFiles /Fe:$processingQueueExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayContractSourceFiles /Fe:$generatedOverlayContractExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayVerifierSourceFiles /Fe:$generatedOverlayVerifierExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $mpOverlayPackageVerifierSourceFiles /Fe:$mpOverlayPackageVerifierExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignSaveScannerSourceFiles /Fe:$campaignSaveScannerExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignLibraryPlannerSourceFiles /Fe:$campaignLibraryPlannerExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $stellarisSavePathResolverSourceFiles /Fe:$stellarisSavePathResolverExePath
@@ -1346,6 +1359,11 @@ if ($LASTEXITCODE -ne 0) {
 & $generatedOverlayVerifierExePath
 if ($LASTEXITCODE -ne 0) {
     throw "generated overlay verifier tests failed."
+}
+
+& $mpOverlayPackageVerifierExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "mp overlay package verifier tests failed."
 }
 
 & $campaignSaveScannerExePath
