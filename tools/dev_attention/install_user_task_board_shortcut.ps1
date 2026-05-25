@@ -1,5 +1,5 @@
 param(
-    [switch]$InstallStartupShortcut = $true,
+    [switch]$InstallStartupShortcut = $false,
     [switch]$InstallDesktopShortcut = $true,
     [switch]$InstallStartMenuShortcut = $true
 )
@@ -7,7 +7,8 @@ param(
 $ErrorActionPreference = "Stop"
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
-$watchdogScript = Join-Path $repoRoot "tools\dev_attention\run_user_task_board_watchdog.ps1"
+$launcherSourcePath = Join-Path $repoRoot "tools\dev_attention\TaskBoardLauncher.cs"
+$launcherOutputPath = Join-Path $repoRoot "dist\private_tools\StrategicNexusTaskBoardLauncher.exe"
 $iconPath = Join-Path $repoRoot "tools\dev_attention\assets\task_board_calm.ico"
 $taskBoardAppUserModelId = "StrategicNexus.UserTaskBoard"
 $firstRunStartMenuShortcutMarkerPath = Join-Path $repoRoot "dist\private_reports\user_task_board_start_menu_shortcut.checked"
@@ -120,6 +121,37 @@ function Ensure-Directory {
     }
 }
 
+function Ensure-TaskBoardLauncher {
+    if (-not (Test-Path -LiteralPath $launcherSourcePath)) {
+        throw "Task Board launcher source not found: $launcherSourcePath"
+    }
+
+    Ensure-Directory $launcherOutputPath
+    $sourceWriteTime = (Get-Item -LiteralPath $launcherSourcePath).LastWriteTimeUtc
+    $needsBuild = -not (Test-Path -LiteralPath $launcherOutputPath)
+    if (-not $needsBuild) {
+        $needsBuild = (Get-Item -LiteralPath $launcherOutputPath).LastWriteTimeUtc -lt $sourceWriteTime
+    }
+
+    if (-not $needsBuild) {
+        return
+    }
+
+    $cscCandidates = @(
+        (Join-Path $env:SystemRoot "Microsoft.NET\Framework64\v4.0.30319\csc.exe"),
+        (Join-Path $env:SystemRoot "Microsoft.NET\Framework\v4.0.30319\csc.exe")
+    )
+    $cscPath = @($cscCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1)
+    if (-not $cscPath) {
+        throw "C# compiler csc.exe not found. Cannot build Task Board launcher."
+    }
+
+    & $cscPath /nologo /target:winexe /out:$launcherOutputPath /reference:System.Windows.Forms.dll $launcherSourcePath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Task Board launcher build failed with exit code $LASTEXITCODE"
+    }
+}
+
 function New-TaskBoardShortcut {
     param([string]$ShortcutPath)
 
@@ -127,24 +159,29 @@ function New-TaskBoardShortcut {
 
     $shell = New-Object -ComObject WScript.Shell
     $shortcut = $shell.CreateShortcut($ShortcutPath)
-    $shortcut.TargetPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
-    $shortcut.Arguments = "-NoProfile -ExecutionPolicy RemoteSigned -WindowStyle Hidden -File `"$watchdogScript`""
+    $shortcut.TargetPath = $launcherOutputPath
+    $shortcut.Arguments = "`"$repoRoot`""
     $shortcut.WorkingDirectory = $repoRoot
-    $shortcut.WindowStyle = 7
+    $shortcut.WindowStyle = 1
     $shortcut.Description = "Strategic Nexus user task board"
     $shortcut.IconLocation = "$iconPath,0"
     $shortcut.Save()
     [StrategicNexusShortcutProperties]::SetAppUserModelId($ShortcutPath, $taskBoardAppUserModelId)
 }
 
+Ensure-TaskBoardLauncher
+
 if ($InstallDesktopShortcut) {
     $desktop = [Environment]::GetFolderPath("Desktop")
     New-TaskBoardShortcut -ShortcutPath (Join-Path $desktop "Strategic Nexus Task Board.lnk")
 }
 
+$startup = [Environment]::GetFolderPath("Startup")
+$startupShortcutPath = Join-Path $startup "Strategic Nexus Task Board.lnk"
 if ($InstallStartupShortcut) {
-    $startup = [Environment]::GetFolderPath("Startup")
-    New-TaskBoardShortcut -ShortcutPath (Join-Path $startup "Strategic Nexus Task Board.lnk")
+    New-TaskBoardShortcut -ShortcutPath $startupShortcutPath
+} elseif (Test-Path -LiteralPath $startupShortcutPath) {
+    Remove-Item -LiteralPath $startupShortcutPath -Force
 }
 
 if ($InstallStartMenuShortcut) {
@@ -156,6 +193,7 @@ if ($InstallStartMenuShortcut) {
 }
 
 Write-Host "task_board_icon=$iconPath"
+Write-Host "task_board_launcher=$launcherOutputPath"
 Write-Host "task_board_app_user_model_id=$taskBoardAppUserModelId"
 Write-Host "desktop_shortcut_installed=$InstallDesktopShortcut"
 Write-Host "startup_shortcut_installed=$InstallStartupShortcut"
