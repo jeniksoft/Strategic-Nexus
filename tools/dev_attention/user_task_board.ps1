@@ -1985,7 +1985,7 @@ function Install-StartMenuShortcut {
     param([bool]$ShowNotification)
 
     try {
-        $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$shortcutInstallerScriptPath`" -InstallDesktopShortcut:`$false -InstallStartupShortcut:`$false -InstallStartMenuShortcut:`$true"
+        $arguments = "-NoProfile -ExecutionPolicy RemoteSigned -File `"$shortcutInstallerScriptPath`" -InstallDesktopShortcut:`$false -InstallStartupShortcut:`$false -InstallStartMenuShortcut:`$true"
         $startInfo = New-Object System.Diagnostics.ProcessStartInfo
         $startInfo.FileName = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
         $startInfo.Arguments = $arguments

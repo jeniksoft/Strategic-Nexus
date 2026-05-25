@@ -267,7 +267,7 @@ The following points are already settled unless new evidence appears:
 After editing durable architecture or safety-related docs, run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\run_safety_audit.ps1
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File tools\run_safety_audit.ps1
 ```
 
 Run broader tests only when the change touches code, test contracts, generated overlay behavior, or executable pipeline behavior.

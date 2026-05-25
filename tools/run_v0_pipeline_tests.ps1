@@ -35,7 +35,7 @@ function Invoke-WithDeveloperShell {
         throw "cl.exe was not found and VsDevCmd.bat could not be located. Install Visual Studio C++ tools or run from a Developer PowerShell."
     }
 
-    & cmd.exe /c "`"$vsDevCmd`" -arch=x64 -host_arch=x64 && powershell -NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`""
+    & cmd.exe /c "`"$vsDevCmd`" -arch=x64 -host_arch=x64 && powershell -NoProfile -ExecutionPolicy RemoteSigned -File `"$ScriptPath`""
     exit $LASTEXITCODE
 }
 

@@ -69,7 +69,7 @@ try {
     while (-not (Test-Path -LiteralPath $stopPath)) {
         $terminalIdsBeforeStart = Get-TerminalProcessIds
         $startedAt = Get-Date
-        $arguments = "-NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$boardScript`" -TaskFilePath `"$TaskFilePath`" -StopFilePath `"$StopFilePath`""
+        $arguments = "-NoProfile -STA -ExecutionPolicy RemoteSigned -WindowStyle Hidden -File `"$boardScript`" -TaskFilePath `"$TaskFilePath`" -StopFilePath `"$StopFilePath`""
 
         $startInfo = New-Object System.Diagnostics.ProcessStartInfo
         $startInfo.FileName = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"

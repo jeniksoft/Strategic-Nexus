@@ -181,7 +181,7 @@ function Update-ProjectProgressEstimate {
 
     & powershell `
         -NoProfile `
-        -ExecutionPolicy Bypass `
+        -ExecutionPolicy RemoteSigned `
         -File $progressScript `
         -ProjectProgressFilePath $ProgressPath `
         -RoadmapComplexityOutputPath $ComplexityPath | Out-Null
@@ -197,7 +197,7 @@ function Update-MaintenanceBalance {
 
     & powershell `
         -NoProfile `
-        -ExecutionPolicy Bypass `
+        -ExecutionPolicy RemoteSigned `
         -File $balanceScript | Out-Null
 
     return $true

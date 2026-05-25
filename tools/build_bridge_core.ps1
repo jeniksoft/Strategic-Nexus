@@ -44,7 +44,7 @@ if (-not (Get-Command cl.exe -ErrorAction SilentlyContinue)) {
     }
 
     $scriptPath = $MyInvocation.MyCommand.Path
-    & cmd.exe /c "`"$vsDevCmd`" -arch=x64 -host_arch=x64 && powershell -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`" -Output `"$Output`""
+    & cmd.exe /c "`"$vsDevCmd`" -arch=x64 -host_arch=x64 && powershell -NoProfile -ExecutionPolicy RemoteSigned -File `"$scriptPath`" -Output `"$Output`""
     exit $LASTEXITCODE
 }
 

@@ -47,7 +47,7 @@ function Get-AutomaticProjectProgressEstimate {
 
     $analysisScript = Join-Path $PSScriptRoot "analyze_roadmap_complexity.ps1"
     $analysisOutputPath = Resolve-ProjectPath $RoadmapComplexityOutputPath
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $analysisScript -RoadmapFilePath $RoadmapPath -OutputPath $analysisOutputPath | Out-Null
+    & powershell -NoProfile -ExecutionPolicy RemoteSigned -File $analysisScript -RoadmapFilePath $RoadmapPath -OutputPath $analysisOutputPath | Out-Null
     $analysis = Get-Content -Raw -LiteralPath $analysisOutputPath | ConvertFrom-Json
 
     return [pscustomobject]@{
