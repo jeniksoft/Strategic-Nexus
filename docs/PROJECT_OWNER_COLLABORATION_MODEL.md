@@ -99,6 +99,10 @@ The visible task-board UI should be in Czech.
 Task-board tasks and task-board reports should also be written in Czech by default.
 If a Windows tool cannot reliably render Czech diacritics, Codex may use readable Czech without diacritics rather than risking mojibake.
 
+Background automation final messages and inbox item titles/summaries are owner-facing communication.
+They should also be written in Czech by default.
+Technical paths, commands, code symbols, test names, commit identifiers, and API names may remain in their original form.
+
 The task board should preserve owner workflow state across restarts when practical: open mode, selected item, detail scroll position, and window bounds should return after Codex restarts or fixes the tool.
 
 Active tasks should include `progress_percent` when progress is known.

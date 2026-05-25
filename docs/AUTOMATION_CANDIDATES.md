@@ -194,6 +194,7 @@ Expected output:
 * otherwise choose a chunk size from remaining budget, burn-rate estimate, and task value
 * implement at most one bounded chunk, run targeted verification, commit coherent changes, and create a Czech task-board report only for important owner-facing results
 * if useful files are created or modified but cannot be committed, prefer retry-first handling: log the exact files, reason, and retry condition; create/update one Czech task-board Report/Suggestion only when the owner should know important uncommitted work exists; create `Ukoly pro me` only when owner action is genuinely required
+* write any owner-facing automation final message and inbox item title/summary in Czech; technical paths, commands, symbols, and commit identifiers may remain unchanged
 * do not create owner tasks for routine technical automation problems that Codex can retry or resolve later, such as transient git locks, delayed commits, tests still finishing, or local helper state
 
 Do not:
