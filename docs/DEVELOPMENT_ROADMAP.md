@@ -316,6 +316,34 @@ The same save history may produce different memories and personality drift for d
 
 ---
 
+# Strategic Intelligence Phasing Guard
+
+Items 3A and 3B are approved architecture, but they must not be implemented as full strategic simulation before parser and evidence contracts exist.
+
+Allowed early work:
+
+* schemas
+* fixtures
+* validation contracts
+* parser field availability maps
+* fail-closed tests
+* evidence/confidence plumbing
+* generated overlay no-op or conservative test harnesses
+
+Not allowed early:
+
+* pretending unavailable save fields are known
+* broad LLM prompts over raw saves
+* target-specific gameplay rules without identity and evidence validation
+* internal-pressure gameplay rules without resource/capability/ethics evidence
+* full domestic politics simulation
+* hidden AI bonuses or player penalties
+
+Worker rule:
+when a 3A or 3B task lacks required save evidence, implement the contract and missing-field reporting first, then stop before gameplay-affecting output.
+
+---
+
 ## 3A. Subjective Other-Empire Profiles And Targeted Rules
 
 Status:
@@ -328,6 +356,7 @@ Required:
 
 * observer-target profile schema keyed by campaign, observer empire, and target empire
 * relationship delta schema that separates general trust from predicted future behavior
+* parser field availability map for observer, target, diplomacy, war, subject, federation, border, and intel evidence
 * per-observer evidence extraction from latest-session autosaves
 * LLM interpretation contract for subjective target profiles
 * validation rules for confidence, source evidence, target identity, and allowed rule domains
@@ -354,6 +383,7 @@ Required:
 
 * campaign-empire internal pressure schema
 * integrated empire-state contract that combines identity, ethics, population ethics distribution when known, government, civics, resources, income trajectory, capability, memory, relationships, internal pressure, reputation, and doctrine inertia
+* parser field availability map for each integrated-state input
 * bounded pressure dimensions such as security anxiety, economic pressure, public trauma, elite agenda, prestige need, diplomatic flexibility, and war exhaustion memory
 * strategic reputation schema that separates private self-image from observer/audience perception
 * plausible reputation spread rules based on visibility, diplomacy, war participation, federation/subject links, espionage, or other validated information paths

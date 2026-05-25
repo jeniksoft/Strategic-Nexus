@@ -304,6 +304,8 @@ These do not block initial skeleton implementation:
 * final LLM provider
 * real gameplay effect balancing
 * long-term memory schema
+* observer-target social intelligence
+* integrated empire-state/internal pressure/reputation simulation
 
 These must be decided before production gameplay:
 

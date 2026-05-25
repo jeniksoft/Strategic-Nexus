@@ -823,6 +823,8 @@ These must be solved before implementation:
 * which generated mod files are checksum-sensitive
 * how to package identical multiplayer generated overlays
 * whether save parsing can recover all needed empire identity fields safely
+* which save fields can safely support integrated empire-state inputs such as ethics distribution, resources, income, capability, diplomatic state, reputation evidence, and internal pressure evidence
+* which 3A/3B outputs must remain summaries only until parser coverage and confidence are good enough for generated overlay rules
 
 Partially answered by current v0 harnesses:
 
