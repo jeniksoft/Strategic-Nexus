@@ -1355,6 +1355,11 @@ function Format-TaskDetails {
     }
 
     if ($Item.board_kind -eq "suggestion") {
+        $nextHeading = "DOPORUCENY KROK"
+        if ($Item.status -eq "realizovano") {
+            $nextHeading = "NAVAZUJICI SLEDOVANI"
+        }
+
         return @"
 TYP
 NAVRH
@@ -1377,10 +1382,10 @@ $($Item.proposal)
 PROC TO STOJI ZA UVAHU
 $($Item.why)
 
-DOPORUCENY KROK
+$nextHeading
 $($Item.next)
 
-STAV
+STAV REALIZACE
 $($Item.status)
 
 CAS
@@ -1524,8 +1529,10 @@ function Set-DetailsText {
             "PROC JE TO DULEZITE",
             "PROC TO STOJI ZA UVAHU",
             "NAVAZUJICI KROK",
+            "NAVAZUJICI SLEDOVANI",
             "DOPORUCENY KROK",
             "STAV",
+            "STAV REALIZACE",
             "CAS",
             "PRIORITA",
             "HOTOVO",
