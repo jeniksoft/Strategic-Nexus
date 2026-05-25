@@ -128,6 +128,7 @@ function Read-CodexRateLimits {
     }
 
     $response = $null
+    $errorResponse = $null
     foreach ($line in ($stdout -split "`r?`n")) {
         if (-not $line.Trim()) {
             continue
@@ -140,9 +141,15 @@ function Read-CodexRateLimits {
         if ($message.id -eq 2 -and $message.result) {
             $response = $message.result
         }
+        if ($message.id -eq 2 -and $message.error) {
+            $errorResponse = $message.error
+        }
     }
 
     if (-not $response) {
+        if ($errorResponse -and $errorResponse.message) {
+            throw "Codex app-server returned an error for account/rateLimits/read: $($errorResponse.message)"
+        }
         throw "Codex app-server did not return account/rateLimits/read. stderr: $stderr"
     }
 
