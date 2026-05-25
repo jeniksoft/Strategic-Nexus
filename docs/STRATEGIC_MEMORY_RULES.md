@@ -152,6 +152,8 @@ Strategic memory may be derived from:
 * failed doctrines
 * timeline events
 * strategic transitions
+* repeated internal pressure
+* reputation-forming behavior
 
 ---
 
@@ -338,6 +340,61 @@ That asymmetry is a feature, not a bug.
 
 Target-specific generated rules may be derived from profile memory only after validation and budget checks.
 If evidence is weak, store a summary and skip gameplay-affecting output.
+
+---
+
+# Internal Pressure Memory
+
+Empires should remember more than external diplomatic events.
+
+Strategic memory should track internal political pressure that affects future behavior.
+
+Examples:
+
+* security anxiety after repeated invasions
+* economic pressure after long war or collapse
+* public trauma after extermination attempts or crisis devastation
+* prestige need after humiliation
+* elite agenda pressure from repeated military success or failure
+* diplomatic flexibility after isolation becomes costly
+
+Internal pressure is not a detailed domestic politics simulator.
+It is a bounded strategic explanation layer for why a civilization may choose caution, revenge, appeasement, reform, isolation, or expansion.
+
+Internal pressure memory should be:
+
+* campaign-empire scoped
+* slowly evolving
+* evidence-linked
+* bounded
+* clamped by validation
+* summarized with concise rationale and confidence
+
+---
+
+# Strategic Reputation Memory
+
+Strategic reputation is how other empires perceive an empire's pattern of behavior.
+
+It is different from the empire's private self-image.
+
+Reputation should never be perfect global knowledge.
+It should spread only through plausible observation, diplomacy, war participation, federation membership, subject relations, espionage, or other validated information paths.
+
+Examples:
+
+* "keeps agreements"
+* "breaks deals under pressure"
+* "attacks weakened neighbors"
+* "protects federation members"
+* "joins the likely winner"
+* "escalates rivalries"
+
+Reputation may be shared by a group of observers when the evidence is public or widely known.
+Otherwise it remains observer-specific.
+
+Generated rules may use reputation only as coarse strategic guidance.
+They must not grant hidden information or artificial bonuses.
 
 ---
 

@@ -400,6 +400,76 @@ Strategic Nexus should simulate civilizations, not perfect solvers.
 
 ---
 
+# Internal Pressure Rule
+
+Civilization personality should be interpreted together with current internal pressure.
+
+Internal pressure describes what the state is trying to survive, satisfy, or politically justify.
+
+Examples:
+
+* security anxiety after invasion
+* prestige need after humiliation
+* economic pressure after over-militarization
+* public trauma after devastation
+* diplomatic flexibility after isolation becomes dangerous
+* elite agenda after repeated doctrine success
+
+Internal pressure may push two empires with similar personality traits toward different strategies.
+
+Example:
+
+```text
+honor-bound + low pressure
+-> maintain alliance commitments
+
+honor-bound + extreme economic pressure
+-> seek face-saving compromise instead of endless war
+```
+
+LLM interpretation may propose internal pressure deltas, but only validated bounded state may persist.
+
+---
+
+# Strategic Reputation Rule
+
+Empires should form reputations from repeated behavior.
+
+Reputation affects how other empires predict and respond to them.
+
+This must not become universal omniscience.
+
+Reputation should depend on:
+
+* who observed the behavior
+* who suffered from it
+* who has diplomatic or federation access
+* whether the event was public enough to matter
+* confidence in the parsed evidence
+
+The same empire may be seen as a reliable ally by one observer and an opportunistic threat by another.
+
+---
+
+# Doctrine Reform Cost Rule
+
+Strategic style should have inertia.
+
+The LLM may recommend reform, but a civilization should not casually abandon a long-running doctrine after one save interval.
+
+Doctrine changes should consider:
+
+* historical success
+* historical failure
+* current capability
+* internal pressure
+* prestige loss or face-saving need
+* whether the empire has enough time and resources to reform
+
+This improves realism and prevents the mod from becoming a session-by-session optimizer.
+
+---
+
 # Personality And Capability Constraints
 
 Personality does not override reality.

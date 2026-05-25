@@ -342,6 +342,32 @@ If profile confidence is low, store a concise memory summary and skip gameplay-a
 
 ---
 
+## 3B. Internal Pressure And Strategic Reputation
+
+Status:
+NOT_STARTED
+
+Goal:
+Make empires feel like real political entities with internal constraints and reputational consequences, while keeping AI difficulty fair.
+
+Required:
+
+* campaign-empire internal pressure schema
+* bounded pressure dimensions such as security anxiety, economic pressure, public trauma, elite agenda, prestige need, diplomatic flexibility, and war exhaustion memory
+* strategic reputation schema that separates private self-image from observer/audience perception
+* plausible reputation spread rules based on visibility, diplomacy, war participation, federation/subject links, espionage, or other validated information paths
+* doctrine inertia and reform-cost fields
+* validation rules that clamp all pressure, reputation, and reform deltas
+* tests proving the same autosave evidence can produce different internal-pressure and reputation interpretations for different empires
+* generated overlay support for coarse strategic nudges only, never hidden AI bonuses or player penalties
+
+Notes:
+This layer is intended to make the game harder by making empires more coherent, historical, and socially predictive.
+It must not become a detailed domestic politics simulator or a cheating AI advantage.
+If evidence is weak, store memory summaries and skip gameplay-affecting generated rules.
+
+---
+
 ## 4. Save Timeline Memory Bootstrap
 
 Status:
@@ -532,6 +558,8 @@ Required:
 * risk tolerance
 * trust/distrust
 * trauma memory
+* internal pressure
+* strategic reputation interpretation
 * strategic culture
 
 Notes:
@@ -557,6 +585,9 @@ Required:
 * trauma persistence
 * trust persistence
 * observer-target predictive profile persistence
+* internal pressure persistence
+* strategic reputation persistence
+* doctrine reform-cost memory
 * memory decay
 * historical interpretation
 * incremental session-delta memory updates

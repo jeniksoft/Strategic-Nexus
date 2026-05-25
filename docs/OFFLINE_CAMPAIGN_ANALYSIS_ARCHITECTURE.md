@@ -484,6 +484,83 @@ each empire builds a practical theory of other empires, then the next-session ge
 
 ---
 
+# Internal Pressure, Reputation, And Doctrine Inertia
+
+Strategic Nexus should make the galaxy more believable by making empires act like political entities, not optimized stat machines.
+
+The goal is higher difficulty through better continuity and strategic realism, not through hidden bonuses for AI empires or penalties for the player.
+
+Offline analysis should therefore maintain three additional campaign-empire state layers.
+
+## Internal Pressure
+
+Internal pressure represents what the empire needs, fears, and cannot easily ignore.
+
+Examples:
+
+* security anxiety
+* economic pressure
+* public trauma
+* elite agenda
+* prestige need
+* diplomatic flexibility
+* war exhaustion memory
+* internal stability pressure
+
+Internal pressure explains why an empire may avoid the theoretically best move.
+
+Example:
+
+```text
+high security anxiety + invasion trauma
+-> prefer defensive pacts
+-> prefer chokepoint fortification
+-> reduce risky expansion
+```
+
+## Strategic Reputation
+
+Strategic reputation represents how an empire is perceived by other empires through observed or plausibly known behavior.
+
+It must not become telepathy.
+
+Reputation should be:
+
+* observer-scoped or audience-scoped
+* evidence-linked
+* confidence-scored
+* affected by intel and diplomatic contact
+* allowed to spread only through plausible channels
+
+Examples:
+
+* unreliable dealmaker
+* loyal federation defender
+* opportunistic attacker
+* predictable rival
+* crisis bulwark
+* serial betrayer
+
+Strategic reputation may influence multiple observers, but each observer still has its own subjective profile and confidence.
+
+## Doctrine Inertia And Reform Cost
+
+Empires should not fully change strategic style every session.
+
+Doctrine changes should have inertia and reform cost.
+
+Examples:
+
+* a fortress civilization does not instantly become a raiding empire
+* a traumatized empire may overinvest in security
+* a victorious fleet doctrine remains attractive until evidence weakens it
+* a failed doctrine should not be retried without strong new justification
+
+The generated overlay should express these layers only as coarse, bounded strategic nudges.
+They must remain optional when confidence is low or when runtime budget would be exceeded.
+
+---
+
 # Mod Update Model
 
 Strategic Nexus must not update the active mod package while Stellaris is running.
