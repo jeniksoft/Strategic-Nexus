@@ -9,15 +9,31 @@ Personality is a core strategic system.
 The same strategic situation should produce different valid decisions depending on:
 
 * ethics
+* current ethics distribution in the population when known
 * civics
 * government type
 * species traits
+* current resources and income trajectory
+* military and industrial capability
+* state stability and internal pressure
 * historical memory
 * trauma
 * civilization culture
 * personality profile
 
 Strategic Nexus exists to create believable civilizations, not mathematically identical empire solvers.
+
+Personality is not a separate layer that decides alone.
+It is one input into an integrated empire-state interpretation.
+
+The LLM should interpret the empire as one coherent political organism:
+
+```text
+identity + institutions + population ethics + resources + capability + memory + pressure + relationships
+```
+
+The implementation may expose these as separate bounded schemas, but the final interpretation must be cross-checked.
+Do not accept a personality-driven recommendation if it clearly contradicts capability, resource reality, current ethics pressure, or validated internal state.
 
 ---
 

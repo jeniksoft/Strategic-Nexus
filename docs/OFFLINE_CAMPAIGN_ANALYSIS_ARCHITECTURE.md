@@ -492,6 +492,37 @@ The goal is higher difficulty through better continuity and strategic realism, n
 
 Offline analysis should therefore maintain three additional campaign-empire state layers.
 
+These layers are not independent brains.
+They are projections of one integrated campaign-empire state.
+
+Empire state should combine:
+
+* personality and ethics
+* current ethics distribution when recoverable from saves
+* government and authority
+* civics and species traits
+* resources, income, deficits, and production trajectory
+* territory, borders, threats, and military capability
+* internal pressure
+* relationship memory and reputation
+* doctrine inertia and reform cost
+
+Example:
+
+```text
+authoritarian militarist empire
++ high mineral income
++ low food stability
++ strong militarist population share
++ recent humiliation
++ high prestige need
+-> more likely to seek a limited revenge war if capability allows it
+-> less likely to accept a humiliating compromise
+```
+
+Implementation may keep separate schemas for validation and budgeting, but analysis must reconcile them before producing generated overlay rules.
+A rule candidate that makes sense for personality but contradicts resources, ethics pressure, capability, or current internal state should be downgraded, revised, or rejected.
+
 ## Internal Pressure
 
 Internal pressure represents what the empire needs, fears, and cannot easily ignore.

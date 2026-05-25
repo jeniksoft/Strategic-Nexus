@@ -410,6 +410,27 @@ The LLM may choose dimensions only from:
 - legitimate intel
 - empire personality
 
+Modular strategy dimensions are implementation boundaries, not separate minds.
+
+Before a dimension becomes generated overlay behavior, it should be reconciled against the integrated empire state:
+
+- ethics and current ethics distribution when known
+- government, civics, authority, and species context
+- resources, income trend, deficits, and production capacity
+- military, territory, and border situation
+- internal pressure, memory, and reputation
+- relationship and observer-target profile state
+
+Cross-domain contradictions should fail closed or be downgraded.
+
+Example:
+
+```text
+personality suggests revenge
+but economy is collapsing and capability is low
+-> prefer rearmament, deterrence, or face-saving diplomacy over immediate war
+```
+
 It must not use:
 - hidden save truth
 - unknown empire data

@@ -353,18 +353,22 @@ Make empires feel like real political entities with internal constraints and rep
 Required:
 
 * campaign-empire internal pressure schema
+* integrated empire-state contract that combines identity, ethics, population ethics distribution when known, government, civics, resources, income trajectory, capability, memory, relationships, internal pressure, reputation, and doctrine inertia
 * bounded pressure dimensions such as security anxiety, economic pressure, public trauma, elite agenda, prestige need, diplomatic flexibility, and war exhaustion memory
 * strategic reputation schema that separates private self-image from observer/audience perception
 * plausible reputation spread rules based on visibility, diplomacy, war participation, federation/subject links, espionage, or other validated information paths
 * doctrine inertia and reform-cost fields
+* cross-domain consistency checks before generated overlay rules are accepted
 * validation rules that clamp all pressure, reputation, and reform deltas
 * tests proving the same autosave evidence can produce different internal-pressure and reputation interpretations for different empires
+* tests proving personality-driven recommendations are downgraded or rejected when they contradict resources, capability, ethics pressure, or internal state
 * generated overlay support for coarse strategic nudges only, never hidden AI bonuses or player penalties
 
 Notes:
 This layer is intended to make the game harder by making empires more coherent, historical, and socially predictive.
 It must not become a detailed domestic politics simulator or a cheating AI advantage.
 If evidence is weak, store memory summaries and skip gameplay-affecting generated rules.
+Subsystem schemas are implementation boundaries; the empire itself is one integrated state.
 
 ---
 

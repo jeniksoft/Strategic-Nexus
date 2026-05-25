@@ -409,6 +409,7 @@ Status:
 * architecture rules exist
 * campaign-empire personality bootstrap rules exist
 * internal pressure, strategic reputation, and doctrine reform cost are approved architecture layers for later strategic memory work
+* subsystem schemas are implementation boundaries; final interpretation must reconcile one integrated campaign-empire state
 * implementation is not started
 * v0 should not implement full politics/personality drift
 
