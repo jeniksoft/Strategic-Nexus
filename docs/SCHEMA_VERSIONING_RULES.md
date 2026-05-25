@@ -1,4 +1,4 @@
-# Strategic Nexus — Schema Versioning Rules
+# Strategic Nexus - Schema Versioning Rules
 
 ## Core Rule
 
@@ -70,16 +70,16 @@ Preferred evolution:
 
 ```text
 v1
-→ add optional field
-→ v2
+-> add optional field
+-> v2
 ```
 
 Rejected evolution:
 
 ```text
 v1
-→ completely different payload structure
-→ v2
+-> completely different payload structure
+-> v2
 ```
 
 ---
@@ -92,8 +92,8 @@ Correct behavior:
 
 ```text
 unknown field
-→ ignore safely
-→ preserve known behavior
+-> ignore safely
+-> preserve known behavior
 ```
 
 This allows newer daemon versions to communicate with older bridge/mod versions more safely.
@@ -108,16 +108,16 @@ Correct behavior:
 
 ```text
 missing field
-→ use previous value
+-> use previous value
 or
-→ use safe default
+-> use safe default
 ```
 
 Rejected behavior:
 
 ```text
 missing field
-→ reject entire payload
+-> reject entire payload
 ```
 
 ---
@@ -130,9 +130,9 @@ Correct behavior:
 
 ```text
 unknown enum
-→ ignore that domain
+-> ignore that domain
 or
-→ fallback that domain only
+-> fallback that domain only
 ```
 
 Do not invalidate the entire payload unless safety requires it.
@@ -160,10 +160,10 @@ Older bridge version:
 
 ```text
 known domains
-→ apply
+-> apply
 
 unknown domains
-→ ignore safely
+-> ignore safely
 ```
 
 ---
@@ -228,16 +228,16 @@ Correct behavior:
 
 ```text
 deprecated value
-→ migration mapping
+-> migration mapping
 or
-→ compatibility fallback
+-> compatibility fallback
 ```
 
 Rejected behavior:
 
 ```text
 old enum
-→ hard crash
+-> hard crash
 ```
 
 ---
@@ -248,8 +248,8 @@ If migration is needed:
 
 ```text
 old schema
-→ migration layer
-→ normalized internal representation
+-> migration layer
+-> normalized internal representation
 ```
 
 Migration should happen:
@@ -270,15 +270,15 @@ Correct behavior:
 
 ```text
 old save
-→ degraded compatibility if needed
-→ continue campaign safely
+-> degraded compatibility if needed
+-> continue campaign safely
 ```
 
 Rejected behavior:
 
 ```text
 old save
-→ completely unusable after update
+-> completely unusable after update
 ```
 
 ---

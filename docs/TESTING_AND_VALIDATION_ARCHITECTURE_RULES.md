@@ -1,4 +1,4 @@
-# Strategic Nexus — Testing And Validation Architecture Rules
+# Strategic Nexus - Testing And Validation Architecture Rules
 
 ## Core Rule
 

@@ -8,6 +8,9 @@ Manual debug transport is not a release workflow, and the project must not build
 
 ## Safe Automation Model
 
+Production gameplay now uses the offline companion model described in `OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md`.
+The model below remains valid as a local validation and development-harness boundary, not as a requirement for live LLM delivery into a running game.
+
 The supported automation boundary is:
 
 ```text

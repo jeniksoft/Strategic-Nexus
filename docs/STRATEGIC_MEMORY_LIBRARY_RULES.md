@@ -1,4 +1,4 @@
-# Strategic Nexus — Strategic Memory Library Rules
+# Strategic Nexus - Strategic Memory Library Rules
 
 ## Core Rule
 
@@ -48,10 +48,10 @@ Possible hierarchy:
 
 ```text
 raw events
-→ chapters
-→ books
-→ indexes
-→ active context
+-> chapters
+-> books
+-> indexes
+-> active context
 ```
 
 Only the final active context layer should enter inference prompts regularly.
@@ -87,12 +87,12 @@ A strategic episode should represent:
 
 ```text
 situation
-→ decision chain
-→ evolving state
-→ outcome
-→ interpretation
-→ lesson
-→ future behavioral influence
+-> decision chain
+-> evolving state
+-> outcome
+-> interpretation
+-> lesson
+-> future behavioral influence
 ```
 
 Episodes should preserve:
@@ -119,12 +119,12 @@ Example:
 
 ```text id="d8t4kl"
 border pressure
-→ ignored intel warnings
-→ delayed mobilization
-→ economic overexpansion
-→ chokepoint collapse
-→ emergency militarization
-→ catastrophic defeat
+-> ignored intel warnings
+-> delayed mobilization
+-> economic overexpansion
+-> chokepoint collapse
+-> emergency militarization
+-> catastrophic defeat
 ```
 
 This is more valuable than:
@@ -386,7 +386,7 @@ This improves:
 
 # Book Structure Rule
 
-Strategic memory should be stored as “books”.
+Strategic memory should be stored as "books".
 
 A book represents:
 
@@ -540,11 +540,11 @@ Example:
 
 ```text
 raw events
-→ local summaries
-→ chapter summaries
-→ book summaries
-→ civilization index
-→ active prompt context
+-> local summaries
+-> chapter summaries
+-> book summaries
+-> civilization index
+-> active prompt context
 ```
 
 This allows:

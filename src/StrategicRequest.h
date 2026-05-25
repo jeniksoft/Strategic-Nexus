@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #pragma once
 
 #include <filesystem>
@@ -28,3 +31,4 @@ const char* toString(RequestTrigger trigger);
 RequestTrigger requestTriggerFromString(const std::string& value);
 
 } // namespace strategic_nexus
+

@@ -1,4 +1,4 @@
-# Strategic Nexus — Ethics And Faction Governance Rules
+# Strategic Nexus - Ethics And Faction Governance Rules
 
 ## Core Rule
 
@@ -92,22 +92,22 @@ Examples:
 Border expansion by neighboring empire:
 
 Militarist:
-→ challenge opportunity
+-> challenge opportunity
 
 Pacifist:
-→ threat escalation
+-> threat escalation
 
 Xenophile:
-→ diplomatic concern
+-> diplomatic concern
 
 Xenophobe:
-→ confirmation of outsider danger
+-> confirmation of outsider danger
 
 Materialist:
-→ strategic power shift
+-> strategic power shift
 
 Spiritualist:
-→ ideological corruption risk
+-> ideological corruption risk
 
 Strategic Nexus civilizations should interpret reality through ideological lenses.
 
@@ -190,22 +190,22 @@ Ethics should heavily influence:
 Examples:
 
 Pacifist:
-→ defensive military doctrine
+-> defensive military doctrine
 
 Militarist:
-→ offensive strategic pressure
+-> offensive strategic pressure
 
 Materialist:
-→ technological specialization
+-> technological specialization
 
 Spiritualist:
-→ unity and psionic emphasis
+-> unity and psionic emphasis
 
 Xenophile:
-→ federation preference
+-> federation preference
 
 Xenophobe:
-→ border fortification and isolation
+-> border fortification and isolation
 
 ---
 
@@ -237,22 +237,22 @@ Different ethics should react differently to existential threats.
 Examples:
 
 Militarist:
-→ aggressive mobilization
+-> aggressive mobilization
 
 Pacifist:
-→ defensive consolidation
+-> defensive consolidation
 
 Materialist:
-→ technological escalation
+-> technological escalation
 
 Spiritualist:
-→ ideological interpretation
+-> ideological interpretation
 
 Authoritarian:
-→ centralized emergency control
+-> centralized emergency control
 
 Egalitarian:
-→ coalition building
+-> coalition building
 
 Crises should reinforce civilization identity rather than erase it.
 
@@ -603,19 +603,19 @@ Different personalities should react differently to ideological pressure.
 Examples:
 
 Paranoid empire:
-→ suppression and ideological rigidity
+-> suppression and ideological rigidity
 
 Pragmatic empire:
-→ gradual adaptation
+-> gradual adaptation
 
 Honor-bound empire:
-→ preserve tradition despite instability
+-> preserve tradition despite instability
 
 Opportunistic empire:
-→ rapid political realignment
+-> rapid political realignment
 
 Technocratic empire:
-→ optimize ideological-economic compatibility
+-> optimize ideological-economic compatibility
 
 ---
 

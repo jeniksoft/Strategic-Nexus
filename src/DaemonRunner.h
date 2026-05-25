@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #pragma once
 
 #include <chrono>
@@ -17,3 +20,4 @@ public:
 };
 
 } // namespace strategic_nexus
+

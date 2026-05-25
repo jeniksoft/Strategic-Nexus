@@ -1,4 +1,4 @@
-# Strategic Nexus — Doctrine Inertia Rules
+# Strategic Nexus - Doctrine Inertia Rules
 
 ## Core Rule
 
@@ -23,9 +23,9 @@ The goal is to simulate civilizations, not a perfect solver.
 Forbidden pattern:
 
 new save
-→ LLM finds slightly better doctrine
-→ empire immediately switches doctrine
-→ next save changes again
+-> LLM finds slightly better doctrine
+-> empire immediately switches doctrine
+-> next save changes again
 
 This creates:
 - unstable AI
@@ -84,9 +84,9 @@ Each doctrine should have a minimum lifetime.
 
 Suggested defaults:
 
-- minor posture adjustment: 3–5 years
-- fleet doctrine shift: 10–15 years
-- research direction shift: 5–10 years
+- minor posture adjustment: 3-5 years
+- fleet doctrine shift: 10-15 years
+- research direction shift: 5-10 years
 - ideology-level grand strategy shift: 20+ years
 
 These are design defaults, not fixed final numbers.

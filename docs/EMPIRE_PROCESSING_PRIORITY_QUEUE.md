@@ -1,4 +1,4 @@
-# Strategic Nexus — Empire Processing Priority Queue
+# Strategic Nexus - Empire Processing Priority Queue
 
 ## Core Rule
 
@@ -55,11 +55,11 @@ Required scheduler:
 
 ```text
 newest save
-→ build empire priority scores
-→ process highest-priority empire
-→ update decision
-→ process next priority empire
-→ periodically refresh priority from newest save
+-> build empire priority scores
+-> process highest-priority empire
+-> update decision
+-> process next priority empire
+-> periodically refresh priority from newest save
 ```
 
 Round-robin may still be used inside equal priority groups.
@@ -246,9 +246,9 @@ Instead:
 
 ```text
 old decision
-→ lower intensity
-→ lower confidence
-→ keep doctrine until replaced
+-> lower intensity
+-> lower confidence
+-> keep doctrine until replaced
 ```
 
 Invalid decisions:

@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "V0StrategicPipeline.h"
 
 #include "DeterministicMinistry.h"
@@ -64,3 +67,4 @@ PipelineRunResult V0StrategicPipeline::run(const PipelineRunConfig& config) cons
 }
 
 } // namespace strategic_nexus::strategic_pipeline
+

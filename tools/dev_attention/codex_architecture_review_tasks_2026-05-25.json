@@ -1,0 +1,10 @@
+{
+    "id": "arch-review-2026-05-25-mp-overlay-export-and-identity-contract",
+    "status": "open",
+    "severity": "high",
+    "title": "Rozhodnout MP overlay export + identity kontrakt",
+    "task": "Vybrat minimalni v0 kontrakt pro multiplayer: jak exportovat/importovat generated overlay balicek (byte-identical gameplay soubory) a jak zavest kampanovy marker + empire identity resolver pro kontinuitu pameti a osobnosti.",
+    "why": "Soucasna architektura ma pevny smer (offline autosave analysis + next-session overlay), ale MP pouziti je blokovane neurcitym export/packaging workflow a tim, ze identita kampane/empire neni uzavrena v jedinem testovatelnem kontraktu. Benefit: jasny end-to-end workflow, mensi riziko divergentnich overlay souboru, checksum mismatchu a cross-save kontaminace. Riziko: predcasne zvoleny format balicku nebo identity markeru muze vyzadovat pozdejsi migraci; proto je lepsi zvolit co nejmensi, ale stabilni v0 tvar.",
+    "instructions": "Otazka pro ownera: (1) Ktery primarni MP distribucni mechanismus chceme pro v0: A) host exportuje zip balicek + handoff zip a ostatni ho rucne nainstaluji/importuji, B) sdileny adresar (LAN/Drive) + verifikace manifestem, C) Steam Workshop/private distribuce? (2) Jak minimalne definovat kampanovy marker (napr. 1-2 numeric promennych na authority country + init flag) a empire identity resolver (country_id vs vlastni persistovany numeric marker) tak, aby prezil host rotaci a zmeny jmen?",
+    "run_timestamp": "2026-05-25T00:00:00+02:00"
+}

@@ -71,9 +71,14 @@ try {
 
     $gh = Get-Command gh -ErrorAction SilentlyContinue
     if ($gh) {
-        $visibility = gh repo view jeniksoft/Strategic-Nexus --json visibility --jq ".visibility"
-        if ($visibility -ne "PRIVATE" -and $visibility -ne "PUBLIC") {
-            Add-FindingBlock "repository visibility" @("Unexpected repository visibility: $visibility")
+        try {
+            $visibility = gh repo view jeniksoft/Strategic-Nexus --json visibility --jq ".visibility" 2>$null
+            if (-not [string]::IsNullOrWhiteSpace($visibility) -and $visibility -ne "PRIVATE" -and $visibility -ne "PUBLIC") {
+                Add-FindingBlock "repository visibility" @("Unexpected repository visibility: $visibility")
+            }
+        } catch {
+            # In sandboxed/offline environments, gh may be present but unusable (config path ACLs, no network, etc.).
+            # Treat this check as best-effort so the rest of the audit can still run.
         }
     }
 

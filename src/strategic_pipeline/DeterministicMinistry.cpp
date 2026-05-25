@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "DeterministicMinistry.h"
 
 #include <algorithm>
@@ -52,3 +55,4 @@ MinistryProposal DeterministicMinistry::propose(const MinistryInputContext& inpu
 }
 
 } // namespace strategic_nexus::strategic_pipeline
+

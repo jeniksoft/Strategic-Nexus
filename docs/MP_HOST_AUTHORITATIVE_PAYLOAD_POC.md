@@ -109,7 +109,7 @@ No raw text, script string, fleet target, build order, or save fragment enters t
 6. Do not use manual debug transport.
 7. Let the game pass at least one monthly pulse.
 8. On one player, expect `Strategic Nexus PoC: MP payload autorita`.
-9. On the other player, expect `Strategic Nexus PoC: MP payload pozorován`.
+9. On the other player, expect `Strategic Nexus PoC: MP payload pozorovan`.
 10. The authority player should also see existing diagnostics for:
     - global bridge flag
     - country bridge flag

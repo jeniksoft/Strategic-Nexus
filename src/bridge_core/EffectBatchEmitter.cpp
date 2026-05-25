@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "EffectBatchEmitter.h"
 
 namespace strategic_nexus::bridge_core {
@@ -42,3 +45,4 @@ EffectBatch EffectBatchEmitter::emit(const ScriptIntent& intent) const
 }
 
 } // namespace strategic_nexus::bridge_core
+

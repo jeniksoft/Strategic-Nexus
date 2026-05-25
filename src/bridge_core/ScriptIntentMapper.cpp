@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "ScriptIntentMapper.h"
 
 namespace strategic_nexus::bridge_core {
@@ -86,3 +89,4 @@ void ScriptIntentMapper::mapResearchBias(const StrategyDimensions& dimensions, S
 }
 
 } // namespace strategic_nexus::bridge_core
+

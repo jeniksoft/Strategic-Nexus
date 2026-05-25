@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "MinistryInputReader.h"
 
 #include "PipelineLimits.h"
@@ -153,3 +156,4 @@ MinistryInputReadResult MinistryInputReader::read(const std::filesystem::path& p
 }
 
 } // namespace strategic_nexus::strategic_pipeline
+

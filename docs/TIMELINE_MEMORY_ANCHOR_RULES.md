@@ -1,4 +1,4 @@
-# Strategic Nexus — Timeline Memory Anchor Rules
+# Strategic Nexus - Timeline Memory Anchor Rules
 
 ## Core Rule
 
@@ -69,10 +69,10 @@ Strategic Nexus should use this information as historical memory anchors.
 If daemon-side memory is missing:
 
 load save
-→ read campaign id
-→ parse timeline/history
-→ rebuild minimal strategic memory
-→ continue campaign
+-> read campaign id
+-> parse timeline/history
+-> rebuild minimal strategic memory
+-> continue campaign
 
 This allows:
 
@@ -155,15 +155,15 @@ Loss of daemon memory must not corrupt or invalidate the campaign.
 Correct behavior:
 
 daemon memory missing
-→ rebuild minimal memory from save timeline
-→ continue with reduced historical richness
-→ preserve current strategic doctrine if possible
+-> rebuild minimal memory from save timeline
+-> continue with reduced historical richness
+-> preserve current strategic doctrine if possible
 
 Rejected behavior:
 
 daemon memory missing
-→ campaign unusable
-→ strategic state destroyed
+-> campaign unusable
+-> strategic state destroyed
 
 ---
 
@@ -214,8 +214,8 @@ The daemon is the higher-level interpretation layer.
 In multiplayer:
 
 * timeline exists inside synchronized save state
-* host daemon may reconstruct memory from save
-* clients do not maintain separate daemon memory
+* host/coordinator offline analysis may reconstruct memory from archived saves
+* clients do not maintain separate Strategic Nexus reasoning memory
 * strategic continuity remains host-authoritative
 
 This prevents divergent historical interpretation between clients.

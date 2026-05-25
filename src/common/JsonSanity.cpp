@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "JsonSanity.h"
 
 #include <cctype>
@@ -58,3 +61,4 @@ bool hasBalancedJsonDelimiters(const std::string& json)
 }
 
 } // namespace strategic_nexus::common
+

@@ -1,4 +1,4 @@
-# Strategic Nexus — Adaptive System Load Rules
+# Strategic Nexus - Adaptive System Load Rules
 
 ## Core Rule
 
@@ -7,6 +7,13 @@ Gameplay performance has priority over strategic freshness.
 Strategic Nexus must adapt its processing load to available hardware resources and current game performance.
 
 The system must never assume unlimited CPU, RAM, GPU, VRAM, disk I/O, or inference capacity.
+
+Performance is a product-quality requirement across the whole project, not only a gameplay safeguard.
+The mod, generated overlay, companion app, save parser, offline analysis, automations, and owner-facing tools should be designed so that routine use feels fast.
+If a feature is correct but slow enough to waste user time, cause lag, delay gameplay flow, or make maintenance unpleasant, treat that as a design problem to measure and fix.
+
+In the revised offline companion architecture, references to daemon scheduling should be read as companion/offline-worker scheduling unless a section explicitly describes a development harness.
+They must not be read as permission for live LLM decisions to enter an already-running Stellaris session.
 
 ---
 
@@ -281,7 +288,7 @@ The game must never wait for save parsing.
 In multiplayer:
 
 * host performance is critical
-* host daemon must be conservative
+* host/coordinator companion work must be conservative
 * clients do not run LLM
 * desync safety has priority over strategic depth
 

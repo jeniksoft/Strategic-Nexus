@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "BridgeValidator.h"
 
 #include <algorithm>
@@ -63,3 +66,4 @@ ValidatedBridgeState BridgeValidator::validate(
 }
 
 } // namespace strategic_nexus::bridge_core
+

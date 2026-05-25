@@ -4,6 +4,15 @@
 * text=auto
 
 ###############################################################################
+# Documentation encoding hygiene.
+###############################################################################
+*.md text eol=lf
+docs/*.md text eol=lf
+docs/**/*.md text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+
+###############################################################################
 # Set default behavior for command prompt diff.
 #
 # This is need for earlier builds of msysgit that does not have it on by

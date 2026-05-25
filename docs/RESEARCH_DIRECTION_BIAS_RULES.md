@@ -1,4 +1,4 @@
-# Strategic Nexus — Research Direction Bias Rules
+# Strategic Nexus - Research Direction Bias Rules
 
 ## Core Rule
 
@@ -66,16 +66,16 @@ It gradually increases point defense and strike craft counter research weighting
 Correct model:
 
 LLM
-→ recommends research direction bias
-→ bounded doctrine payload
-→ scripted/mod layer adjusts weights
-→ vanilla AI still makes final research choice
+-> recommends research direction bias
+-> bounded doctrine payload
+-> scripted/mod layer adjusts weights
+-> vanilla AI still makes final research choice
 
 Rejected model:
 
 LLM
-→ directly selects exact technology
-→ vanilla AI bypassed
+-> directly selects exact technology
+-> vanilla AI bypassed
 
 Strategic Nexus remains a strategy layer, not a research micromanager.
 
@@ -140,8 +140,8 @@ Research direction must change slowly.
 
 Suggested defaults:
 
-- minor research bias adjustment: 3–5 years
-- major research direction shift: 5–10 years
+- minor research bias adjustment: 3-5 years
+- major research direction shift: 5-10 years
 - full strategic research pivot: 10+ years
 
 This prevents the AI from acting like an instant counter-solver.
@@ -182,8 +182,8 @@ Do not force a counter-research plan without evidence.
 
 The player must feel:
 
-“this empire adapted its research priorities after learning from war and intel”
+"this empire adapted its research priorities after learning from war and intel"
 
 not:
 
-“the AI read my hidden technology choices from the save.”
+"the AI read my hidden technology choices from the save."

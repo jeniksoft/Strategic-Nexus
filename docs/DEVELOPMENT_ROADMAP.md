@@ -1,4 +1,4 @@
-# Strategic Nexus — Development Roadmap
+# Strategic Nexus - Development Roadmap
 
 ## Purpose
 
@@ -12,9 +12,59 @@ New systems should be added gradually using already established patterns.
 
 The roadmap is a living document and must be continuously updated.
 
+Before using this roadmap for autonomous Free Work, revalidate the selected item against the current canonical architecture documents.
+If this roadmap conflicts with newer architecture decisions, update the roadmap or ask the project owner before implementing the stale item.
+If a roadmap item is stale, blocked, or requires user interaction, mark or note why, then continue with another safe high-value item when possible.
+Roadmap order is priority guidance, not mandatory execution order.
+
 Use `MASTER_ARCHITECTURE_INDEX.md` as the canonical navigation layer for project architecture.
 
-Use `V0_SCOPE_AND_PIPELINE_PLAN.md` as the current implementation boundary for the first daemon/pipeline skeleton.
+Use `V0_SCOPE_AND_PIPELINE_PLAN.md` as the current implementation boundary for the first bounded offline validation and pipeline skeleton.
+
+Use `OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md` as the revised production direction for autosave archiving, offline analysis, campaign memory, and next-session mod refresh.
+
+Use `CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md` as the target release UX/automation direction for minimizing mandatory user interaction.
+
+Use `MULTIPLAYER_SEASON_ORCHESTRATOR.md` as the target release direction for low-friction host-coordinated MP seasons.
+
+Use `META_RULE_LANGUAGE_AND_COMPILER.md` for the bounded DSL and deterministic compiler that converts LLM proposals into generated mod overlays.
+
+---
+
+# Current Scope Discipline
+
+Roadmap work should prefer completed vertical slices over broad parallel expansion.
+
+Default stabilization slice:
+
+```text
+verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility
+```
+
+Until that path is robust enough to feel like a real product spine, new strategic intelligence features should usually be recorded as `Navrhy` instead of immediately implemented.
+
+Task Board work remains allowed when it fixes bugs, reliability, owner visibility, or repeated friction.
+Otherwise, prefer product/runtime roadmap progress over additional meta-tooling.
+
+---
+
+# Worker-Ready Roadmap Rule
+
+The foreground owner/Codex chat owns architecture direction, roadmap changes, product intent, gameplay philosophy, risk acceptance, and budget policy.
+
+Background Free Work is an implementation worker.
+
+Roadmap items are good background-worker candidates only when they can be reduced to a bounded task that is:
+
+* aligned with current architecture
+* locally testable or document-verifiable
+* independent of missing owner decisions
+* safe to commit as one coherent chunk
+* scoped to implementation, validation, tests, or documentation of confirmed behavior
+
+Roadmap items that require architecture direction, gameplay philosophy, multiplayer risk acceptance, save-integrity tradeoffs, or LLM authority decisions must stay foreground-owned until the owner resolves them.
+
+When a roadmap item is too broad for background execution, Codex should split out a worker-ready subtask instead of letting the worker decide the strategic direction.
 
 ---
 
@@ -82,19 +132,68 @@ The architecture must be additive and extensible.
 
 # Current Development Priorities
 
+## 0. Task Board And Owner Report Log
+
+Status:
+IMPLEMENTED
+
+Goal:
+Make the task board the reliable owner-facing coordination surface for manual decisions, progress visibility, and important work reports.
+
+Required:
+
+* active tasks with `progress_percent`
+* automatically remove active tasks once verified as 100% complete
+* additive report log for important work summaries
+* daily batched automation report instead of hourly report spam
+* hourly task-board hygiene automation
+* separate UI modes/tabs for owner tasks and work reports
+* clear separation between action tasks and report entries
+
+Notes:
+This is currently the highest priority because the project owner uses the task board instead of reviewing chat history or code diffs manually.
+Task-board UI must be in Czech.
+Task-board tasks and reports must also be written in Czech by default.
+If Windows PowerShell cannot reliably render diacritics, use readable Czech without diacritics rather than broken text.
+
+Current progress:
+The task board can display active tasks and archived reports from separate JSON files under separate modes.
+Active tasks with `progress_percent >= 100` are filtered out.
+Helper scripts exist for adding reports and updating task progress.
+`tools/dev_attention/sync_user_task_board_state.ps1` reconciles locally verifiable task state such as gaming quiet mode blockers when configured game processes are no longer running.
+The same sync helper writes local gaming quiet start/end transitions to `.codex_local/gaming_quiet_session_log.csv`; start time comes from the process when available, and end time is the hygiene/sync observation time.
+Task Board project completion and remaining-time estimates are automatically derived from roadmap priority statuses, estimated roadmap complexity, and logged implementation work when enough data exists. The helper `tools/dev_attention/analyze_roadmap_complexity.ps1` writes `dist/private_reports/roadmap_complexity_estimate.json`. The helper `tools/dev_attention/log_implementation_work.ps1` appends real implementation time and completed complexity points to `.codex_local/implementation_work_log.csv`. The helper `tools/dev_attention/set_project_progress_estimate.ps1` regenerates `dist/private_reports/project_progress_estimate.json`, and the live TB UI refreshes that estimate automatically.
+Task-board sync/hygiene should also call `tools/dev_attention/sync_user_task_board_state.ps1`, which refreshes both project progress and roadmap complexity outputs. This keeps the estimate current after roadmap edits even when the visible Task Board window is not the thing that noticed the change.
+Remaining work is polish and automation hygiene, not the core two-mode TB function.
+
+---
+
 ## 1. Core Runtime Skeleton
 
 Status:
 IN_PROGRESS
 
 Goal:
-Create minimal stable end-to-end architecture.
+Create minimal stable end-to-end architecture for the campaign orchestrator, offline campaign analysis, and next-session generated mod overlays.
 
 Required:
 
+* companion app lifecycle skeleton
+* campaign orchestrator flow that automates safe routine staging decisions
+* optional start-with-Windows setting with first-install default disabled
+* first-run explanation for why early app startup helps preserve autosave history
+* tray/background lifecycle where window close keeps the app running, but explicit user exit stops it
+* watchdog restart only for unexpected crashes, with backoff and crash-loop guard
+* no auto-restart after explicit user exit or normal OS shutdown/restart/logoff
+* local crash/support report preparation with explicit approval before sending to `support@jeniksoft.cz`
+* autosave archive skeleton
+* local save campaign directory monitor
+* autosave cadence guidance for more precise history steps
 * parser skeleton
-* daemon skeleton
+* offline worker skeleton
+* latest-session-only analysis by default
 * payload schema
+* Strategic Nexus DSL parser/validator/compiler skeleton
 * payload validation
 * campaign identity handling
 * sequence handling
@@ -102,15 +201,41 @@ Required:
 * audit logging
 * bounded enum validation
 * doctrine persistence
+* generated overlay staging
+* generated overlay compilation from validated DSL
+* generated campaign library cleanup and rebuild
+* full rewrite generated overlay publishing, not append-only updates
+* durable on-disk Strategic Nexus archive and memory store
+* release Status Center for ordinary user status, warnings, support approval, archive status, and generated overlay status
 
 Notes:
 Do not optimize strategic intelligence yet.
 Optimize architecture stability.
 
 Current implementation boundary:
-Follow `V0_SCOPE_AND_PIPELINE_PLAN.md`.
+Follow `V0_SCOPE_AND_PIPELINE_PLAN.md` for bounded payload validation and deterministic pipeline shape.
+Follow `OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md` for the production delivery model.
+Follow `CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md` for release automation and low-interaction UX.
 
-The first pipeline should prove the small `X -> Y -> U -> payload` flow before expanding strategic complexity.
+The first pipeline should prove the small `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay` direction before expanding strategic complexity.
+Generated overlays should come from validated DSL programs, not raw LLM script.
+
+Realtime LLM decisions entering an already-running game are no longer a production architecture goal.
+
+Current progress:
+The first generated overlay contract skeleton exists under `src/generated_overlay/`.
+It parses the small campaign/empire/rule DSL shape, rejects unsafe identifiers, unsupported preferences, out-of-budget values, and tactical-style domains, then emits deterministic generated event, scripted effect, and scripted trigger text for contract tests.
+`Strategic Nexus.exe --compile-generated-overlay <input.dsl> <output_dir>` can stage the generated overlay file layout for local testing.
+`GENERATED_OVERLAY_LAYOUT_CONTRACT.md` records the current v0 generated file layout.
+The compiler now emits `strategic_nexus_generated_manifest.json` with complete replacement snapshot intent, generated gameplay file paths, checksum relevance classification, deterministic content hashes, and byte counts.
+`Strategic Nexus.exe --verify-generated-overlay <output_dir>` verifies generated files against the manifest and fails closed on drift.
+`Strategic Nexus.exe --archive-stable-saves <save_root> <archive_root> <session_id> [stability_delay_ms]` provides the first read-only one-shot autosave archive harness and manifest writer.
+`Strategic Nexus.exe --verify-autosave-archive <session_archive_dir>` verifies copied saves against the archive manifest before offline analysis uses them.
+`Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits a bounded verified archive metadata summary for future offline analysis handoff.
+`Strategic Nexus.exe --build-season-delta-ledger <session_archive_dir> <campaign_id> <output_json>` emits the first metadata-only season delta ledger from a verified autosave archive.
+`Strategic Nexus.exe --build-empire-brief-from-archive <session_archive_dir> <campaign_id> <empire_id> <output_json>` emits a conservative empire brief from the metadata-only ledger with explicit missing parser fields.
+`Strategic Nexus.exe --build-ministry-input-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <output_json>` bridges verified archive metadata into the v0 ministry input context shape without pretending to parse save contents.
+`Strategic Nexus.exe --v0-pipeline-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <ministry_input_output_json> <decision_output_json> <sequence_id> <created_unix_ms> <ttl_ms> [audit_output_json]` verifies a latest-session archive, writes conservative ministry input, and runs the deterministic v0 pipeline as an end-to-end metadata-only contract harness.
 
 ---
 
@@ -153,7 +278,7 @@ The first deterministic v0 strategic pipeline skeleton can transform fixture min
 V0 pipeline tests now cover military posture, research bias, low-confidence agenda preservation, missing optional fields, invalid current agenda fallback, malformed input rejection, read-failure handling, and untrusted input bounds.
 The v0 pipeline can emit a compact audit record for `X`, `Y`, `U`, and the final payload.
 The v0 pipeline computes an audit-visible deterministic processing priority score.
-A first local processing queue skeleton can order ministry contexts by priority and emit a compact queue JSON, but live daemon scheduling is not connected yet.
+A first local processing queue skeleton can order ministry contexts by priority and emit a compact queue JSON for future offline-worker scheduling.
 V0 ministry input text is bounded before audit or future LLM context use.
 V0 cabinet enum validation reuses bridge-core strategy dimension parsing to avoid contract drift.
 V0 decision and audit files are written through atomic temp-file replacement.
@@ -162,6 +287,8 @@ Common atomic file writes reject directory targets without deleting them.
 Bridge pipeline failure tests now cover effect batch write failure, malformed payload cleanup, replay cleanup, and sequence write failure cleanup.
 `tools/run_all_tests.ps1` now runs the local bridge-core and v0 pipeline regression tests together.
 GitHub Actions Windows CI runs the same local regression suite on push and pull request.
+Generated overlay contract tests now compile and run with the v0 test suite.
+The v0 suite verifies both successful generated overlay staging and fail-closed rejection of an invalid tactical-style DSL rule.
 
 ---
 
@@ -180,9 +307,12 @@ Required:
 * sensor filtering
 * anti-omniscience validation
 * empire-specific snapshots
+* multiple empire-perspective analyses over the same archived save sequence
+* one personality profile per detected campaign empire
 
 Notes:
 No global galaxy AI brain allowed.
+The same save history may produce different memories and personality drift for different empires.
 
 ---
 
@@ -216,18 +346,24 @@ Verify multiplayer synchronization architecture.
 
 Required:
 
-* host-only daemon
-* synchronized scripted state
-* client passive observation
+* host-only campaign archive and analysis
+* identical generated gameplay-affecting overlay package for host and clients
+* generated overlay export/package workflow
+* byte-identical host/client generated file verification
 * desync resistance
 * fallback handling
 
 Notes:
-Clients must never process LLM payloads.
+Clients must never process LLM payloads independently.
 
 Current progress:
 Scripted synchronized-state behavior is verified in MP.
 Host-only daemon decisions are still outside production gameplay. Future MP work must stay within normal scripted state synchronization.
+Offline generated overlays must be packaged identically for MP participants when they affect checksum-relevant files.
+The generated overlay manifest is now the v0 byte-identity verification contract for generated gameplay-affecting files.
+
+Planned requirement:
+The companion app must provide a multiplayer generated overlay distribution flow before MP generated overlays are considered usable.
 
 ---
 
@@ -237,12 +373,15 @@ Status:
 IN_PROGRESS
 
 Goal:
-Keep Strategic Nexus integrated through supported mod scripting, local files, and bounded JSON payloads.
+Keep Strategic Nexus integrated through supported mod scripting, generated overlay files, local archives, and bounded JSON payloads.
 
 Allowed targets:
 
 * scripted mod receiver behavior
-* local daemon request/response files
+* local archived autosave analysis
+* generated campaign overlay files staged between sessions
+* generated campaign library containing multiple marker-guarded local campaign rulesets
+* local daemon request/response files as development harnesses
 * bridge-core validation and allowlisted artifacts
 * manual development harnesses for private testing
 
@@ -260,6 +399,48 @@ Lower-level game integration is out of scope for this repository.
 
 Current progress:
 The project now treats bridge-core output as a validation artifact and keeps gameplay delivery in the scripted mod layer or explicit development harnesses.
+Production integration should prefer next-session generated mod overlay updates over live daemon delivery.
+The companion app should maintain the active generated campaign library from locally present Stellaris save campaigns.
+`Strategic Nexus.exe --scan-save-campaigns <save_root> <inventory_output.json>` provides the first read-only local save campaign inventory harness.
+
+---
+
+## 6A. Generated Campaign Library Maintenance
+
+Status:
+IN_PROGRESS
+
+Goal:
+Keep the active generated mod overlay synchronized with locally available Stellaris save campaigns.
+
+Required:
+
+* scan local Stellaris save campaign directories
+* detect newly added, restored, renamed, or removed local campaign save folders
+* include generated rules only for campaigns that are currently playable locally, unless the user pins a campaign
+* remove generated rules for campaigns whose local saves are absent
+* retain Strategic Nexus archive and memory outside the active generated mod overlay
+* store Strategic Nexus archive and memory as durable on-disk state, not volatile runtime state
+* regenerate known campaign rules when a known save folder reappears
+* keep every campaign ruleset marker-guarded
+* enforce size limits for the active generated campaign library
+* publish generated overlay as a complete replacement snapshot, not incremental appended rules
+
+Notes:
+Removing a ruleset from the active generated mod overlay is not the same as deleting campaign memory.
+The active mod library should reflect campaigns the local Stellaris installation can actually load.
+Generated events/rules should stay bounded because each update replaces the previous generated set.
+
+Current progress:
+A read-only campaign save scanner can inventory campaign directories and loose `.sav` files into deterministic JSON.
+Inventory entries include a local anchor save fingerprint: selected `.sav` name, byte count, hash algorithm, and read-only content hash.
+`--discover-stellaris-save-roots <output.json>` reports likely Windows Stellaris save roots from user Documents and OneDrive Documents/Dokumenty candidates without creating or modifying directories.
+The local harness can compare two read-only save roots with `--diff-save-campaigns <previous_save_root> <current_save_root> <diff_output.json>` and report added, removed, changed, and unchanged entries.
+The local harness can plan a bounded active generated campaign library with `--plan-campaign-library <save_root> <max_campaigns> <plan_output.json>`.
+The planner includes only locally present campaigns with anchor fingerprints and skips overflow entries with auditable reasons.
+`--compile-campaign-library-overlay <input.dsl> <save_root> <max_campaigns> <output_dir>` compiles only DSL rules whose campaign id matches an included local campaign key and writes the active library plan beside the generated overlay.
+It does not parse save contents or assign final campaign identity yet.
+Renames without a stable save-content fingerprint may still appear as remove+add.
 
 ---
 
@@ -310,13 +491,15 @@ Espionage must never become cheating.
 ## 9. Personality And Civilization Identity
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Make civilizations strategically distinct.
 
 Required:
 
+* campaign-empire scoped personality profiles
+* unknown campaign personality bootstrap from archived saves
 * personality traits
 * doctrine inertia
 * risk tolerance
@@ -326,6 +509,9 @@ Required:
 
 Notes:
 Different civilizations should react differently to the same situation.
+The same civilization template in a different campaign is a different personality instance.
+LLM conversation may support offline interpretation, but v0 should persist only validated personality state, source save/date, concise update summary, and confidence.
+Structured deltas may be added later for audit and rollback.
 
 ---
 
@@ -345,9 +531,11 @@ Required:
 * trust persistence
 * memory decay
 * historical interpretation
+* incremental session-delta memory updates
 
 Notes:
 Civilizations should feel historically aware.
+Normal analysis should combine previous durable memory with autosaves from the latest play session, not reprocess the entire campaign history every time.
 
 ---
 
@@ -430,7 +618,7 @@ Status:
 BLOCKED
 
 Goal:
-Create stable automated runtime bridge.
+Create stable automated runtime bridge if a future legal and safe integration path exists.
 
 Dependencies:
 
@@ -442,6 +630,42 @@ Dependencies:
 
 Notes:
 Must remain bounded and safe.
+This is no longer required for the main project direction.
+The main direction is offline archived-save analysis and next-session mod refresh.
+
+---
+
+## 15. Multiplayer Generated Overlay Distribution
+
+Status:
+IN_PROGRESS
+
+Goal:
+Create a safe workflow for distributing generated campaign overlays to multiplayer participants.
+
+Required:
+
+* export generated campaign overlay package
+* verify gameplay-affecting files are byte-identical for host and clients
+* include manifest with campaign id, overlay version, game version, mod version, and file hashes
+* distinguish checksum-sensitive generated files from local-only diagnostics
+* provide clear fallback path if a client has the wrong overlay
+* avoid per-client divergent gameplay-affecting generated files
+* support players joining later without predeclaring them in Strategic Nexus
+* support normal Steam friends / Stellaris lobby communication instead of IP-address workflows
+* provide Status Center copyable package/invite status text
+* export/import MP handoff packages so host role can change between seasons
+* support the previous host being absent from the next season entirely
+* treat client-provided manual saves as recovery anchors when host autosave archive or handoff is missing
+* persist small campaign/empire/human-control markers into saves through normal mod flags/variables
+* avoid binding empire personality to a specific human user or host machine
+
+Notes:
+This is mandatory before generated overlays are used for multiplayer campaigns.
+Until this exists, multiplayer generated overlays remain a private host-side planning artifact or must be manually packaged and verified.
+
+Current progress:
+`MULTIPLAYER_SEASON_ORCHESTRATOR.md` defines the host-coordinated package model, low-friction join assumptions, host rotation handoff packages, client manual save recovery fallback, checksum-gated hotjoin assumptions, and save-persisted MP markers.
 
 ---
 

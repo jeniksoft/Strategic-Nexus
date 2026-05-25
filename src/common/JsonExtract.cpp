@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "JsonExtract.h"
 
 #include <regex>
@@ -132,3 +135,4 @@ std::vector<std::string> extractJsonStringArray(const std::string& json, const c
 }
 
 } // namespace strategic_nexus::common
+

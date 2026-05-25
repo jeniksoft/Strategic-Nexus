@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #pragma once
 
 #include <string>
@@ -69,3 +72,4 @@ struct DoctrineDecision {
 };
 
 } // namespace strategic_nexus
+

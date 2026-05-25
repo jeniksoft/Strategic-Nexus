@@ -1,4 +1,4 @@
-# Strategic Nexus — Game Version And DLC Resilience Rules
+# Strategic Nexus - Game Version And DLC Resilience Rules
 
 ## Core Rule
 

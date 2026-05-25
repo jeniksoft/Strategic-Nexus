@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "BridgeContract.h"
 
 #include "DoctrinePlanner.h"
@@ -30,3 +33,4 @@ std::string BridgeContract::renderJson(const BridgeValues& values) const
 }
 
 } // namespace strategic_nexus
+

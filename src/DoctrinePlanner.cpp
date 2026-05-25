@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "DoctrinePlanner.h"
 
 namespace strategic_nexus {
@@ -44,3 +47,4 @@ const char* toString(DoctrineType type)
 }
 
 } // namespace strategic_nexus
+

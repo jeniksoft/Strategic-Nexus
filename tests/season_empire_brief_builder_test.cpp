@@ -1,0 +1,57 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
+#include "SeasonEmpireBriefBuilder.h"
+
+#include <iostream>
+#include <string>
+
+namespace {
+
+void requireCondition(const bool condition, const std::string& message)
+{
+    if (!condition) {
+        std::cerr << "[FAIL] " << message << "\n";
+        std::exit(1);
+    }
+}
+
+} // namespace
+
+int main()
+{
+    strategic_nexus::SeasonDeltaLedger ledger;
+    ledger.ok = true;
+    ledger.reason = "accepted";
+    ledger.campaignId = "campaign_001";
+    ledger.deltaQuality = "metadata_only";
+    ledger.facts.push_back("archive_verified:true");
+    ledger.facts.push_back("archived_save_count:2");
+    ledger.uncertainties.push_back("save_content_not_parsed_yet");
+
+    const strategic_nexus::SeasonEmpireBriefBuilder builder;
+    const auto brief = builder.build(ledger, "empire_001");
+
+    requireCondition(brief.ok, "brief should accept valid ledger and empire id");
+    requireCondition(brief.campaignId == "campaign_001", "brief should preserve campaign id");
+    requireCondition(brief.empireId == "empire_001", "brief should preserve empire id");
+    requireCondition(brief.sourceLedgerQuality == "metadata_only", "brief should preserve ledger quality");
+    requireCondition(brief.relevantFacts.size() == 2, "brief should carry ledger facts");
+    requireCondition(brief.explicitUncertainties.size() == 1, "brief should carry ledger uncertainties");
+    requireCondition(brief.missingInformation.size() == 4, "brief should declare missing parser information");
+
+    const auto json = strategic_nexus::serializeSeasonEmpireBrief(brief);
+    requireCondition(json.find("\"empire_id\": \"empire_001\"") != std::string::npos, "brief JSON should include empire id");
+    requireCondition(json.find("\"source_ledger_quality\": \"metadata_only\"") != std::string::npos, "brief JSON should include quality");
+    requireCondition(json.find("do_not_infer_personality_or_strategy_from_this_brief_alone") != std::string::npos, "brief JSON should include caution note");
+
+    const auto rejected = builder.build(ledger, "");
+    requireCondition(!rejected.ok, "brief should reject missing empire id");
+    requireCondition(rejected.reason == "missing empire id", "brief should explain missing empire id");
+    requireCondition(rejected.missingInformation.empty(), "rejected brief should not emit missing-information payload");
+    requireCondition(rejected.compressionNotes.empty(), "rejected brief should not emit compression notes");
+
+    std::cout << "season empire brief builder tests passed.\n";
+    return 0;
+}
+

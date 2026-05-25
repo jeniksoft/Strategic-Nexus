@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "RequestFileReader.h"
 
 #include <fstream>
@@ -123,3 +126,4 @@ StrategicRequest RequestFileReader::read(const std::filesystem::path& requestPat
 }
 
 } // namespace strategic_nexus
+

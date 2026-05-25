@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "LightweightCabinet.h"
 
 #include "bridge_core/BridgeState.h"
@@ -88,3 +91,4 @@ FinalStrategyPayload LightweightCabinet::evaluate(
 }
 
 } // namespace strategic_nexus::strategic_pipeline
+

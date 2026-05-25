@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "FileUtil.h"
 
 #include <chrono>
@@ -39,7 +42,7 @@ bool replaceFileWithTemp(const std::filesystem::path& tempPath, const std::files
 
 std::string readTextFile(const std::filesystem::path& path)
 {
-    std::ifstream input(path);
+    std::ifstream input(path, std::ios::binary);
     std::ostringstream buffer;
     buffer << input.rdbuf();
     return buffer.str();
@@ -68,7 +71,7 @@ bool writeTextFileAtomically(const std::filesystem::path& path, const std::strin
     const std::filesystem::path tempPath = path.string() + ".tmp";
 
     {
-        std::ofstream output(tempPath, std::ios::trunc);
+        std::ofstream output(tempPath, std::ios::binary | std::ios::trunc);
         if (!output) {
             return false;
         }
@@ -85,3 +88,4 @@ bool writeTextFileAtomically(const std::filesystem::path& path, const std::strin
 }
 
 } // namespace strategic_nexus::common
+

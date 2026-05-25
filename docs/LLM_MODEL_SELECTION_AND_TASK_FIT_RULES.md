@@ -1,4 +1,4 @@
-# Strategic Nexus — LLM Model Selection And Task Fit Rules
+# Strategic Nexus - LLM Model Selection And Task Fit Rules
 
 ## Core Rule
 

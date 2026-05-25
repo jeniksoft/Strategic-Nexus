@@ -350,6 +350,9 @@ exchange/response.json.tmp
 exchange/daemon.lock
 exchange/daemon.log
 
+# Strategic Nexus local private operator state
+.codex_local/
+
 # Strategic Nexus generated task board panel textures
 tools/dev_attention/assets/task_panel_texture.png
 tools/dev_attention/assets/detail_panel_texture.png

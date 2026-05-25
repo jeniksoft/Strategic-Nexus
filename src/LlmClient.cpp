@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "LlmClient.h"
 
 #include "DoctrinePlanner.h"
@@ -19,3 +22,4 @@ std::string LlmClient::buildPrompt(const StrategicSummary& summary, const Doctri
 }
 
 } // namespace strategic_nexus
+

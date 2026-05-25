@@ -1,4 +1,4 @@
-# Strategic Nexus — War Theater Priority Rules
+# Strategic Nexus - War Theater Priority Rules
 
 ## Core Rule
 

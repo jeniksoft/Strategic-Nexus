@@ -1,4 +1,4 @@
-# Strategic Nexus — Imperfect Intelligence And Believability Rules
+# Strategic Nexus - Imperfect Intelligence And Believability Rules
 
 ## Core Rule
 
@@ -24,11 +24,11 @@ Rejected AI pattern:
 
 ```text
 save parsed
-→ optimal answer found
-→ empire instantly chooses best strategy
-→ no uncertainty
-→ no personality bias
-→ no mistake
+-> optimal answer found
+-> empire instantly chooses best strategy
+-> no uncertainty
+-> no personality bias
+-> no mistake
 ```
 
 This creates solver AI, not civilization AI.
@@ -260,8 +260,8 @@ Strategic Nexus must not create:
 
 The player should feel:
 
-“this empire misunderstood me, feared me, learned from me, and reacted in its own way”
+"this empire misunderstood me, feared me, learned from me, and reacted in its own way"
 
 not:
 
-“the AI solved the save file.”
+"the AI solved the save file."

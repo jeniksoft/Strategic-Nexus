@@ -1,4 +1,4 @@
-# Strategic Nexus — LLM Personality Decision Rules
+# Strategic Nexus - LLM Personality Decision Rules
 
 ## Core Rule
 
@@ -64,6 +64,17 @@ Civilization personality may derive from:
 * long-term geopolitical pressure
 
 Personality should evolve slowly over time.
+
+Personality profiles are campaign-empire scoped.
+
+The identity key is:
+
+```text
+campaign_id + empire_id
+```
+
+An unknown archived campaign must bootstrap a fresh personality profile for every detected empire.
+Do not reuse personality state from another campaign merely because an empire name, portrait, civic set, or player template looks similar.
 
 ---
 
@@ -308,17 +319,17 @@ Same event:
 * federation betrayal
 
 Paranoid empire:
-→ permanent distrust
-→ defensive doctrine reinforcement
+-> permanent distrust
+-> defensive doctrine reinforcement
 
 Bold empire:
-→ revenge militarization
+-> revenge militarization
 
 Opportunistic empire:
-→ temporary realignment
+-> temporary realignment
 
 Honor-bound empire:
-→ ideological hostility
+-> ideological hostility
 
 Memory is filtered through personality.
 
@@ -441,6 +452,33 @@ Strategic decisions should explain:
 * how confidence was affected
 
 Do NOT store chain-of-thought.
+
+---
+
+# LLM Conversation Rule
+
+Offline LLM conversation may be used to interpret how campaign history changes personality.
+
+The conversation is an analysis tool, not authoritative memory.
+
+Store only:
+
+* validated personality state
+* source save/date
+* concise rationale summaries
+* confidence values
+
+Structured deltas may be added later for audit and rollback, but they are not required for the first implementation.
+
+Do not store:
+
+* raw LLM conversation
+* chain-of-thought
+* raw prompt text
+* raw untrusted save text
+* world-text instructions
+
+All LLM personality output must pass schema validation and numeric bounds before it can update campaign memory or generated mod overlays.
 
 ---
 

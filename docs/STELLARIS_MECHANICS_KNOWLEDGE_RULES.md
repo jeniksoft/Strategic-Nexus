@@ -46,6 +46,31 @@ When discussing mechanics, record:
 
 Use this source priority order.
 
+## 0. Project Owner Practical Stellaris Experience
+
+The project owner has roughly a decade of practical Stellaris experience.
+
+Owner statements about gameplay flow, multiplayer behavior, saves, UI friction, and player expectations should be treated as high-value practical hypotheses.
+
+They are especially useful for:
+
+* identifying what to verify
+* catching unrealistic product assumptions
+* understanding real multiplayer habits
+* prioritizing convenience and automation
+
+However, they should still be verified before they become durable architecture or implementation when the detail is:
+
+* version-sensitive
+* multiplayer/checksum-sensitive
+* modding-hook-sensitive
+* save-behavior-sensitive
+* safety/legal-sensitive
+* likely to affect irreversible design choices
+
+If owner experience and external docs appear to disagree, Codex should not dismiss either source.
+It should mark the uncertainty and prefer a local targeted test when possible.
+
 ## 1. Local Installed Game Files
 
 Highest authority for the user's active install.

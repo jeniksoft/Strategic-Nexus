@@ -1,0 +1,10 @@
+﻿{
+    "id":  "arch-review-2026-05-23-doc-encoding",
+    "status":  "closed",
+    "severity":  "normal",
+    "title":  "Rozhodnout opravu mojibake / UTF-8",
+    "task":  "Rozhodnout, jestli opravit rozbite znaky v dokumentaci a pridat ochranu, aby se to nevracelo.",
+    "why":  "V nekolika architekturnich dokumentech jsou rozbite znaky z chybneho kodovani textu. Zhorsuje to citelnost pravidel a muze to plest budouci praci. Hromadna oprava by ale udelala vetsi diff, proto je potreba rozhodnout, jestli ji udelat jednorazove, nebo opravovat jen soubory, kterych se prave dotykame.",
+    "instructions":  "Vyreseno: docs encoding byl vycisten a pridan guardrail (UTF-8/LF/ASCII-safe)."
+}
+

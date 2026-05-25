@@ -1,4 +1,4 @@
-# Strategic Nexus — Mod Interoperability And Gameplay Degradation Rules
+# Strategic Nexus - Mod Interoperability And Gameplay Degradation Rules
 
 ## Core Rule
 
@@ -152,7 +152,7 @@ If external mods introduce unknown gameplay concepts:
 Example:
 
 * unknown civic
-  → treated as generic economic or militarist pressure
+  -> treated as generic economic or militarist pressure
 
 The daemon should remain resilient against incomplete understanding.
 

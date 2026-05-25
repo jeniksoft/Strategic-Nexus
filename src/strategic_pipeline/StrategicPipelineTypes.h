@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #pragma once
 
 #include <cstdint>
@@ -99,3 +102,4 @@ struct PipelineRunResult {
 };
 
 } // namespace strategic_nexus::strategic_pipeline
+

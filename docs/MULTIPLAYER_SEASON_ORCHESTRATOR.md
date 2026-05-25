@@ -1,0 +1,543 @@
+# Strategic Nexus - Multiplayer Season Orchestrator
+
+## Purpose
+
+This document defines a low-friction multiplayer season architecture for Strategic Nexus.
+
+Goal:
+
+```text
+the host prepares the Strategic Nexus state
+players join through normal Stellaris/Steam multiplayer
+checksum compatibility proves they have the same gameplay-affecting mod content
+the session can run with minimal manual coordination
+```
+
+This design extends `MULTIPLAYER_REQUIREMENTS.md` and `CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md`.
+
+---
+
+# Core Rule
+
+Multiplayer Strategic Nexus is host-coordinated.
+
+The host owns:
+
+* archived autosaves
+* offline season analysis
+* generated campaign overlay package
+* package manifest
+* multiplayer season handoff package
+* version/checksum readiness checks
+
+Clients do not:
+
+* run LLM analysis for the MP campaign
+* generate their own gameplay-affecting overlay
+* receive per-client divergent generated gameplay files
+* need to be known by Strategic Nexus before the season starts
+
+The good news for this architecture is that Stellaris multiplayer already requires compatible game/mod state.
+
+If a player can join the modded session successfully, they necessarily passed the normal game/version/checksum compatibility gate.
+
+Strategic Nexus should use that gate instead of inventing a hidden network protocol.
+
+---
+
+# Host Rotation And Memory Handoff
+
+The active MP host may change between seasons.
+
+This is a critical architecture case.
+
+The previous host may be completely absent from the next season.
+
+Strategic Nexus must not assume the previous host will be present as host, client, or available support contact.
+
+The previous host has the best autosave archive because clients do not generate the normal multiplayer autosave sequence.
+
+A client player may manually create a save during the session or may later become the next host, but that client will not have the same autosave sequence that the previous host archived.
+
+Therefore, Strategic Nexus MP continuity must not depend only on the next host's local autosave archive.
+
+After each MP season, the current host orchestrator should produce a portable handoff package:
+
+```text
+StrategicNexus_MP_Handoff_<campaign_marker>_<season_id>.zip
+```
+
+The handoff package should contain:
+
+* generated overlay package
+* generated overlay manifest
+* campaign marker and campaign identity confidence
+* last verified save fingerprint
+* latest-session delta ledger
+* durable Strategic Nexus campaign memory snapshot
+* empire memory/personality snapshot
+* analysis audit summary
+* package version and required mod/game version
+
+The next host should import the latest handoff package before the next planned MP season.
+
+If this succeeds:
+
+```text
+previous host season learning
+-> portable handoff package
+-> next host imports memory and overlay state
+-> next host stages byte-identical generated MP overlay
+-> players join normally
+```
+
+This keeps the AI best learned even when the original host is not the next host.
+
+The orchestrator must also record who produced the previous season handoff.
+
+This is not a Stellaris script responsibility.
+
+Recommended external handoff fields:
+
+```json
+{
+  "previous_host_node_id": "local-install-or-user-approved-host-id",
+  "previous_host_display_name": "optional-user-visible-name",
+  "season_id": "mp-season-0007",
+  "campaign_marker": "sn-marker-...",
+  "last_verified_save_fingerprint": "...",
+  "generated_overlay_manifest_hash": "..."
+}
+```
+
+This identifies the machine/app instance that exported the handoff package.
+
+It must not be treated as proof of a Steam identity, legal identity, or game-authoritative host identity.
+
+If the next host imports a handoff from a different previous host, this is expected and should be shown as normal continuity:
+
+```text
+Previous host package imported.
+Learning state is current up to season <season_id>.
+```
+
+If no previous host handoff is available, the new host can still continue with older memory or client-save recovery, but learning confidence must drop.
+
+The project should treat "previous host unavailable" as a normal degraded continuity path, not an exceptional manual emergency.
+
+---
+
+# Mod-Persisted MP Markers
+
+Some MP identity facts must survive inside the Stellaris save so that the orchestrator can read them from archived saves later.
+
+Stellaris script can persist simple state through normal game mechanics:
+
+* flags can be attached to scopes such as country or global scope
+* variables can be set on scopes such as country or global scope
+* `is_ai = no` can identify human-controlled countries at the moment a scripted event runs
+
+Strategic Nexus should use this for small bounded markers only.
+
+The base mod should write:
+
+* campaign marker
+* Strategic Nexus save initialized flag
+* per-country Strategic Nexus empire marker
+* per-country "was human controlled during this season" marker or counter
+* optional season counter / last observed generated overlay version
+
+These markers should be written through ordinary scripted events/on_actions and then preserved by the normal save.
+
+They must not contain:
+
+* Steam IDs
+* IP addresses
+* personal identifiers
+* arbitrary player names as logic
+* large histories
+* generated strategy text
+
+The app reads these markers from archived saves to improve continuity.
+
+The markers do not replace external handoff packages.
+
+They are the save-side anchor that tells the orchestrator:
+
+```text
+this save belongs to Strategic Nexus campaign marker X
+country Y existed and had Strategic Nexus marker Z
+country Y was human-controlled at least during observed season N
+generated overlay version V was loaded
+```
+
+---
+
+# Player Count And Empire Control Changes
+
+MP player count may change between seasons.
+
+The same human user may play a different empire.
+
+Different users may play the same empire across different sessions.
+
+Therefore Strategic Nexus must not bind empire personality to a human player.
+
+Correct identity layers:
+
+```text
+campaign identity
+-> empire identity
+-> empire memory/personality
+-> observed human-control state per season
+-> optional external host/app instance identity for handoff
+```
+
+Empire personality belongs to the campaign empire.
+
+Player participation is session metadata.
+
+If a human temporarily controls an empire, the orchestrator may record that fact for analysis context, but it should not erase or replace the empire's personality.
+
+If control changes:
+
+```text
+same empire marker
+-> continue same empire memory
+-> add session note that control changed or human-control status changed
+```
+
+If an empire disappears, splits, rebels, is integrated, or changes name:
+
+```text
+use empire identity resolver
+-> preserve memory only when confidence is high
+-> otherwise create/branch profiles conservatively
+```
+
+---
+
+# Client Manual Save Recovery
+
+A client-side manual save can be useful, but it should be treated as a recovery anchor.
+
+Clients do not generate the normal MP autosave timeline.
+
+Therefore, client manual saves cannot replace the previous host's autosave archive for learning quality.
+
+Client save use cases:
+
+* original host is unavailable
+* no handoff package was exported
+* a new host must continue from a save they possess
+* the client manual save is newer than the last known handoff package
+
+Strategic Nexus may import a client-provided MP save as:
+
+```text
+client manual save snapshot
+-> campaign marker/fingerprint check
+-> recovery season anchor
+-> lower-confidence memory update or rebuild request
+```
+
+But a single client manual save is not equivalent to the host's full autosave archive.
+
+It may not contain enough intermediate history to reconstruct the same season delta.
+
+If only a client manual save is available, the orchestrator should:
+
+* preserve existing durable memory if available
+* extract what can be safely verified from the save
+* mark the season delta as incomplete
+* lower confidence for inferred personality/memory changes
+* prefer conservative generated rules
+* show Status Center warning that learning quality is reduced
+
+This is still better than losing continuity completely.
+
+---
+
+# Pre-Season Sync
+
+Before a planned MP season, the intended host should run a pre-season sync:
+
+```text
+import latest handoff package if available
+verify local save/marker matches handoff
+verify generated overlay package
+stage host local overlay while Stellaris is closed
+produce copyable invite/package status text
+```
+
+If the intended host lacks the latest handoff:
+
+```text
+Status Center warning:
+Latest host learning package missing.
+You can still host, but Strategic Nexus may use older memory or conservative fallback.
+Ask previous host for the latest handoff package if available.
+```
+
+This is the main MP workflow for making the mod "best learned" before the next agreed season without requiring all clients to run analysis.
+
+---
+
+# Target No-Maintenance Flow
+
+```text
+host finishes a play session
+-> host orchestrator archives autosaves
+-> host orchestrator analyzes latest session
+-> host orchestrator builds generated MP overlay package
+-> host orchestrator builds MP handoff package
+-> host orchestrator verifies manifest and local install
+-> host shares package/invite info if needed
+-> next host imports handoff package if host changes
+-> players install or update identical generated overlay package
+-> players join through normal Stellaris/Steam lobby/friends flow
+-> checksum mismatch blocks or warns through normal game behavior
+-> session runs with already-loaded overlay
+```
+
+The player experience should be:
+
+```text
+install/update package or import host handoff if becoming host
+join host through ordinary multiplayer
+play
+```
+
+No IP address workflow should be required by Strategic Nexus.
+
+Steam friends/lobby invites should be the preferred human communication path when available.
+
+Strategic Nexus may provide copyable status text, package names, and links, but it should not replace the game's multiplayer lobby system.
+
+---
+
+# Hot Join And Unknown Players
+
+Players may join a live or continuing MP season even if the host did not know them in advance.
+
+Strategic Nexus should not require a predeclared participant list.
+
+Safe model:
+
+* host prepares one canonical generated overlay package for the campaign
+* host exports a handoff package after the session
+* every participant uses that same package
+* the game checksum/load-order gate decides compatibility
+* the host may approve or reject joiners through normal Stellaris multiplayer authority
+
+Strategic Nexus does not need to identify every human player before launch.
+
+It only needs to ensure that:
+
+* the generated gameplay-affecting files are byte-identical
+* the mod version is compatible
+* the generated overlay manifest matches the host package
+* no client-specific generated gameplay logic exists
+
+If a joining player lacks the package or has a different generated overlay, the normal Stellaris checksum/load-order gate should prevent a valid shared modded session.
+
+Strategic Nexus should still provide pre-join warnings and easy package sharing where detectable, but it must not pretend it can hot-patch a player after join.
+
+---
+
+# Generated MP Package
+
+The host orchestrator should produce a package containing:
+
+* Strategic Nexus base mod version requirement
+* generated overlay files
+* generated overlay manifest
+* campaign package id
+* package version
+* Stellaris version expectation
+* DLC/mod compatibility notes if known
+* checksum-relevant file hashes
+* installation instructions for the companion app
+* pointer to the related MP handoff package when present
+
+Package identity should be stable and human-readable.
+
+Example:
+
+```text
+StrategicNexus_MP_<campaign_marker>_<overlay_version>.zip
+```
+
+The manifest should clearly separate:
+
+* gameplay-affecting files that must be byte-identical
+* diagnostics that are useful but not authoritative
+* local-only Status Center state that must not affect checksum
+
+The generated overlay package is for all players.
+
+The handoff package is mainly for the next host/coordinator.
+
+Clients may keep it as backup, but they should not generate independent gameplay-affecting overlays from it during the active session.
+
+---
+
+# Communication And Sharing
+
+Strategic Nexus should not require users to exchange IP addresses.
+
+Preferred communication options:
+
+1. Steam friends / Steam lobby invite
+2. normal Stellaris multiplayer lobby discovery
+3. copyable host message from Status Center
+4. manual package file sharing as fallback
+
+The release Status Center may provide:
+
+* a "Copy invite/status text" action
+* package filename and version
+* handoff package filename and version when relevant
+* host package hash
+* short compatibility checklist
+* "ready for MP" / "package mismatch" status
+
+Example copyable text:
+
+```text
+Strategic Nexus MP package:
+Campaign: <campaign_name_or_marker>
+Package: StrategicNexus_MP_<id>_<version>.zip
+Handoff: StrategicNexus_MP_Handoff_<id>_<season>.zip
+Stellaris: <version>
+Strategic Nexus: <mod_version>
+Generated overlay: <manifest_hash>
+Join: use Steam invite / Stellaris lobby from host
+```
+
+This is communication support, not a custom network layer.
+
+---
+
+# Host Approval Model
+
+The host remains the authority for who may join.
+
+Strategic Nexus may show the host:
+
+* local package readiness
+* expected package id
+* last analysis time
+* whether the active overlay is MP-ready
+* whether generated files match the manifest
+
+If future APIs or local signals can detect connected players safely, the Status Center may show them.
+
+But the base architecture does not require it.
+
+The host can approve players through normal Stellaris multiplayer UX.
+
+---
+
+# Automation Policy
+
+The host orchestrator may automatically:
+
+* build the latest generated MP package after session analysis
+* build the latest MP handoff package after session analysis
+* import a previous handoff package before hosting
+* validate package files against the manifest
+* stage the host local overlay while Stellaris is closed
+* mark the Status Center as MP-ready
+* produce copyable invite/status text
+
+It should ask or warn when:
+
+* package generation fails
+* manifest verification fails
+* Stellaris is running
+* local generated files do not match the package
+* mod version or game version looks stale
+* a player-visible package needs manual sharing
+* the intended host is missing the latest handoff package
+* only a client save is available and learning quality is reduced
+* low-confidence campaign identity would affect generated rules
+
+No routine pre-session approval should be required when all checks pass.
+
+---
+
+# Live Session Boundary
+
+During a live multiplayer session, Strategic Nexus must not:
+
+* rewrite gameplay-affecting mod files
+* push new generated rules into the running game
+* ask clients to run LLM analysis
+* create per-client divergent state
+* rely on debug console transport
+
+Already-loaded overlay behavior may run through ordinary scripted mod logic.
+
+Next strategic updates wait for the next season/session package.
+
+---
+
+# Drop-In / Drop-Out Rule
+
+Because Strategic Nexus generated gameplay files must be identical for all MP participants, drop-in/drop-out support is mostly a package readiness problem.
+
+Drop-in player:
+
+```text
+has identical package and load order
+-> can join normally if host/game accepts
+
+missing or different package
+-> normal checksum/load-order mismatch blocks shared play, or pre-join warning appears when detectable
+-> install/update package
+-> retry join
+```
+
+Drop-out player:
+
+```text
+leaves session
+-> no Strategic Nexus state change required
+```
+
+The host archive and analysis remain authoritative for the campaign.
+
+If the host changes between seasons, the latest imported handoff package becomes the continuity authority for the new host.
+
+---
+
+# Non-Goals
+
+Do not build first:
+
+* custom peer-to-peer networking
+* client-side LLM workers
+* per-client generated overlays
+* IP address exchange system
+* hidden Steam automation
+* runtime generated rule streaming
+* live patching after a player joins
+
+If official APIs later make package sharing easier, they can be added as optional convenience, not as the core MP safety model.
+
+---
+
+# Design Goal
+
+Strategic Nexus MP should feel like:
+
+```text
+the host shares the right mod package, players join normally, checksum keeps everyone honest
+```
+
+not:
+
+```text
+a second multiplayer system bolted next to Stellaris
+```

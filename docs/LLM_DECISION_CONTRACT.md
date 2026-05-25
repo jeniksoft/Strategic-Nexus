@@ -1,4 +1,4 @@
-# Strategic Nexus — LLM Decision Contract
+# Strategic Nexus - LLM Decision Contract
 
 ## Core Rule
 
@@ -201,10 +201,10 @@ Every output must include confidence.
 Suggested interpretation:
 
 ```text
-0.00–0.30 = weak confidence
-0.31–0.60 = moderate confidence
-0.61–0.80 = strong confidence
-0.81–1.00 = very strong confidence
+0.00-0.30 = weak confidence
+0.31-0.60 = moderate confidence
+0.61-0.80 = strong confidence
+0.81-1.00 = very strong confidence
 ```
 
 Low confidence should cause:
@@ -277,9 +277,9 @@ The LLM may react to:
 - hegemonic growth
 
 It must not react to:
-- “this is the human”
-- “focus the player”
-- “anti-player coalition”
+- "this is the human"
+- "focus the player"
+- "anti-player coalition"
 
 The player is just another empire.
 
@@ -306,10 +306,10 @@ Example:
 
 ```text
 Paranoid empire sees superior neighbor
-→ fortress_border + defensive posture
+-> fortress_border + defensive posture
 
 Bold empire sees superior neighbor
-→ opportunistic expansion or preemptive militarization
+-> opportunistic expansion or preemptive militarization
 ```
 
 ---

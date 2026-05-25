@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "PersonalityEngine.h"
 
 namespace strategic_nexus {
@@ -20,3 +23,4 @@ std::string PersonalityEngine::describeStrategicBias(const EmpireState& empire) 
 }
 
 } // namespace strategic_nexus
+

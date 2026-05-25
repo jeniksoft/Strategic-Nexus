@@ -1,4 +1,4 @@
-# Strategic Nexus — Technical Runtime Limitations
+# Strategic Nexus - Technical Runtime Limitations
 
 ## Core Rule
 
@@ -11,6 +11,7 @@ Strategic Nexus must remain:
 * low-frequency
 * performance-aware
 * multiplayer-safe
+* session-to-session by default
 
 The project must avoid realtime inference and continuous gameplay control.
 
@@ -36,6 +37,14 @@ It does NOT exist to:
 * constantly react every game day
 
 Strategic Nexus is a strategic overlay system, not a realtime control layer.
+
+The preferred production model is offline campaign analysis:
+
+```text
+archive autosaves during play
+-> analyze after play
+-> update generated mod overlay for the next launch
+```
 
 ---
 
@@ -75,6 +84,7 @@ Forbidden architectures:
 * realtime fleet control
 * live combat decision loops
 * synchronous blocking AI generation
+* live LLM decisions entering the already-running game
 
 The daemon must remain decoupled from Stellaris simulation timing.
 
@@ -84,9 +94,20 @@ The daemon must remain decoupled from Stellaris simulation timing.
 
 Strategic updates are intentionally slow.
 
+For the revised architecture, the default update cadence is per play session, not per active game tick.
+
+Generated mod overlays should normally update only after Stellaris exits and before the next launch.
+
+Older notes that mention in-game monthly updates should be treated as a possible scripted fallback cadence for already-generated values, not as a requirement for live LLM refresh.
+
+Generated mod files are launch-time inputs.
+Strategic Nexus must not expect Stellaris to automatically reload changed mod files during an active gameplay session.
+Developer console reload/testing commands are not a production transport path.
+
 Current target:
 
-* maximum one strategic update per in-game month
+* maximum one generated strategic overlay refresh per play session by default
+* optional scripted in-game cadence may consume already-generated values at low frequency
 
 This may be slower under:
 
@@ -103,22 +124,30 @@ Civilizations should evolve gradually.
 
 # Asynchronous Processing Rule
 
-The daemon operates asynchronously.
+The daemon or offline worker operates asynchronously.
 
-The daemon:
+The worker:
 
 * does not control Stellaris time
 * does not synchronize to ticks
 * does not require immediate response
 
-The daemon:
+The worker:
 
-* parses latest save
+* parses archived saves
 * processes empires progressively
 * generates bounded strategic updates
-* delivers updates when available
+* delivers updates for a later session
 
 Strategic Nexus is eventually-consistent, not realtime-consistent.
+
+The default offline analysis input is the latest play session's archived autosaves plus prior durable memory.
+It should not reprocess all historical autosaves after every session.
+This keeps analysis cost bounded for long-running galaxies.
+
+The app must assume the machine may be restarted between sessions.
+Durable archive and memory state must survive restart.
+Optional start-with-Windows support exists to reduce the chance that autosaves are missed before the app is launched manually.
 
 ---
 
@@ -170,6 +199,17 @@ Responsible for:
 * doctrine evolution
 * strategic planning
 * bounded payload generation
+
+In the revised production architecture, this role runs primarily after the play session.
+
+## Companion App
+
+Responsible for:
+
+* detecting the play session lifecycle
+* archiving autosaves with read-only access
+* staying out of active gameplay
+* staging generated mod overlay updates after Stellaris exits
 
 ## Bridge
 

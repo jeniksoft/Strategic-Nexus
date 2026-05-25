@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "StrategicRequest.h"
 
 #include <algorithm>
@@ -62,3 +65,4 @@ RequestTrigger requestTriggerFromString(const std::string& value)
 }
 
 } // namespace strategic_nexus
+

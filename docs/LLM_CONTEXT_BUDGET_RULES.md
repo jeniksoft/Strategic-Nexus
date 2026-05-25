@@ -1,4 +1,4 @@
-# Strategic Nexus — LLM Context Budget Rules
+# Strategic Nexus - LLM Context Budget Rules
 
 ## Core Rule
 
@@ -192,12 +192,12 @@ Every piece of context must justify its existence.
 
 Good context:
 
-* “neighbor fleet superior”
-* “energy deficit worsening”
-* “military intel low”
-* “recent federation betrayal”
-* “crisis approaching border”
-* “alloy production insufficient for carrier transition”
+* "neighbor fleet superior"
+* "energy deficit worsening"
+* "military intel low"
+* "recent federation betrayal"
+* "crisis approaching border"
+* "alloy production insufficient for carrier transition"
 
 Bad context:
 

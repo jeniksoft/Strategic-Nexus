@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "BridgeCorePipeline.h"
 
 #include "BridgeValidator.h"
@@ -77,3 +80,4 @@ BridgeCorePipelineResult BridgeCorePipeline::processOnce(const BridgeCorePipelin
 }
 
 } // namespace strategic_nexus::bridge_core
+

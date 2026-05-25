@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "ProcessingPriorityScorer.h"
 
 #include <algorithm>
@@ -40,7 +43,7 @@ ProcessingPriorityScore ProcessingPriorityScorer::score(const MinistryInputConte
     }
 
     if (!input.uncertainties.empty()) {
-        const double boundedUncertaintyCount = std::min<double>(input.uncertainties.size(), 8.0);
+        const double boundedUncertaintyCount = std::min(static_cast<double>(input.uncertainties.size()), 8.0);
         score.uncertaintyPriority = (boundedUncertaintyCount / 8.0) * 0.10;
         score.reasons.push_back("explicit uncertainty slightly increases review priority.");
     }
@@ -59,3 +62,4 @@ ProcessingPriorityScore ProcessingPriorityScorer::score(const MinistryInputConte
 }
 
 } // namespace strategic_nexus::strategic_pipeline
+

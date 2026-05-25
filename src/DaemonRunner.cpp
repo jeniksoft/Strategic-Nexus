@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "DaemonRunner.h"
 
 #include "RequestFileReader.h"
@@ -154,3 +157,4 @@ int DaemonRunner::run(const DaemonConfig& config) const
 }
 
 } // namespace strategic_nexus
+

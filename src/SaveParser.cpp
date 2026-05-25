@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "SaveParser.h"
 
 namespace strategic_nexus {
@@ -36,3 +39,4 @@ GalaxyState SaveParser::parseSnapshot(const std::filesystem::path& savePath) con
 }
 
 } // namespace strategic_nexus
+

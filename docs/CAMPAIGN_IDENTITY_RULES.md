@@ -1,4 +1,4 @@
-# Strategic Nexus — Campaign Identity And Payload Validation Rules
+# Strategic Nexus - Campaign Identity And Payload Validation Rules
 
 ## Core Rule
 
@@ -44,11 +44,32 @@ Possible sources:
 - generated campaign UUID
 - stable save identity hash
 - combined metadata hash
+- archived first-save hash as a local fallback
+- stable player empire and empire roster fingerprint when available
 
 The goal is preventing:
 - cross-campaign payload reuse
 - stale payload contamination
 - accidental application to another galaxy
+
+Campaign identity must be derived without editing saves.
+
+If identity confidence is low, Strategic Nexus should create a new campaign profile or ask the user before merging histories.
+It must not silently merge two campaigns because they share a filename or player empire name.
+
+Ordinary Stellaris mod script should not be assumed to expose the active save filename, campaign id, archive path, or galaxy seed.
+Campaign recognition inside the mod should use persistent scripted markers that the base mod placed into normal save state earlier.
+The companion app may combine those markers with external archived-save metadata and hashes.
+
+Campaign-specific generated rules must be gated by marker checks.
+If the loaded save does not expose the expected marker, the generated campaign rules must be ignored and the base mod must use fallback behavior.
+
+The active generated mod overlay may contain rules for multiple known campaigns, but each ruleset must remain marker-guarded.
+The companion app should remove campaign rules from the active generated overlay when the corresponding local Stellaris save campaign is no longer present.
+This cleanup must not delete archived Strategic Nexus memory unless explicitly requested.
+Strategic Nexus campaign memory is durable on-disk app state; the active generated mod overlay is only a rebuildable projection of that memory.
+Generated campaign rules must be published as a complete replacement snapshot.
+The app must not append new rules indefinitely on each analysis run.
 
 ---
 
@@ -65,8 +86,12 @@ Rejected behavior:
 
 ```text
 Empire A payload
-→ accidentally applied to Empire B
+-> accidentally applied to Empire B
 ```
+
+The same archived save sequence may be analyzed once per empire perspective.
+This is required because each empire interprets history differently.
+Shared source data does not imply shared memory or shared personality.
 
 ---
 
@@ -112,7 +137,7 @@ Rejected architecture:
 
 ```text
 decision.json
-→ blindly execute
+-> blindly execute
 ```
 
 This is unsafe.
@@ -132,17 +157,17 @@ Required validation model:
 
 ```text
 read payload
-→ validate schema
-→ validate campaign id
-→ validate empire id
-→ validate sequence id
-→ validate doctrine id
-→ validate payload integrity
-→ apply bounded action
+-> validate schema
+-> validate campaign id
+-> validate empire id
+-> validate sequence id
+-> validate doctrine id
+-> validate payload integrity
+-> apply bounded action
 ```
 
 Invalid payload:
-→ fallback
+-> fallback
 
 ---
 
@@ -150,6 +175,8 @@ Invalid payload:
 
 The bridge/mod must fallback if:
 - campaign id mismatch
+- campaign marker mismatch
+- campaign marker missing when campaign-specific rules require it
 - empire id mismatch
 - corrupt payload
 - malformed JSON
@@ -169,6 +196,7 @@ In multiplayer:
 - only host validates payloads
 - clients never process payload files
 - clients receive synchronized game state only
+- generated gameplay-affecting mod overlays must remain byte-identical for host and clients unless a future package format proves a safe split
 
 This prevents divergent local state.
 

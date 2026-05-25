@@ -6,16 +6,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+. (Join-Path $PSScriptRoot "task_board_json_io.ps1")
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $taskPath = if ([System.IO.Path]::IsPathRooted($TaskFilePath)) {
     $TaskFilePath
 } else {
     Join-Path $repoRoot $TaskFilePath
-}
-
-$directory = Split-Path -Parent $taskPath
-if ($directory -and -not (Test-Path -LiteralPath $directory)) {
-    New-Item -ItemType Directory -Force -Path $directory | Out-Null
 }
 
 if ($TaskFileJsonPath) {
@@ -36,11 +33,11 @@ if ($tasks -isnot [array]) {
     $tasks = @($tasks)
 }
 
-$document = [pscustomobject]@{
-    schema_version = 1
-    updated_at = (Get-Date).ToString("o")
-    tasks = @($tasks)
+Invoke-TaskBoardJsonMutation -Path $taskPath -Mutate {
+    [pscustomobject]@{
+        schema_version = 1
+        updated_at = (Get-Date).ToString("o")
+        tasks = @($tasks)
+    }
 }
-
-$document | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $taskPath -Encoding UTF8
 Write-Host "user_tasks_written=$taskPath"

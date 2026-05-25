@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #pragma once
 
 #include "CoreTypes.h"
@@ -16,3 +19,4 @@ private:
 };
 
 } // namespace strategic_nexus
+

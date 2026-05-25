@@ -53,6 +53,8 @@ In progress:
 * modular strategy dimension pipeline
 * schema evolution rules
 * host-authoritative multiplayer architecture
+* offline campaign analysis architecture for autosave archiving and next-session mod refresh
+* local owner Task Board / tray helper for Codex coordination
 
 Not started:
 
@@ -61,6 +63,7 @@ Not started:
 * ministerial reasoning pipeline implementation
 * strategic memory library implementation
 * real gameplay balancing effects
+* production companion tray app implementation
 
 ---
 
@@ -70,23 +73,38 @@ Core documents:
 
 * [PROJECT_VISION.md](PROJECT_VISION.md) - project philosophy and hard boundaries
 * [ARCHITECTURE.md](ARCHITECTURE.md) - three-layer architecture and fail-safe split
+* [V0_SCOPE_AND_PIPELINE_PLAN.md](V0_SCOPE_AND_PIPELINE_PLAN.md) - bounded v0 scope and offline validator pipeline boundary
+* [OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md](OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md) - revised session-to-session architecture, autosave archiving, campaign analysis, and next-session mod refresh
+* [CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md](CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md) - target release orchestrator architecture for minimal mandatory user interaction
+* [META_RULE_LANGUAGE_AND_COMPILER.md](META_RULE_LANGUAGE_AND_COMPILER.md) - bounded DSL and deterministic compiler from LLM proposals to generated mod overlay
+* [GENERATED_OVERLAY_LAYOUT_CONTRACT.md](GENERATED_OVERLAY_LAYOUT_CONTRACT.md) - v0 generated overlay file layout and staging contract
+* [MULTIPLAYER_SEASON_ORCHESTRATOR.md](MULTIPLAYER_SEASON_ORCHESTRATOR.md) - host-coordinated low-friction multiplayer season/package architecture
+* [LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md](LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md) - how to read older daemon, bridge, and cadence documents after the offline architecture shift
+* [DOCUMENTATION_CONSISTENCY_AUDIT.md](DOCUMENTATION_CONSISTENCY_AUDIT.md) - focused audits for contradictions between architecture documents
 * [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) - implementation order and milestone status
 * [PROJECT_ARCHITECTURE_INDEX_RULES.md](PROJECT_ARCHITECTURE_INDEX_RULES.md) - rules for maintaining this index
+* [PROJECT_OWNER_COLLABORATION_MODEL.md](PROJECT_OWNER_COLLABORATION_MODEL.md) - project owner and Codex collaboration model, Free Work expectations, and owner input checklist
 * [ENGINEERING_RULES.md](ENGINEERING_RULES.md) - practical engineering rules for development
 * [CODEX_PROJECT_MEMORY_RULES.md](CODEX_PROJECT_MEMORY_RULES.md) - durable Markdown memory rules for Codex
+* [CODEX_WORK_CONTINUITY_NOTES.md](CODEX_WORK_CONTINUITY_NOTES.md) - lightweight Codex continuity ledger to avoid repeated maintenance work after context loss
 * [CODEX_TOOL_INSTALLATION_AUTONOMY_RULES.md](CODEX_TOOL_INSTALLATION_AUTONOMY_RULES.md) - rules for autonomous installation of useful development tools
 * [EMERGENCY_UI_AUTOMATION_RULES.md](EMERGENCY_UI_AUTOMATION_RULES.md) - rules for last-resort mouse/keyboard/screenshot automation
 * [FREE_WORK_AND_USAGE_BUDGET_RULES.md](FREE_WORK_AND_USAGE_BUDGET_RULES.md) - rules for autonomous Codex work based on declared usage budget
+* [AUTOMATION_CANDIDATES.md](AUTOMATION_CANDIDATES.md) - proposed recurring Codex automation candidates and recommended cadences
 * [DEV_DIARY.md](DEV_DIARY.md) - daily human-readable development diary for project continuity and external feedback
+* [CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md](CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md) - campaign-empire personality creation, evolution, and LLM conversation boundaries
 
 Core rule:
 
 ```text
 Vanilla Stellaris AI executes gameplay.
 Strategic Nexus influences bounded strategic state.
-The daemon reasons.
-The file bridge validates bounded data.
-The mod applies safe scripted behavior.
+The companion app archives autosaves with read-only access.
+The release companion app acts as a campaign orchestrator and should automate safe staging decisions where confidence is high.
+Local analysis updates campaign-scoped memory between play sessions.
+The generated mod overlay applies bounded strategic state on the next launch.
+The LLM proposes only bounded DSL rules; the compiler validates and translates them.
+The mod applies safe scripted behavior and fallback logic.
 ```
 
 ---
@@ -158,6 +176,10 @@ Current v0 pipeline:
 * `resources/ministry_context_malformed.json`
 * `resources/ministry_context_unsupported_schema.json`
 * `resources/ministry_context_untrusted_bounds.json`
+* `resources/generated_overlay_valid.dsl`
+* `resources/generated_overlay_invalid.dsl`
+* `src/generated_overlay/`
+* `tests/generated_overlay_contract_test.cpp`
 * `tools/run_v0_pipeline_tests.ps1`
 * `tools/run_all_tests.ps1`
 * `.github/workflows/windows-tests.yml`
@@ -165,6 +187,15 @@ Current v0 pipeline:
 The v0 pipeline is deterministic and uses fixture input only.
 It does not parse saves and does not call an LLM yet.
 The test suite verifies military posture, research bias, low-confidence preservation, missing optional fields, escaped JSON string handling, invalid agenda fallback, malformed input rejection, read-failure handling, untrusted input bounds, and compact audit record emission.
+
+Architectural update:
+
+* the v0 pipeline remains useful as a bounded offline validator and generated-overlay preparation path
+* production architecture should not assume realtime LLM decisions can enter a running game
+* future work should prefer session-end archived-save analysis and next-session mod refresh
+* future generated overlays should be produced from validated Strategic Nexus DSL, not raw LLM script
+* `src/generated_overlay/` contains the first DSL parser, validator, and deterministic overlay compiler contract skeleton
+* `--compile-generated-overlay` stages generated event/effect/trigger files from validated DSL for local testing
 
 Current v0 untrusted input limits:
 
@@ -217,7 +248,16 @@ Status:
 Architecture rule:
 
 ```text
-host daemon -> safe scripted delivery workflow -> synchronized game state -> clients observe normal MP state
+host/coordinator prepares byte-identical generated overlay before launch -> ordinary scripted mod state synchronizes -> clients observe normal MP state
+```
+
+Target release direction:
+
+```text
+host orchestrator builds and verifies one canonical MP generated overlay package
+-> players install the identical package
+-> players join through normal Stellaris/Steam lobby flow
+-> checksum/load-order compatibility remains the primary join gate
 ```
 
 ---
@@ -346,6 +386,7 @@ daemon memory enriches but does not own campaign identity
 Status:
 
 * conceptual architecture exists
+* offline autosave archive architecture exists
 * production memory library is not started
 * v0 should only persist minimal last-known-good state and audit snapshots
 
@@ -356,6 +397,7 @@ Status:
 Primary documents:
 
 * [PERSONALITY_SYSTEM.md](PERSONALITY_SYSTEM.md)
+* [CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md](CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md)
 * [LLM_PERSONALITY_DECISION_RULES.md](LLM_PERSONALITY_DECISION_RULES.md)
 * [ETHICS_AND_FACTION_GOVERNANCE_RULES.md](ETHICS_AND_FACTION_GOVERNANCE_RULES.md)
 * [TRADITION_AND_ASCENSION_STRATEGY_RULES.md](TRADITION_AND_ASCENSION_STRATEGY_RULES.md)
@@ -365,6 +407,7 @@ Primary documents:
 Status:
 
 * architecture rules exist
+* campaign-empire personality bootstrap rules exist
 * implementation is not started
 * v0 should not implement full politics/personality drift
 
@@ -420,7 +463,7 @@ Status:
 * deterministic v0 priority scorer exists
 * deterministic v0 processing queue skeleton exists
 * local v0 priority queue CLI harness exists
-* live daemon scheduler integration is not started
+* offline-worker scheduler integration is not started
 
 ---
 
@@ -461,6 +504,12 @@ Current automated tests:
 * payload validation tests exist
 * effect batch generation tests exist
 
+Local owner coordination tooling:
+
+* `tools/dev_attention/user_task_board.ps1` provides a local Windows Task Board / tray helper for owner-facing tasks and reports
+* this is development coordination tooling, not the production Strategic Nexus companion app
+* real production companion app lifecycle, autosave watching, analysis orchestration, and overlay staging remain separate implementation work
+
 Future test assets:
 
 * regression saves
@@ -479,11 +528,11 @@ Tuning rule:
 
 Do next:
 
-1. Define v0 scope and exact pipeline boundaries.
-2. Define JSON schemas for `X`, `Y`, `U`, and final payload.
-3. Implement minimal daemon pipeline skeleton.
-4. Add deterministic validation/fallback tests.
-5. Keep integration limited to supported mod scripting, local files, and bounded JSON payloads.
+1. Keep generated overlay DSL/compiler skeleton aligned with the offline architecture.
+2. Add exact generated overlay manifest and packaging contracts.
+3. Add deterministic validation/fallback tests for generated overlay staging and cleanup.
+4. Begin companion-app-safe local archive and campaign library scaffolding.
+5. Keep integration limited to supported mod scripting, local archives, generated overlay files, and bounded JSON payloads.
 
 Do not start yet:
 

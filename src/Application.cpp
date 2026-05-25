@@ -1,10 +1,26 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "Application.h"
 
+#include "ArchiveMinistryInputBuilder.h"
+#include "AutosaveArchiver.h"
+#include "AutosaveArchiveVerifier.h"
+#include "AutosaveArchiveSummarizer.h"
+#include "CampaignLibraryPlanner.h"
+#include "CampaignSaveScanner.h"
 #include "DaemonRunner.h"
 #include "RequestFileReader.h"
+#include "SeasonDeltaLedgerBuilder.h"
+#include "SeasonEmpireBriefBuilder.h"
+#include "StellarisSavePathResolver.h"
 #include "StrategicWorker.h"
 #include "bridge_core/BridgeCorePipeline.h"
 #include "common/FileUtil.h"
+#include "generated_overlay/DslParser.h"
+#include "generated_overlay/DslValidator.h"
+#include "generated_overlay/ManifestVerifier.h"
+#include "generated_overlay/OverlayCompiler.h"
 #include "strategic_pipeline/EmpireProcessingQueue.h"
 #include "strategic_pipeline/MinistryInputReader.h"
 #include "strategic_pipeline/PipelineJsonWriter.h"
@@ -14,6 +30,7 @@
 #include <cstdint>
 #include <exception>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -90,6 +107,253 @@ RunConfig parseRunConfig(int argc, char* argv[])
 
         for (int index = 3; index < argc; ++index) {
             config.v0PriorityQueueInputPaths.push_back(argv[index]);
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--compile-generated-overlay") {
+        config.generatedOverlayCompileMode = true;
+
+        if (argc > 2) {
+            config.generatedOverlayDslInputPath = argv[2];
+        }
+
+        if (argc > 3) {
+            config.generatedOverlayOutputDirectory = argv[3];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--verify-generated-overlay") {
+        config.generatedOverlayVerifyMode = true;
+
+        if (argc > 2) {
+            config.generatedOverlayVerifyDirectory = argv[2];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--archive-stable-saves") {
+        config.archiveStableSavesMode = true;
+
+        if (argc > 2) {
+            config.autosaveArchiveSourceRoot = argv[2];
+        }
+
+        if (argc > 3) {
+            config.autosaveArchiveRoot = argv[3];
+        }
+
+        if (argc > 4) {
+            config.autosaveArchiveSessionId = argv[4];
+        }
+
+        config.autosaveArchiveStabilityDelayMs = argc > 5 ? parseInt64Arg(argv[5], 250) : 250;
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--verify-autosave-archive") {
+        config.verifyAutosaveArchiveMode = true;
+
+        if (argc > 2) {
+            config.autosaveArchiveVerifyDirectory = argv[2];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--summarize-autosave-archive") {
+        config.summarizeAutosaveArchiveMode = true;
+
+        if (argc > 2) {
+            config.autosaveArchiveSummaryDirectory = argv[2];
+        }
+
+        if (argc > 3) {
+            config.autosaveArchiveSummaryOutputPath = argv[3];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--build-ministry-input-from-archive") {
+        config.buildMinistryInputFromArchiveMode = true;
+
+        if (argc > 2) {
+            config.archiveMinistryInputDirectory = argv[2];
+        }
+
+        if (argc > 3) {
+            config.archiveMinistryInputCampaignId = argv[3];
+        }
+
+        if (argc > 4) {
+            config.archiveMinistryInputEmpireId = argv[4];
+        }
+
+        if (argc > 5) {
+            config.archiveMinistryInputMinistry = argv[5];
+        }
+
+        if (argc > 6) {
+            config.archiveMinistryInputOutputPath = argv[6];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--v0-pipeline-from-archive") {
+        config.v0PipelineFromArchiveMode = true;
+
+        if (argc > 2) {
+            config.archivePipelineDirectory = argv[2];
+        }
+
+        if (argc > 3) {
+            config.archivePipelineCampaignId = argv[3];
+        }
+
+        if (argc > 4) {
+            config.archivePipelineEmpireId = argv[4];
+        }
+
+        if (argc > 5) {
+            config.archivePipelineMinistry = argv[5];
+        }
+
+        if (argc > 6) {
+            config.archivePipelineMinistryInputOutputPath = argv[6];
+        }
+
+        if (argc > 7) {
+            config.archivePipelineDecisionOutputPath = argv[7];
+        }
+
+        config.v0SequenceId = argc > 8 ? parseInt64Arg(argv[8], 1) : 1;
+        config.v0CreatedUnixMs = argc > 9 ? parseInt64Arg(argv[9], currentUnixMs()) : currentUnixMs();
+        config.v0TtlMs = argc > 10 ? parseInt64Arg(argv[10], 30000) : 30000;
+        if (argc > 11) {
+            config.archivePipelineAuditOutputPath = argv[11];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--build-season-delta-ledger") {
+        config.buildSeasonDeltaLedgerMode = true;
+
+        if (argc > 2) {
+            config.seasonDeltaLedgerDirectory = argv[2];
+        }
+
+        if (argc > 3) {
+            config.seasonDeltaLedgerCampaignId = argv[3];
+        }
+
+        if (argc > 4) {
+            config.seasonDeltaLedgerOutputPath = argv[4];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--build-empire-brief-from-archive") {
+        config.buildEmpireBriefFromArchiveMode = true;
+
+        if (argc > 2) {
+            config.archiveEmpireBriefDirectory = argv[2];
+        }
+
+        if (argc > 3) {
+            config.archiveEmpireBriefCampaignId = argv[3];
+        }
+
+        if (argc > 4) {
+            config.archiveEmpireBriefEmpireId = argv[4];
+        }
+
+        if (argc > 5) {
+            config.archiveEmpireBriefOutputPath = argv[5];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--scan-save-campaigns") {
+        config.scanSaveCampaignsMode = true;
+
+        if (argc > 2) {
+            config.saveCampaignScanRoot = argv[2];
+        }
+
+        if (argc > 3) {
+            config.saveCampaignScanOutputPath = argv[3];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--diff-save-campaigns") {
+        config.diffSaveCampaignsMode = true;
+
+        if (argc > 2) {
+            config.saveCampaignPreviousRoot = argv[2];
+        }
+
+        if (argc > 3) {
+            config.saveCampaignCurrentRoot = argv[3];
+        }
+
+        if (argc > 4) {
+            config.saveCampaignDiffOutputPath = argv[4];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--plan-campaign-library") {
+        config.planCampaignLibraryMode = true;
+
+        if (argc > 2) {
+            config.campaignLibraryPlanRoot = argv[2];
+        }
+
+        config.campaignLibraryMaxCampaigns = argc > 3 ? parseInt64Arg(argv[3], 16) : 16;
+
+        if (argc > 4) {
+            config.campaignLibraryPlanOutputPath = argv[4];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--compile-campaign-library-overlay") {
+        config.compileCampaignLibraryOverlayMode = true;
+
+        if (argc > 2) {
+            config.campaignLibraryOverlayDslInputPath = argv[2];
+        }
+
+        if (argc > 3) {
+            config.campaignLibraryOverlaySaveRoot = argv[3];
+        }
+
+        config.campaignLibraryOverlayMaxCampaigns = argc > 4 ? parseInt64Arg(argv[4], 16) : 16;
+
+        if (argc > 5) {
+            config.campaignLibraryOverlayOutputDirectory = argv[5];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--discover-stellaris-save-roots") {
+        config.discoverStellarisSaveRootsMode = true;
+
+        if (argc > 2) {
+            config.stellarisSaveRootsOutputPath = argv[2];
         }
 
         return config;
@@ -217,6 +481,520 @@ int Application::run(const RunConfig& config) const
             return written && !entries.empty() ? 0 : 1;
         }
 
+        if (config.generatedOverlayCompileMode) {
+            if (config.generatedOverlayDslInputPath.empty() || config.generatedOverlayOutputDirectory.empty()) {
+                std::cout << "generated_overlay_success=false\n";
+                std::cout << "generated_overlay_reason=missing input or output path\n";
+                return 1;
+            }
+
+            if (!std::filesystem::exists(config.generatedOverlayDslInputPath)) {
+                std::cout << "generated_overlay_success=false\n";
+                std::cout << "generated_overlay_reason=missing DSL input\n";
+                return 1;
+            }
+
+            const generated_overlay::DslParser parser;
+            const auto parseResult = parser.parse(common::readTextFile(config.generatedOverlayDslInputPath));
+            if (!parseResult.ok) {
+                std::cout << "generated_overlay_success=false\n";
+                std::cout << "generated_overlay_reason=parse failed: " << parseResult.error << "\n";
+                return 1;
+            }
+
+            const generated_overlay::DslValidator validator;
+            const auto validation = validator.validate(parseResult.program);
+            if (!validation.ok) {
+                std::cout << "generated_overlay_success=false\n";
+                std::cout << "generated_overlay_reason=validation failed\n";
+                for (const auto& error : validation.errors) {
+                    std::cout << "generated_overlay_error=" << error << "\n";
+                }
+                return 1;
+            }
+
+            const generated_overlay::OverlayCompiler compiler;
+            const auto files = compiler.compile(parseResult.program);
+            const auto outputDirectory = config.generatedOverlayOutputDirectory;
+            const bool eventsWritten = common::writeTextFileAtomically(
+                outputDirectory / "events" / "strategic_nexus_generated_events.txt",
+                files.eventsText);
+            const bool effectsWritten = common::writeTextFileAtomically(
+                outputDirectory / "common" / "scripted_effects" / "strategic_nexus_generated_effects.txt",
+                files.scriptedEffectsText);
+            const bool triggersWritten = common::writeTextFileAtomically(
+                outputDirectory / "common" / "scripted_triggers" / "strategic_nexus_generated_triggers.txt",
+                files.scriptedTriggersText);
+            const bool manifestWritten = common::writeTextFileAtomically(
+                outputDirectory / "strategic_nexus_generated_manifest.json",
+                files.manifestText);
+
+            const bool success = eventsWritten && effectsWritten && triggersWritten && manifestWritten;
+            std::cout << "generated_overlay_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "generated_overlay_rule_count=" << parseResult.program.rules.size() << "\n";
+            std::cout << "generated_overlay_events_written=" << (eventsWritten ? "true" : "false") << "\n";
+            std::cout << "generated_overlay_effects_written=" << (effectsWritten ? "true" : "false") << "\n";
+            std::cout << "generated_overlay_triggers_written=" << (triggersWritten ? "true" : "false") << "\n";
+            std::cout << "generated_overlay_manifest_written=" << (manifestWritten ? "true" : "false") << "\n";
+            if (!success) {
+                std::cout << "generated_overlay_reason=failed to write generated overlay files\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.generatedOverlayVerifyMode) {
+            const generated_overlay::ManifestVerifier verifier;
+            const auto result = verifier.verify(config.generatedOverlayVerifyDirectory);
+
+            std::cout << "generated_overlay_manifest_ok=" << (result.ok ? "true" : "false") << "\n";
+            std::cout << "generated_overlay_manifest_reason=" << result.reason << "\n";
+            std::cout << "generated_overlay_manifest_file_count=" << result.files.size() << "\n";
+            for (const auto& file : result.files) {
+                std::cout << "generated_overlay_manifest_file=" << file.path
+                          << ";exists=" << (file.exists ? "true" : "false")
+                          << ";hash_matches=" << (file.hashMatches ? "true" : "false")
+                          << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
+                          << "\n";
+            }
+            return result.ok ? 0 : 1;
+        }
+
+        if (config.archiveStableSavesMode) {
+            if (config.autosaveArchiveSourceRoot.empty() ||
+                config.autosaveArchiveRoot.empty() ||
+                config.autosaveArchiveSessionId.empty()) {
+                std::cout << "autosave_archive_success=false\n";
+                std::cout << "autosave_archive_reason=missing source root, archive root, or session id\n";
+                return 1;
+            }
+
+            const auto delayMs = config.autosaveArchiveStabilityDelayMs < 0
+                ? 0
+                : static_cast<std::uint32_t>(config.autosaveArchiveStabilityDelayMs);
+            const AutosaveArchiver archiver;
+            const auto result = archiver.archiveStableSaves(
+                config.autosaveArchiveSourceRoot,
+                config.autosaveArchiveRoot,
+                config.autosaveArchiveSessionId,
+                delayMs);
+            const bool success = result.sourceExists;
+
+            std::cout << "autosave_archive_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "autosave_archive_source_exists=" << (result.sourceExists ? "true" : "false") << "\n";
+            std::cout << "autosave_archive_copied=" << result.copiedCount << "\n";
+            std::cout << "autosave_archive_skipped=" << result.skippedCount << "\n";
+            if (!success) {
+                std::cout << "autosave_archive_reason=source root missing\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.verifyAutosaveArchiveMode) {
+            const AutosaveArchiveVerifier verifier;
+            const auto result = verifier.verify(config.autosaveArchiveVerifyDirectory);
+
+            std::cout << "autosave_archive_manifest_ok=" << (result.ok ? "true" : "false") << "\n";
+            std::cout << "autosave_archive_manifest_reason=" << result.reason << "\n";
+            std::cout << "autosave_archive_manifest_file_count=" << result.files.size() << "\n";
+            for (const auto& file : result.files) {
+                std::cout << "autosave_archive_manifest_file=" << file.path
+                          << ";exists=" << (file.exists ? "true" : "false")
+                          << ";hash_matches=" << (file.hashMatches ? "true" : "false")
+                          << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
+                          << "\n";
+            }
+            return result.ok ? 0 : 1;
+        }
+
+        if (config.summarizeAutosaveArchiveMode) {
+            if (config.autosaveArchiveSummaryDirectory.empty() ||
+                config.autosaveArchiveSummaryOutputPath.empty()) {
+                std::cout << "autosave_archive_summary_success=false\n";
+                std::cout << "autosave_archive_summary_reason=missing archive directory or output path\n";
+                return 1;
+            }
+
+            const AutosaveArchiveSummarizer summarizer;
+            const auto summary = summarizer.summarize(config.autosaveArchiveSummaryDirectory);
+            const bool written = common::writeTextFileAtomically(
+                config.autosaveArchiveSummaryOutputPath,
+                serializeAutosaveArchiveSummary(summary));
+            const bool success = summary.ok && written;
+
+            std::cout << "autosave_archive_summary_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "autosave_archive_summary_reason=" << summary.reason << "\n";
+            std::cout << "autosave_archive_summary_save_count=" << summary.copiedSaveCount << "\n";
+            std::cout << "autosave_archive_summary_output_written=" << (written ? "true" : "false") << "\n";
+            return success ? 0 : 1;
+        }
+
+        if (config.buildMinistryInputFromArchiveMode) {
+            if (config.archiveMinistryInputDirectory.empty() ||
+                config.archiveMinistryInputCampaignId.empty() ||
+                config.archiveMinistryInputEmpireId.empty() ||
+                config.archiveMinistryInputMinistry.empty() ||
+                config.archiveMinistryInputOutputPath.empty()) {
+                std::cout << "archive_ministry_input_success=false\n";
+                std::cout << "archive_ministry_input_reason=missing archive directory, identity, ministry, or output path\n";
+                return 1;
+            }
+
+            const AutosaveArchiveSummarizer summarizer;
+            const auto summary = summarizer.summarize(config.archiveMinistryInputDirectory);
+            if (!summary.ok) {
+                std::cout << "archive_ministry_input_success=false\n";
+                std::cout << "archive_ministry_input_reason=" << summary.reason << "\n";
+                return 1;
+            }
+
+            const ArchiveMinistryInputBuilder builder;
+            const auto input = builder.build(
+                summary,
+                config.archiveMinistryInputCampaignId,
+                config.archiveMinistryInputEmpireId,
+                config.archiveMinistryInputMinistry);
+            const bool written = common::writeTextFileAtomically(
+                config.archiveMinistryInputOutputPath,
+                strategic_pipeline::serializeMinistryInputContext(input));
+
+            std::cout << "archive_ministry_input_success=" << (written ? "true" : "false") << "\n";
+            std::cout << "archive_ministry_input_campaign_id=" << input.campaignId << "\n";
+            std::cout << "archive_ministry_input_empire_id=" << input.empireId << "\n";
+            std::cout << "archive_ministry_input_ministry=" << input.ministry << "\n";
+            std::cout << "archive_ministry_input_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "archive_ministry_input_reason=failed to write ministry input context\n";
+            }
+            return written ? 0 : 1;
+        }
+
+        if (config.v0PipelineFromArchiveMode) {
+            if (config.archivePipelineDirectory.empty() ||
+                config.archivePipelineCampaignId.empty() ||
+                config.archivePipelineEmpireId.empty() ||
+                config.archivePipelineMinistry.empty() ||
+                config.archivePipelineMinistryInputOutputPath.empty() ||
+                config.archivePipelineDecisionOutputPath.empty()) {
+                std::cout << "archive_v0_pipeline_success=false\n";
+                std::cout << "archive_v0_pipeline_reason=missing archive directory, identity, ministry, ministry input output, or decision output\n";
+                return 1;
+            }
+
+            const AutosaveArchiveSummarizer summarizer;
+            const auto summary = summarizer.summarize(config.archivePipelineDirectory);
+            if (!summary.ok) {
+                std::cout << "archive_v0_pipeline_success=false\n";
+                std::cout << "archive_v0_pipeline_reason=" << summary.reason << "\n";
+                return 1;
+            }
+
+            const ArchiveMinistryInputBuilder builder;
+            const auto input = builder.build(
+                summary,
+                config.archivePipelineCampaignId,
+                config.archivePipelineEmpireId,
+                config.archivePipelineMinistry);
+            const bool inputWritten = common::writeTextFileAtomically(
+                config.archivePipelineMinistryInputOutputPath,
+                strategic_pipeline::serializeMinistryInputContext(input));
+            if (!inputWritten) {
+                std::cout << "archive_v0_pipeline_success=false\n";
+                std::cout << "archive_v0_pipeline_reason=failed to write ministry input context\n";
+                return 1;
+            }
+
+            const strategic_pipeline::V0StrategicPipeline pipeline;
+            const strategic_pipeline::PipelineRunResult result = pipeline.run({
+                config.archivePipelineMinistryInputOutputPath,
+                config.archivePipelineDecisionOutputPath,
+                config.archivePipelineAuditOutputPath,
+                config.v0SequenceId,
+                config.v0CreatedUnixMs,
+                config.v0TtlMs
+            });
+
+            std::cout << "archive_v0_pipeline_success=" << (result.success ? "true" : "false") << "\n";
+            std::cout << "archive_v0_pipeline_reason=" << result.reason << "\n";
+            std::cout << "archive_v0_pipeline_ministry_input_written=true\n";
+            std::cout << "archive_v0_pipeline_decision_written=" << (result.decisionOutputWritten ? "true" : "false") << "\n";
+            std::cout << "archive_v0_pipeline_audit_requested=" << (result.auditOutputRequested ? "true" : "false") << "\n";
+            std::cout << "archive_v0_pipeline_audit_written=" << (result.auditOutputWritten ? "true" : "false") << "\n";
+            std::cout << "archive_v0_pipeline_campaign_id=" << result.input.campaignId << "\n";
+            std::cout << "archive_v0_pipeline_empire_id=" << result.input.empireId << "\n";
+            std::cout << "archive_v0_pipeline_military_posture=" << result.payload.militaryPosture << "\n";
+            std::cout << "archive_v0_pipeline_research_bias=" << result.payload.researchBias << "\n";
+            if (!result.auditReason.empty()) {
+                std::cout << "archive_v0_pipeline_audit_reason=" << result.auditReason << "\n";
+            }
+            return result.success ? 0 : 1;
+        }
+
+        if (config.buildSeasonDeltaLedgerMode) {
+            if (config.seasonDeltaLedgerDirectory.empty() ||
+                config.seasonDeltaLedgerCampaignId.empty() ||
+                config.seasonDeltaLedgerOutputPath.empty()) {
+                std::cout << "season_delta_ledger_success=false\n";
+                std::cout << "season_delta_ledger_reason=missing archive directory, campaign id, or output path\n";
+                return 1;
+            }
+
+            const AutosaveArchiveSummarizer summarizer;
+            const auto summary = summarizer.summarize(config.seasonDeltaLedgerDirectory);
+            if (!summary.ok) {
+                std::cout << "season_delta_ledger_success=false\n";
+                std::cout << "season_delta_ledger_reason=" << summary.reason << "\n";
+                return 1;
+            }
+
+            const SeasonDeltaLedgerBuilder builder;
+            const auto ledger = builder.build(summary, config.seasonDeltaLedgerCampaignId);
+            const bool written = common::writeTextFileAtomically(
+                config.seasonDeltaLedgerOutputPath,
+                serializeSeasonDeltaLedger(ledger));
+
+            const bool success = ledger.ok && written;
+            std::string reason = ledger.reason;
+            if (ledger.ok && !written) {
+                reason = "failed to write season delta ledger";
+            }
+            std::cout << "season_delta_ledger_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "season_delta_ledger_reason=" << reason << "\n";
+            std::cout << "season_delta_ledger_campaign_id=" << ledger.campaignId << "\n";
+            std::cout << "season_delta_ledger_save_count=" << ledger.copiedSaveCount << "\n";
+            std::cout << "season_delta_ledger_output_written=" << (written ? "true" : "false") << "\n";
+            return success ? 0 : 1;
+        }
+
+        if (config.buildEmpireBriefFromArchiveMode) {
+            if (config.archiveEmpireBriefDirectory.empty() ||
+                config.archiveEmpireBriefCampaignId.empty() ||
+                config.archiveEmpireBriefEmpireId.empty() ||
+                config.archiveEmpireBriefOutputPath.empty()) {
+                std::cout << "archive_empire_brief_success=false\n";
+                std::cout << "archive_empire_brief_reason=missing archive directory, identity, or output path\n";
+                return 1;
+            }
+
+            const AutosaveArchiveSummarizer summarizer;
+            const auto summary = summarizer.summarize(config.archiveEmpireBriefDirectory);
+            if (!summary.ok) {
+                std::cout << "archive_empire_brief_success=false\n";
+                std::cout << "archive_empire_brief_reason=" << summary.reason << "\n";
+                return 1;
+            }
+
+            const SeasonDeltaLedgerBuilder ledgerBuilder;
+            const auto ledger = ledgerBuilder.build(summary, config.archiveEmpireBriefCampaignId);
+            const SeasonEmpireBriefBuilder briefBuilder;
+            const auto brief = briefBuilder.build(ledger, config.archiveEmpireBriefEmpireId);
+            const bool written = common::writeTextFileAtomically(
+                config.archiveEmpireBriefOutputPath,
+                serializeSeasonEmpireBrief(brief));
+
+            const bool success = brief.ok && written;
+            std::string reason = brief.reason;
+            if (brief.ok && !written) {
+                reason = "failed to write empire brief";
+            }
+            std::cout << "archive_empire_brief_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "archive_empire_brief_reason=" << reason << "\n";
+            std::cout << "archive_empire_brief_campaign_id=" << brief.campaignId << "\n";
+            std::cout << "archive_empire_brief_empire_id=" << brief.empireId << "\n";
+            std::cout << "archive_empire_brief_output_written=" << (written ? "true" : "false") << "\n";
+            return success ? 0 : 1;
+        }
+
+        if (config.scanSaveCampaignsMode) {
+            if (config.saveCampaignScanRoot.empty() || config.saveCampaignScanOutputPath.empty()) {
+                std::cout << "save_campaign_scan_success=false\n";
+                std::cout << "save_campaign_scan_reason=missing save root or output path\n";
+                return 1;
+            }
+
+            const CampaignSaveScanner scanner;
+            const auto inventory = scanner.scan(config.saveCampaignScanRoot);
+            const bool written = common::writeTextFileAtomically(
+                config.saveCampaignScanOutputPath,
+                serializeCampaignSaveInventory(inventory));
+
+            std::cout << "save_campaign_scan_success=" << (written ? "true" : "false") << "\n";
+            std::cout << "save_campaign_scan_root_exists=" << (inventory.rootExists ? "true" : "false") << "\n";
+            std::cout << "save_campaign_scan_campaign_count=" << inventory.entries.size() << "\n";
+            std::cout << "save_campaign_scan_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "save_campaign_scan_reason=failed to write campaign inventory\n";
+            }
+            return written ? 0 : 1;
+        }
+
+        if (config.diffSaveCampaignsMode) {
+            if (config.saveCampaignPreviousRoot.empty() ||
+                config.saveCampaignCurrentRoot.empty() ||
+                config.saveCampaignDiffOutputPath.empty()) {
+                std::cout << "save_campaign_diff_success=false\n";
+                std::cout << "save_campaign_diff_reason=missing previous root, current root, or output path\n";
+                return 1;
+            }
+
+            const CampaignSaveScanner scanner;
+            const auto previous = scanner.scan(config.saveCampaignPreviousRoot);
+            const auto current = scanner.scan(config.saveCampaignCurrentRoot);
+            const auto diff = diffCampaignSaveInventories(previous, current);
+            const bool written = common::writeTextFileAtomically(
+                config.saveCampaignDiffOutputPath,
+                serializeCampaignSaveInventoryDiff(diff));
+
+            std::cout << "save_campaign_diff_success=" << (written ? "true" : "false") << "\n";
+            std::cout << "save_campaign_diff_added=" << diff.addedCount << "\n";
+            std::cout << "save_campaign_diff_removed=" << diff.removedCount << "\n";
+            std::cout << "save_campaign_diff_changed=" << diff.changedCount << "\n";
+            std::cout << "save_campaign_diff_unchanged=" << diff.unchangedCount << "\n";
+            std::cout << "save_campaign_diff_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "save_campaign_diff_reason=failed to write campaign inventory diff\n";
+            }
+            return written ? 0 : 1;
+        }
+
+        if (config.planCampaignLibraryMode) {
+            if (config.campaignLibraryPlanRoot.empty() || config.campaignLibraryPlanOutputPath.empty()) {
+                std::cout << "campaign_library_plan_success=false\n";
+                std::cout << "campaign_library_plan_reason=missing save root or output path\n";
+                return 1;
+            }
+
+            const auto maxCampaigns = config.campaignLibraryMaxCampaigns < 0
+                ? 0
+                : static_cast<std::size_t>(config.campaignLibraryMaxCampaigns);
+            const CampaignSaveScanner scanner;
+            const CampaignLibraryPlanner planner;
+            const auto inventory = scanner.scan(config.campaignLibraryPlanRoot);
+            const auto plan = planner.build(inventory, maxCampaigns);
+            const bool written = common::writeTextFileAtomically(
+                config.campaignLibraryPlanOutputPath,
+                serializeCampaignLibraryPlan(plan));
+
+            std::cout << "campaign_library_plan_success=" << (written ? "true" : "false") << "\n";
+            std::cout << "campaign_library_plan_included=" << plan.includedCount << "\n";
+            std::cout << "campaign_library_plan_skipped=" << plan.skippedCount << "\n";
+            std::cout << "campaign_library_plan_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "campaign_library_plan_reason=failed to write campaign library plan\n";
+            }
+            return written ? 0 : 1;
+        }
+
+        if (config.compileCampaignLibraryOverlayMode) {
+            if (config.campaignLibraryOverlayDslInputPath.empty() ||
+                config.campaignLibraryOverlaySaveRoot.empty() ||
+                config.campaignLibraryOverlayOutputDirectory.empty()) {
+                std::cout << "campaign_library_overlay_success=false\n";
+                std::cout << "campaign_library_overlay_reason=missing DSL input, save root, or output directory\n";
+                return 1;
+            }
+
+            if (!std::filesystem::exists(config.campaignLibraryOverlayDslInputPath)) {
+                std::cout << "campaign_library_overlay_success=false\n";
+                std::cout << "campaign_library_overlay_reason=missing DSL input\n";
+                return 1;
+            }
+
+            const auto maxCampaigns = config.campaignLibraryOverlayMaxCampaigns < 0
+                ? 0
+                : static_cast<std::size_t>(config.campaignLibraryOverlayMaxCampaigns);
+            const CampaignSaveScanner scanner;
+            const CampaignLibraryPlanner planner;
+            const auto inventory = scanner.scan(config.campaignLibraryOverlaySaveRoot);
+            const auto plan = planner.build(inventory, maxCampaigns);
+            std::set<std::string> includedCampaignKeys;
+            for (const auto& entry : plan.entries) {
+                if (entry.status == "included") {
+                    includedCampaignKeys.insert(entry.campaignKey);
+                }
+            }
+
+            const generated_overlay::DslParser parser;
+            const auto parseResult = parser.parse(common::readTextFile(config.campaignLibraryOverlayDslInputPath));
+            if (!parseResult.ok) {
+                std::cout << "campaign_library_overlay_success=false\n";
+                std::cout << "campaign_library_overlay_reason=parse failed: " << parseResult.error << "\n";
+                return 1;
+            }
+
+            generated_overlay::DslProgram filteredProgram;
+            std::size_t skippedRules = 0;
+            for (const auto& rule : parseResult.program.rules) {
+                if (includedCampaignKeys.find(rule.campaignId) != includedCampaignKeys.end()) {
+                    filteredProgram.rules.push_back(rule);
+                } else {
+                    ++skippedRules;
+                }
+            }
+
+            const generated_overlay::DslValidator validator;
+            const auto validation = validator.validate(filteredProgram);
+            if (!validation.ok) {
+                std::cout << "campaign_library_overlay_success=false\n";
+                std::cout << "campaign_library_overlay_reason=validation failed\n";
+                for (const auto& error : validation.errors) {
+                    std::cout << "campaign_library_overlay_error=" << error << "\n";
+                }
+                return 1;
+            }
+
+            const generated_overlay::OverlayCompiler compiler;
+            const auto files = compiler.compile(filteredProgram);
+            const auto outputDirectory = config.campaignLibraryOverlayOutputDirectory;
+            const bool eventsWritten = common::writeTextFileAtomically(
+                outputDirectory / "events" / "strategic_nexus_generated_events.txt",
+                files.eventsText);
+            const bool effectsWritten = common::writeTextFileAtomically(
+                outputDirectory / "common" / "scripted_effects" / "strategic_nexus_generated_effects.txt",
+                files.scriptedEffectsText);
+            const bool triggersWritten = common::writeTextFileAtomically(
+                outputDirectory / "common" / "scripted_triggers" / "strategic_nexus_generated_triggers.txt",
+                files.scriptedTriggersText);
+            const bool manifestWritten = common::writeTextFileAtomically(
+                outputDirectory / "strategic_nexus_generated_manifest.json",
+                files.manifestText);
+            const bool planWritten = common::writeTextFileAtomically(
+                outputDirectory / "strategic_nexus_campaign_library_plan.json",
+                serializeCampaignLibraryPlan(plan));
+
+            const bool success = eventsWritten && effectsWritten && triggersWritten && manifestWritten && planWritten;
+            std::cout << "campaign_library_overlay_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "campaign_library_overlay_rules_included=" << filteredProgram.rules.size() << "\n";
+            std::cout << "campaign_library_overlay_rules_skipped=" << skippedRules << "\n";
+            std::cout << "campaign_library_overlay_campaigns_included=" << plan.includedCount << "\n";
+            std::cout << "campaign_library_overlay_plan_written=" << (planWritten ? "true" : "false") << "\n";
+            if (!success) {
+                std::cout << "campaign_library_overlay_reason=failed to write campaign library overlay files\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.discoverStellarisSaveRootsMode) {
+            if (config.stellarisSaveRootsOutputPath.empty()) {
+                std::cout << "stellaris_save_roots_success=false\n";
+                std::cout << "stellaris_save_roots_reason=missing output path\n";
+                return 1;
+            }
+
+            const StellarisSavePathResolver resolver;
+            const auto discovery = resolver.discoverFromEnvironment();
+            const bool written = common::writeTextFileAtomically(
+                config.stellarisSaveRootsOutputPath,
+                serializeStellarisSaveRootDiscovery(discovery));
+
+            std::cout << "stellaris_save_roots_success=" << (written ? "true" : "false") << "\n";
+            std::cout << "stellaris_save_roots_candidate_count=" << discovery.candidates.size() << "\n";
+            std::cout << "stellaris_save_roots_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "stellaris_save_roots_reason=failed to write save root discovery\n";
+            }
+            return written ? 0 : 1;
+        }
+
         const StrategicWorker worker;
         return worker.processRequestSafely(config.request);
     }
@@ -227,3 +1005,4 @@ int Application::run(const RunConfig& config) const
 }
 
 } // namespace strategic_nexus
+

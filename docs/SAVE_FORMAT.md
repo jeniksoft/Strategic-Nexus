@@ -4,6 +4,9 @@
 
 The LLM should NEVER receive full raw save data.
 
+Stellaris autosaves are active game-owned files.
+Strategic Nexus may archive copies for later analysis, but it must never edit, rename, delete, or overwrite active autosaves.
+
 Instead:
 - strategic abstraction
 - compressed summaries
@@ -11,6 +14,57 @@ Instead:
 - geopolitical context
 
 must be extracted.
+
+---
+
+## Autosave Archive Rule
+
+Autosaves may be overwritten by Stellaris during normal play.
+
+The companion app may preserve them by copying stable files into a separate archive directory.
+
+Required behavior:
+
+- read-only access to active autosaves
+- copy only after file size and modification time are stable
+- skip locked or changing files
+- preserve timestamp and source metadata in an archive manifest
+- never modify the active save directory except through normal user configuration outside game-owned save files
+
+Archived copies become Strategic Nexus analysis inputs.
+Active saves remain owned by Stellaris.
+
+Current local harness:
+
+```text
+Strategic Nexus.exe --archive-stable-saves <save_root> <archive_root> <session_id> [stability_delay_ms]
+```
+
+This copies only stable `.sav` files into a separate session archive and writes a manifest with source path, archived path, byte count, content hash, and copy/skip status.
+It must remain read-only toward the active Stellaris save directory.
+
+Archive verification harness:
+
+```text
+Strategic Nexus.exe --verify-autosave-archive <session_archive_dir>
+```
+
+Verification checks copied saves against the manifest before they are used as analysis input.
+
+Archived-session summary harness:
+
+```text
+Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_output.json>
+```
+
+The summary contains bounded metadata only.
+It is safe as a pipeline handoff object, but it is not a substitute for later save parsing.
+
+Autosave cadence affects analysis precision.
+More frequent autosaves provide a finer history step for reconstructing campaign development.
+Less frequent autosaves are still valid, but the offline analysis will have a coarser view of history.
+
+The companion app should explain this tradeoff to the user instead of changing game settings silently.
 
 ---
 
@@ -31,6 +85,8 @@ Bad:
 - excessive tactical details
 - planet-by-planet spam
 - unnecessary numeric noise
+- editing active autosaves
+- moving autosaves out of the Stellaris save directory
 
 ---
 

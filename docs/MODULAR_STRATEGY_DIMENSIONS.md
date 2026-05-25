@@ -1,4 +1,4 @@
-# Strategic Nexus — Modular Strategy Dimensions
+# Strategic Nexus - Modular Strategy Dimensions
 
 ## Core Rule
 
@@ -18,11 +18,11 @@ Rejected architecture:
 
 ```text
 LLM selects one giant doctrine preset
-→ preset controls everything
-→ rigid behavior
-→ limited variation
-→ hard to debug
-→ too many preset combinations over time
+-> preset controls everything
+-> rigid behavior
+-> limited variation
+-> hard to debug
+-> too many preset combinations over time
 ```
 
 This eventually creates either:
@@ -39,9 +39,9 @@ Required architecture:
 
 ```text
 LLM selects bounded values in separate domains
-→ domains combine into strategic behavior
-→ scripted layer applies safe effects
-→ vanilla AI remains execution layer
+-> domains combine into strategic behavior
+-> scripted layer applies safe effects
+-> vanilla AI remains execution layer
 ```
 
 Example:
@@ -323,10 +323,10 @@ Example bounded modular payload:
 Each domain value must be validated against a known enum.
 
 Invalid domain value:
-→ ignore that domain or fallback that domain
+-> ignore that domain or fallback that domain
 
 Invalid entire payload:
-→ preserve previous valid strategy if possible
+-> preserve previous valid strategy if possible
 
 Never execute arbitrary strategy text.
 
@@ -379,19 +379,19 @@ The scripted layer should translate modular dimensions into safe game behavior.
 Examples:
 
 - `military_posture = defensive`
-  → increase defensive doctrine weights
+  -> increase defensive doctrine weights
 
 - `fleet_philosophy = carrier`
-  → increase carrier-style fleet preference
+  -> increase carrier-style fleet preference
 
 - `research_bias = strike_craft`
-  → increase strike craft research direction
+  -> increase strike craft research direction
 
 - `border_strategy = fortress_border`
-  → increase starbase/chokepoint priorities
+  -> increase starbase/chokepoint priorities
 
 - `diplomatic_behavior = paranoid`
-  → increase distrust and defensive pact preference
+  -> increase distrust and defensive pact preference
 
 The LLM does not directly manipulate fleets, ships, economy, or diplomacy.
 

@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "StatelessClerk.h"
 
 namespace strategic_nexus::strategic_pipeline {
@@ -30,3 +33,4 @@ ClerkInputBrief StatelessClerk::reduce(const MinistryInputContext& input) const
 }
 
 } // namespace strategic_nexus::strategic_pipeline
+

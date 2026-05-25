@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "EffectBatchFileWriter.h"
 
 #include "common/FileUtil.h"
@@ -47,3 +50,4 @@ EffectBatchWriteResult EffectBatchFileWriter::writeAtomically(
 }
 
 } // namespace strategic_nexus::bridge_core
+

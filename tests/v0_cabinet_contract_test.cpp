@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "strategic_pipeline/LightweightCabinet.h"
 
 #include <iostream>
@@ -101,3 +104,4 @@ int main()
     std::cout << "v0 cabinet contract tests passed.\n";
     return 0;
 }
+

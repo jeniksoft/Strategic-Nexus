@@ -1,4 +1,4 @@
-# Strategic Nexus — Civilization Relation Model Rules
+# Strategic Nexus - Civilization Relation Model Rules
 
 # Relation Importance Budget Rule
 

@@ -1,4 +1,4 @@
-# Strategic Nexus — Espionage And Intel Strategy Rules
+# Strategic Nexus - Espionage And Intel Strategy Rules
 
 ## Core Rule
 
@@ -318,16 +318,16 @@ Preferred v0.x model:
 
 ```text
 LLM chooses espionage policy and priority
-→ scripted/mod layer applies bounded weights
-→ vanilla systems remain responsible for execution where possible
+-> scripted/mod layer applies bounded weights
+-> vanilla systems remain responsible for execution where possible
 ```
 
 Avoid v0.x model:
 
 ```text
 LLM selects exact operation every cycle
-→ operation spam
-→ brittle micro-management
+-> operation spam
+-> brittle micro-management
 ```
 
 Later versions may add more detailed bounded operation selection only if it remains safe, explainable, and resource-aware.
@@ -338,7 +338,7 @@ Later versions may add more detailed bounded operation selection only if it rema
 
 In multiplayer:
 
-- host daemon chooses espionage/intel strategy
+- host/coordinator offline analysis chooses espionage/intel strategy before generated overlay distribution
 - clients do not run espionage reasoning
 - clients only receive synchronized game state
 - no client-local espionage decisions

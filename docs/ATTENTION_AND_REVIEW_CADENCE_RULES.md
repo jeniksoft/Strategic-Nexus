@@ -1,10 +1,13 @@
-# Strategic Nexus — Attention And Review Cadence Rules
+# Strategic Nexus - Attention And Review Cadence Rules
 
 ## Core Rule
 
 Civilizations do not continuously think about everything at once.
 
 Strategic Nexus must simulate limited strategic attention.
+
+In the revised offline companion architecture, review cadence means offline analysis priority over archived saves and generated-overlay refresh planning.
+It does not mean live LLM review during active gameplay.
 
 The daemon must decide:
 

@@ -1,4 +1,4 @@
-# Strategic Nexus — No Global Galactic AI Brain
+# Strategic Nexus - No Global Galactic AI Brain
 
 ## Core Rule
 
@@ -7,9 +7,9 @@ Strategic Nexus must NEVER use a single global strategic intelligence context.
 Rejected architecture:
 
 global galaxy context
-→ centralized reasoning
-→ shared hidden information
-→ omniscient strategic AI
+-> centralized reasoning
+-> shared hidden information
+-> omniscient strategic AI
 
 This architecture is forbidden.
 
@@ -106,8 +106,8 @@ Strategic Nexus must NOT simulate:
 
 The player must feel:
 
-“the AI learned about me”
+"the AI learned about me"
 
 not:
 
-“the AI illegally knows everything.”
+"the AI illegally knows everything."

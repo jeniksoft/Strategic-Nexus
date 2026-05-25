@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #pragma once
 
 #include "StrategicPipelineTypes.h"
@@ -10,3 +13,4 @@ public:
 };
 
 } // namespace strategic_nexus::strategic_pipeline
+

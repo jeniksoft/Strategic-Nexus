@@ -75,6 +75,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -93,6 +94,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -109,6 +111,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -127,6 +130,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -141,6 +145,10 @@
   <ItemGroup>
     <ClCompile Include="Strategic Nexus.cpp" />
     <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\ArchiveMinistryInputBuilder.cpp" />
+    <ClCompile Include="src\AutosaveArchiveSummarizer.cpp" />
+    <ClCompile Include="src\AutosaveArchiveVerifier.cpp" />
+    <ClCompile Include="src\AutosaveArchiver.cpp" />
     <ClCompile Include="src\bridge_core\BridgeCorePipeline.cpp" />
     <ClCompile Include="src\bridge_core\BridgeState.cpp" />
     <ClCompile Include="src\bridge_core\BridgeValidator.cpp" />
@@ -150,13 +158,25 @@
     <ClCompile Include="src\bridge_core\ScriptIntentMapper.cpp" />
     <ClCompile Include="src\bridge_core\SequenceStateStore.cpp" />
     <ClCompile Include="src\BridgeContract.cpp" />
+    <ClCompile Include="src\CampaignLibraryPlanner.cpp" />
+    <ClCompile Include="src\CampaignSaveScanner.cpp" />
+    <ClCompile Include="src\common\FileUtil.cpp" />
+    <ClCompile Include="src\common\JsonExtract.cpp" />
+    <ClCompile Include="src\common\JsonSanity.cpp" />
     <ClCompile Include="src\DaemonRunner.cpp" />
     <ClCompile Include="src\DoctrinePlanner.cpp" />
     <ClCompile Include="src\GalaxyAnalyzer.cpp" />
+    <ClCompile Include="src\generated_overlay\DslParser.cpp" />
+    <ClCompile Include="src\generated_overlay\DslValidator.cpp" />
+    <ClCompile Include="src\generated_overlay\ManifestVerifier.cpp" />
+    <ClCompile Include="src\generated_overlay\OverlayCompiler.cpp" />
     <ClCompile Include="src\LlmClient.cpp" />
     <ClCompile Include="src\strategic_pipeline\DeterministicMinistry.cpp" />
+    <ClCompile Include="src\strategic_pipeline\EmpireProcessingQueue.cpp" />
     <ClCompile Include="src\strategic_pipeline\LightweightCabinet.cpp" />
     <ClCompile Include="src\strategic_pipeline\MinistryInputReader.cpp" />
+    <ClCompile Include="src\strategic_pipeline\PipelineJsonWriter.cpp" />
+    <ClCompile Include="src\strategic_pipeline\ProcessingPriorityScorer.cpp" />
     <ClCompile Include="src\strategic_pipeline\StatelessClerk.cpp" />
     <ClCompile Include="src\strategic_pipeline\V0StrategicPipeline.cpp" />
     <ClCompile Include="src\MemoryStore.cpp" />
@@ -164,11 +184,18 @@
     <ClCompile Include="src\PersonalityEngine.cpp" />
     <ClCompile Include="src\RequestFileReader.cpp" />
     <ClCompile Include="src\SaveParser.cpp" />
+    <ClCompile Include="src\SeasonDeltaLedgerBuilder.cpp" />
+    <ClCompile Include="src\SeasonEmpireBriefBuilder.cpp" />
+    <ClCompile Include="src\StellarisSavePathResolver.cpp" />
     <ClCompile Include="src\StrategicRequest.cpp" />
     <ClCompile Include="src\StrategicWorker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\ArchiveMinistryInputBuilder.h" />
+    <ClInclude Include="src\AutosaveArchiveSummarizer.h" />
+    <ClInclude Include="src\AutosaveArchiveVerifier.h" />
+    <ClInclude Include="src\AutosaveArchiver.h" />
     <ClInclude Include="src\bridge_core\BridgeCorePipeline.h" />
     <ClInclude Include="src\bridge_core\BridgeState.h" />
     <ClInclude Include="src\bridge_core\BridgeValidator.h" />
@@ -178,14 +205,28 @@
     <ClInclude Include="src\bridge_core\ScriptIntentMapper.h" />
     <ClInclude Include="src\bridge_core\SequenceStateStore.h" />
     <ClInclude Include="src\BridgeContract.h" />
+    <ClInclude Include="src\CampaignLibraryPlanner.h" />
+    <ClInclude Include="src\CampaignSaveScanner.h" />
+    <ClInclude Include="src\common\FileUtil.h" />
+    <ClInclude Include="src\common\JsonExtract.h" />
+    <ClInclude Include="src\common\JsonSanity.h" />
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\DaemonRunner.h" />
     <ClInclude Include="src\DoctrinePlanner.h" />
     <ClInclude Include="src\GalaxyAnalyzer.h" />
+    <ClInclude Include="src\generated_overlay\DslParser.h" />
+    <ClInclude Include="src\generated_overlay\DslRule.h" />
+    <ClInclude Include="src\generated_overlay\DslValidator.h" />
+    <ClInclude Include="src\generated_overlay\ManifestVerifier.h" />
+    <ClInclude Include="src\generated_overlay\OverlayCompiler.h" />
     <ClInclude Include="src\LlmClient.h" />
     <ClInclude Include="src\strategic_pipeline\DeterministicMinistry.h" />
+    <ClInclude Include="src\strategic_pipeline\EmpireProcessingQueue.h" />
     <ClInclude Include="src\strategic_pipeline\LightweightCabinet.h" />
     <ClInclude Include="src\strategic_pipeline\MinistryInputReader.h" />
+    <ClInclude Include="src\strategic_pipeline\PipelineJsonWriter.h" />
+    <ClInclude Include="src\strategic_pipeline\PipelineLimits.h" />
+    <ClInclude Include="src\strategic_pipeline\ProcessingPriorityScorer.h" />
     <ClInclude Include="src\strategic_pipeline\StatelessClerk.h" />
     <ClInclude Include="src\strategic_pipeline\StrategicPipelineTypes.h" />
     <ClInclude Include="src\strategic_pipeline\V0StrategicPipeline.h" />
@@ -194,6 +235,9 @@
     <ClInclude Include="src\PersonalityEngine.h" />
     <ClInclude Include="src\RequestFileReader.h" />
     <ClInclude Include="src\SaveParser.h" />
+    <ClInclude Include="src\SeasonDeltaLedgerBuilder.h" />
+    <ClInclude Include="src\SeasonEmpireBriefBuilder.h" />
+    <ClInclude Include="src\StellarisSavePathResolver.h" />
     <ClInclude Include="src\StrategicRequest.h" />
     <ClInclude Include="src\StrategicWorker.h" />
   </ItemGroup>

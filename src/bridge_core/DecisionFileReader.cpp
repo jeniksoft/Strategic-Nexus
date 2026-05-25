@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "DecisionFileReader.h"
 
 #include "common/FileUtil.h"
@@ -267,3 +270,4 @@ DecisionReadResult DecisionFileReader::read(const std::filesystem::path& path) c
 }
 
 } // namespace strategic_nexus::bridge_core
+

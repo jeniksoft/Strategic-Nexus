@@ -1,4 +1,4 @@
-# Strategic Nexus — Strategic Memory Rules
+# Strategic Nexus - Strategic Memory Rules
 
 ## Core Rule
 
@@ -336,10 +336,10 @@ Repeated events reinforce memory.
 Example:
 
 Single border war:
-→ moderate caution
+-> moderate caution
 
 Five repeated invasions:
-→ entrenched defensive paranoia
+-> entrenched defensive paranoia
 
 Repeated reinforcement should:
 
@@ -386,6 +386,27 @@ Strategic memory should survive:
 If daemon memory is lost:
 
 * bootstrap memory reconstruction should occur from save timeline/history.
+
+---
+
+# Session Delta Update Rule
+
+Normal memory updates should process the latest play session, not the entire campaign from scratch.
+
+The durable memory store represents older history.
+New autosaves from the latest session provide the delta.
+
+Correct flow:
+
+```text
+previous memory
++ latest session autosaves
+-> updated memory
+```
+
+This prevents analysis time from growing linearly with the total age of the galaxy.
+
+Full reconstruction from all available saves may be supported as an explicit recovery or maintenance operation, but it is not the default post-session workflow.
 
 ---
 

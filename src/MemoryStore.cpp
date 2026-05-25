@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "MemoryStore.h"
 
 namespace strategic_nexus {
@@ -13,3 +16,4 @@ const std::vector<HistoricalEvent>& MemoryStore::events() const
 }
 
 } // namespace strategic_nexus
+

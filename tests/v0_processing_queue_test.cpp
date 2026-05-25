@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "strategic_pipeline/EmpireProcessingQueue.h"
 
 #include <iostream>
@@ -58,3 +61,4 @@ int main()
     std::cout << "v0 processing queue tests passed.\n";
     return 0;
 }
+

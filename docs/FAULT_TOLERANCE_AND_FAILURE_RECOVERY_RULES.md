@@ -1,4 +1,4 @@
-# Strategic Nexus — Fault Tolerance And Failure Recovery Rules
+# Strategic Nexus - Fault Tolerance And Failure Recovery Rules
 
 ## Core Rule
 
@@ -317,6 +317,48 @@ The system should prefer:
 over:
 
 * undefined behavior
+
+---
+
+# Companion App Restart Policy
+
+The release companion app may be supervised by a watchdog, but the watchdog must respect user intent and operating-system lifecycle.
+
+Restart is allowed when:
+
+* the companion crashes unexpectedly
+* the OS is not shutting down, restarting, or logging off
+* the user did not explicitly choose Exit
+* the restart budget has not been exhausted
+
+Restart is not allowed when:
+
+* the user explicitly exits the app
+* Windows is shutting down, restarting, or logging off
+* the same crash repeats past the crash-loop threshold
+* restart would interfere with OS maintenance or user control
+* the target is an interactive desktop app but no interactive user session exists
+
+Recommended loop guard:
+
+```text
+max_unexpected_restarts = 3
+window = 10 minutes
+backoff = 10 seconds, 60 seconds, 5 minutes
+```
+
+After the threshold:
+
+* stop auto-restarting
+* keep the last known archive and overlay state intact
+* show a Status Center warning on next manual start
+* prepare a local support report for user review
+
+The support report must not be sent automatically.
+Sending to `support@jeniksoft.cz` requires explicit user approval.
+
+Diagnostic reports should avoid raw saves by default and should minimize personal data.
+If a report may include personal or identifying data, the UI must explain that before consent.
 
 ---
 

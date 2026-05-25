@@ -1,4 +1,4 @@
-# Strategic Nexus — Empire Knowledge Model
+# Strategic Nexus - Empire Knowledge Model
 
 ## Core Architecture Rule
 
@@ -8,17 +8,17 @@ Rejected architecture:
 
 ```text
 Global galaxy context
-→ one galactic AI brain
-→ all empires reason from combined knowledge
+-> one galactic AI brain
+-> all empires reason from combined knowledge
 ```
 
 Required architecture:
 
 ```text
 Empire-scoped reasoning
-→ each empire has isolated knowledge
-→ each empire reasons separately
-→ information only spreads through legitimate game systems
+-> each empire has isolated knowledge
+-> each empire reasons separately
+-> information only spreads through legitimate game systems
 ```
 
 Strategic Nexus must simulate civilizations with limited knowledge, not a hidden omniscient optimizer.
@@ -252,12 +252,12 @@ Correct model:
 
 ```text
 newest save
-→ build empire priority queue
-→ process empire A
-→ process empire B
-→ process empire C
-→ continue until all processed
-→ restart from newest save
+-> build empire priority queue
+-> process empire A
+-> process empire B
+-> process empire C
+-> continue until all processed
+-> restart from newest save
 ```
 
 High-priority empires may update more frequently.
@@ -301,9 +301,9 @@ If no newer valid decision exists:
 
 ```text
 old decision
-→ reduced authority
-→ lower confidence
-→ continue until replaced
+-> reduced authority
+-> lower confidence
+-> continue until replaced
 ```
 
 This represents strategic inertia and institutional continuity.

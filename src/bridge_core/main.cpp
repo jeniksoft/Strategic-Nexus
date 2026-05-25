@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "BridgeValidator.h"
 #include "BridgeCorePipeline.h"
 #include "DecisionFileReader.h"
@@ -147,3 +150,4 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+

@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #pragma once
 
 #include <cstdint>
@@ -180,3 +183,4 @@ bool tryParseEspionagePolicy(const std::string& value, EspionagePolicy& output);
 ValidatedBridgeState makeFallbackState(std::string reason, std::int64_t sequenceId = 0);
 
 } // namespace strategic_nexus::bridge_core
+

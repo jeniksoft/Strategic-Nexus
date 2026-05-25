@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "StrategicWorker.h"
 
 #include "DoctrinePlanner.h"
@@ -55,3 +58,4 @@ int StrategicWorker::processRequestSafely(const StrategicRequest& request) const
 }
 
 } // namespace strategic_nexus
+

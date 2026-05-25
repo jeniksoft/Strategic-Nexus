@@ -54,11 +54,52 @@ $sourceFiles += Get-ChildItem -LiteralPath (Join-Path $repoRoot "src/bridge_core
     Where-Object { $_.Name -ne "main.cpp" } |
     Sort-Object FullName |
     ForEach-Object { $_.FullName }
+$sourceFiles += Get-ChildItem -LiteralPath (Join-Path $repoRoot "src/generated_overlay") -Filter "*.cpp" |
+    Sort-Object FullName |
+    ForEach-Object { $_.FullName }
 $sourceFiles += Get-ChildItem -LiteralPath (Join-Path $repoRoot "src/strategic_pipeline") -Filter "*.cpp" |
     Sort-Object FullName |
     ForEach-Object { $_.FullName }
 
 $cabinetContractExePath = Join-Path $repoRoot "dist/v0_cabinet_contract_test.exe"
+$autosaveArchiverExePath = Join-Path $repoRoot "dist/autosave_archiver_test.exe"
+$autosaveArchiverSourceFiles = @(
+    (Join-Path $repoRoot "tests/autosave_archiver_test.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp")
+)
+$autosaveArchiveVerifierExePath = Join-Path $repoRoot "dist/autosave_archive_verifier_test.exe"
+$autosaveArchiveVerifierSourceFiles = @(
+    (Join-Path $repoRoot "tests/autosave_archive_verifier_test.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiveVerifier.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
+$autosaveArchiveSummarizerExePath = Join-Path $repoRoot "dist/autosave_archive_summarizer_test.exe"
+$autosaveArchiveSummarizerSourceFiles = @(
+    (Join-Path $repoRoot "tests/autosave_archive_summarizer_test.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiveSummarizer.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiveVerifier.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
+$archiveMinistryInputBuilderExePath = Join-Path $repoRoot "dist/archive_ministry_input_builder_test.exe"
+$archiveMinistryInputBuilderSourceFiles = @(
+    (Join-Path $repoRoot "tests/archive_ministry_input_builder_test.cpp"),
+    (Join-Path $repoRoot "src/ArchiveMinistryInputBuilder.cpp")
+)
+$seasonDeltaLedgerBuilderExePath = Join-Path $repoRoot "dist/season_delta_ledger_builder_test.exe"
+$seasonDeltaLedgerBuilderSourceFiles = @(
+    (Join-Path $repoRoot "tests/season_delta_ledger_builder_test.cpp"),
+    (Join-Path $repoRoot "src/SeasonDeltaLedgerBuilder.cpp")
+)
+$seasonEmpireBriefBuilderExePath = Join-Path $repoRoot "dist/season_empire_brief_builder_test.exe"
+$seasonEmpireBriefBuilderSourceFiles = @(
+    (Join-Path $repoRoot "tests/season_empire_brief_builder_test.cpp"),
+    (Join-Path $repoRoot "src/SeasonEmpireBriefBuilder.cpp")
+)
 $cabinetContractSourceFiles = @(
     (Join-Path $repoRoot "tests/v0_cabinet_contract_test.cpp"),
     (Join-Path $repoRoot "src/strategic_pipeline/LightweightCabinet.cpp"),
@@ -75,13 +116,59 @@ $processingQueueSourceFiles = @(
     (Join-Path $repoRoot "src/strategic_pipeline/EmpireProcessingQueue.cpp"),
     (Join-Path $repoRoot "src/strategic_pipeline/ProcessingPriorityScorer.cpp")
 )
+$generatedOverlayContractExePath = Join-Path $repoRoot "dist/generated_overlay_contract_test.exe"
+$generatedOverlayContractSourceFiles = @(
+    (Join-Path $repoRoot "tests/generated_overlay_contract_test.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslParser.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslValidator.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/OverlayCompiler.cpp")
+)
+$generatedOverlayVerifierExePath = Join-Path $repoRoot "dist/generated_overlay_verifier_test.exe"
+$generatedOverlayVerifierSourceFiles = @(
+    (Join-Path $repoRoot "tests/generated_overlay_verifier_test.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslParser.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslValidator.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/OverlayCompiler.cpp")
+)
+$campaignSaveScannerExePath = Join-Path $repoRoot "dist/campaign_save_scanner_test.exe"
+$campaignSaveScannerSourceFiles = @(
+    (Join-Path $repoRoot "tests/campaign_save_scanner_test.cpp"),
+    (Join-Path $repoRoot "src/CampaignSaveScanner.cpp")
+)
+$campaignLibraryPlannerExePath = Join-Path $repoRoot "dist/campaign_library_planner_test.exe"
+$campaignLibraryPlannerSourceFiles = @(
+    (Join-Path $repoRoot "tests/campaign_library_planner_test.cpp"),
+    (Join-Path $repoRoot "src/CampaignLibraryPlanner.cpp")
+)
+$stellarisSavePathResolverExePath = Join-Path $repoRoot "dist/stellaris_save_path_resolver_test.exe"
+$stellarisSavePathResolverSourceFiles = @(
+    (Join-Path $repoRoot "tests/stellaris_save_path_resolver_test.cpp"),
+    (Join-Path $repoRoot "src/StellarisSavePathResolver.cpp")
+)
 
 Push-Location $repoRoot
 try {
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $sourceFiles /Fe:$exePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $autosaveArchiverSourceFiles /Fe:$autosaveArchiverExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $autosaveArchiveVerifierSourceFiles /Fe:$autosaveArchiveVerifierExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $autosaveArchiveSummarizerSourceFiles /Fe:$autosaveArchiveSummarizerExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $archiveMinistryInputBuilderSourceFiles /Fe:$archiveMinistryInputBuilderExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $seasonDeltaLedgerBuilderSourceFiles /Fe:$seasonDeltaLedgerBuilderExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $seasonEmpireBriefBuilderSourceFiles /Fe:$seasonEmpireBriefBuilderExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $cabinetContractSourceFiles /Fe:$cabinetContractExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $priorityScoreSourceFiles /Fe:$priorityScoreExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $processingQueueSourceFiles /Fe:$processingQueueExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayContractSourceFiles /Fe:$generatedOverlayContractExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayVerifierSourceFiles /Fe:$generatedOverlayVerifierExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignSaveScannerSourceFiles /Fe:$campaignSaveScannerExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignLibraryPlannerSourceFiles /Fe:$campaignLibraryPlannerExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $stellarisSavePathResolverSourceFiles /Fe:$stellarisSavePathResolverExePath
 } finally {
     Pop-Location
 }
@@ -95,6 +182,18 @@ function Assert-Contains {
 
     if ($Text -notmatch [regex]::Escape($Expected)) {
         throw "$Name failed. Missing expected output '$Expected'. Actual output:`n$Text"
+    }
+}
+
+function Assert-NotContains {
+    param(
+        [string]$Name,
+        [string]$Text,
+        [string]$Unexpected
+    )
+
+    if ($Text -like "*$Unexpected*") {
+        throw "$Name unexpectedly contained: $Unexpected`nActual:`n$Text"
     }
 }
 
@@ -368,6 +467,529 @@ function Invoke-V0PriorityQueueCase {
     }
 
     Write-Host "[PASS] v0_priority_queue"
+}
+
+function Invoke-GeneratedOverlayCompileCase {
+    $overlayOutputPath = Join-Path $repoRoot "dist/generated_overlay_valid"
+    Remove-Item -LiteralPath $overlayOutputPath -Recurse -Force -ErrorAction SilentlyContinue
+
+    $compileOutput = & $exePath `
+        --compile-generated-overlay `
+        (Join-Path $repoRoot "resources/generated_overlay_valid.dsl") `
+        $overlayOutputPath
+    $compileExitCode = $LASTEXITCODE
+    $compileText = $compileOutput -join "`n"
+
+    if ($compileExitCode -ne 0) {
+        throw "generated_overlay_compile app failed. Actual output:`n$compileText"
+    }
+
+    foreach ($expected in @(
+        "generated_overlay_success=true",
+        "generated_overlay_rule_count=1",
+        "generated_overlay_events_written=true",
+        "generated_overlay_effects_written=true",
+        "generated_overlay_triggers_written=true",
+        "generated_overlay_manifest_written=true"
+    )) {
+        Assert-Contains -Name "generated_overlay_compile app" -Text $compileText -Expected $expected
+    }
+
+    $eventsText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "events/strategic_nexus_generated_events.txt")
+    $effectsText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "common/scripted_effects/strategic_nexus_generated_effects.txt")
+    $triggersText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "common/scripted_triggers/strategic_nexus_generated_triggers.txt")
+    $manifestText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "strategic_nexus_generated_manifest.json")
+    $null = $manifestText | ConvertFrom-Json
+
+    Assert-Contains -Name "generated_overlay_compile events" -Text $eventsText -Expected "strategic_nexus_generated_effect_campaign_001_empire_001_border_war_defense = yes"
+    Assert-Contains -Name "generated_overlay_compile effects" -Text $effectsText -Expected "set_country_flag = strategic_nexus_pref_military_posture_defensive"
+    Assert-Contains -Name "generated_overlay_compile triggers" -Text $triggersText -Expected "has_global_flag = strategic_nexus_campaign_campaign_001"
+    Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"snapshot_kind": "complete_replacement"'
+    Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"multiplayer_requirement": "byte_identical_gameplay_affecting_files"'
+    Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"path": "common/scripted_effects/strategic_nexus_generated_effects.txt"'
+    Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"hash_algorithm": "fnv1a64"'
+
+    $verifyOutput = & $exePath `
+        --verify-generated-overlay `
+        $overlayOutputPath
+    $verifyExitCode = $LASTEXITCODE
+    $verifyText = $verifyOutput -join "`n"
+
+    if ($verifyExitCode -ne 0) {
+        throw "generated_overlay_verify app failed. Actual output:`n$verifyText"
+    }
+
+    Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_ok=true"
+    Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_reason=accepted"
+    Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_file_count=3"
+
+    Write-Host "[PASS] generated_overlay_compile"
+}
+
+function Invoke-GeneratedOverlayVerifyMismatchCase {
+    $overlayOutputPath = Join-Path $repoRoot "dist/generated_overlay_verify_mismatch"
+    Remove-Item -LiteralPath $overlayOutputPath -Recurse -Force -ErrorAction SilentlyContinue
+
+    $compileOutput = & $exePath `
+        --compile-generated-overlay `
+        (Join-Path $repoRoot "resources/generated_overlay_valid.dsl") `
+        $overlayOutputPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "generated_overlay_verify_mismatch compile failed. Actual output:`n$($compileOutput -join "`n")"
+    }
+
+    Add-Content -LiteralPath (Join-Path $overlayOutputPath "events/strategic_nexus_generated_events.txt") -Value "# drift"
+
+    $verifyOutput = & $exePath `
+        --verify-generated-overlay `
+        $overlayOutputPath
+    $verifyExitCode = $LASTEXITCODE
+    $verifyText = $verifyOutput -join "`n"
+
+    if ($verifyExitCode -ne 1) {
+        throw "generated_overlay_verify_mismatch app failed. Expected exit code 1, got $verifyExitCode. Actual output:`n$verifyText"
+    }
+
+    Assert-Contains -Name "generated_overlay_verify_mismatch app" -Text $verifyText -Expected "generated_overlay_manifest_ok=false"
+    Assert-Contains -Name "generated_overlay_verify_mismatch app" -Text $verifyText -Expected "generated_overlay_manifest_reason=generated overlay files do not match manifest"
+    Assert-Contains -Name "generated_overlay_verify_mismatch app" -Text $verifyText -Expected "events/strategic_nexus_generated_events.txt;exists=true;hash_matches=false"
+
+    Write-Host "[PASS] generated_overlay_verify_mismatch"
+}
+
+function Invoke-GeneratedOverlayInvalidCase {
+    $overlayOutputPath = Join-Path $repoRoot "dist/generated_overlay_invalid"
+    Remove-Item -LiteralPath $overlayOutputPath -Recurse -Force -ErrorAction SilentlyContinue
+
+    $compileOutput = & $exePath `
+        --compile-generated-overlay `
+        (Join-Path $repoRoot "resources/generated_overlay_invalid.dsl") `
+        $overlayOutputPath
+    $compileExitCode = $LASTEXITCODE
+    $compileText = $compileOutput -join "`n"
+
+    if ($compileExitCode -ne 1) {
+        throw "generated_overlay_invalid app failed. Expected exit code 1, got $compileExitCode. Actual output:`n$compileText"
+    }
+
+    Assert-Contains -Name "generated_overlay_invalid app" -Text $compileText -Expected "generated_overlay_success=false"
+    Assert-Contains -Name "generated_overlay_invalid app" -Text $compileText -Expected "generated_overlay_reason=validation failed"
+    Assert-Contains -Name "generated_overlay_invalid app" -Text $compileText -Expected "unsupported preference"
+
+    if (Test-Path -LiteralPath $overlayOutputPath) {
+        throw "generated_overlay_invalid should not write an overlay directory."
+    }
+
+    Write-Host "[PASS] generated_overlay_invalid"
+}
+
+function Invoke-CampaignSaveScanCase {
+    $saveRoot = Join-Path $repoRoot "dist/campaign_save_scan_cli_fixture"
+    $inventoryPath = Join-Path $repoRoot "dist/campaign_save_inventory.json"
+    Remove-Item -LiteralPath $saveRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $inventoryPath -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path (Join-Path $saveRoot "Gamma Campaign") | Out-Null
+    Set-Content -LiteralPath (Join-Path $saveRoot "Gamma Campaign/autosave_2230.sav") -Value "fixture" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $saveRoot "Loose Campaign.sav") -Value "fixture" -Encoding UTF8
+
+    $scanOutput = & $exePath `
+        --scan-save-campaigns `
+        $saveRoot `
+        $inventoryPath
+    $scanExitCode = $LASTEXITCODE
+    $scanText = $scanOutput -join "`n"
+
+    if ($scanExitCode -ne 0) {
+        throw "campaign_save_scan app failed. Actual output:`n$scanText"
+    }
+
+    Assert-Contains -Name "campaign_save_scan app" -Text $scanText -Expected "save_campaign_scan_success=true"
+    Assert-Contains -Name "campaign_save_scan app" -Text $scanText -Expected "save_campaign_scan_root_exists=true"
+    Assert-Contains -Name "campaign_save_scan app" -Text $scanText -Expected "save_campaign_scan_campaign_count=2"
+
+    $inventoryText = Get-Content -Raw -LiteralPath $inventoryPath
+    $null = $inventoryText | ConvertFrom-Json
+    Assert-Contains -Name "campaign_save_scan inventory" -Text $inventoryText -Expected '"campaign_key": "gamma_campaign"'
+    Assert-Contains -Name "campaign_save_scan inventory" -Text $inventoryText -Expected '"campaign_key": "loose_campaign"'
+
+    Write-Host "[PASS] campaign_save_scan"
+}
+
+function Invoke-CampaignSaveDiffCase {
+    $previousRoot = Join-Path $repoRoot "dist/campaign_save_diff_previous_fixture"
+    $currentRoot = Join-Path $repoRoot "dist/campaign_save_diff_current_fixture"
+    $diffPath = Join-Path $repoRoot "dist/campaign_save_inventory_diff.json"
+    Remove-Item -LiteralPath $previousRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $currentRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $diffPath -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path (Join-Path $previousRoot "Alpha Campaign") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $currentRoot "Alpha Campaign") | Out-Null
+    Set-Content -LiteralPath (Join-Path $previousRoot "Alpha Campaign/autosave_2230.sav") -Value "fixture" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $currentRoot "Alpha Campaign/autosave_2230.sav") -Value "fixture" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $currentRoot "Alpha Campaign/autosave_2231.sav") -Value "fixture" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $previousRoot "Removed.sav") -Value "fixture" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $currentRoot "Added.sav") -Value "fixture" -Encoding UTF8
+
+    $diffOutput = & $exePath `
+        --diff-save-campaigns `
+        $previousRoot `
+        $currentRoot `
+        $diffPath
+    $diffExitCode = $LASTEXITCODE
+    $diffText = $diffOutput -join "`n"
+
+    if ($diffExitCode -ne 0) {
+        throw "campaign_save_diff app failed. Actual output:`n$diffText"
+    }
+
+    Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_success=true"
+    Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_added=1"
+    Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_removed=1"
+    Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_changed=1"
+
+    $inventoryDiffText = Get-Content -Raw -LiteralPath $diffPath
+    $null = $inventoryDiffText | ConvertFrom-Json
+    Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"change_kind": "added"'
+    Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"change_kind": "removed"'
+    Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"change_kind": "changed"'
+
+    Write-Host "[PASS] campaign_save_diff"
+}
+
+function Invoke-CampaignLibraryPlanCase {
+    $saveRoot = Join-Path $repoRoot "dist/campaign_library_plan_fixture"
+    $planPath = Join-Path $repoRoot "dist/campaign_library_plan.json"
+    Remove-Item -LiteralPath $saveRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $planPath -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path $saveRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $saveRoot "Alpha.sav") -Value "fixture" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $saveRoot "Beta.sav") -Value "fixture" -Encoding UTF8
+
+    $planOutput = & $exePath `
+        --plan-campaign-library `
+        $saveRoot `
+        1 `
+        $planPath
+    $planExitCode = $LASTEXITCODE
+    $planText = $planOutput -join "`n"
+
+    if ($planExitCode -ne 0) {
+        throw "campaign_library_plan app failed. Actual output:`n$planText"
+    }
+
+    Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_success=true"
+    Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_included=1"
+    Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_skipped=1"
+
+    $planJson = Get-Content -Raw -LiteralPath $planPath
+    $null = $planJson | ConvertFrom-Json
+    Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"status": "included"'
+    Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"reason": "active_library_limit"'
+
+    Write-Host "[PASS] campaign_library_plan"
+}
+
+function Invoke-CampaignLibraryOverlayCase {
+    $saveRoot = Join-Path $repoRoot "dist/campaign_library_overlay_saves"
+    $dslPath = Join-Path $repoRoot "dist/campaign_library_overlay.dsl"
+    $overlayOutputPath = Join-Path $repoRoot "dist/campaign_library_overlay"
+    Remove-Item -LiteralPath $saveRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $dslPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $overlayOutputPath -Recurse -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path $saveRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $saveRoot "Alpha.sav") -Value "fixture" -Encoding UTF8
+    @'
+campaign "alpha" {
+  empire "empire_001" {
+    rule "local_defense" {
+      ministry = military_ministry
+      when campaign_marker
+      prefer military_posture defensive intensity 0.7
+      duration = next_session
+      confidence = 0.72
+      rationale = "Local campaign rule."
+    }
+  }
+}
+campaign "missing" {
+  empire "empire_001" {
+    rule "missing_aggression" {
+      ministry = military_ministry
+      when campaign_marker
+      prefer military_posture aggressive intensity 0.7
+      duration = next_session
+      confidence = 0.72
+      rationale = "Unavailable campaign rule."
+    }
+  }
+}
+'@ | Set-Content -LiteralPath $dslPath -Encoding ASCII
+
+    $overlayOutput = & $exePath `
+        --compile-campaign-library-overlay `
+        $dslPath `
+        $saveRoot `
+        4 `
+        $overlayOutputPath
+    $overlayExitCode = $LASTEXITCODE
+    $overlayText = $overlayOutput -join "`n"
+
+    if ($overlayExitCode -ne 0) {
+        throw "campaign_library_overlay app failed. Actual output:`n$overlayText"
+    }
+
+    Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_success=true"
+    Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_rules_included=1"
+    Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_rules_skipped=1"
+
+    $eventsText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "events/strategic_nexus_generated_events.txt")
+    $planText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "strategic_nexus_campaign_library_plan.json")
+    $null = $planText | ConvertFrom-Json
+    Assert-Contains -Name "campaign_library_overlay events" -Text $eventsText -Expected "strategic_nexus_generated_effect_alpha_empire_001_local_defense"
+    Assert-NotContains -Name "campaign_library_overlay events" -Text $eventsText -Unexpected "missing_aggression"
+    Assert-Contains -Name "campaign_library_overlay plan" -Text $planText -Expected '"campaign_key": "alpha"'
+
+    Write-Host "[PASS] campaign_library_overlay"
+}
+
+function Invoke-StellarisSaveRootDiscoveryCase {
+    $outputPath = Join-Path $repoRoot "dist/stellaris_save_roots.json"
+    Remove-Item -LiteralPath $outputPath -Force -ErrorAction SilentlyContinue
+
+    $discoveryOutput = & $exePath `
+        --discover-stellaris-save-roots `
+        $outputPath
+    $discoveryExitCode = $LASTEXITCODE
+    $discoveryText = $discoveryOutput -join "`n"
+
+    if ($discoveryExitCode -ne 0) {
+        throw "stellaris_save_roots app failed. Actual output:`n$discoveryText"
+    }
+
+    Assert-Contains -Name "stellaris_save_roots app" -Text $discoveryText -Expected "stellaris_save_roots_success=true"
+    Assert-Contains -Name "stellaris_save_roots app" -Text $discoveryText -Expected "stellaris_save_roots_output_written=true"
+
+    $discoveryJson = Get-Content -Raw -LiteralPath $outputPath
+    $null = $discoveryJson | ConvertFrom-Json
+    Assert-Contains -Name "stellaris_save_roots json" -Text $discoveryJson -Expected '"schema_version": 1'
+    Assert-Contains -Name "stellaris_save_roots json" -Text $discoveryJson -Expected '"candidates":'
+
+    Write-Host "[PASS] stellaris_save_roots"
+}
+
+function Invoke-AutosaveArchiveCase {
+    $sourceRoot = Join-Path $repoRoot "dist/autosave_archive_cli_source"
+    $archiveRoot = Join-Path $repoRoot "dist/autosave_archive_cli_archive"
+    Remove-Item -LiteralPath $sourceRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $archiveRoot -Recurse -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path $sourceRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $sourceRoot "autosave_2230.sav") -Value "fixture" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $sourceRoot "ignored.txt") -Value "ignored" -Encoding UTF8
+
+    $archiveOutput = & $exePath `
+        --archive-stable-saves `
+        $sourceRoot `
+        $archiveRoot `
+        "session_cli" `
+        0
+    $archiveExitCode = $LASTEXITCODE
+    $archiveText = $archiveOutput -join "`n"
+
+    if ($archiveExitCode -ne 0) {
+        throw "autosave_archive app failed. Actual output:`n$archiveText"
+    }
+
+    Assert-Contains -Name "autosave_archive app" -Text $archiveText -Expected "autosave_archive_success=true"
+    Assert-Contains -Name "autosave_archive app" -Text $archiveText -Expected "autosave_archive_copied=1"
+    Assert-Contains -Name "autosave_archive app" -Text $archiveText -Expected "autosave_archive_skipped=0"
+
+    $manifestPath = Join-Path $archiveRoot "session_cli/manifest.json"
+    $manifestText = Get-Content -Raw -LiteralPath $manifestPath
+    $null = $manifestText | ConvertFrom-Json
+    Assert-Contains -Name "autosave_archive manifest" -Text $manifestText -Expected '"copied_count": 1'
+    Assert-Contains -Name "autosave_archive manifest" -Text $manifestText -Expected '"reason": "stable_copy"'
+
+    $verifyOutput = & $exePath `
+        --verify-autosave-archive `
+        (Join-Path $archiveRoot "session_cli")
+    $verifyExitCode = $LASTEXITCODE
+    $verifyText = $verifyOutput -join "`n"
+
+    if ($verifyExitCode -ne 0) {
+        throw "autosave_archive verify app failed. Actual output:`n$verifyText"
+    }
+
+    Assert-Contains -Name "autosave_archive verify app" -Text $verifyText -Expected "autosave_archive_manifest_ok=true"
+    Assert-Contains -Name "autosave_archive verify app" -Text $verifyText -Expected "autosave_archive_manifest_reason=accepted"
+
+    $summaryPath = Join-Path $archiveRoot "session_cli_summary.json"
+    $summaryOutput = & $exePath `
+        --summarize-autosave-archive `
+        (Join-Path $archiveRoot "session_cli") `
+        $summaryPath
+    $summaryExitCode = $LASTEXITCODE
+    $summaryText = $summaryOutput -join "`n"
+
+    if ($summaryExitCode -ne 0) {
+        throw "autosave_archive summary app failed. Actual output:`n$summaryText"
+    }
+
+    Assert-Contains -Name "autosave_archive summary app" -Text $summaryText -Expected "autosave_archive_summary_success=true"
+    Assert-Contains -Name "autosave_archive summary app" -Text $summaryText -Expected "autosave_archive_summary_save_count=1"
+
+    $summaryJson = Get-Content -Raw -LiteralPath $summaryPath
+    $null = $summaryJson | ConvertFrom-Json
+    Assert-Contains -Name "autosave_archive summary json" -Text $summaryJson -Expected '"copied_save_count": 1'
+
+    $ministryInputPath = Join-Path $archiveRoot "session_cli_ministry_input.json"
+    $inputOutput = & $exePath `
+        --build-ministry-input-from-archive `
+        (Join-Path $archiveRoot "session_cli") `
+        "campaign_cli" `
+        "empire_cli" `
+        "military" `
+        $ministryInputPath
+    $inputExitCode = $LASTEXITCODE
+    $inputText = $inputOutput -join "`n"
+
+    if ($inputExitCode -ne 0) {
+        throw "archive ministry input app failed. Actual output:`n$inputText"
+    }
+
+    Assert-Contains -Name "archive ministry input app" -Text $inputText -Expected "archive_ministry_input_success=true"
+    Assert-Contains -Name "archive ministry input app" -Text $inputText -Expected "archive_ministry_input_campaign_id=campaign_cli"
+
+    $inputJson = Get-Content -Raw -LiteralPath $ministryInputPath
+    $null = $inputJson | ConvertFrom-Json
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"campaign_id": "campaign_cli"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"save_content_not_parsed_yet"'
+
+    $archivePipelineInputPath = Join-Path $archiveRoot "session_cli_archive_pipeline_input.json"
+    $archivePipelineDecisionPath = Join-Path $archiveRoot "session_cli_archive_pipeline_decision.json"
+    $archivePipelineAuditPath = Join-Path $archiveRoot "session_cli_archive_pipeline_audit.json"
+    $archivePipelineOutput = & $exePath `
+        --v0-pipeline-from-archive `
+        (Join-Path $archiveRoot "session_cli") `
+        "campaign_cli" `
+        "empire_cli" `
+        "military" `
+        $archivePipelineInputPath `
+        $archivePipelineDecisionPath `
+        301 `
+        123456 `
+        30000 `
+        $archivePipelineAuditPath
+    $archivePipelineExitCode = $LASTEXITCODE
+    $archivePipelineText = $archivePipelineOutput -join "`n"
+
+    if ($archivePipelineExitCode -ne 0) {
+        throw "archive v0 pipeline app failed. Actual output:`n$archivePipelineText"
+    }
+
+    Assert-Contains -Name "archive v0 pipeline app" -Text $archivePipelineText -Expected "archive_v0_pipeline_success=true"
+    Assert-Contains -Name "archive v0 pipeline app" -Text $archivePipelineText -Expected "archive_v0_pipeline_ministry_input_written=true"
+    Assert-Contains -Name "archive v0 pipeline app" -Text $archivePipelineText -Expected "archive_v0_pipeline_decision_written=true"
+    Assert-Contains -Name "archive v0 pipeline app" -Text $archivePipelineText -Expected "archive_v0_pipeline_campaign_id=campaign_cli"
+    Assert-Contains -Name "archive v0 pipeline app" -Text $archivePipelineText -Expected "archive_v0_pipeline_empire_id=empire_cli"
+
+    $archivePipelineDecisionJson = Get-Content -Raw -LiteralPath $archivePipelineDecisionPath
+    $null = $archivePipelineDecisionJson | ConvertFrom-Json
+    Assert-Contains -Name "archive v0 pipeline decision json" -Text $archivePipelineDecisionJson -Expected '"campaign_id": "campaign_cli"'
+    Assert-Contains -Name "archive v0 pipeline decision json" -Text $archivePipelineDecisionJson -Expected '"empire_id": "empire_cli"'
+    Assert-Contains -Name "archive v0 pipeline decision json" -Text $archivePipelineDecisionJson -Expected '"military_posture": "defensive"'
+
+    $archivePipelineAuditJson = Get-Content -Raw -LiteralPath $archivePipelineAuditPath
+    $null = $archivePipelineAuditJson | ConvertFrom-Json
+    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"archive_session_summary_v0"'
+    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"save_content_not_parsed_yet"'
+
+    $ledgerPath = Join-Path $archiveRoot "session_cli_delta_ledger.json"
+    $ledgerOutput = & $exePath `
+        --build-season-delta-ledger `
+        (Join-Path $archiveRoot "session_cli") `
+        "campaign_cli" `
+        $ledgerPath
+    $ledgerExitCode = $LASTEXITCODE
+    $ledgerText = $ledgerOutput -join "`n"
+
+    if ($ledgerExitCode -ne 0) {
+        throw "season delta ledger app failed. Actual output:`n$ledgerText"
+    }
+
+    Assert-Contains -Name "season delta ledger app" -Text $ledgerText -Expected "season_delta_ledger_success=true"
+    Assert-Contains -Name "season delta ledger app" -Text $ledgerText -Expected "season_delta_ledger_campaign_id=campaign_cli"
+    Assert-Contains -Name "season delta ledger app" -Text $ledgerText -Expected "season_delta_ledger_save_count=1"
+
+    $ledgerJson = Get-Content -Raw -LiteralPath $ledgerPath
+    $null = $ledgerJson | ConvertFrom-Json
+    Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"campaign_id": "campaign_cli"'
+    Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"delta_quality": "metadata_only"'
+    Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"archive_verified:true"'
+
+    $briefPath = Join-Path $archiveRoot "session_cli_empire_brief.json"
+    $briefOutput = & $exePath `
+        --build-empire-brief-from-archive `
+        (Join-Path $archiveRoot "session_cli") `
+        "campaign_cli" `
+        "empire_cli" `
+        $briefPath
+    $briefExitCode = $LASTEXITCODE
+    $briefText = $briefOutput -join "`n"
+
+    if ($briefExitCode -ne 0) {
+        throw "archive empire brief app failed. Actual output:`n$briefText"
+    }
+
+    Assert-Contains -Name "archive empire brief app" -Text $briefText -Expected "archive_empire_brief_success=true"
+    Assert-Contains -Name "archive empire brief app" -Text $briefText -Expected "archive_empire_brief_campaign_id=campaign_cli"
+    Assert-Contains -Name "archive empire brief app" -Text $briefText -Expected "archive_empire_brief_empire_id=empire_cli"
+
+    $briefJson = Get-Content -Raw -LiteralPath $briefPath
+    $null = $briefJson | ConvertFrom-Json
+    Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"empire_id": "empire_cli"'
+    Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"source_ledger_quality": "metadata_only"'
+    Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"empire_identity_resolver_not_implemented_yet"'
+
+    Write-Host "[PASS] autosave_archive"
+}
+
+function Invoke-AutosaveArchiveVerifyMismatchCase {
+    $sourceRoot = Join-Path $repoRoot "dist/autosave_archive_mismatch_source"
+    $archiveRoot = Join-Path $repoRoot "dist/autosave_archive_mismatch_archive"
+    Remove-Item -LiteralPath $sourceRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $archiveRoot -Recurse -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path $sourceRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $sourceRoot "autosave_2230.sav") -Value "fixture" -Encoding UTF8
+
+    $null = & $exePath `
+        --archive-stable-saves `
+        $sourceRoot `
+        $archiveRoot `
+        "session_mismatch" `
+        0
+
+    Set-Content -LiteralPath (Join-Path $archiveRoot "session_mismatch/saves/001_autosave_2230.sav") -Value "tampered" -Encoding UTF8
+
+    $verifyOutput = & $exePath `
+        --verify-autosave-archive `
+        (Join-Path $archiveRoot "session_mismatch")
+    $verifyExitCode = $LASTEXITCODE
+    $verifyText = $verifyOutput -join "`n"
+
+    if ($verifyExitCode -ne 1) {
+        throw "autosave_archive mismatch verify should fail. Actual output:`n$verifyText"
+    }
+
+    Assert-Contains -Name "autosave_archive mismatch app" -Text $verifyText -Expected "autosave_archive_manifest_ok=false"
+    Assert-Contains -Name "autosave_archive mismatch app" -Text $verifyText -Expected "autosave_archive_manifest_reason=autosave archive files do not match manifest"
+
+    Write-Host "[PASS] autosave_archive_verify_mismatch"
 }
 
 Invoke-V0PipelineCase `
@@ -660,6 +1282,46 @@ Invoke-V0PipelineAuditFailureCase `
     -InputFixture "resources/ministry_context_military_defensive.json"
 
 Invoke-V0PriorityQueueCase
+Invoke-GeneratedOverlayCompileCase
+Invoke-GeneratedOverlayVerifyMismatchCase
+Invoke-GeneratedOverlayInvalidCase
+Invoke-CampaignSaveScanCase
+Invoke-CampaignSaveDiffCase
+Invoke-CampaignLibraryPlanCase
+Invoke-CampaignLibraryOverlayCase
+Invoke-StellarisSaveRootDiscoveryCase
+Invoke-AutosaveArchiveCase
+Invoke-AutosaveArchiveVerifyMismatchCase
+
+& $autosaveArchiverExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "autosave archiver tests failed."
+}
+
+& $autosaveArchiveVerifierExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "autosave archive verifier tests failed."
+}
+
+& $autosaveArchiveSummarizerExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "autosave archive summarizer tests failed."
+}
+
+& $archiveMinistryInputBuilderExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "archive ministry input builder tests failed."
+}
+
+& $seasonDeltaLedgerBuilderExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "season delta ledger builder tests failed."
+}
+
+& $seasonEmpireBriefBuilderExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "season empire brief builder tests failed."
+}
 
 & $cabinetContractExePath
 if ($LASTEXITCODE -ne 0) {
@@ -674,6 +1336,31 @@ if ($LASTEXITCODE -ne 0) {
 & $processingQueueExePath
 if ($LASTEXITCODE -ne 0) {
     throw "v0 processing queue tests failed."
+}
+
+& $generatedOverlayContractExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "generated overlay contract tests failed."
+}
+
+& $generatedOverlayVerifierExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "generated overlay verifier tests failed."
+}
+
+& $campaignSaveScannerExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "campaign save scanner tests failed."
+}
+
+& $campaignLibraryPlannerExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "campaign library planner tests failed."
+}
+
+& $stellarisSavePathResolverExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "stellaris save path resolver tests failed."
 }
 
 Write-Host "V0 strategic pipeline tests passed."

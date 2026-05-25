@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #pragma once
 
 #include <optional>
@@ -11,3 +14,4 @@ std::optional<std::string> extractJsonString(const std::string& json, const char
 std::vector<std::string> extractJsonStringArray(const std::string& json, const char* key);
 
 } // namespace strategic_nexus::common
+

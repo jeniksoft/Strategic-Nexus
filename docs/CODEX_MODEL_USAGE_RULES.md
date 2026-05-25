@@ -1,4 +1,4 @@
-# Strategic Nexus — Codex Model Usage Rules
+# Strategic Nexus - Codex Model Usage Rules
 
 ## Core Rule
 

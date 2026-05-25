@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "GalaxyAnalyzer.h"
 
 #include <algorithm>
@@ -38,3 +41,4 @@ StrategicSummary GalaxyAnalyzer::summarize(const GalaxyState& state) const
 }
 
 } // namespace strategic_nexus
+

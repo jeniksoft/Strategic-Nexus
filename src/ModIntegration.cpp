@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "ModIntegration.h"
 
 #include "BridgeContract.h"
@@ -127,3 +130,4 @@ void ModIntegration::writeErrorJson(
 }
 
 } // namespace strategic_nexus
+

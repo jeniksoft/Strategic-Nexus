@@ -21,10 +21,13 @@ empire snapshot
 -> clerk-reduced input brief U
 -> lightweight cabinet review
 -> validated strategy_dimensions payload
--> bridge-core effect batch
+-> generated overlay or bridge-core validation artifact
 ```
 
 The goal is architectural proof, not strategic depth.
+
+In the revised production architecture, this v0 pipeline is an offline validator and generated-output preparation path.
+The bridge-core effect batch remains useful for tests and development harnesses, but it is not a production promise of live LLM delivery into a running game.
 
 ---
 
@@ -245,7 +248,7 @@ Testing should be local and deterministic where possible.
 4. Add stateless clerk reducer.
 5. Add lightweight cabinet evaluator.
 6. Emit final `strategy_dimensions` payload.
-7. Reuse bridge-core pipeline for validation and effect batch generation.
+7. Reuse bridge-core validation where useful and keep effect batch generation as a development-harness artifact.
 8. Add tests.
 
 Current progress:
@@ -270,8 +273,22 @@ Current progress:
 * The v0 pipeline now computes a deterministic processing priority score from war state, strategic pressure, and explicit uncertainty count.
 * A first deterministic processing queue can order ministry input contexts by priority while preserving stable order inside ties.
 * `Strategic Nexus.exe --v0-priority-queue <output_json> <input_context>...` writes a compact queue JSON for local scheduler testing.
-* Priority scoring is audit-only for single v0 pipeline runs; queue ordering exists as a local skeleton but is not yet connected to the live daemon loop.
+* Priority scoring is audit-only for single v0 pipeline runs; queue ordering exists as a local skeleton for future offline-worker scheduling.
 * The audit record contains the ministry input context, processing priority score, ministry output, clerk-reduced input brief, and final payload.
+* `src/generated_overlay/` contains the first bounded DSL parser, validator, and deterministic generated overlay compiler skeleton.
+* `Strategic Nexus.exe --compile-generated-overlay <input.dsl> <output_dir>` stages generated event, scripted effect, and scripted trigger files from validated DSL.
+* Generated overlay staging also emits `strategic_nexus_generated_manifest.json` with deterministic file hashes, byte counts, checksum relevance classification, and complete replacement snapshot metadata.
+* Generated overlay tests verify both successful staging and fail-closed rejection of invalid tactical-style DSL.
+* `Strategic Nexus.exe --archive-stable-saves <save_root> <archive_root> <session_id> [stability_delay_ms]` copies stable `.sav` files into a separate session archive and writes a manifest.
+* `Strategic Nexus.exe --verify-autosave-archive <session_archive_dir>` verifies copied saves against the archive manifest.
+* `Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits bounded metadata from a verified archive session.
+* `Strategic Nexus.exe --build-ministry-input-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <output_json>` emits a conservative v0 ministry input context from verified archive metadata.
+* `Strategic Nexus.exe --discover-stellaris-save-roots <output.json>` emits likely Windows Stellaris save root candidates with existence flags.
+* `Strategic Nexus.exe --scan-save-campaigns <save_root> <inventory_output.json>` emits a deterministic read-only inventory of locally present campaign save directories and loose `.sav` files.
+* Campaign save inventory entries include a selected local anchor save fingerprint for future identity/memory lookup.
+* `Strategic Nexus.exe --diff-save-campaigns <previous_save_root> <current_save_root> <diff_output.json>` emits a deterministic read-only availability diff for generated campaign library maintenance.
+* `Strategic Nexus.exe --plan-campaign-library <save_root> <max_campaigns> <plan_output.json>` emits a bounded include/skip plan for the active generated campaign library.
+* `Strategic Nexus.exe --compile-campaign-library-overlay <input.dsl> <save_root> <max_campaigns> <output_dir>` compiles a generated overlay snapshot filtered to included local campaign keys.
 
 Validation note:
 Preserving an existing agenda under low confidence must still validate the existing agenda values.

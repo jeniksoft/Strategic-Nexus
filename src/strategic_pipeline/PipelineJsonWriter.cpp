@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "PipelineJsonWriter.h"
 
 #include <sstream>
@@ -59,6 +62,34 @@ std::string serializeFinalStrategyPayload(const FinalStrategyPayload& payload)
     json << "  },\n";
     json << "  \"confidence\": " << payload.confidence << ",\n";
     json << "  \"fallback_required\": " << (payload.fallbackRequired ? "true" : "false") << "\n";
+    json << "}\n";
+    return json.str();
+}
+
+std::string serializeMinistryInputContext(const MinistryInputContext& input)
+{
+    std::ostringstream json;
+    json << "{\n";
+    json << "  \"schema_version\": " << input.schemaVersion << ",\n";
+    json << "  \"context_id\": \"" << escapeJsonString(input.contextId) << "\",\n";
+    json << "  \"campaign_id\": \"" << escapeJsonString(input.campaignId) << "\",\n";
+    json << "  \"empire_id\": \"" << escapeJsonString(input.empireId) << "\",\n";
+    json << "  \"ministry\": \"" << escapeJsonString(input.ministry) << "\",\n";
+    json << "  \"turn_context\": {\n";
+    json << "    \"year\": " << input.turnContext.year << ",\n";
+    json << "    \"is_at_war\": " << (input.turnContext.isAtWar ? "true" : "false") << ",\n";
+    json << "    \"strategic_pressure\": " << input.turnContext.strategicPressure << "\n";
+    json << "  },\n";
+    json << "  \"known_facts\": ";
+    writeStringArray(json, input.knownFacts, 2);
+    json << ",\n";
+    json << "  \"uncertainties\": ";
+    writeStringArray(json, input.uncertainties, 2);
+    json << ",\n";
+    json << "  \"current_agenda\": {\n";
+    json << "    \"military_posture\": \"" << escapeJsonString(input.currentMilitaryPosture) << "\",\n";
+    json << "    \"research_bias\": \"" << escapeJsonString(input.currentResearchBias) << "\"\n";
+    json << "  }\n";
     json << "}\n";
     return json.str();
 }
@@ -187,3 +218,4 @@ std::string serializeProcessingQueue(
 }
 
 } // namespace strategic_nexus::strategic_pipeline
+

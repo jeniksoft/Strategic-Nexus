@@ -1,4 +1,4 @@
-# Strategic Nexus — Tradition And Ascension Strategy Rules
+# Strategic Nexus - Tradition And Ascension Strategy Rules
 
 ## Core Rule
 
@@ -304,10 +304,10 @@ War and crisis may influence future tradition/perk preference.
 
 Examples:
 
-* repeated invasions → defensive traditions
-* technological inferiority → research focus
-* economic collapse → prosperity focus
-* crisis trauma → survival-oriented perks
+* repeated invasions -> defensive traditions
+* technological inferiority -> research focus
+* economic collapse -> prosperity focus
+* crisis trauma -> survival-oriented perks
 
 However:
 temporary pressure should not instantly override civilization identity.
@@ -568,16 +568,16 @@ Ethics may reinforce or conflict with:
 Examples:
 
 Militarist + trauma:
-→ revenge-oriented militarization
+-> revenge-oriented militarization
 
 Pacifist + existential crisis:
-→ defensive mobilization without aggressive expansion
+-> defensive mobilization without aggressive expansion
 
 Materialist + technological inferiority:
-→ intensified research focus
+-> intensified research focus
 
 Spiritualist + synthetic threat:
-→ ideological hostility
+-> ideological hostility
 
 Civilizations should feel internally coherent.
 

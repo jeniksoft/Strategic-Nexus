@@ -1,4 +1,4 @@
-# Strategic Nexus — Probabilistic Decision Sampling Rules
+# Strategic Nexus - Probabilistic Decision Sampling Rules
 
 ## Core Rule
 
@@ -190,10 +190,10 @@ Uncertain situations may produce:
 Example:
 
 Clear existential threat:
-→ mostly defensive response
+-> mostly defensive response
 
 Ambiguous diplomacy:
-→ wider range of possible reactions
+-> wider range of possible reactions
 
 ---
 

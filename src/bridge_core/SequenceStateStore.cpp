@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "SequenceStateStore.h"
 
 #include "common/FileUtil.h"
@@ -74,3 +77,4 @@ SequenceWriteResult SequenceStateStore::writeAtomically(
 }
 
 } // namespace strategic_nexus::bridge_core
+

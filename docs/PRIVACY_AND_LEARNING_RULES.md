@@ -1,4 +1,4 @@
-# Strategic Nexus — Privacy And Learning Rules
+# Strategic Nexus - Privacy And Learning Rules
 
 ## Core Rule
 

@@ -1,4 +1,4 @@
-﻿# Strategic Nexus — Payload Lifecycle Rules
+# Strategic Nexus - Payload Lifecycle Rules
 
 ## Core Rule
 
@@ -77,16 +77,16 @@ Correct behavior:
 
 ```text
 stale payload
-→ reduced authority
-→ lower confidence
-→ continue using until replaced
+-> reduced authority
+-> lower confidence
+-> continue using until replaced
 ```
 
 Rejected behavior:
 
 ```text
 stale payload
-→ immediate fallback
+-> immediate fallback
 ```
 
 Old strategy should weaken, not vanish.
@@ -103,14 +103,14 @@ A payload is DECAYED if:
 Example design guide:
 
 ```text
-0–5 years old
-→ full strength
+0-5 years old
+-> full strength
 
-5–15 years old
-→ reduced influence
+5-15 years old
+-> reduced influence
 
 15+ years old
-→ weak but active
+-> weak but active
 ```
 
 Decayed payloads represent:
@@ -157,8 +157,8 @@ Correct behavior:
 
 ```text
 replayed payload
-→ reject payload
-→ preserve current accepted doctrine
+-> reject payload
+-> preserve current accepted doctrine
 ```
 
 Do not fallback just because an old replay arrives if a better current doctrine exists.
@@ -251,7 +251,7 @@ If validation fails:
 
 ```text
 invalid payload
-→ fallback or preserve previous valid doctrine
+-> fallback or preserve previous valid doctrine
 ```
 
 Failure must NEVER:
@@ -271,8 +271,8 @@ When a new payload is invalid, corrupted, replayed, or wrong-campaign:
 
 ```text
 bad incoming payload
-→ ignore it
-→ preserve previous accepted valid doctrine if available
+-> ignore it
+-> preserve previous accepted valid doctrine if available
 ```
 
 Do not erase a good doctrine because a bad payload arrived.

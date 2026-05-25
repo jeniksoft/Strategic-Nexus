@@ -360,7 +360,7 @@ The mapper emits only predefined flag identifiers and the predefined receiver ev
 It does not emit debug-interface command strings.
 It does not emit script text.
 It does not execute anything in Stellaris.
-It only prepares an auditable intent for a future host-only bridge adapter.
+It only prepares an auditable intent for development harnesses or generated-overlay preparation.
 
 ## Effect Batch Emitter Scope
 

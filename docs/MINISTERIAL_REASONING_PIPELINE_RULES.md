@@ -1,4 +1,4 @@
-# Strategic Nexus — Ministerial Reasoning Pipeline Rules
+# Strategic Nexus - Ministerial Reasoning Pipeline Rules
 
 ## Core Rule
 
@@ -776,14 +776,14 @@ Possible flow:
 
 ```text id="m6d1sr"
 retrieve ministry input context X
-→ ministry reasoning over X
-→ ministry output Y
-→ clerk reduction of X into U
-→ proposal validation
-→ cabinet review of Y + U
-→ partial revision if needed
-→ bounded acceptance
-→ payload generation
+-> ministry reasoning over X
+-> ministry output Y
+-> clerk reduction of X into U
+-> proposal validation
+-> cabinet review of Y + U
+-> partial revision if needed
+-> bounded acceptance
+-> payload generation
 ```
 
 This pipeline supports:

@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "EmpireProcessingQueue.h"
 
 #include <algorithm>
@@ -26,3 +29,4 @@ std::vector<EmpireProcessingQueueEntry> EmpireProcessingQueue::build(std::vector
 }
 
 } // namespace strategic_nexus::strategic_pipeline
+

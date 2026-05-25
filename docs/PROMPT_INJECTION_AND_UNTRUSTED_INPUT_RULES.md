@@ -1,4 +1,4 @@
-# Strategic Nexus — Prompt Injection And Untrusted Input Rules
+# Strategic Nexus - Prompt Injection And Untrusted Input Rules
 
 ## Core Rule
 

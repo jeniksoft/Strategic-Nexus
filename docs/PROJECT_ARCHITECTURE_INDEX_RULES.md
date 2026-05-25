@@ -1,4 +1,4 @@
-# Strategic Nexus — Project Architecture Index Rules
+# Strategic Nexus - Project Architecture Index Rules
 
 ## Core Rule
 
@@ -97,21 +97,21 @@ Possible structure:
 
 ```text id="b3p8nx"
 Architecture
-├── Core Philosophy
-├── Runtime Architecture
-├── Memory Systems
-├── Doctrine Systems
-├── Ethics And Politics
-├── Diplomacy
-├── War Systems
-├── Multiplayer
-├── Security
-├── Compatibility
-├── Performance
-├── Testing
-├── Telemetry
-├── Tooling
-└── Future Research
+|-- Core Philosophy
+|-- Runtime Architecture
+|-- Memory Systems
+|-- Doctrine Systems
+|-- Ethics And Politics
+|-- Diplomacy
+|-- War Systems
+|-- Multiplayer
+|-- Security
+|-- Compatibility
+|-- Performance
+|-- Testing
+|-- Telemetry
+|-- Tooling
+\-- Future Research
 ```
 
 ---

@@ -1,3 +1,6 @@
+﻿// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
 #include "BridgeState.h"
 
 #include <utility>
@@ -264,3 +267,4 @@ ValidatedBridgeState makeFallbackState(std::string reason, const std::int64_t se
 }
 
 } // namespace strategic_nexus::bridge_core
+

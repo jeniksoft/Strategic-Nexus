@@ -1,4 +1,4 @@
-# Strategic Nexus — Intel And Doctrine Rules
+# Strategic Nexus - Intel And Doctrine Rules
 
 ## Core Principle
 
@@ -12,9 +12,9 @@ The system may only reason about:
 The system must never use hidden save data as perfect knowledge.
 
 The goal is:
-“civilizations making strategic decisions from imperfect information”
+"civilizations making strategic decisions from imperfect information"
 not:
-“AI reading the entire save as a cheating oracle.”
+"AI reading the entire save as a cheating oracle."
 
 ---
 
@@ -26,25 +26,25 @@ The save parser must eventually support:
 
 ```text
 save data
-→ empire knowledge filtering
-→ empire strategic snapshot
-→ doctrine reasoning
+-> empire knowledge filtering
+-> empire strategic snapshot
+-> doctrine reasoning
 ```
 
 The correct architecture is NOT:
 
 ```text
 save parser
-→ full galaxy truth
-→ perfect counters
+-> full galaxy truth
+-> perfect counters
 ```
 
 The correct architecture IS:
 
 ```text
 save parser
-→ filtered empire perspective
-→ bounded strategic reasoning
+-> filtered empire perspective
+-> bounded strategic reasoning
 ```
 
 ---
@@ -85,15 +85,15 @@ Strategic Nexus may create uncertain strategic conclusions from historical or ob
 
 Examples:
 
-- “this empire prefers carrier warfare”
-- “this empire favors defensive wars”
-- “this empire is economically dominant”
-- “this empire rushes alloy production”
-- “this empire is likely preparing for war”
-- “this empire appears technologically advanced”
-- “this empire adapts rapidly after defeat”
-- “this empire is opportunistic”
-- “this empire behaves aggressively toward weaker neighbors”
+- "this empire prefers carrier warfare"
+- "this empire favors defensive wars"
+- "this empire is economically dominant"
+- "this empire rushes alloy production"
+- "this empire is likely preparing for war"
+- "this empire appears technologically advanced"
+- "this empire adapts rapidly after defeat"
+- "this empire is opportunistic"
+- "this empire behaves aggressively toward weaker neighbors"
 
 Inference is allowed because human players also infer behavior from patterns.
 
@@ -129,7 +129,7 @@ Strategic Nexus must NEVER use:
 - direct save truth for perfect counters
 - exact player build optimization from save parsing
 - instant reaction to hidden changes
-- “god view” reasoning
+- "god view" reasoning
 
 Forbidden example:
 
@@ -257,6 +257,6 @@ But never:
 - impossible to deceive
 
 The player must feel:
-“the AI learned about me”
+"the AI learned about me"
 not:
-“the AI illegally read my save.”
+"the AI illegally read my save."

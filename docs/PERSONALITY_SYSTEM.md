@@ -1,4 +1,23 @@
 # Personality System
+
+## Campaign Scope
+
+Every personality belongs to exactly one empire in exactly one campaign.
+
+Identity key:
+
+```text
+campaign_id + empire_id
+```
+
+When Strategic Nexus detects an archived autosave from an unknown campaign, it must create a new personality profile for every detectable empire in that campaign.
+
+The same empire template in a different campaign is a different personality instance.
+
+See `CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md` for bootstrap and evolution rules.
+
+---
+
 - cruelty
 - paranoia
 - opportunism
