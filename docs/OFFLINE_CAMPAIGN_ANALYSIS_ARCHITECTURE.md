@@ -420,6 +420,70 @@ Detailed rules:
 
 ---
 
+# Subjective Other-Empire Profiles
+
+Offline analysis must produce more than generic personality drift.
+
+For each observer empire, Strategic Nexus should maintain subjective profiles of strategically relevant other empires.
+
+Profile identity is:
+
+```text
+campaign_id + observer_empire_id + target_empire_id
+```
+
+These profiles represent what the observer empire believes about the target empire.
+They are not global truth.
+
+Examples of profile dimensions:
+
+* agreement reliability
+* betrayal risk
+* opportunism
+* border pressure
+* ally support reliability
+* coalition behavior
+* expansion style
+* threat pattern
+* revenge likelihood
+* diplomatic predictability
+
+The same target empire may have different profiles from different observers.
+
+Example:
+
+```text
+Empire A profile of Empire B:
+-> "B betrayed us and attacks weakness."
+
+Empire C profile of Empire B:
+-> "B is pragmatic, predictable, and useful against stronger rivals."
+```
+
+Each offline analysis pass may produce:
+
+* general observer personality deltas
+* observer-target relationship deltas
+* observer-target predictive profile deltas
+* bounded target-specific Strategic Nexus DSL rule candidates
+
+Target-specific rules are allowed only when they are:
+
+* campaign-marker guarded
+* observer-empire scoped
+* target-empire scoped
+* derived from validated save facts and durable memory
+* clamped by runtime and generated-overlay budgets
+* safe to omit when confidence is low
+
+The LLM may interpret the meaning of events from the observer's personality context, but persisted output must remain validated structured deltas, concise rationale summaries, source references, and confidence.
+Raw conversation and chain-of-thought must not become relationship memory.
+
+This is the intended model for galactic social intelligence:
+each empire builds a practical theory of other empires, then the next-session generated overlay nudges vanilla AI through coarse strategic rules.
+
+---
+
 # Mod Update Model
 
 Strategic Nexus must not update the active mod package while Stellaris is running.

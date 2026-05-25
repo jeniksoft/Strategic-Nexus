@@ -316,6 +316,32 @@ The same save history may produce different memories and personality drift for d
 
 ---
 
+## 3A. Subjective Other-Empire Profiles And Targeted Rules
+
+Status:
+NOT_STARTED
+
+Goal:
+Let each empire build its own predictive picture of important other empires and use that memory for bounded next-session strategic rules.
+
+Required:
+
+* observer-target profile schema keyed by campaign, observer empire, and target empire
+* relationship delta schema that separates general trust from predicted future behavior
+* per-observer evidence extraction from latest-session autosaves
+* LLM interpretation contract for subjective target profiles
+* validation rules for confidence, source evidence, target identity, and allowed rule domains
+* bounded target-specific DSL rule candidates
+* generated overlay support for campaign-marker guarded observer-target rules
+* tests where the same event produces different memories for different observer empires
+
+Notes:
+Profiles are subjective and predictive, not objective truth about the target empire.
+This is the main path toward galactic social intelligence: empires remember who helped, who betrayed, who exploits weakness, and who can be trusted only in specific contexts.
+If profile confidence is low, store a concise memory summary and skip gameplay-affecting generated rules.
+
+---
+
 ## 4. Save Timeline Memory Bootstrap
 
 Status:
@@ -499,6 +525,7 @@ Make civilizations strategically distinct.
 Required:
 
 * campaign-empire scoped personality profiles
+* observer-target predictive profiles for important other empires
 * unknown campaign personality bootstrap from archived saves
 * personality traits
 * doctrine inertia
@@ -529,6 +556,7 @@ Required:
 * doctrine success/failure memory
 * trauma persistence
 * trust persistence
+* observer-target predictive profile persistence
 * memory decay
 * historical interpretation
 * incremental session-delta memory updates

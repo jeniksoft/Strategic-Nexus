@@ -307,6 +307,40 @@ Trust should not instantly reset.
 
 ---
 
+# Subjective Other-Empire Profile Memory
+
+Strategic memory should include observer-target predictive profiles for important empires.
+
+This is separate from general trust.
+
+Trust says whether an empire is liked or relied on.
+A predictive profile says what the observer expects the target to do.
+
+Examples:
+
+* "keeps trade deals but abandons losing wars"
+* "attacks when neighbors are weakened"
+* "reliably supports federation members"
+* "makes temporary alliances against stronger threats"
+* "forgives slowly and retaliates later"
+
+Profile memory must be:
+
+* campaign-scoped
+* observer-empire scoped
+* target-empire scoped
+* evidence-linked
+* confidence-scored
+* compressed into concise summaries
+
+The same target empire may be remembered differently by different observers.
+That asymmetry is a feature, not a bug.
+
+Target-specific generated rules may be derived from profile memory only after validation and budget checks.
+If evidence is weak, store a summary and skip gameplay-affecting output.
+
+---
+
 # Memory Decay Rule
 
 Not all memory lasts forever.

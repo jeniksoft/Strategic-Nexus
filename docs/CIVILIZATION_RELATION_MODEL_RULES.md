@@ -155,6 +155,51 @@ Civilization perception should remain empire-scoped.
 
 ---
 
+# Subjective Predictive Profile Rule
+
+Relationship memory must answer two different questions:
+
+* what happened between us
+* what do we expect them to do next
+
+Each civilization may maintain subjective predictive profiles for important other empires.
+
+These profiles are observer-target scoped:
+
+```text
+campaign_id + observer_empire_id + target_empire_id
+```
+
+They are not objective labels on the target empire.
+
+Allowed predictive dimensions include:
+
+* keeps agreements
+* breaks agreements
+* attacks weakness
+* defends allies
+* abandons allies
+* joins stronger coalitions
+* respects strength
+* escalates border tension
+* seeks revenge
+* trades reliably
+* exploits distractions
+
+Personality must affect interpretation.
+
+Examples:
+
+* a paranoid observer may treat one betrayal as strong evidence of future betrayal
+* an honor-bound observer may weight oath-breaking more heavily than border friction
+* a pragmatic observer may still cooperate with a predictable traitor against a greater threat
+* a militarist observer may respect an aggressive rival without trusting it
+
+Predictive profiles should drive targeted strategic rules only when confidence and evidence are sufficient.
+Weak profiles should remain summaries, not generated overlay behavior.
+
+---
+
 # Capability Constraint Rule
 
 Emotional hostility does not override strategic reality.
