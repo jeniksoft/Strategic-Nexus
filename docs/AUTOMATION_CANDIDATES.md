@@ -85,14 +85,18 @@ Why:
 
 Expected output:
 
+* refresh the daily Free Work operating plan from latest budget/cadence/project data
 * identify next 1-3 safe Free Work candidates
 * identify blockers needing owner input
+* automatically accept the daily plan when it stays inside approved `FREE_WORK_AND_USAGE_BUDGET_RULES.md`
+* prefer product/runtime implementation when maintenance balance is too high and safe implementation work is available
 * update task-board entries only when action is needed
 * optionally contribute to one daily Free Work report entry instead of posting frequent small reports
 
 Do not:
 
 * start long implementation automatically from this review
+* choose new architecture, gameplay philosophy, privacy/legal/safety risk, or major scope expansion
 * spend heavy reasoning every day unless blockers exist
 
 ---

@@ -408,6 +408,45 @@ One Free Work run still means at most one bounded useful chunk.
 
 ---
 
+# Daily Operating Plan Rule
+
+Once per day, Codex should create or refresh the Free Work operating plan for that day.
+
+The daily plan should combine:
+
+* latest local rate-limit snapshot
+* usage budget log trend
+* Free Work cadence recommendation
+* maintenance balance
+* project progress estimate
+* roadmap readiness
+* current blockers
+* gaming quiet mode constraints
+
+If the resulting plan stays inside already-approved rules, Codex may accept it automatically for that day.
+
+Approved automatic changes include:
+
+* choosing the current work mode from the budget thresholds
+* preferring implementation over maintenance when maintenance share is too high
+* selecting the next safe roadmap-aligned Free Work slice
+* following the cadence recommendation when it matches approved budget rules
+* lowering cadence or doing nothing when no useful safe work exists
+
+Automatic acceptance must not choose:
+
+* new architecture direction
+* new gameplay philosophy
+* privacy/legal/safety risk acceptance
+* irreversible repository or account actions
+* major scope expansion
+* heavy work during gaming quiet mode
+
+The daily plan should avoid report spam.
+Create a Task Board report only when the plan materially changes, a blocker needs owner attention, or a useful summary prevents confusion.
+
+---
+
 # User Decision Boundary Rule
 
 Codex should stop and ask the user when work requires:
