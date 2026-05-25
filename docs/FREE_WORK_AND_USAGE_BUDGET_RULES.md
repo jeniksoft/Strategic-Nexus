@@ -692,6 +692,15 @@ The local helper `tools/dev_attention/measure_maintenance_balance.ps1` writes `d
 Task-board sync may refresh that cached measurement.
 If maintenance exceeds a practical share of recent logged work, Free Work should prefer the next safe product/runtime roadmap slice and turn further maintenance ideas into `Navrhy` instead of implementing them immediately.
 
+When `dist/private_reports/maintenance_balance.json` reports:
+
+```text
+recommendation = pause-nonessential-maintenance
+```
+
+Free Work should actively choose the next safe SNC/product/runtime implementation slice when one is available.
+Nonessential Task Board polish, workflow tuning, report reshaping, and automation hygiene should be recorded as `Navrhy` or deferred unless they are blocking, safety-critical, privacy-critical, or preventing repeated wasted work.
+
 Suggested response by ratio:
 
 * below 25% maintenance: normal support range
