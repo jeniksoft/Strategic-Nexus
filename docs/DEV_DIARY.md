@@ -21,6 +21,14 @@ Style:
 * avoid pretending uncertainty is certainty
 * do not include sensitive reverse-engineering, executable internals, or process-integration details
 
+Diary policy:
+
+* treat committed daily entries as append-only project history
+* add a new dated entry or amend the current day's uncommitted draft when needed
+* do not delete or rewrite older committed diary entries just to "clean up" history
+* if an old entry is wrong, add a later correction note instead of silently removing it
+* uncommitted stale drafts may be removed when they are inaccurate, duplicated, or no longer match repository reality
+
 The diary should help a reader understand the project without reading every architecture document or commit.
 
 ---
