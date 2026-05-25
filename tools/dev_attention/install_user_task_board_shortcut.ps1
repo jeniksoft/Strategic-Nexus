@@ -8,7 +8,6 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $watchdogScript = Join-Path $repoRoot "tools\dev_attention\run_user_task_board_watchdog.ps1"
-$hiddenWatchdogLauncher = Join-Path $repoRoot "tools\dev_attention\run_user_task_board_watchdog_hidden.vbs"
 $iconPath = Join-Path $repoRoot "tools\dev_attention\assets\task_board_calm.ico"
 $taskBoardAppUserModelId = "StrategicNexus.UserTaskBoard"
 $firstRunStartMenuShortcutMarkerPath = Join-Path $repoRoot "dist\private_reports\user_task_board_start_menu_shortcut.checked"
@@ -128,8 +127,8 @@ function New-TaskBoardShortcut {
 
     $shell = New-Object -ComObject WScript.Shell
     $shortcut = $shell.CreateShortcut($ShortcutPath)
-    $shortcut.TargetPath = "$env:SystemRoot\System32\wscript.exe"
-    $shortcut.Arguments = "//B //Nologo `"$hiddenWatchdogLauncher`""
+    $shortcut.TargetPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
+    $shortcut.Arguments = "-NoProfile -ExecutionPolicy RemoteSigned -WindowStyle Hidden -File `"$watchdogScript`""
     $shortcut.WorkingDirectory = $repoRoot
     $shortcut.WindowStyle = 7
     $shortcut.Description = "Strategic Nexus user task board"
