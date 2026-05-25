@@ -53,6 +53,17 @@ The verifier is a package consistency helper.
 
 It does not prove that the game will accept the mod, only that the generated overlay files still match their manifest.
 
+Functional behavior verification is a separate requirement.
+Manifest verification, path safety, deterministic hashes, and successful staging do not prove that the generated mod does what the architecture intended.
+
+Before any generated overlay is considered gameplay-ready, the project should have at least one of:
+
+* a deterministic mod-side smoke harness
+* a local scripted test that checks the intended generated trigger/effect path
+* a documented manual Stellaris acceptance test with expected observations
+
+Until then, generated overlay output should be described as contract-verified, not gameplay-verified.
+
 ---
 
 # v0 File Layout

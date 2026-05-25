@@ -235,8 +235,10 @@ v0 tests must cover:
 * missing optional fields degrade safely
 * stale payload rejection remains intact
 * bridge-core tests still pass
+* generated overlay contract verification remains distinct from gameplay behavior verification
 
 Testing should be local and deterministic where possible.
+When local deterministic tests cannot prove real Stellaris behavior, the gap must be recorded as an acceptance-test requirement instead of silently counted as done.
 
 ---
 

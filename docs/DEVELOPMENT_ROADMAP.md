@@ -219,6 +219,7 @@ Follow `CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md` for release automation and low-in
 
 The first pipeline should prove the small `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay` direction before expanding strategic complexity.
 Generated overlays should come from validated DSL programs, not raw LLM script.
+Generated overlay work must include functional behavior verification, not only parser, schema, manifest, or file hash verification.
 
 Realtime LLM decisions entering an already-running game are no longer a production architecture goal.
 
@@ -289,6 +290,9 @@ Bridge pipeline failure tests now cover effect batch write failure, malformed pa
 GitHub Actions Windows CI runs the same local regression suite on push and pull request.
 Generated overlay contract tests now compile and run with the v0 test suite.
 The v0 suite verifies both successful generated overlay staging and fail-closed rejection of an invalid tactical-style DSL rule.
+Remaining test gap:
+Generated overlay tests currently prove deterministic staging and fail-closed validation, but they do not yet prove that Stellaris applies the generated scripts with the intended gameplay effect.
+Before generated overlays are treated as gameplay-ready, add mod-side smoke tests, local scripted harnesses, or documented manual Stellaris acceptance tests that verify behavior in-game or against a faithful mod-script execution surface.
 
 ---
 
@@ -329,6 +333,7 @@ Allowed early work:
 * fail-closed tests
 * evidence/confidence plumbing
 * generated overlay no-op or conservative test harnesses
+* functional acceptance test plans for intended gameplay behavior
 
 Not allowed early:
 
@@ -341,6 +346,7 @@ Not allowed early:
 
 Worker rule:
 when a 3A or 3B task lacks required save evidence, implement the contract and missing-field reporting first, then stop before gameplay-affecting output.
+When a 3A or 3B task generates gameplay-affecting overlay behavior, include a functional acceptance test or mark the output as not gameplay-verified.
 
 ---
 
