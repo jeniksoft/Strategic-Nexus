@@ -230,6 +230,7 @@ It parses the small campaign/empire/rule DSL shape, rejects unsafe identifiers, 
 `GENERATED_OVERLAY_LAYOUT_CONTRACT.md` records the current v0 generated file layout.
 The compiler now emits `strategic_nexus_generated_manifest.json` with complete replacement snapshot intent, generated gameplay file paths, checksum relevance classification, deterministic content hashes, and byte counts.
 `Strategic Nexus.exe --verify-generated-overlay <output_dir>` verifies generated files against the manifest and fails closed on drift.
+The generated overlay verifier also fails closed on unknown v0 generated overlay file paths or wrong checksum relevance classifications.
 `Strategic Nexus.exe --archive-stable-saves <save_root> <archive_root> <session_id> [stability_delay_ms]` provides the first read-only one-shot autosave archive harness and manifest writer.
 `Strategic Nexus.exe --verify-autosave-archive <session_archive_dir>` verifies copied saves against the archive manifest before offline analysis uses them.
 `Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits a bounded verified archive metadata summary for future offline analysis handoff.

@@ -177,6 +177,9 @@ int main()
         requireCondition(verification.reason == "accepted", "manifest verifier should return accepted reason");
         requireCondition(verification.files.size() == 1, "manifest verifier should return one file entry");
         requireCondition(verification.files[0].exists, "manifest verifier should report file exists");
+        requireCondition(
+            verification.files[0].checksumRelevance == "gameplay_affecting",
+            "manifest verifier should preserve checksum classification");
         requireCondition(verification.files[0].hashMatches, "manifest verifier should report hash match");
         requireCondition(verification.files[0].byteCountMatches, "manifest verifier should report byte count match");
 
@@ -211,6 +214,36 @@ int main()
         const auto rejected = manifestVerifier.verify(overlayDir);
         requireCondition(!rejected.ok, "manifest verifier should reject unsafe manifest paths");
         requireCondition(rejected.reason == "manifest contains invalid file entry", "manifest verifier should reject unsafe entry");
+    }
+
+    {
+        const auto overlayDir = freshTestDirectory();
+        const auto eventsPath = overlayDir / "events" / "strategic_nexus_generated_events.txt";
+        const std::string eventsText = "namespace = strategic_nexus_generated\n";
+        writeFile(eventsPath, eventsText);
+
+        const std::string wrongClassificationManifest = std::string(R"({
+  "schema_version": 1,
+  "files": [
+    {
+      "path": "events/strategic_nexus_generated_events.txt",
+      "hash": ")")
+            + fnv1a64Hex(eventsText) + R"(",
+      "hash_algorithm": "fnv1a64",
+      "byte_count": )"
+            + std::to_string(eventsText.size()) + R"(,
+      "checksum_relevance": "diagnostic"
+    }
+  ]
+}
+)";
+
+        writeFile(overlayDir / "strategic_nexus_generated_manifest.json", wrongClassificationManifest);
+        const auto rejected = manifestVerifier.verify(overlayDir);
+        requireCondition(!rejected.ok, "manifest verifier should reject wrong checksum classification");
+        requireCondition(
+            rejected.reason == "manifest contains invalid checksum relevance classification",
+            "manifest verifier should return checksum classification reason");
     }
 
     std::cout << "generated overlay contract tests passed.\n";

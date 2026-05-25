@@ -144,10 +144,11 @@ Completed:
 
 * v0 generated files under `events/`, `common/scripted_effects/`, and `common/scripted_triggers/` are classified as `gameplay_affecting`
 * generated manifest is classified as diagnostic/package verification support
+* `--verify-generated-overlay <overlay_dir>` now fails closed if a manifest entry uses an unknown generated overlay path or the wrong checksum relevance classification for the known v0 gameplay files
 
 Remaining:
 
-* broader mod folder checksum-sensitive classification outside generated overlay
+* broader mod folder checksum-sensitive classification outside the generated overlay package
 * verification against actual Stellaris checksum behavior when needed
 
 Likely docs to update:

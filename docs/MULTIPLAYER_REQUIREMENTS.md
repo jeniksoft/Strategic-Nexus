@@ -53,6 +53,7 @@ It records the generated gameplay file list, checksum relevance classification, 
 `Strategic Nexus.exe --verify-generated-overlay <overlay_dir>` is the current v0 local verifier for this manifest.
 
 For multiplayer, the companion app must compare the listed generated gameplay-affecting files before launch and reject or warn on any mismatch.
+The verifier also rejects unknown generated overlay file paths and wrong checksum relevance classifications for the known v0 gameplay files.
 
 The manifest is not a security signature.
 

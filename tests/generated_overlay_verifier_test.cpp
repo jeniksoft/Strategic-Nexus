@@ -121,6 +121,39 @@ int main()
     const ManifestVerifier verifier;
     const auto accepted = verifier.verify(overlayRoot);
     requireCondition(accepted.ok, "verifier should accept intact generated overlay");
+    requireCondition(accepted.files.size() == 3, "verifier should report three generated gameplay files");
+    for (const auto& file : accepted.files) {
+        requireCondition(
+            file.checksumRelevance == "gameplay_affecting",
+            "verifier should report generated gameplay files as gameplay-affecting");
+    }
+
+    requireCondition(
+        writeTextFileAtomically(
+            overlayRoot / "common" / "scripted_effects" / "unexpected.txt",
+            "tamper"),
+        "should write unexpected file");
+    const auto rejectedUnexpected = verifier.verify(overlayRoot);
+    requireCondition(!rejectedUnexpected.ok, "verifier should reject overlay with unexpected file");
+    requireCondition(
+        rejectedUnexpected.reason == "generated overlay contains unexpected files",
+        "verifier should explain unexpected file rejection");
+    std::filesystem::remove(overlayRoot / "common" / "scripted_effects" / "unexpected.txt");
+
+    std::string manifest = readBinaryFile(overlayRoot / "strategic_nexus_generated_manifest.json");
+    const std::string originalClassification = "\"checksum_relevance\": \"gameplay_affecting\"";
+    const std::string wrongClassification = "\"checksum_relevance\": \"diagnostic\"";
+    const auto classificationOffset = manifest.find(originalClassification);
+    requireCondition(classificationOffset != std::string::npos, "manifest should contain checksum classification");
+    manifest.replace(classificationOffset, originalClassification.size(), wrongClassification);
+    writeBinaryFile(overlayRoot / "strategic_nexus_generated_manifest.json", manifest);
+    const auto rejectedClassification = verifier.verify(overlayRoot);
+    requireCondition(!rejectedClassification.ok, "verifier should reject wrong checksum classification");
+    requireCondition(
+        rejectedClassification.reason == "manifest contains invalid checksum relevance classification",
+        "verifier should explain checksum classification rejection");
+
+    writeBinaryFile(overlayRoot / "strategic_nexus_generated_manifest.json", files.manifestText);
 
     rewriteFileWithCrLfNewlines(overlayRoot / "events" / "strategic_nexus_generated_events.txt");
     const auto rejected = verifier.verify(overlayRoot);

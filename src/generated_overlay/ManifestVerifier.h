@@ -11,6 +11,7 @@ namespace strategic_nexus::generated_overlay {
 
 struct ManifestFileVerification {
     std::string path;
+    std::string checksumRelevance;
     std::string expectedHash;
     std::string actualHash;
     std::size_t expectedByteCount = 0;
@@ -24,6 +25,7 @@ struct ManifestVerificationResult {
     bool ok = false;
     std::string reason;
     std::vector<ManifestFileVerification> files;
+    std::vector<std::string> unexpectedFiles;
 };
 
 class ManifestVerifier {

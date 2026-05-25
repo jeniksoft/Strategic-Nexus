@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <iomanip>
+#include <unordered_set>
 #include <optional>
 #include <regex>
 #include <sstream>
@@ -19,6 +20,7 @@ namespace strategic_nexus::generated_overlay {
 namespace {
 
 constexpr const char* manifestFileName = "strategic_nexus_generated_manifest.json";
+constexpr const char* gameplayAffecting = "gameplay_affecting";
 
 std::optional<std::string> extractStringFromObject(const std::string& objectText, const char* key)
 {
@@ -129,6 +131,20 @@ bool isSafeManifestRelativePath(const std::string& relativePath)
     return true;
 }
 
+std::optional<std::string> expectedChecksumRelevanceForPath(const std::string& relativePath)
+{
+    if (relativePath == "events/strategic_nexus_generated_events.txt") {
+        return gameplayAffecting;
+    }
+    if (relativePath == "common/scripted_effects/strategic_nexus_generated_effects.txt") {
+        return gameplayAffecting;
+    }
+    if (relativePath == "common/scripted_triggers/strategic_nexus_generated_triggers.txt") {
+        return gameplayAffecting;
+    }
+    return std::nullopt;
+}
+
 } // namespace
 
 std::string fnv1a64Hex(const std::string& text)
@@ -171,21 +187,33 @@ ManifestVerificationResult ManifestVerifier::verify(const std::filesystem::path&
     }
 
     bool allOk = true;
+    std::unordered_set<std::string> expectedFiles;
+    expectedFiles.insert(manifestFileName);
     for (const auto& objectText : objects) {
         ManifestFileVerification file;
         const auto path = extractStringFromObject(objectText, "path");
+        const auto checksumRelevance = extractStringFromObject(objectText, "checksum_relevance");
         const auto expectedHash = extractStringFromObject(objectText, "hash");
         const auto expectedBytes = extractSizeFromObject(objectText, "byte_count");
-        if (!path.has_value() || !expectedHash.has_value() || !expectedBytes.has_value()
+        if (!path.has_value() || !checksumRelevance.has_value() || !expectedHash.has_value() || !expectedBytes.has_value()
             || !isSafeManifestRelativePath(*path)) {
             result.reason = "manifest contains invalid file entry";
             result.ok = false;
             return result;
         }
 
+        const auto expectedChecksumRelevance = expectedChecksumRelevanceForPath(*path);
+        if (!expectedChecksumRelevance.has_value() || *checksumRelevance != *expectedChecksumRelevance) {
+            result.reason = "manifest contains invalid checksum relevance classification";
+            result.ok = false;
+            return result;
+        }
+
         file.path = *path;
+        file.checksumRelevance = *checksumRelevance;
         file.expectedHash = *expectedHash;
         file.expectedByteCount = *expectedBytes;
+        expectedFiles.insert(file.path);
 
         const auto filePath = overlayDirectory / std::filesystem::path(file.path);
         file.exists = std::filesystem::exists(filePath);
@@ -201,8 +229,38 @@ ManifestVerificationResult ManifestVerifier::verify(const std::filesystem::path&
         result.files.push_back(file);
     }
 
-    result.ok = allOk;
-    result.reason = allOk ? "accepted" : "generated overlay files do not match manifest";
+    std::error_code iterError;
+    for (std::filesystem::recursive_directory_iterator it(overlayDirectory, iterError), end; it != end; it.increment(iterError)) {
+        if (iterError) {
+            break;
+        }
+
+        std::error_code typeError;
+        if (!it->is_regular_file(typeError) || typeError) {
+            continue;
+        }
+
+        std::error_code relativeError;
+        const auto relative = std::filesystem::relative(it->path(), overlayDirectory, relativeError);
+        if (relativeError) {
+            continue;
+        }
+
+        const std::string relativePath = relative.generic_string();
+        if (expectedFiles.find(relativePath) == expectedFiles.end()) {
+            result.unexpectedFiles.push_back(relativePath);
+        }
+    }
+
+    const bool unexpected = !result.unexpectedFiles.empty();
+    result.ok = allOk && !unexpected;
+    if (result.ok) {
+        result.reason = "accepted";
+    } else if (unexpected) {
+        result.reason = "generated overlay contains unexpected files";
+    } else {
+        result.reason = "generated overlay files do not match manifest";
+    }
     return result;
 }
 

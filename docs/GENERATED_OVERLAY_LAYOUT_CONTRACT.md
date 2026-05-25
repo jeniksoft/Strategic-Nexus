@@ -47,7 +47,7 @@ The verify command:
 2. validates that the manifest has balanced JSON delimiters
 3. reads every file listed in the manifest
 4. recomputes deterministic `fnv1a64` hashes and byte counts
-5. fails closed if a file is missing, changed, path-unsafe, or mismatched
+5. fails closed if a file is missing, changed, path-unsafe, classified incorrectly, unknown to the v0 generated layout, or mismatched
 
 The verifier is a package consistency helper.
 
@@ -173,6 +173,9 @@ gameplay_affecting
 The manifest is classified as a diagnostic/package verification file.
 
 It should be kept identical across packages when practical, but the strict gameplay checksum requirement applies to the generated gameplay files it lists.
+
+The verifier enforces this v0 classification for known generated gameplay file paths.
+If a generated manifest marks one of those paths as anything other than `gameplay_affecting`, or lists an unknown generated overlay file path, verification fails closed.
 
 For multiplayer, every participant must use byte-identical generated gameplay files.
 
