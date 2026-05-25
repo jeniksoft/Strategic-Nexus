@@ -99,8 +99,8 @@ Core rule:
 ```text
 Vanilla Stellaris AI executes gameplay.
 Strategic Nexus influences bounded strategic state.
-The companion app archives autosaves with read-only access.
-The release companion app acts as a campaign orchestrator and should automate safe staging decisions where confidence is high.
+Strategic Nexus Companion (SNC) archives autosaves with read-only access.
+SNC acts as a campaign orchestrator and should automate safe staging decisions where confidence is high.
 Local analysis updates campaign-scoped memory between play sessions.
 The generated mod overlay applies bounded strategic state on the next launch.
 The LLM proposes only bounded DSL rules; the compiler validates and translates them.

@@ -37,11 +37,25 @@ It must not:
 
 ---
 
+# Naming
+
+The release companion application is named:
+
+```text
+Strategic Nexus Companion (SNC)
+```
+
+`SNC` is the short product/development abbreviation for the companion app.
+
+SNC is distinct from the local development Task Board used by Codex and the project owner.
+
+---
+
 # Target Release Loop
 
 ```text
 Windows starts
--> Strategic Nexus companion app may start if the user enabled it
+-> Strategic Nexus Companion (SNC) may start if the user enabled it
 -> app watches local save/playset signals at low frequency
 -> before Stellaris launch, app stages the best known safe generated overlay
 -> player plays normally
@@ -98,7 +112,7 @@ For multiplayer season design, see `MULTIPLAYER_SEASON_ORCHESTRATOR.md`.
 
 # Release Companion Lifecycle
 
-The release companion app should be a persistent background assistant, not a tool the user must remember before every Stellaris session.
+Strategic Nexus Companion (SNC) should be a persistent background assistant, not a tool the user must remember before every Stellaris session.
 
 First-install default:
 

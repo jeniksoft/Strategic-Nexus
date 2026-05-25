@@ -22,7 +22,7 @@ The safe production architecture has four layers:
 4. Generated campaign-specific mod overlay
 
 The vanilla mod owns all in-game behavior.
-The companion app observes the play session lifecycle and archives autosaves with read-only access.
+Strategic Nexus Companion (SNC), the release companion app, observes the play session lifecycle and archives autosaves with read-only access.
 The offline analysis pipeline reasons after play and prepares bounded campaign-specific state.
 The generated mod overlay influences the next play session through normal mod scripting.
 The LLM proposes bounded Strategic Nexus DSL rules, not raw Stellaris script.
@@ -40,7 +40,7 @@ The design must not assume the vanilla mod can read arbitrary external files.
 The companion app has its own lifecycle as an independent background application:
 
 ```text
-Windows/user starts Strategic Nexus companion app
+Windows/user starts Strategic Nexus Companion (SNC)
     -> app idles in tray
     -> app detects Stellaris session with Strategic Nexus enabled
     -> app archives stable autosaves using read-only access
