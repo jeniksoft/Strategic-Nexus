@@ -3,6 +3,8 @@
 
 #include "StrategicNexusCompanion.h"
 
+#include "generated_overlay/ManifestVerifier.h"
+
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
@@ -162,22 +164,22 @@ CompanionSubsystemStatus buildGeneratedOverlayStatus(const std::filesystem::path
         return status;
     }
 
-    const auto manifestPath = overlayDirectory / "strategic_nexus_generated_manifest.json";
-    const bool manifestExists = std::filesystem::exists(manifestPath, error);
-    if (error) {
-        status.state = "needs_attention";
-        status.reason = "generated overlay directory inaccessible";
+    const generated_overlay::ManifestVerifier verifier;
+    const auto verification = verifier.verify(overlayDirectory);
+    if (verification.ok) {
+        status.state = "ready";
+        status.reason = "generated overlay verified";
         return status;
     }
 
-    if (!manifestExists) {
-        status.state = "needs_attention";
-        status.reason = "generated overlay manifest missing";
+    if (verification.reason == "missing generated overlay manifest") {
+        status.state = "starting";
+        status.reason = "no generated overlay yet";
         return status;
     }
 
-    status.state = "ready";
-    status.reason = "generated overlay manifest available";
+    status.state = "needs_attention";
+    status.reason = verification.reason.empty() ? "generated overlay verification failed" : verification.reason;
     return status;
 }
 

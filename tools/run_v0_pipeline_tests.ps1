@@ -166,7 +166,10 @@ $stellarisSavePathResolverSourceFiles = @(
 $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_companion_test.exe"
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
-    (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp")
+    (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
 
 Push-Location $repoRoot
@@ -810,7 +813,15 @@ function Invoke-SncStatusSnapshotCase {
 
     New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
     New-Item -ItemType Directory -Force -Path $overlayRoot | Out-Null
-    Set-Content -LiteralPath (Join-Path $overlayRoot "strategic_nexus_generated_manifest.json") -Value "{ `"schema_version`": 1 }" -Encoding ASCII
+
+    $compileOutput = & $exePath `
+        --compile-generated-overlay `
+        (Join-Path $repoRoot "resources/generated_overlay_valid.dsl") `
+        $overlayRoot
+    if ($LASTEXITCODE -ne 0) {
+        $compileText = $compileOutput -join "`n"
+        throw "snc_status_snapshot overlay compile failed. Actual output:`n$compileText"
+    }
 
     $sncOutput = & $exePath `
         --snc-status-snapshot `

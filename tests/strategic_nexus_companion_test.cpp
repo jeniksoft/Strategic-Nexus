@@ -3,6 +3,8 @@
 
 #include "StrategicNexusCompanion.h"
 
+#include "generated_overlay/ManifestVerifier.h"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -25,13 +27,68 @@ int main()
     const auto root = std::filesystem::path("dist/strategic_nexus_companion_fixture");
     const auto archiveRoot = root / "archive";
     const auto overlayRoot = root / "overlay";
+    const auto overlayEmptyRoot = root / "overlay_empty";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
     std::filesystem::create_directories(overlayRoot);
+    std::filesystem::create_directories(overlayEmptyRoot);
 
     {
+        const std::string eventsText = "event test\n";
+        const std::string effectsText = "effects test\n";
+        const std::string triggersText = "triggers test\n";
+        std::filesystem::create_directories(overlayRoot / "events");
+        std::filesystem::create_directories(overlayRoot / "common" / "scripted_effects");
+        std::filesystem::create_directories(overlayRoot / "common" / "scripted_triggers");
+
+        {
+            std::ofstream events(
+                overlayRoot / "events" / "strategic_nexus_generated_events.txt",
+                std::ios::binary | std::ios::trunc);
+            events << eventsText;
+        }
+        {
+            std::ofstream effects(
+                overlayRoot / "common" / "scripted_effects" / "strategic_nexus_generated_effects.txt",
+                std::ios::binary | std::ios::trunc);
+            effects << effectsText;
+        }
+        {
+            std::ofstream triggers(
+                overlayRoot / "common" / "scripted_triggers" / "strategic_nexus_generated_triggers.txt",
+                std::ios::binary | std::ios::trunc);
+            triggers << triggersText;
+        }
+
+        const std::string eventsHash = strategic_nexus::generated_overlay::fnv1a64Hex(eventsText);
+        const std::string effectsHash = strategic_nexus::generated_overlay::fnv1a64Hex(effectsText);
+        const std::string triggersHash = strategic_nexus::generated_overlay::fnv1a64Hex(triggersText);
+
         std::ofstream manifest(overlayRoot / "strategic_nexus_generated_manifest.json", std::ios::trunc);
-        manifest << "{ \"schema_version\": 1 }\n";
+        manifest
+            << "{\n"
+            << "  \"schema_version\": 1,\n"
+            << "  \"files\": [\n"
+            << "    {\n"
+            << "      \"path\": \"events/strategic_nexus_generated_events.txt\",\n"
+            << "      \"checksum_relevance\": \"gameplay_affecting\",\n"
+            << "      \"hash\": \"" << eventsHash << "\",\n"
+            << "      \"byte_count\": " << eventsText.size() << "\n"
+            << "    },\n"
+            << "    {\n"
+            << "      \"path\": \"common/scripted_effects/strategic_nexus_generated_effects.txt\",\n"
+            << "      \"checksum_relevance\": \"gameplay_affecting\",\n"
+            << "      \"hash\": \"" << effectsHash << "\",\n"
+            << "      \"byte_count\": " << effectsText.size() << "\n"
+            << "    },\n"
+            << "    {\n"
+            << "      \"path\": \"common/scripted_triggers/strategic_nexus_generated_triggers.txt\",\n"
+            << "      \"checksum_relevance\": \"gameplay_affecting\",\n"
+            << "      \"hash\": \"" << triggersHash << "\",\n"
+            << "      \"byte_count\": " << triggersText.size() << "\n"
+            << "    }\n"
+            << "  ]\n"
+            << "}\n";
     }
 
     const strategic_nexus::StrategicNexusCompanion companion;
@@ -48,8 +105,16 @@ int main()
     requireCondition(ready.lifecycle.explicitExitBehavior == "stop_without_restart", "explicit exit should stop without restart");
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
-    requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest exists");
+    requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest verifies");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
+
+    const auto emptyOverlay = companion.buildStatusSnapshot({
+        archiveRoot,
+        overlayEmptyRoot,
+        false
+    });
+    requireCondition(emptyOverlay.generatedOverlay.state == "starting", "empty overlay should be starting");
+    requireCondition(emptyOverlay.statusCenter.state == "starting", "status center should start when overlay is starting");
 
     const auto missingOverlay = companion.buildStatusSnapshot({
         archiveRoot,
