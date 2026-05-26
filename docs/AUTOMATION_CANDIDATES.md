@@ -171,7 +171,7 @@ Why:
 
 Expected output:
 
-* at the start of every gate invocation, run `tools/dev_attention/log_automation_run.ps1 -AutomationId sn-bounded-free-work-execution -Trigger unknown -Result started`; use `manual_ui` only when the owner explicitly says this invocation was started from UI, otherwise use `unknown` because Codex may not be able to distinguish scheduled from manual app execution
+* at the start of every gate invocation, run `tools/dev_attention/log_automation_run.ps1 -AutomationId sn-bounded-free-work-execution -Trigger unknown -Result started` (or `tools/dev_attention/log_automation_run.cmd ...` if PowerShell execution policy blocks direct `.ps1` invocation); use `manual_ui` only when the owner explicitly says this invocation was started from UI, otherwise use `unknown` because Codex may not be able to distinguish scheduled from manual app execution
 * before ending the gate, append a second run-log row with the same run id and a final result: `implemented`, `blocked`, `quiet`, `no_safe_task`, or `failed`
 * check unresolved dirty worktree state before modifying files
 * record dirty baseline paths and avoid overlapping them
