@@ -99,6 +99,10 @@ Do not:
 * choose new architecture, gameplay philosophy, privacy/legal/safety risk, or major scope expansion
 * spend heavy reasoning every day unless blockers exist
 
+Windows note:
+
+If PowerShell script execution is restricted (ExecutionPolicy), prefer the `tools/dev_attention/*.cmd` wrappers (they run the corresponding `.ps1` with `-ExecutionPolicy Bypass`).
+
 ---
 
 ## 3. Usage Budget And Work Mode Check
