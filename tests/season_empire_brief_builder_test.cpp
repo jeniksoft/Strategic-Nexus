@@ -26,7 +26,7 @@ int main()
     ledger.campaignId = "campaign_001";
     ledger.deltaQuality = "metadata_only";
     ledger.facts.push_back("archive_verified:true");
-    ledger.facts.push_back("archived_save_count:2");
+    ledger.facts.push_back(std::string("archived_save_count:2") + '\x02');
     ledger.uncertainties.push_back("save_content_not_parsed_yet");
 
     const strategic_nexus::SeasonEmpireBriefBuilder builder;
@@ -44,6 +44,7 @@ int main()
     requireCondition(json.find("\"empire_id\": \"empire_001\"") != std::string::npos, "brief JSON should include empire id");
     requireCondition(json.find("\"source_ledger_quality\": \"metadata_only\"") != std::string::npos, "brief JSON should include quality");
     requireCondition(json.find("do_not_infer_personality_or_strategy_from_this_brief_alone") != std::string::npos, "brief JSON should include caution note");
+    requireCondition(json.find("\\u0002") != std::string::npos, "brief JSON should escape control characters");
 
     const auto rejected = builder.build(ledger, "");
     requireCondition(!rejected.ok, "brief should reject missing empire id");

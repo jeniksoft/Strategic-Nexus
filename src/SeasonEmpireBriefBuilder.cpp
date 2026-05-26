@@ -3,6 +3,7 @@
 
 #include "SeasonEmpireBriefBuilder.h"
 
+#include <iomanip>
 #include <sstream>
 
 namespace strategic_nexus {
@@ -20,7 +21,9 @@ std::string jsonEscape(const std::string& value)
         case '\t': output << "\\t"; break;
         default:
             if (static_cast<unsigned char>(ch) < 0x20) {
-                output << ' ';
+                output << "\\u" << std::hex << std::setw(4) << std::setfill('0')
+                       << static_cast<int>(static_cast<unsigned char>(ch))
+                       << std::dec << std::setfill(' ');
             } else {
                 output << ch;
             }

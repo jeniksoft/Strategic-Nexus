@@ -26,7 +26,7 @@ int main()
     summary.sessionArchiveDirectory = "dist/session_delta_fixture";
     summary.copiedSaveCount = 3;
     summary.totalByteCount = 64;
-    summary.firstArchivedPath = "saves/001_autosave.sav";
+    summary.firstArchivedPath = std::string("saves/001_") + '\x01' + "autosave.sav";
     summary.firstContentHash = "first_hash";
     summary.lastArchivedPath = "saves/003_autosave.sav";
     summary.lastContentHash = "last_hash";
@@ -46,6 +46,7 @@ int main()
     requireCondition(json.find("\"delta_quality\": \"metadata_only\"") != std::string::npos, "ledger JSON should include quality");
     requireCondition(json.find("\"archive_verified:true\"") != std::string::npos, "ledger JSON should include verification fact");
     requireCondition(json.find("\"save_content_not_parsed_yet\"") != std::string::npos, "ledger JSON should include uncertainty");
+    requireCondition(json.find("\\u0001") != std::string::npos, "ledger JSON should escape control characters");
 
     const auto rejected = builder.build(summary, "");
     requireCondition(!rejected.ok, "ledger should reject missing campaign id");
