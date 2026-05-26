@@ -60,6 +60,14 @@ int main()
     const auto portableAccepted = verifier.verify(archiveRoot / "session_001");
     requireCondition(portableAccepted.ok, "verifier should resolve archive-relative copied save filenames");
 
+    writeFile(archiveRoot / "session_001" / "saves" / "unexpected.sav", "fixture");
+    const auto extraFileRejected = verifier.verify(archiveRoot / "session_001");
+    requireCondition(!extraFileRejected.ok, "verifier should reject unexpected archive files");
+    requireCondition(
+        extraFileRejected.reason == "autosave archive contains unexpected files",
+        "verifier should explain unexpected file rejection");
+    std::filesystem::remove(archiveRoot / "session_001" / "saves" / "unexpected.sav");
+
     const auto outsidePath = std::filesystem::absolute(std::filesystem::path("dist/autosave_archive_verifier_outside/evil.sav"));
     writeFile(outsidePath, "fixture");
     const auto unsafeManifest = std::regex_replace(

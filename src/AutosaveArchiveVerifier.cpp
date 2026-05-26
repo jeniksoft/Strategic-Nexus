@@ -17,6 +17,7 @@
 #include <sstream>
 #include <string>
 #include <system_error>
+#include <unordered_set>
 
 namespace strategic_nexus {
 namespace {
@@ -200,6 +201,7 @@ AutosaveArchiveVerificationResult AutosaveArchiveVerifier::verify(
 
     bool allOk = true;
     std::size_t copiedEntries = 0;
+    std::unordered_set<std::string> expectedCopiedSaveNamesLower;
     for (const auto& objectText : objects) {
         const auto status = extractStringFromObject(objectText, "status");
         if (!status.has_value() || *status != "copied") {
@@ -223,6 +225,9 @@ AutosaveArchiveVerificationResult AutosaveArchiveVerifier::verify(
 
         const auto archivedPathValue = std::filesystem::path(file.path);
         const auto savesRoot = sessionArchiveDirectory / "saves";
+        if (!archivedPathValue.filename().empty()) {
+            expectedCopiedSaveNamesLower.insert(toLower(archivedPathValue.filename().generic_string()));
+        }
 
         std::vector<std::filesystem::path> candidates;
         if (!archivedPathValue.empty()) {
@@ -275,6 +280,30 @@ AutosaveArchiveVerificationResult AutosaveArchiveVerifier::verify(
     if (copiedEntries == 0) {
         result.reason = "autosave archive manifest contains no copied saves";
         return result;
+    }
+
+    const auto savesRoot = sessionArchiveDirectory / "saves";
+    std::error_code savesError;
+    if (std::filesystem::exists(savesRoot, savesError) && !savesError
+        && std::filesystem::is_directory(savesRoot, savesError) && !savesError) {
+        for (const auto& entry : std::filesystem::directory_iterator(savesRoot, savesError)) {
+            if (savesError) {
+                break;
+            }
+            if (!entry.is_regular_file(savesError) || savesError) {
+                continue;
+            }
+            const auto filename = entry.path().filename();
+            if (filename.empty()) {
+                continue;
+            }
+            const auto nameLower = toLower(filename.generic_string());
+            if (expectedCopiedSaveNamesLower.find(nameLower) == expectedCopiedSaveNamesLower.end()) {
+                result.ok = false;
+                result.reason = "autosave archive contains unexpected files";
+                return result;
+            }
+        }
     }
 
     result.ok = allOk;
