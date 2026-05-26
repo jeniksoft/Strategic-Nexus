@@ -191,6 +191,18 @@ int main()
         requireCondition(content.find("\"status_center\"") != std::string::npos, "status snapshot should include status center");
     }
 
+    {
+        const strategic_nexus::CompanionStatusLoopConfig loopConfig{
+            { archiveRoot, overlayRoot, true },
+            root,
+            std::chrono::milliseconds(0),
+            1
+        };
+        const auto loopResult = strategic_nexus::runCompanionStatusLoop(companion, loopConfig);
+        requireCondition(!loopResult.ok, "runCompanionStatusLoop should fail when output path is a directory");
+        requireCondition(loopResult.reason.find("status output path is a directory") != std::string::npos, "loop failure should name directory output path");
+    }
+
     std::cout << "strategic nexus companion tests passed.\n";
     return 0;
 }

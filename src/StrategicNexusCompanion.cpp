@@ -311,6 +311,17 @@ CompanionStatusLoopResult runCompanionStatusLoop(const StrategicNexusCompanion& 
         return result;
     }
 
+    std::error_code outputTypeError;
+    const bool outputIsDirectory = std::filesystem::is_directory(config.statusOutputPath, outputTypeError);
+    if (outputTypeError) {
+        result.reason = "status output path inaccessible: " + config.statusOutputPath.generic_string();
+        return result;
+    }
+    if (outputIsDirectory) {
+        result.reason = "status output path is a directory: " + config.statusOutputPath.generic_string();
+        return result;
+    }
+
     const int iterations = config.maxIterations < 0 ? 0 : config.maxIterations;
     if (iterations == 0) {
         result.ok = true;
@@ -323,7 +334,7 @@ CompanionStatusLoopResult runCompanionStatusLoop(const StrategicNexusCompanion& 
         const auto json = serializeCompanionStatusSnapshot(snapshot);
         const bool written = common::writeTextFileAtomically(config.statusOutputPath, json);
         if (!written) {
-            result.reason = "failed to write status snapshot";
+            result.reason = "failed to write status snapshot: " + config.statusOutputPath.generic_string();
             return result;
         }
 
