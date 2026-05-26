@@ -62,6 +62,40 @@ Current engineering stance:
 
 # Daily Entries
 
+## 2026-05-26
+
+Projekt dnes posunul hlavne companion status vrstvu a navazujici testovaci kryti kolem archive-backed workflow. Neslo o novou herni integraci uvnitr bezici session, ale o zpresneni stavu na bezpecne integracni boundary mezi archivem, generated overlay artefakty a offline companion aplikaci.
+
+Co pribylo v repozitari:
+
+* Companion JSON serializace byla zpevnenejsi pro ridici znaky a dalsi problematicke vstupy, aby status snapshot zustal korektni i pri nestandardnich textovych hodnotach.
+* Companion status logika nyni rozlisuje prazdny archive root jako stav `starting` misto predcasneho `ready`; pripravenost se potvrzuje az pri nalezeni session adresare s `manifest.json`.
+* Navazujici testy a CLI harness byly upraveny tak, aby novy lifecycle vyklad konzistentne overovaly v jednotkovych i pipeline scenarich.
+* Vedle toho pribyl maly `cmd` wrapper pro automation run logging; jde o podpurnou developerskou automatizaci, ne o produkcni runtime schopnost.
+
+Co to znamena pro architekturu:
+
+* Runtime interoperability research se dale opira o host-authoritative model, kde companion vrstva pouze popisuje stav a pripravuje bezpecny prechod mezi archivaci, analyzou a dalsi session.
+* Rozliseni `starting` vs. `ready` zmensuje riziko, ze se prazdny archiv bude tvarit jako hotovy vstup pro dalsi zpracovani, i kdyz jeste neexistuje potvrzena session historie.
+* Tvrdsi serializace status snapshotu posiluje spolehlivost verejnych i internich stavovych vystupu na integration boundary a snizuje riziko poskozeneho JSON pri skriptovanem event/effect path doprovodu.
+
+Testy a stav overeni:
+
+* Posledni commity doplnily a upravily testy pro `StrategicNexusCompanion` i `tools/run_v0_pipeline_tests.ps1`, takze zmena ma primou regression coverage v repozitari.
+* V tomto behu nebyl znovu spusten plny lokalni `tools/run_all_tests.ps1`, protoze denikova aktualizace navazuje na jiz ocommitovane zmeny a nebyla doprovazena novou produkcni implementaci.
+* Verejny GitHub CI stav se v tomto behu nepodarilo nezavisle potvrdit.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi multiplayer ucastniky.
+* Companion status vrstva je presnejsi, ale stale neuzavira finalni manifest/export contract, campaign marker handshake ani empire identity resolver.
+* Soucasny posun zlepsuje lifecycle citelnost a robustnost stavovych dat, ale sam o sobe jeste neuzavira end-to-end cestu od archive session k checksum-sensitive dalsi session distribuci.
+
+Doporuceny dalsi krok:
+
+* Navazat na novou companion lifecycle interpretaci prvnim explicitnim bootstrap flow pro prazdnou kampanovou historii, aby stav `starting` mel jasne navazujici kroky.
+* Potom propojit tento bootstrap s generated overlay manifest contractem a end-to-end testem mezi prvni archive session, offline analyzou a dalsi session exportem.
+
 ## 2026-05-25
 
 Projekt dnes spojil tri dulezite proudy prace: zpresneni release companion lifecycle pro offline companion workflow, dalsi hardening validace na archive a generated overlay hranici a navazujici implementacni uklid kolem v0 pipeline a pomocnych vyvojovych nastroju.
