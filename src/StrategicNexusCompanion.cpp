@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <system_error>
 #include <thread>
 
 namespace strategic_nexus {
@@ -314,8 +315,12 @@ CompanionStatusLoopResult runCompanionStatusLoop(const StrategicNexusCompanion& 
     std::error_code outputTypeError;
     const bool outputIsDirectory = std::filesystem::is_directory(config.statusOutputPath, outputTypeError);
     if (outputTypeError) {
-        result.reason = "status output path inaccessible: " + config.statusOutputPath.generic_string();
-        return result;
+        const bool missingPath = outputTypeError == std::errc::no_such_file_or_directory;
+        if (!missingPath) {
+            result.reason = "status output path inaccessible: " + config.statusOutputPath.generic_string();
+            return result;
+        }
+        outputTypeError.clear();
     }
     if (outputIsDirectory) {
         result.reason = "status output path is a directory: " + config.statusOutputPath.generic_string();

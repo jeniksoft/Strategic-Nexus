@@ -33,6 +33,7 @@
 #include <exception>
 #include <iostream>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -53,6 +54,26 @@ std::int64_t parseInt64Arg(const char* value, const std::int64_t fallback)
     catch (...) {
         return fallback;
     }
+}
+
+std::string sanitizeCliValue(const std::string& value)
+{
+    std::ostringstream output;
+    for (const char ch : value) {
+        switch (ch) {
+        case '\n': output << "\\n"; break;
+        case '\r': output << "\\r"; break;
+        case '\t': output << "\\t"; break;
+        default:
+            if (static_cast<unsigned char>(ch) < 0x20) {
+                output << ' ';
+            } else {
+                output << ch;
+            }
+            break;
+        }
+    }
+    return output.str();
 }
 
 } // namespace
@@ -468,7 +489,7 @@ int Application::run(const RunConfig& config) const
             });
 
             std::cout << "pipeline_accepted=" << (result.accepted ? "true" : "false") << "\n";
-            std::cout << "pipeline_reason=" << result.reason << "\n";
+            std::cout << "pipeline_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "pipeline_sequence_id=" << result.sequenceId << "\n";
             std::cout << "pipeline_previous_sequence_id=" << result.previousSequenceId << "\n";
             std::cout << "pipeline_current_sequence_id=" << result.currentSequenceId << "\n";
@@ -489,7 +510,7 @@ int Application::run(const RunConfig& config) const
             });
 
             std::cout << "v0_pipeline_success=" << (result.success ? "true" : "false") << "\n";
-            std::cout << "v0_pipeline_reason=" << result.reason << "\n";
+            std::cout << "v0_pipeline_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "v0_pipeline_ministry=" << result.input.ministry << "\n";
             std::cout << "v0_pipeline_campaign_id=" << result.payload.campaignId << "\n";
             std::cout << "v0_pipeline_empire_id=" << result.payload.empireId << "\n";
@@ -500,7 +521,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "v0_pipeline_audit_requested=" << (result.auditOutputRequested ? "true" : "false") << "\n";
             std::cout << "v0_pipeline_audit_written=" << (result.auditOutputWritten ? "true" : "false") << "\n";
             if (!result.auditReason.empty()) {
-                std::cout << "v0_pipeline_audit_reason=" << result.auditReason << "\n";
+                std::cout << "v0_pipeline_audit_reason=" << sanitizeCliValue(result.auditReason) << "\n";
             }
             return result.success ? 0 : 1;
         }
@@ -574,7 +595,7 @@ int Application::run(const RunConfig& config) const
             const auto parseResult = parser.parse(common::readTextFile(config.generatedOverlayDslInputPath));
             if (!parseResult.ok) {
                 std::cout << "generated_overlay_success=false\n";
-                std::cout << "generated_overlay_reason=parse failed: " << parseResult.error << "\n";
+                std::cout << "generated_overlay_reason=parse failed: " << sanitizeCliValue(parseResult.error) << "\n";
                 return 1;
             }
 
@@ -584,7 +605,7 @@ int Application::run(const RunConfig& config) const
                 std::cout << "generated_overlay_success=false\n";
                 std::cout << "generated_overlay_reason=validation failed\n";
                 for (const auto& error : validation.errors) {
-                    std::cout << "generated_overlay_error=" << error << "\n";
+                    std::cout << "generated_overlay_error=" << sanitizeCliValue(error) << "\n";
                 }
                 return 1;
             }
@@ -631,7 +652,7 @@ int Application::run(const RunConfig& config) const
             const auto result = verifier.verify(config.generatedOverlayVerifyDirectory);
 
             std::cout << "generated_overlay_manifest_ok=" << (result.ok ? "true" : "false") << "\n";
-            std::cout << "generated_overlay_manifest_reason=" << result.reason << "\n";
+            std::cout << "generated_overlay_manifest_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "generated_overlay_manifest_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
                 std::cout << "generated_overlay_manifest_file=" << file.path
@@ -655,7 +676,7 @@ int Application::run(const RunConfig& config) const
                 config.mpOverlayPreviousHostAvailable);
 
             std::cout << "mp_overlay_package_export_ok=" << (result.ok ? "true" : "false") << "\n";
-            std::cout << "mp_overlay_package_export_reason=" << result.reason << "\n";
+            std::cout << "mp_overlay_package_export_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "mp_overlay_package_export_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
                 std::cout << "mp_overlay_package_export_file=" << file.path
@@ -672,7 +693,7 @@ int Application::run(const RunConfig& config) const
             const auto result = verifier.verify(config.mpOverlayPackageDirectory);
 
             std::cout << "mp_overlay_package_ok=" << (result.ok ? "true" : "false") << "\n";
-            std::cout << "mp_overlay_package_reason=" << result.reason << "\n";
+            std::cout << "mp_overlay_package_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "mp_overlay_package_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
                 std::cout << "mp_overlay_package_file=" << file.path
@@ -708,13 +729,13 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_app_name=" << snapshot.appName << "\n";
             std::cout << "snc_abbreviation=" << snapshot.abbreviation << "\n";
             std::cout << "snc_archive_state=" << snapshot.archive.state << "\n";
-            std::cout << "snc_archive_reason=" << snapshot.archive.reason << "\n";
+            std::cout << "snc_archive_reason=" << sanitizeCliValue(snapshot.archive.reason) << "\n";
             std::cout << "snc_archive_path=" << stdoutPath(snapshot.archive.path) << "\n";
             std::cout << "snc_generated_overlay_state=" << snapshot.generatedOverlay.state << "\n";
-            std::cout << "snc_generated_overlay_reason=" << snapshot.generatedOverlay.reason << "\n";
+            std::cout << "snc_generated_overlay_reason=" << sanitizeCliValue(snapshot.generatedOverlay.reason) << "\n";
             std::cout << "snc_generated_overlay_path=" << stdoutPath(snapshot.generatedOverlay.path) << "\n";
             std::cout << "snc_status_center_state=" << snapshot.statusCenter.state << "\n";
-            std::cout << "snc_status_center_reason=" << snapshot.statusCenter.reason << "\n";
+            std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
             std::cout << "snc_status_center_path=" << stdoutPath(snapshot.statusCenter.path) << "\n";
             std::cout << "snc_status_output_written=" << (outputRequested && written ? "true" : "false") << "\n";
             if (!written) {
@@ -758,7 +779,7 @@ int Application::run(const RunConfig& config) const
             const auto result = verifier.verify(config.autosaveArchiveVerifyDirectory);
 
             std::cout << "autosave_archive_manifest_ok=" << (result.ok ? "true" : "false") << "\n";
-            std::cout << "autosave_archive_manifest_reason=" << result.reason << "\n";
+            std::cout << "autosave_archive_manifest_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "autosave_archive_manifest_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
                 std::cout << "autosave_archive_manifest_file=" << file.path
@@ -786,7 +807,7 @@ int Application::run(const RunConfig& config) const
             const bool success = summary.ok && written;
 
             std::cout << "autosave_archive_summary_success=" << (success ? "true" : "false") << "\n";
-            std::cout << "autosave_archive_summary_reason=" << summary.reason << "\n";
+            std::cout << "autosave_archive_summary_reason=" << sanitizeCliValue(summary.reason) << "\n";
             std::cout << "autosave_archive_summary_save_count=" << summary.copiedSaveCount << "\n";
             std::cout << "autosave_archive_summary_output_written=" << (written ? "true" : "false") << "\n";
             return success ? 0 : 1;
@@ -807,7 +828,7 @@ int Application::run(const RunConfig& config) const
             const auto summary = summarizer.summarize(config.archiveMinistryInputDirectory);
             if (!summary.ok) {
                 std::cout << "archive_ministry_input_success=false\n";
-                std::cout << "archive_ministry_input_reason=" << summary.reason << "\n";
+                std::cout << "archive_ministry_input_reason=" << sanitizeCliValue(summary.reason) << "\n";
                 return 1;
             }
 
@@ -848,7 +869,7 @@ int Application::run(const RunConfig& config) const
             const auto summary = summarizer.summarize(config.archivePipelineDirectory);
             if (!summary.ok) {
                 std::cout << "archive_v0_pipeline_success=false\n";
-                std::cout << "archive_v0_pipeline_reason=" << summary.reason << "\n";
+                std::cout << "archive_v0_pipeline_reason=" << sanitizeCliValue(summary.reason) << "\n";
                 return 1;
             }
 
@@ -878,7 +899,7 @@ int Application::run(const RunConfig& config) const
             });
 
             std::cout << "archive_v0_pipeline_success=" << (result.success ? "true" : "false") << "\n";
-            std::cout << "archive_v0_pipeline_reason=" << result.reason << "\n";
+            std::cout << "archive_v0_pipeline_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "archive_v0_pipeline_ministry_input_written=true\n";
             std::cout << "archive_v0_pipeline_decision_written=" << (result.decisionOutputWritten ? "true" : "false") << "\n";
             std::cout << "archive_v0_pipeline_audit_requested=" << (result.auditOutputRequested ? "true" : "false") << "\n";
@@ -888,7 +909,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "archive_v0_pipeline_military_posture=" << result.payload.militaryPosture << "\n";
             std::cout << "archive_v0_pipeline_research_bias=" << result.payload.researchBias << "\n";
             if (!result.auditReason.empty()) {
-                std::cout << "archive_v0_pipeline_audit_reason=" << result.auditReason << "\n";
+                std::cout << "archive_v0_pipeline_audit_reason=" << sanitizeCliValue(result.auditReason) << "\n";
             }
             return result.success ? 0 : 1;
         }
@@ -917,7 +938,7 @@ int Application::run(const RunConfig& config) const
                 reason = "failed to write season delta ledger";
             }
             std::cout << "season_delta_ledger_success=" << (success ? "true" : "false") << "\n";
-            std::cout << "season_delta_ledger_reason=" << reason << "\n";
+            std::cout << "season_delta_ledger_reason=" << sanitizeCliValue(reason) << "\n";
             std::cout << "season_delta_ledger_campaign_id=" << ledger.campaignId << "\n";
             std::cout << "season_delta_ledger_save_count=" << ledger.copiedSaveCount << "\n";
             std::cout << "season_delta_ledger_output_written=" << (written ? "true" : "false") << "\n";
@@ -951,7 +972,7 @@ int Application::run(const RunConfig& config) const
                 reason = "failed to write empire brief";
             }
             std::cout << "archive_empire_brief_success=" << (success ? "true" : "false") << "\n";
-            std::cout << "archive_empire_brief_reason=" << reason << "\n";
+            std::cout << "archive_empire_brief_reason=" << sanitizeCliValue(reason) << "\n";
             std::cout << "archive_empire_brief_campaign_id=" << brief.campaignId << "\n";
             std::cout << "archive_empire_brief_empire_id=" << brief.empireId << "\n";
             std::cout << "archive_empire_brief_output_written=" << (written ? "true" : "false") << "\n";
@@ -1071,7 +1092,7 @@ int Application::run(const RunConfig& config) const
             const auto parseResult = parser.parse(common::readTextFile(config.campaignLibraryOverlayDslInputPath));
             if (!parseResult.ok) {
                 std::cout << "campaign_library_overlay_success=false\n";
-                std::cout << "campaign_library_overlay_reason=parse failed: " << parseResult.error << "\n";
+                std::cout << "campaign_library_overlay_reason=parse failed: " << sanitizeCliValue(parseResult.error) << "\n";
                 return 1;
             }
 
@@ -1091,7 +1112,7 @@ int Application::run(const RunConfig& config) const
                 std::cout << "campaign_library_overlay_success=false\n";
                 std::cout << "campaign_library_overlay_reason=validation failed\n";
                 for (const auto& error : validation.errors) {
-                    std::cout << "campaign_library_overlay_error=" << error << "\n";
+                    std::cout << "campaign_library_overlay_error=" << sanitizeCliValue(error) << "\n";
                 }
                 return 1;
             }
