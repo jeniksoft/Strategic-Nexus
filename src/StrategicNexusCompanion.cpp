@@ -200,7 +200,17 @@ CompanionSubsystemStatus buildStatusCenterStatus(
 
     if (archiveNeedsAttention || overlayNeedsAttention) {
         status.state = "attention_required";
-        status.reason = "archive or generated overlay needs attention";
+        if (archiveNeedsAttention && overlayNeedsAttention) {
+            status.reason = "archive and generated overlay need attention";
+            return status;
+        }
+        if (archiveNeedsAttention) {
+            status.reason = "archive needs attention";
+            status.path = archive.path;
+            return status;
+        }
+        status.reason = "generated overlay needs attention";
+        status.path = generatedOverlay.path;
         return status;
     }
 
@@ -209,7 +219,17 @@ CompanionSubsystemStatus buildStatusCenterStatus(
 
     if (archiveStarting || overlayStarting) {
         status.state = "starting";
-        status.reason = "waiting for subsystems to become ready";
+        if (archiveStarting && overlayStarting) {
+            status.reason = "waiting for archive and generated overlay to become ready";
+            return status;
+        }
+        if (archiveStarting) {
+            status.reason = "waiting for archive to become ready";
+            status.path = archive.path;
+            return status;
+        }
+        status.reason = "waiting for generated overlay to become ready";
+        status.path = generatedOverlay.path;
         return status;
     }
 

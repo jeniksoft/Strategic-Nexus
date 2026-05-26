@@ -115,6 +115,8 @@ int main()
     });
     requireCondition(emptyOverlay.generatedOverlay.state == "starting", "empty overlay should be starting");
     requireCondition(emptyOverlay.statusCenter.state == "starting", "status center should start when overlay is starting");
+    requireCondition(emptyOverlay.statusCenter.reason == "waiting for archive and generated overlay to become ready", "status center reason should name the waiting subsystems");
+    requireCondition(emptyOverlay.statusCenter.path.empty(), "status center path should remain empty when multiple subsystems block readiness");
 
     const auto missingOverlay = companion.buildStatusSnapshot({
         archiveRoot,
@@ -123,6 +125,8 @@ int main()
     });
     requireCondition(missingOverlay.generatedOverlay.state == "needs_attention", "missing overlay should need attention");
     requireCondition(missingOverlay.statusCenter.state == "attention_required", "status center should surface attention");
+    requireCondition(missingOverlay.statusCenter.reason == "generated overlay needs attention", "status center reason should name the subsystem needing attention");
+    requireCondition(missingOverlay.statusCenter.path == (root / "missing_overlay"), "status center path should point to the subsystem needing attention");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
