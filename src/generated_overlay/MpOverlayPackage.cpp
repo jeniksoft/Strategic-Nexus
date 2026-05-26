@@ -250,7 +250,11 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
 
     std::vector<MpOverlayPackageFileVerification> files;
     const auto generatedManifestPath = sourceOverlayDirectory / generatedManifestFileName;
-    const std::string generatedManifestText = common::readTextFile(generatedManifestPath);
+    std::string generatedManifestText;
+    if (!common::tryReadTextFile(generatedManifestPath, generatedManifestText)) {
+        result.reason = "failed to read generated overlay manifest";
+        return result;
+    }
 
     MpOverlayPackageFileVerification generatedManifestEntry;
     generatedManifestEntry.path = generatedManifestFileName;
@@ -281,7 +285,12 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
     for (const auto& file : files) {
         const auto sourcePath = sourceOverlayDirectory / std::filesystem::path(file.path);
         const auto destinationPath = outputPackageDirectory / std::filesystem::path(file.path);
-        if (!common::writeTextFileAtomically(destinationPath, common::readTextFile(sourcePath))) {
+        std::string text;
+        if (!common::tryReadTextFile(sourcePath, text)) {
+            result.reason = "failed to read package source file";
+            return result;
+        }
+        if (!common::writeTextFileAtomically(destinationPath, text)) {
             result.reason = "failed to copy package file";
             return result;
         }

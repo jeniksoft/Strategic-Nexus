@@ -48,6 +48,24 @@ std::string readTextFile(const std::filesystem::path& path)
     return buffer.str();
 }
 
+bool tryReadTextFile(const std::filesystem::path& path, std::string& output)
+{
+    output.clear();
+    if (path.empty()) {
+        return false;
+    }
+
+    std::ifstream input(path, std::ios::binary);
+    if (!input) {
+        return false;
+    }
+
+    std::ostringstream buffer;
+    buffer << input.rdbuf();
+    output = buffer.str();
+    return true;
+}
+
 bool writeTextFileAtomically(const std::filesystem::path& path, const std::string& text)
 {
     if (path.empty()) {
