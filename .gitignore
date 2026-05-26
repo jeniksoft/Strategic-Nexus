@@ -353,6 +353,12 @@ exchange/daemon.log
 # Strategic Nexus local private operator state
 .codex_local/
 
+# Strategic Nexus private helper sources live in codex-private-memory.
+# Keep generated/local native Task Board source out of the public workspace.
+tools/dev_attention/native_task_board/
+tools/dev_attention/build_native_task_board.ps1
+tools/dev_attention/run_native_task_board.ps1
+
 # Strategic Nexus generated task board panel textures
 tools/dev_attention/assets/task_panel_texture.png
 tools/dev_attention/assets/detail_panel_texture.png
