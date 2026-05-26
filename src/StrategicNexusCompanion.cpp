@@ -197,6 +197,16 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     if (archiveNeedsAttention || overlayNeedsAttention) {
         status.state = "attention_required";
         status.reason = "archive or generated overlay needs attention";
+        return status;
+    }
+
+    const bool archiveStarting = archive.state == "starting";
+    const bool overlayStarting = generatedOverlay.state == "starting";
+
+    if (archiveStarting || overlayStarting) {
+        status.state = "starting";
+        status.reason = "waiting for subsystems to become ready";
+        return status;
     }
 
     return status;

@@ -49,7 +49,7 @@ int main()
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest exists");
-    requireCondition(ready.statusCenter.state == "ready", "status center should be ready when subsystems are ready");
+    requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
 
     const auto missingOverlay = companion.buildStatusSnapshot({
         archiveRoot,
