@@ -546,6 +546,30 @@ int Application::run(const RunConfig& config) const
                 return 1;
             }
 
+            const auto outputDirectory = config.generatedOverlayOutputDirectory;
+            {
+                std::error_code ec;
+                if (std::filesystem::exists(outputDirectory, ec)) {
+                    if (ec) {
+                        std::cout << "generated_overlay_success=false\n";
+                        std::cout << "generated_overlay_reason=failed to inspect output directory\n";
+                        return 1;
+                    }
+
+                    if (!std::filesystem::is_directory(outputDirectory, ec) || ec) {
+                        std::cout << "generated_overlay_success=false\n";
+                        std::cout << "generated_overlay_reason=output path is not a directory\n";
+                        return 1;
+                    }
+
+                    if (!std::filesystem::is_empty(outputDirectory, ec) || ec) {
+                        std::cout << "generated_overlay_success=false\n";
+                        std::cout << "generated_overlay_reason=output directory must be empty\n";
+                        return 1;
+                    }
+                }
+            }
+
             const generated_overlay::DslParser parser;
             const auto parseResult = parser.parse(common::readTextFile(config.generatedOverlayDslInputPath));
             if (!parseResult.ok) {
@@ -567,7 +591,15 @@ int Application::run(const RunConfig& config) const
 
             const generated_overlay::OverlayCompiler compiler;
             const auto files = compiler.compile(parseResult.program);
-            const auto outputDirectory = config.generatedOverlayOutputDirectory;
+            {
+                std::error_code ec;
+                std::filesystem::create_directories(outputDirectory, ec);
+                if (ec) {
+                    std::cout << "generated_overlay_success=false\n";
+                    std::cout << "generated_overlay_reason=failed to create output directory\n";
+                    return 1;
+                }
+            }
             const bool eventsWritten = common::writeTextFileAtomically(
                 outputDirectory / "events" / "strategic_nexus_generated_events.txt",
                 files.eventsText);
