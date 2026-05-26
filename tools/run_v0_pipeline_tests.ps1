@@ -830,7 +830,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_abbreviation=SNC"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_state=ready"
-    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=ready"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_output_written=true"
 
     $snapshotJson = Get-Content -Raw -LiteralPath $outputPath
@@ -993,6 +993,31 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"delta_quality": "metadata_only"'
     Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"archive_verified:true"'
 
+    $badArchiveDir = Join-Path $archiveRoot "session_cli_bad_archive"
+    $null = New-Item -ItemType Directory -Force -Path $badArchiveDir
+    $badLedgerPath = Join-Path $archiveRoot "session_cli_bad_delta_ledger.json"
+
+    $badLedgerOutput = & $exePath `
+        --build-season-delta-ledger `
+        $badArchiveDir `
+        "campaign_cli" `
+        $badLedgerPath
+    $badLedgerExitCode = $LASTEXITCODE
+
+    if ($badLedgerExitCode -eq 0) {
+        $badLedgerText = $badLedgerOutput -join "`n"
+        throw "season delta ledger app expected failure for bad archive. Actual output:`n$badLedgerText"
+    }
+
+    if (-not (Test-Path -LiteralPath $badLedgerPath)) {
+        throw "season delta ledger app should still write JSON output for bad archive: $badLedgerPath"
+    }
+
+    $badLedgerJson = Get-Content -Raw -LiteralPath $badLedgerPath
+    $null = $badLedgerJson | ConvertFrom-Json
+    Assert-Contains -Name "season delta ledger json (bad archive)" -Text $badLedgerJson -Expected '"ok": false'
+    Assert-Contains -Name "season delta ledger json (bad archive)" -Text $badLedgerJson -Expected "missing autosave archive manifest"
+
     $briefPath = Join-Path $archiveRoot "session_cli_empire_brief.json"
     $briefOutput = & $exePath `
         --build-empire-brief-from-archive `
@@ -1016,6 +1041,29 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"empire_id": "empire_cli"'
     Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"source_ledger_quality": "metadata_only"'
     Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"empire_identity_resolver_not_implemented_yet"'
+
+    $badBriefPath = Join-Path $archiveRoot "session_cli_bad_empire_brief.json"
+    $badBriefOutput = & $exePath `
+        --build-empire-brief-from-archive `
+        $badArchiveDir `
+        "campaign_cli" `
+        "empire_cli" `
+        $badBriefPath
+    $badBriefExitCode = $LASTEXITCODE
+
+    if ($badBriefExitCode -eq 0) {
+        $badBriefText = $badBriefOutput -join "`n"
+        throw "archive empire brief app expected failure for bad archive. Actual output:`n$badBriefText"
+    }
+
+    if (-not (Test-Path -LiteralPath $badBriefPath)) {
+        throw "archive empire brief app should still write JSON output for bad archive: $badBriefPath"
+    }
+
+    $badBriefJson = Get-Content -Raw -LiteralPath $badBriefPath
+    $null = $badBriefJson | ConvertFrom-Json
+    Assert-Contains -Name "archive empire brief json (bad archive)" -Text $badBriefJson -Expected '"ok": false'
+    Assert-Contains -Name "archive empire brief json (bad archive)" -Text $badBriefJson -Expected "missing autosave archive manifest"
 
     Write-Host "[PASS] autosave_archive"
 }

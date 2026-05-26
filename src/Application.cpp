@@ -852,27 +852,22 @@ int Application::run(const RunConfig& config) const
             return result.success ? 0 : 1;
         }
 
-        if (config.buildSeasonDeltaLedgerMode) {
-            if (config.seasonDeltaLedgerDirectory.empty() ||
-                config.seasonDeltaLedgerCampaignId.empty() ||
-                config.seasonDeltaLedgerOutputPath.empty()) {
-                std::cout << "season_delta_ledger_success=false\n";
-                std::cout << "season_delta_ledger_reason=missing archive directory, campaign id, or output path\n";
-                return 1;
-            }
+	        if (config.buildSeasonDeltaLedgerMode) {
+	            if (config.seasonDeltaLedgerDirectory.empty() ||
+	                config.seasonDeltaLedgerCampaignId.empty() ||
+	                config.seasonDeltaLedgerOutputPath.empty()) {
+	                std::cout << "season_delta_ledger_success=false\n";
+	                std::cout << "season_delta_ledger_reason=missing archive directory, campaign id, or output path\n";
+	                return 1;
+	            }
 
-            const AutosaveArchiveSummarizer summarizer;
-            const auto summary = summarizer.summarize(config.seasonDeltaLedgerDirectory);
-            if (!summary.ok) {
-                std::cout << "season_delta_ledger_success=false\n";
-                std::cout << "season_delta_ledger_reason=" << summary.reason << "\n";
-                return 1;
-            }
+	            const AutosaveArchiveSummarizer summarizer;
+	            const auto summary = summarizer.summarize(config.seasonDeltaLedgerDirectory);
 
-            const SeasonDeltaLedgerBuilder builder;
-            const auto ledger = builder.build(summary, config.seasonDeltaLedgerCampaignId);
-            const bool written = common::writeTextFileAtomically(
-                config.seasonDeltaLedgerOutputPath,
+	            const SeasonDeltaLedgerBuilder builder;
+	            const auto ledger = builder.build(summary, config.seasonDeltaLedgerCampaignId);
+	            const bool written = common::writeTextFileAtomically(
+	                config.seasonDeltaLedgerOutputPath,
                 serializeSeasonDeltaLedger(ledger));
 
             const bool success = ledger.ok && written;
@@ -888,27 +883,22 @@ int Application::run(const RunConfig& config) const
             return success ? 0 : 1;
         }
 
-        if (config.buildEmpireBriefFromArchiveMode) {
-            if (config.archiveEmpireBriefDirectory.empty() ||
-                config.archiveEmpireBriefCampaignId.empty() ||
-                config.archiveEmpireBriefEmpireId.empty() ||
-                config.archiveEmpireBriefOutputPath.empty()) {
-                std::cout << "archive_empire_brief_success=false\n";
-                std::cout << "archive_empire_brief_reason=missing archive directory, identity, or output path\n";
-                return 1;
-            }
+	        if (config.buildEmpireBriefFromArchiveMode) {
+	            if (config.archiveEmpireBriefDirectory.empty() ||
+	                config.archiveEmpireBriefCampaignId.empty() ||
+	                config.archiveEmpireBriefEmpireId.empty() ||
+	                config.archiveEmpireBriefOutputPath.empty()) {
+	                std::cout << "archive_empire_brief_success=false\n";
+	                std::cout << "archive_empire_brief_reason=missing archive directory, identity, or output path\n";
+	                return 1;
+	            }
 
-            const AutosaveArchiveSummarizer summarizer;
-            const auto summary = summarizer.summarize(config.archiveEmpireBriefDirectory);
-            if (!summary.ok) {
-                std::cout << "archive_empire_brief_success=false\n";
-                std::cout << "archive_empire_brief_reason=" << summary.reason << "\n";
-                return 1;
-            }
+	            const AutosaveArchiveSummarizer summarizer;
+	            const auto summary = summarizer.summarize(config.archiveEmpireBriefDirectory);
 
-            const SeasonDeltaLedgerBuilder ledgerBuilder;
-            const auto ledger = ledgerBuilder.build(summary, config.archiveEmpireBriefCampaignId);
-            const SeasonEmpireBriefBuilder briefBuilder;
+	            const SeasonDeltaLedgerBuilder ledgerBuilder;
+	            const auto ledger = ledgerBuilder.build(summary, config.archiveEmpireBriefCampaignId);
+	            const SeasonEmpireBriefBuilder briefBuilder;
             const auto brief = briefBuilder.build(ledger, config.archiveEmpireBriefEmpireId);
             const bool written = common::writeTextFileAtomically(
                 config.archiveEmpireBriefOutputPath,
