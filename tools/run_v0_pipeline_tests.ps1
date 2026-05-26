@@ -828,7 +828,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_success=true"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_app_name=Strategic Nexus Companion"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_abbreviation=SNC"
-    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=ready"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_state=ready"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=ready"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_output_written=true"

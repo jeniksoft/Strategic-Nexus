@@ -81,8 +81,28 @@ CompanionSubsystemStatus buildArchiveStatus(const std::filesystem::path& archive
         return status;
     }
 
+    bool hasSessions = false;
+    for (const auto& entry : std::filesystem::directory_iterator(archiveRoot, error)) {
+        if (error) {
+            break;
+        }
+        if (!entry.is_directory(error)) {
+            continue;
+        }
+        if (std::filesystem::exists(entry.path() / "manifest.json", error) && !error) {
+            hasSessions = true;
+            break;
+        }
+    }
+
+    if (!hasSessions) {
+        status.state = "starting";
+        status.reason = "no archive sessions yet";
+        return status;
+    }
+
     status.state = "ready";
-    status.reason = "archive root available";
+    status.reason = "archive sessions available";
     return status;
 }
 
@@ -127,7 +147,12 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     status.state = "ready";
     status.reason = "no attention required";
 
-    if (archive.state != "ready" || generatedOverlay.state != "ready") {
+    const bool archiveNeedsAttention =
+        archive.state == "needs_setup" || archive.state == "needs_attention";
+    const bool overlayNeedsAttention =
+        generatedOverlay.state == "needs_setup" || generatedOverlay.state == "needs_attention";
+
+    if (archiveNeedsAttention || overlayNeedsAttention) {
         status.state = "attention_required";
         status.reason = "archive or generated overlay needs attention";
     }

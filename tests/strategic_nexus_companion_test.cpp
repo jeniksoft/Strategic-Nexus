@@ -47,7 +47,7 @@ int main()
     requireCondition(ready.lifecycle.windowCloseBehavior == "minimize_to_tray", "window close should minimize to tray");
     requireCondition(ready.lifecycle.explicitExitBehavior == "stop_without_restart", "explicit exit should stop without restart");
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");
-    requireCondition(ready.archive.state == "ready", "archive should be ready when archive root exists");
+    requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest exists");
     requireCondition(ready.statusCenter.state == "ready", "status center should be ready when subsystems are ready");
 
