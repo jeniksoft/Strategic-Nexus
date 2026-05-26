@@ -234,9 +234,12 @@ AutosaveArchiveVerificationResult AutosaveArchiveVerifier::verify(
             if (archivedPathValue.is_absolute()) {
                 candidates.push_back(archivedPathValue);
             } else {
+                // Prefer resolving relative archived paths against the session archive directory.
+                candidates.push_back(sessionArchiveDirectory / archivedPathValue);
+                // Preserve older manifests that already store a path rooted elsewhere (e.g. repo-root relative),
+                // but don't let those candidates short-circuit resolution if they are outside the saves root.
                 if (archivedPathValue.has_parent_path()) {
                     candidates.push_back(archivedPathValue);
-                    candidates.push_back(sessionArchiveDirectory / archivedPathValue);
                 }
             }
 
@@ -250,12 +253,12 @@ AutosaveArchiveVerificationResult AutosaveArchiveVerifier::verify(
             if (candidate.empty()) {
                 continue;
             }
-            if (!isPathWithinRoot(candidate, savesRoot)) {
-                result.reason = "autosave archive manifest contains unsafe archived_path";
-                result.ok = false;
-                return result;
-            }
             if (std::filesystem::exists(candidate)) {
+                if (!isPathWithinRoot(candidate, savesRoot)) {
+                    result.reason = "autosave archive manifest contains unsafe archived_path";
+                    result.ok = false;
+                    return result;
+                }
                 resolvedPath = candidate;
                 break;
             }

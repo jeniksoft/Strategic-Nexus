@@ -60,6 +60,14 @@ int main()
     const auto portableAccepted = verifier.verify(archiveRoot / "session_001");
     requireCondition(portableAccepted.ok, "verifier should resolve archive-relative copied save filenames");
 
+    const auto savesRelativeManifest = std::regex_replace(
+        originalManifest,
+        std::regex("\"archived_path\"\\s*:\\s*\"[^\"]*/001_autosave_2230\\.sav\""),
+        "\"archived_path\": \"saves/001_autosave_2230.sav\"");
+    writeFile(manifestPath, savesRelativeManifest);
+    const auto savesRelativeAccepted = verifier.verify(archiveRoot / "session_001");
+    requireCondition(savesRelativeAccepted.ok, "verifier should resolve saves-relative copied save filenames");
+
     writeFile(archiveRoot / "session_001" / "saves" / "unexpected.sav", "fixture");
     const auto extraFileRejected = verifier.verify(archiveRoot / "session_001");
     requireCondition(!extraFileRejected.ok, "verifier should reject unexpected archive files");
