@@ -175,8 +175,23 @@ CompanionSubsystemStatus buildGeneratedOverlayStatus(const std::filesystem::path
     }
 
     if (verification.reason == "missing generated overlay manifest") {
-        status.state = "starting";
-        status.reason = "no generated overlay yet";
+        std::error_code iterError;
+        const bool hasAnyEntry =
+            std::filesystem::directory_iterator(overlayDirectory, iterError) != std::filesystem::directory_iterator();
+        if (iterError) {
+            status.state = "needs_attention";
+            status.reason = "generated overlay directory inaccessible";
+            return status;
+        }
+
+        if (!hasAnyEntry) {
+            status.state = "starting";
+            status.reason = "no generated overlay yet";
+            return status;
+        }
+
+        status.state = "needs_attention";
+        status.reason = "missing generated overlay manifest";
         return status;
     }
 

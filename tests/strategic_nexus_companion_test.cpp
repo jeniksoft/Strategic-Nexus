@@ -28,10 +28,16 @@ int main()
     const auto archiveRoot = root / "archive";
     const auto overlayRoot = root / "overlay";
     const auto overlayEmptyRoot = root / "overlay_empty";
+    const auto overlayNoManifestNonEmptyRoot = root / "overlay_no_manifest_non_empty";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
     std::filesystem::create_directories(overlayRoot);
     std::filesystem::create_directories(overlayEmptyRoot);
+    std::filesystem::create_directories(overlayNoManifestNonEmptyRoot);
+    {
+        std::ofstream out(overlayNoManifestNonEmptyRoot / "unexpected.txt", std::ios::binary);
+        out << "unexpected\n";
+    }
 
     {
         const std::string eventsText = "event test\n";
@@ -127,6 +133,16 @@ int main()
     requireCondition(missingOverlay.statusCenter.state == "attention_required", "status center should surface attention");
     requireCondition(missingOverlay.statusCenter.reason == "generated overlay needs attention", "status center reason should name the subsystem needing attention");
     requireCondition(missingOverlay.statusCenter.path == (root / "missing_overlay"), "status center path should point to the subsystem needing attention");
+
+    const auto noManifestNonEmptyOverlay = companion.buildStatusSnapshot({
+        archiveRoot,
+        overlayNoManifestNonEmptyRoot,
+        false
+    });
+    requireCondition(noManifestNonEmptyOverlay.generatedOverlay.state == "needs_attention", "non-empty overlay without manifest should need attention");
+    requireCondition(noManifestNonEmptyOverlay.statusCenter.state == "attention_required", "status center should surface overlay attention");
+    requireCondition(noManifestNonEmptyOverlay.statusCenter.reason == "generated overlay needs attention", "status center reason should name the subsystem needing attention");
+    requireCondition(noManifestNonEmptyOverlay.statusCenter.path == overlayNoManifestNonEmptyRoot, "status center path should point to the overlay needing attention");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
