@@ -66,6 +66,27 @@ int main()
     requireCondition(json.find("\"generated_overlay_status\"") != std::string::npos, "JSON should include overlay status");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
 
+    {
+        strategic_nexus::CompanionStatusSnapshot snapshot;
+        snapshot.appName = std::string("A\"B\\C\nD\tE\rF\bG\fH") + std::string(1, '\x01');
+        snapshot.abbreviation = "T";
+        snapshot.archive.state = "ready";
+        snapshot.archive.reason = "x";
+        snapshot.generatedOverlay.state = "ready";
+        snapshot.generatedOverlay.reason = "y";
+        snapshot.statusCenter.state = "ready";
+        snapshot.statusCenter.reason = snapshot.appName;
+
+        const auto escaped = strategic_nexus::serializeCompanionStatusSnapshot(snapshot);
+        const std::string expected = "A\\\"B\\\\C\\nD\\tE\\rF\\bG\\fH\\u0001";
+        if (escaped.find(expected) == std::string::npos) {
+            std::cerr << "[FAIL] JSON serializer should escape control characters and backslashes\n";
+            std::cerr << "expected_substring=" << expected << "\n";
+            std::cerr << "actual_json=" << escaped << "\n";
+            return 1;
+        }
+    }
+
     std::cout << "strategic nexus companion tests passed.\n";
     return 0;
 }

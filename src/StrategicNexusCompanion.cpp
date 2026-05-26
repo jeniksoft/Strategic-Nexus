@@ -4,6 +4,7 @@
 #include "StrategicNexusCompanion.h"
 
 #include <filesystem>
+#include <iomanip>
 #include <sstream>
 #include <string>
 
@@ -13,7 +14,8 @@ namespace {
 std::string escapeJson(const std::string& value)
 {
     std::ostringstream output;
-    for (const char ch : value) {
+    for (const unsigned char raw : value) {
+        const char ch = static_cast<char>(raw);
         switch (ch) {
         case '\\':
             output << "\\\\";
@@ -30,8 +32,19 @@ std::string escapeJson(const std::string& value)
         case '\t':
             output << "\\t";
             break;
+        case '\b':
+            output << "\\b";
+            break;
+        case '\f':
+            output << "\\f";
+            break;
         default:
-            output << ch;
+            if (raw < 0x20) {
+                output << "\\u" << std::hex << std::setw(4) << std::setfill('0')
+                       << static_cast<int>(raw) << std::dec << std::setw(0);
+            } else {
+                output << ch;
+            }
             break;
         }
     }
