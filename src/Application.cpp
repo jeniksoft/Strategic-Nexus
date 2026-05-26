@@ -701,12 +701,21 @@ int Application::run(const RunConfig& config) const
                 : true;
             const bool success = written;
 
+            const auto stdoutPath = [](const std::filesystem::path& path) {
+                return path.empty() ? std::string() : path.generic_string();
+            };
             std::cout << "snc_status_success=" << (success ? "true" : "false") << "\n";
             std::cout << "snc_app_name=" << snapshot.appName << "\n";
             std::cout << "snc_abbreviation=" << snapshot.abbreviation << "\n";
             std::cout << "snc_archive_state=" << snapshot.archive.state << "\n";
+            std::cout << "snc_archive_reason=" << snapshot.archive.reason << "\n";
+            std::cout << "snc_archive_path=" << stdoutPath(snapshot.archive.path) << "\n";
             std::cout << "snc_generated_overlay_state=" << snapshot.generatedOverlay.state << "\n";
+            std::cout << "snc_generated_overlay_reason=" << snapshot.generatedOverlay.reason << "\n";
+            std::cout << "snc_generated_overlay_path=" << stdoutPath(snapshot.generatedOverlay.path) << "\n";
             std::cout << "snc_status_center_state=" << snapshot.statusCenter.state << "\n";
+            std::cout << "snc_status_center_reason=" << snapshot.statusCenter.reason << "\n";
+            std::cout << "snc_status_center_path=" << stdoutPath(snapshot.statusCenter.path) << "\n";
             std::cout << "snc_status_output_written=" << (outputRequested && written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "snc_status_reason=failed to write status snapshot\n";
