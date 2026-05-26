@@ -44,7 +44,7 @@ internal static class TaskBoardLauncher
             var startInfo = new ProcessStartInfo
             {
                 FileName = powershellPath,
-                Arguments = "-NoProfile -STA -ExecutionPolicy RemoteSigned -File " + Quote(boardScript),
+                Arguments = "-NoProfile -STA -ExecutionPolicy Bypass -File " + Quote(boardScript),
                 WorkingDirectory = repoRoot,
                 UseShellExecute = false,
                 CreateNoWindow = false,

@@ -44,7 +44,7 @@ repoRoot = fso.GetParentFolderName(fso.GetParentFolderName(scriptDir))
 watchdogScript = fso.BuildPath(scriptDir, "run_user_task_board_watchdog.ps1")
 powershellPath = shell.ExpandEnvironmentStrings("%SystemRoot%") & "\System32\WindowsPowerShell\v1.0\powershell.exe"
 
-command = """" & powershellPath & """ -NoProfile -ExecutionPolicy RemoteSigned -WindowStyle Hidden -File """ & watchdogScript & """"
+command = """" & powershellPath & """ -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & watchdogScript & """"
 shell.CurrentDirectory = repoRoot
 RememberTerminalProcesses
 shell.Run command, 0, False
