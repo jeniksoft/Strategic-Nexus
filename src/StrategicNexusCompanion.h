@@ -4,6 +4,7 @@
 #pragma once
 
 #include <filesystem>
+#include <chrono>
 #include <string>
 
 namespace strategic_nexus {
@@ -12,6 +13,19 @@ struct CompanionStatusConfig {
     std::filesystem::path archiveRoot;
     std::filesystem::path generatedOverlayDirectory;
     bool startWithWindowsEnabled = false;
+};
+
+struct CompanionStatusLoopConfig {
+    CompanionStatusConfig statusConfig;
+    std::filesystem::path statusOutputPath;
+    std::chrono::milliseconds pollInterval = std::chrono::milliseconds(1000);
+    int maxIterations = 1;
+};
+
+struct CompanionStatusLoopResult {
+    bool ok = false;
+    int iterationsRun = 0;
+    std::string reason;
 };
 
 struct CompanionSubsystemStatus {
@@ -42,5 +56,7 @@ public:
 };
 
 std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snapshot);
+
+CompanionStatusLoopResult runCompanionStatusLoop(const StrategicNexusCompanion& companion, const CompanionStatusLoopConfig& config);
 
 } // namespace strategic_nexus

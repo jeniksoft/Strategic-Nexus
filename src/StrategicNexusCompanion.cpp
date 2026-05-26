@@ -3,12 +3,14 @@
 
 #include "StrategicNexusCompanion.h"
 
+#include "common/FileUtil.h"
 #include "generated_overlay/ManifestVerifier.h"
 
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <thread>
 
 namespace strategic_nexus {
 namespace {
@@ -263,6 +265,42 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "\n";
     output << "}\n";
     return output.str();
+}
+
+CompanionStatusLoopResult runCompanionStatusLoop(const StrategicNexusCompanion& companion, const CompanionStatusLoopConfig& config)
+{
+    CompanionStatusLoopResult result;
+
+    if (config.statusOutputPath.empty()) {
+        result.reason = "status output path not configured";
+        return result;
+    }
+
+    const int iterations = config.maxIterations < 0 ? 0 : config.maxIterations;
+    if (iterations == 0) {
+        result.ok = true;
+        result.reason = "no iterations requested";
+        return result;
+    }
+
+    for (int i = 0; i < iterations; i++) {
+        const auto snapshot = companion.buildStatusSnapshot(config.statusConfig);
+        const auto json = serializeCompanionStatusSnapshot(snapshot);
+        const bool written = common::writeTextFileAtomically(config.statusOutputPath, json);
+        if (!written) {
+            result.reason = "failed to write status snapshot";
+            return result;
+        }
+
+        result.iterationsRun++;
+        if (i + 1 < iterations && config.pollInterval.count() > 0) {
+            std::this_thread::sleep_for(config.pollInterval);
+        }
+    }
+
+    result.ok = true;
+    result.reason = "ok";
+    return result;
 }
 
 } // namespace strategic_nexus

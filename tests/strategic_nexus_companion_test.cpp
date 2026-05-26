@@ -152,6 +152,25 @@ int main()
         }
     }
 
+    {
+        const auto outputPath = root / "snc_status_snapshot.json";
+        const strategic_nexus::CompanionStatusLoopConfig loopConfig{
+            { archiveRoot, overlayRoot, true },
+            outputPath,
+            std::chrono::milliseconds(0),
+            2
+        };
+        const auto loopResult = strategic_nexus::runCompanionStatusLoop(companion, loopConfig);
+        requireCondition(loopResult.ok, "runCompanionStatusLoop should succeed");
+        requireCondition(loopResult.iterationsRun == 2, "runCompanionStatusLoop should run the requested number of iterations");
+
+        std::ifstream in(outputPath, std::ios::binary);
+        const std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+        requireCondition(content.find("\"schema_version\": 1") != std::string::npos, "status snapshot should include schema version");
+        requireCondition(content.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "status snapshot should include app name");
+        requireCondition(content.find("\"status_center\"") != std::string::npos, "status snapshot should include status center");
+    }
+
     std::cout << "strategic nexus companion tests passed.\n";
     return 0;
 }
