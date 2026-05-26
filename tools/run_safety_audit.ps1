@@ -24,12 +24,48 @@ function Search-Pattern {
         [string[]]$Paths
     )
 
-    $output = & rg -n -i --glob "!tools/run_safety_audit.ps1" $Pattern @Paths 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        Add-FindingBlock $Title $output
-    } elseif ($LASTEXITCODE -ne 1) {
-        throw "Safety audit search failed for $Title."
+    $rg = Get-Command rg -ErrorAction SilentlyContinue
+    if ($rg) {
+        $output = & rg -n -i --glob "!tools/run_safety_audit.ps1" $Pattern @Paths 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Add-FindingBlock $Title $output
+        } elseif ($LASTEXITCODE -ne 1) {
+            throw "Safety audit search failed for $Title."
+        }
+        return
     }
+
+    $pathPrefixes = $Paths | ForEach-Object { $_ -replace '\\', '/' }
+    $candidateFiles = git ls-files --cached --others --exclude-standard
+    if ($LASTEXITCODE -ne 0) {
+        throw "Safety audit fallback file discovery failed for $Title."
+    }
+
+    $resolvedFiles = foreach ($file in $candidateFiles) {
+        $normalized = $file -replace '\\', '/'
+        $inScope = $false
+        foreach ($prefix in $pathPrefixes) {
+            if ($normalized -eq $prefix -or $normalized.StartsWith("$prefix/")) {
+                $inScope = $true
+                break
+            }
+        }
+
+        $binaryExtensions = @(".7z", ".dll", ".exe", ".gif", ".ico", ".jpeg", ".jpg", ".lib", ".obj", ".pdb", ".png", ".pyc", ".zip")
+        if ($inScope -and ($binaryExtensions -notcontains [System.IO.Path]::GetExtension($file).ToLowerInvariant())) {
+            Get-Item -LiteralPath $file -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -ne $PSCommandPath }
+        }
+    }
+
+    $output = $resolvedFiles |
+        Select-String -Pattern $Pattern -CaseSensitive:$false |
+        ForEach-Object {
+            $relativePath = (Resolve-Path -Path $_.Path -Relative) -replace '^\.[\\/]', ''
+            "$($relativePath):$($_.LineNumber):$($_.Line)"
+        }
+
+    Add-FindingBlock $Title $output
 }
 
 Push-Location $repoRoot
