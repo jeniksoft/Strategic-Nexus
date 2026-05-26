@@ -4,6 +4,7 @@
 #include "DslValidator.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cctype>
 #include <cstdlib>
 #include <set>
@@ -174,6 +175,9 @@ DslValidationResult DslValidator::validate(const DslProgram& program) const
         if (rule.duration != "next_session") {
             addError(errors, rule.ruleId, "unsupported duration");
         }
+        if (!std::isfinite(rule.confidence)) {
+            addError(errors, rule.ruleId, "confidence must be finite");
+        }
         if (rule.confidence < 0.0 || rule.confidence > 1.0) {
             addError(errors, rule.ruleId, "confidence outside allowed range");
         }
@@ -187,6 +191,9 @@ DslValidationResult DslValidator::validate(const DslProgram& program) const
         for (const auto& preference : rule.preferences) {
             if (!isAllowedPreference(preference)) {
                 addError(errors, rule.ruleId, "unsupported preference");
+            }
+            if (!std::isfinite(preference.intensity)) {
+                addError(errors, rule.ruleId, "intensity must be finite");
             }
             if (preference.intensity < 0.0 || preference.intensity > 1.0) {
                 addError(errors, rule.ruleId, "intensity outside allowed range");

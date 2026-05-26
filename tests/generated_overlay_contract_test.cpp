@@ -148,6 +148,20 @@ int main()
     }
 
     {
+        const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "nan_confidence" { ministry = military_ministry prefer military_posture defensive intensity 0.5 duration = next_session confidence = nan rationale = "bad" } } })");
+        requireCondition(parseResult.ok, "nan confidence DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(!validation.ok, "nan confidence should fail validation");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "nan_intensity" { ministry = military_ministry prefer military_posture defensive intensity nan duration = next_session confidence = 0.9 rationale = "bad" } } })");
+        requireCondition(parseResult.ok, "nan intensity DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(!validation.ok, "nan intensity should fail validation");
+    }
+
+    {
         const auto overlayDir = freshTestDirectory();
         const auto eventsPath = overlayDir / "events" / "strategic_nexus_generated_events.txt";
         const std::string eventsText = "namespace = strategic_nexus_generated\n";
