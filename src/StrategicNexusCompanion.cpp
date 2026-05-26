@@ -74,10 +74,28 @@ CompanionSubsystemStatus buildArchiveStatus(const std::filesystem::path& archive
 
     std::error_code error;
     const bool exists = std::filesystem::exists(archiveRoot, error);
-    const bool isDirectory = exists && std::filesystem::is_directory(archiveRoot, error);
-    if (error || !isDirectory) {
+    if (error) {
+        status.state = "needs_attention";
+        status.reason = "archive root inaccessible";
+        return status;
+    }
+
+    if (!exists) {
         status.state = "needs_attention";
         status.reason = "archive root missing";
+        return status;
+    }
+
+    const bool isDirectory = std::filesystem::is_directory(archiveRoot, error);
+    if (error) {
+        status.state = "needs_attention";
+        status.reason = "archive root inaccessible";
+        return status;
+    }
+
+    if (!isDirectory) {
+        status.state = "needs_attention";
+        status.reason = "archive root is not a directory";
         return status;
     }
 
@@ -119,16 +137,40 @@ CompanionSubsystemStatus buildGeneratedOverlayStatus(const std::filesystem::path
 
     std::error_code error;
     const bool exists = std::filesystem::exists(overlayDirectory, error);
-    const bool isDirectory = exists && std::filesystem::is_directory(overlayDirectory, error);
-    if (error || !isDirectory) {
+    if (error) {
+        status.state = "needs_attention";
+        status.reason = "generated overlay directory inaccessible";
+        return status;
+    }
+
+    if (!exists) {
         status.state = "needs_attention";
         status.reason = "generated overlay directory missing";
         return status;
     }
 
+    const bool isDirectory = std::filesystem::is_directory(overlayDirectory, error);
+    if (error) {
+        status.state = "needs_attention";
+        status.reason = "generated overlay directory inaccessible";
+        return status;
+    }
+
+    if (!isDirectory) {
+        status.state = "needs_attention";
+        status.reason = "generated overlay path is not a directory";
+        return status;
+    }
+
     const auto manifestPath = overlayDirectory / "strategic_nexus_generated_manifest.json";
     const bool manifestExists = std::filesystem::exists(manifestPath, error);
-    if (error || !manifestExists) {
+    if (error) {
+        status.state = "needs_attention";
+        status.reason = "generated overlay directory inaccessible";
+        return status;
+    }
+
+    if (!manifestExists) {
         status.state = "needs_attention";
         status.reason = "generated overlay manifest missing";
         return status;
