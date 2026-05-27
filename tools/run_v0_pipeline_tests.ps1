@@ -1076,6 +1076,58 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "archive empire brief json (bad archive)" -Text $badBriefJson -Expected '"ok": false'
     Assert-Contains -Name "archive empire brief json (bad archive)" -Text $badBriefJson -Expected "missing autosave archive manifest"
 
+    $offlineSpineWorkDir = Join-Path $archiveRoot "session_cli_offline_spine_work"
+    $offlineSpineOverlayDir = Join-Path $archiveRoot "session_cli_offline_spine_overlay"
+    $offlineSpineStatusPath = Join-Path $archiveRoot "session_cli_offline_spine_status.json"
+    Remove-Item -LiteralPath $offlineSpineWorkDir -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $offlineSpineOverlayDir -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $offlineSpineStatusPath -Force -ErrorAction SilentlyContinue
+
+    $offlineSpineOutput = & $exePath `
+        --run-offline-spine `
+        (Join-Path $archiveRoot "session_cli") `
+        "campaign_cli" `
+        "empire_cli" `
+        (Join-Path $repoRoot "resources/generated_overlay_valid.dsl") `
+        $offlineSpineWorkDir `
+        $offlineSpineOverlayDir `
+        $offlineSpineStatusPath
+    $offlineSpineExitCode = $LASTEXITCODE
+    $offlineSpineText = $offlineSpineOutput -join "`n"
+
+    if ($offlineSpineExitCode -ne 0) {
+        throw "offline spine app failed. Actual output:`n$offlineSpineText"
+    }
+
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_success=true"
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_archive_verified=true"
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_save_count=1"
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_ledger_written=true"
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_brief_written=true"
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_overlay_verified=true"
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_status_center_state=ready"
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_status_output_written=true"
+
+    $offlineLedgerJson = Get-Content -Raw -LiteralPath (Join-Path $offlineSpineWorkDir "season_delta_ledger.json")
+    $null = $offlineLedgerJson | ConvertFrom-Json
+    Assert-Contains -Name "offline spine ledger json" -Text $offlineLedgerJson -Expected '"campaign_id": "campaign_cli"'
+    Assert-Contains -Name "offline spine ledger json" -Text $offlineLedgerJson -Expected '"archive_verified:true"'
+
+    $offlineBriefJson = Get-Content -Raw -LiteralPath (Join-Path $offlineSpineWorkDir "empire_brief.json")
+    $null = $offlineBriefJson | ConvertFrom-Json
+    Assert-Contains -Name "offline spine brief json" -Text $offlineBriefJson -Expected '"empire_id": "empire_cli"'
+    Assert-Contains -Name "offline spine brief json" -Text $offlineBriefJson -Expected '"source_ledger_quality": "metadata_only"'
+
+    $offlineManifestJson = Get-Content -Raw -LiteralPath (Join-Path $offlineSpineOverlayDir "strategic_nexus_generated_manifest.json")
+    $null = $offlineManifestJson | ConvertFrom-Json
+    Assert-Contains -Name "offline spine manifest json" -Text $offlineManifestJson -Expected '"snapshot_kind": "complete_replacement"'
+    Assert-Contains -Name "offline spine manifest json" -Text $offlineManifestJson -Expected '"multiplayer_requirement": "byte_identical_gameplay_affecting_files"'
+
+    $offlineStatusJson = Get-Content -Raw -LiteralPath $offlineSpineStatusPath
+    $null = $offlineStatusJson | ConvertFrom-Json
+    Assert-Contains -Name "offline spine status json" -Text $offlineStatusJson -Expected '"status_center":'
+    Assert-Contains -Name "offline spine status json" -Text $offlineStatusJson -Expected '"state": "ready"'
+
     Write-Host "[PASS] autosave_archive"
 }
 

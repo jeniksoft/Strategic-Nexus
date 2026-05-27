@@ -144,6 +144,24 @@ int main()
     requireCondition(noManifestNonEmptyOverlay.statusCenter.reason == "generated overlay needs attention", "status center reason should name the subsystem needing attention");
     requireCondition(noManifestNonEmptyOverlay.statusCenter.path == overlayNoManifestNonEmptyRoot, "status center path should point to the overlay needing attention");
 
+    const auto archiveSessionRoot = root / "archive_session";
+    std::filesystem::create_directories(archiveSessionRoot);
+    {
+        std::ofstream manifest(archiveSessionRoot / "manifest.json", std::ios::binary);
+        manifest << "{\n"
+                 << "  \"schema_version\": 1,\n"
+                 << "  \"entries\": []\n"
+                 << "}\n";
+    }
+
+    const auto directArchiveSession = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        overlayRoot,
+        true
+    });
+    requireCondition(directArchiveSession.archive.state == "ready", "archive session root with manifest should be ready");
+    requireCondition(directArchiveSession.statusCenter.state == "ready", "status center should be ready when archive session and overlay are ready");
+
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
     requireCondition(json.find("\"abbreviation\": \"SNC\"") != std::string::npos, "JSON should include abbreviation");

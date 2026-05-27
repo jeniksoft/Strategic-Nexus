@@ -104,6 +104,12 @@ CompanionSubsystemStatus buildArchiveStatus(const std::filesystem::path& archive
         return status;
     }
 
+    if (std::filesystem::exists(archiveRoot / "manifest.json", error) && !error) {
+        status.state = "ready";
+        status.reason = "archive session manifest available";
+        return status;
+    }
+
     bool hasSessions = false;
     for (const auto& entry : std::filesystem::directory_iterator(archiveRoot, error)) {
         if (error) {

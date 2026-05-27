@@ -34,6 +34,7 @@ struct RunConfig {
     bool exportMpOverlayPackageMode = false;
     bool verifyMpOverlayPackageMode = false;
     bool sncStatusSnapshotMode = false;
+    bool offlineSpineMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -89,10 +90,17 @@ struct RunConfig {
     std::filesystem::path sncArchiveRoot;
     std::filesystem::path sncGeneratedOverlayDirectory;
     std::filesystem::path sncStatusOutputPath;
+    std::filesystem::path offlineSpineArchiveDirectory;
+    std::filesystem::path offlineSpineDslInputPath;
+    std::filesystem::path offlineSpineWorkDirectory;
+    std::filesystem::path offlineSpineGeneratedOverlayDirectory;
+    std::filesystem::path offlineSpineStatusOutputPath;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;
     std::string mpOverlayStrategicNexusModVersion;
+    std::string offlineSpineCampaignId;
+    std::string offlineSpineEmpireId;
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;

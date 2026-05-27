@@ -209,6 +209,33 @@ RunConfig parseRunConfig(int argc, char* argv[])
         return config;
     }
 
+    if (argc > 1 && std::string(argv[1]) == "--run-offline-spine") {
+        config.offlineSpineMode = true;
+
+        if (argc > 2) {
+            config.offlineSpineArchiveDirectory = argv[2];
+        }
+        if (argc > 3) {
+            config.offlineSpineCampaignId = argv[3];
+        }
+        if (argc > 4) {
+            config.offlineSpineEmpireId = argv[4];
+        }
+        if (argc > 5) {
+            config.offlineSpineDslInputPath = argv[5];
+        }
+        if (argc > 6) {
+            config.offlineSpineWorkDirectory = argv[6];
+        }
+        if (argc > 7) {
+            config.offlineSpineGeneratedOverlayDirectory = argv[7];
+        }
+        if (argc > 8) {
+            config.offlineSpineStatusOutputPath = argv[8];
+        }
+        return config;
+    }
+
     if (argc > 1 && std::string(argv[1]) == "--archive-stable-saves") {
         config.archiveStableSavesMode = true;
 
@@ -742,6 +769,151 @@ int Application::run(const RunConfig& config) const
                 std::cout << "snc_status_reason=failed to write status snapshot\n";
             }
             return success ? 0 : 1;
+        }
+
+        if (config.offlineSpineMode) {
+            if (config.offlineSpineArchiveDirectory.empty() ||
+                config.offlineSpineCampaignId.empty() ||
+                config.offlineSpineEmpireId.empty() ||
+                config.offlineSpineDslInputPath.empty() ||
+                config.offlineSpineWorkDirectory.empty() ||
+                config.offlineSpineGeneratedOverlayDirectory.empty() ||
+                config.offlineSpineStatusOutputPath.empty()) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=missing archive directory, identity, DSL input, work directory, overlay directory, or status output\n";
+                return 1;
+            }
+
+            const AutosaveArchiveVerifier archiveVerifier;
+            const auto archiveVerification = archiveVerifier.verify(config.offlineSpineArchiveDirectory);
+            if (!archiveVerification.ok) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=archive verification failed: " << sanitizeCliValue(archiveVerification.reason) << "\n";
+                return 1;
+            }
+
+            if (!std::filesystem::exists(config.offlineSpineDslInputPath)) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=missing DSL input\n";
+                return 1;
+            }
+
+            const auto overlayDirectory = config.offlineSpineGeneratedOverlayDirectory;
+            {
+                std::error_code ec;
+                if (std::filesystem::exists(overlayDirectory, ec)) {
+                    if (ec || !std::filesystem::is_directory(overlayDirectory, ec)) {
+                        std::cout << "offline_spine_success=false\n";
+                        std::cout << "offline_spine_reason=overlay output path is not a usable directory\n";
+                        return 1;
+                    }
+                    if (!std::filesystem::is_empty(overlayDirectory, ec) || ec) {
+                        std::cout << "offline_spine_success=false\n";
+                        std::cout << "offline_spine_reason=overlay output directory must be empty\n";
+                        return 1;
+                    }
+                }
+            }
+
+            const AutosaveArchiveSummarizer summarizer;
+            const auto summary = summarizer.summarize(config.offlineSpineArchiveDirectory);
+            if (!summary.ok) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=archive summary failed: " << sanitizeCliValue(summary.reason) << "\n";
+                return 1;
+            }
+
+            const SeasonDeltaLedgerBuilder ledgerBuilder;
+            const auto ledger = ledgerBuilder.build(summary, config.offlineSpineCampaignId);
+            const auto ledgerPath = config.offlineSpineWorkDirectory / "season_delta_ledger.json";
+            const bool ledgerWritten = common::writeTextFileAtomically(ledgerPath, serializeSeasonDeltaLedger(ledger));
+            if (!ledger.ok || !ledgerWritten) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=" << sanitizeCliValue(ledger.ok ? "failed to write season delta ledger" : ledger.reason) << "\n";
+                return 1;
+            }
+
+            const SeasonEmpireBriefBuilder briefBuilder;
+            const auto brief = briefBuilder.build(ledger, config.offlineSpineEmpireId);
+            const auto briefPath = config.offlineSpineWorkDirectory / "empire_brief.json";
+            const bool briefWritten = common::writeTextFileAtomically(briefPath, serializeSeasonEmpireBrief(brief));
+            if (!brief.ok || !briefWritten) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=" << sanitizeCliValue(brief.ok ? "failed to write empire brief" : brief.reason) << "\n";
+                return 1;
+            }
+
+            const generated_overlay::DslParser parser;
+            const auto parseResult = parser.parse(common::readTextFile(config.offlineSpineDslInputPath));
+            if (!parseResult.ok) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=parse failed: " << sanitizeCliValue(parseResult.error) << "\n";
+                return 1;
+            }
+
+            const generated_overlay::DslValidator validator;
+            const auto validation = validator.validate(parseResult.program);
+            if (!validation.ok) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=validation failed\n";
+                for (const auto& error : validation.errors) {
+                    std::cout << "offline_spine_error=" << sanitizeCliValue(error) << "\n";
+                }
+                return 1;
+            }
+
+            const generated_overlay::OverlayCompiler compiler;
+            const auto files = compiler.compile(parseResult.program);
+            const bool eventsWritten = common::writeTextFileAtomically(
+                overlayDirectory / "events" / "strategic_nexus_generated_events.txt",
+                files.eventsText);
+            const bool effectsWritten = common::writeTextFileAtomically(
+                overlayDirectory / "common" / "scripted_effects" / "strategic_nexus_generated_effects.txt",
+                files.scriptedEffectsText);
+            const bool triggersWritten = common::writeTextFileAtomically(
+                overlayDirectory / "common" / "scripted_triggers" / "strategic_nexus_generated_triggers.txt",
+                files.scriptedTriggersText);
+            const bool manifestWritten = common::writeTextFileAtomically(
+                overlayDirectory / "strategic_nexus_generated_manifest.json",
+                files.manifestText);
+            if (!(eventsWritten && effectsWritten && triggersWritten && manifestWritten)) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=failed to write generated overlay files\n";
+                return 1;
+            }
+
+            const generated_overlay::ManifestVerifier overlayVerifier;
+            const auto overlayVerification = overlayVerifier.verify(overlayDirectory);
+            if (!overlayVerification.ok) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=generated overlay verification failed: " << sanitizeCliValue(overlayVerification.reason) << "\n";
+                return 1;
+            }
+
+            const StrategicNexusCompanion companion;
+            const auto snapshot = companion.buildStatusSnapshot({
+                config.offlineSpineArchiveDirectory,
+                overlayDirectory,
+                config.sncStartWithWindowsEnabled
+            });
+            const bool statusWritten = common::writeTextFileAtomically(
+                config.offlineSpineStatusOutputPath,
+                serializeCompanionStatusSnapshot(snapshot));
+            if (!statusWritten) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=failed to write status snapshot\n";
+                return 1;
+            }
+
+            std::cout << "offline_spine_success=true\n";
+            std::cout << "offline_spine_archive_verified=true\n";
+            std::cout << "offline_spine_save_count=" << summary.copiedSaveCount << "\n";
+            std::cout << "offline_spine_ledger_written=true\n";
+            std::cout << "offline_spine_brief_written=true\n";
+            std::cout << "offline_spine_overlay_verified=true\n";
+            std::cout << "offline_spine_status_center_state=" << snapshot.statusCenter.state << "\n";
+            std::cout << "offline_spine_status_output_written=true\n";
+            return 0;
         }
 
         if (config.archiveStableSavesMode) {

@@ -238,6 +238,8 @@ The generated overlay verifier also fails closed on unknown v0 generated overlay
 `Strategic Nexus.exe --build-empire-brief-from-archive <session_archive_dir> <campaign_id> <empire_id> <output_json>` emits a conservative empire brief from the metadata-only ledger with explicit missing parser fields.
 `Strategic Nexus.exe --build-ministry-input-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <output_json>` bridges verified archive metadata into the v0 ministry input context shape without pretending to parse save contents.
 `Strategic Nexus.exe --v0-pipeline-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <ministry_input_output_json> <decision_output_json> <sequence_id> <created_unix_ms> <ttl_ms> [audit_output_json]` verifies a latest-session archive, writes conservative ministry input, and runs the deterministic v0 pipeline as an end-to-end metadata-only contract harness.
+`Strategic Nexus.exe --run-offline-spine <session_archive_dir> <campaign_id> <empire_id> <input.dsl> <work_dir> <overlay_output_dir> <status_output_json>` verifies one archive session, writes the metadata-only season delta ledger and empire brief, compiles an explicit validated DSL into a generated overlay, verifies the overlay manifest, and emits an SNC status snapshot.
+This is the first tested vertical product spine for `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility`.
 
 ---
 

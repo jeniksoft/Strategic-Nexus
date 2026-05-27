@@ -62,6 +62,22 @@ Current engineering stance:
 
 # Daily Entries
 
+## 2026-05-28
+
+Projekt dnes dostal prvni overeny vertikalni runtime rez pro offline product spine.
+
+Co pribylo v repozitari:
+
+* Pribyl CLI rezim `--run-offline-spine`, ktery spoji jednu overenou archivni session, season delta ledger, empire brief, explicitne dodany validni DSL, vygenerovany overlay manifest a SNC status snapshot.
+* Companion status vrstva nove umi brat konkretni archivni session s `manifest.json` jako pripraveny archivni vstup, nejen nadrazeny archivni adresar se session podslozkami.
+* V0 regression testy overuji cely pruchod: archiv se verifikuje, ledger a brief se zapisi, DSL se zvaliduje, overlay se zkompiluje a manifest overi, a Status Center skonci ve stavu `ready`.
+
+Proc je to dulezite:
+
+* Stabilizacni smer `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility` uz neni jen roadmapova veta, ale testovany produktovy pruchod.
+* DSL zustava explicitni vstup. Tento krok tedy jeste nedava LLM pravomoc primo generovat gameplay skript bez validace; pouze propojuje potvrzene vrstvy do jednoho bezpecnejsiho harnessu.
+* Dalsi rozsireni muze navazat na jasne ohraniceny spine misto dalsiho skladani izolovanych utilit.
+
 ## 2026-05-26
 
 Projekt dnes posunul hlavne companion status vrstvu a navazujici testovaci kryti kolem archive-backed workflow. Neslo o novou herni integraci uvnitr bezici session, ale o zpresneni stavu na bezpecne integracni boundary mezi archivem, generated overlay artefakty a offline companion aplikaci.
