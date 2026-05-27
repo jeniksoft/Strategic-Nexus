@@ -40,6 +40,33 @@ if (-not (Test-Path -LiteralPath $logPath)) {
     Set-Content -LiteralPath $logPath -Encoding UTF8 -Value "timestamp_local,timezone,automation_id,run_id,trigger,result,summary,details"
 }
 
+$shouldAppend = $true
+try {
+    $header = "timestamp_local,timezone,automation_id,run_id,trigger,result,summary,details"
+    $recentLines = Get-Content -LiteralPath $logPath -Tail 200 -ErrorAction Stop |
+        Where-Object { $_ -and -not $_.StartsWith("timestamp_local") }
+
+    if ($recentLines -and $recentLines.Count -gt 0) {
+        $recent = ($header + "`n" + ($recentLines -join "`n") | ConvertFrom-Csv)
+        if ($null -ne $recent) {
+            $match = $recent | Where-Object {
+                ($_.automation_id -eq $AutomationId) -and
+                ($_.run_id -eq $RunId) -and
+                ($_.trigger -eq $Trigger) -and
+                ($_.result -eq $Result) -and
+                ($_.summary -eq $Summary) -and
+                ($_.details -eq $Details)
+            } | Select-Object -First 1
+
+            if ($null -ne $match) {
+                $shouldAppend = $false
+            }
+        }
+    }
+} catch {
+    $shouldAppend = $true
+}
+
 $line = @(
     ConvertTo-CsvField (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
     ConvertTo-CsvField ([System.TimeZoneInfo]::Local.Id)
@@ -51,7 +78,9 @@ $line = @(
     ConvertTo-CsvField $Details
 ) -join ","
 
-Add-Content -LiteralPath $logPath -Encoding UTF8 -Value $line
+if ($shouldAppend) {
+    Add-Content -LiteralPath $logPath -Encoding UTF8 -Value $line
+}
 
 Write-Host "automation_run_logged=$logPath"
 Write-Host "automation_run_id=$RunId"
