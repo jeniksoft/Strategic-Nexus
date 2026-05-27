@@ -655,7 +655,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "generated_overlay_manifest_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "generated_overlay_manifest_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
-                std::cout << "generated_overlay_manifest_file=" << file.path
+                std::cout << "generated_overlay_manifest_file=" << sanitizeCliValue(file.path)
                           << ";exists=" << (file.exists ? "true" : "false")
                           << ";hash_matches=" << (file.hashMatches ? "true" : "false")
                           << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
@@ -679,7 +679,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "mp_overlay_package_export_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "mp_overlay_package_export_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
-                std::cout << "mp_overlay_package_export_file=" << file.path
+                std::cout << "mp_overlay_package_export_file=" << sanitizeCliValue(file.path)
                           << ";exists=" << (file.exists ? "true" : "false")
                           << ";hash_matches=" << (file.hashMatches ? "true" : "false")
                           << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
@@ -696,14 +696,14 @@ int Application::run(const RunConfig& config) const
             std::cout << "mp_overlay_package_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "mp_overlay_package_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
-                std::cout << "mp_overlay_package_file=" << file.path
+                std::cout << "mp_overlay_package_file=" << sanitizeCliValue(file.path)
                           << ";exists=" << (file.exists ? "true" : "false")
                           << ";hash_matches=" << (file.hashMatches ? "true" : "false")
                           << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
                           << "\n";
             }
             for (const auto& file : result.unexpectedFiles) {
-                std::cout << "mp_overlay_package_unexpected_file=" << file << "\n";
+                std::cout << "mp_overlay_package_unexpected_file=" << sanitizeCliValue(file) << "\n";
             }
             return result.ok ? 0 : 1;
         }
