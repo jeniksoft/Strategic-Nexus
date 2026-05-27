@@ -28,6 +28,7 @@ $tests = @(
     @{ name = "autosave_archive_summarizer_test"; path = "dist/test_bin/autosave_archive_summarizer_test.exe" },
     @{ name = "season_delta_ledger_builder_test"; path = "dist/test_bin/season_delta_ledger_builder_test.exe" },
     @{ name = "season_empire_brief_builder_test"; path = "dist/test_bin/season_empire_brief_builder_test.exe" },
+    @{ name = "strategic_nexus_companion_test"; path = "dist/test_bin/strategic_nexus_companion_test.exe" },
     @{ name = "generated_overlay_contract_test"; path = "dist/test_bin/generated_overlay_contract_test.exe" },
     @{ name = "generated_overlay_verifier_test"; path = "dist/test_bin/generated_overlay_verifier_test.exe" },
     @{ name = "mp_overlay_package_verifier_test"; path = "dist/test_bin/mp_overlay_package_verifier_test.exe" }
@@ -62,4 +63,3 @@ if ($failed.Count -gt 0) {
 
 Write-Host "Spine smoke tests OK."
 exit 0
-
