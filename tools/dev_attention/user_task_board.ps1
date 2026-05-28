@@ -5,11 +5,86 @@
     [string]$ProjectProgressFilePath = "dist/private_reports/project_progress_estimate.json",
     [string]$StopFilePath = "dist/private_reports/user_task_board.stop",
     [string]$RenderPreviewPath = "",
+    [ValidateSet("gui", "list")]
+    [string]$Mode = "gui",
+    [int]$Top = 30,
     [ValidateSet("tasks", "reports", "suggestions")]
     [string]$InitialMode = "tasks"
 )
 
 $ErrorActionPreference = "Stop"
+
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+
+function Resolve-TaskBoardPath {
+    param([string]$Path)
+
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return $Path
+    }
+
+    return Join-Path $repoRoot $Path
+}
+
+function Read-TaskBoardRows {
+    param(
+        [string]$Path,
+        [string]$PropertyName
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return @()
+    }
+
+    $raw = Get-Content -Raw -LiteralPath $Path
+    if ([string]::IsNullOrWhiteSpace($raw)) {
+        return @()
+    }
+
+    $document = $raw | ConvertFrom-Json
+    return @($document.$PropertyName)
+}
+
+if ($Mode -eq "list") {
+    $taskRows = Read-TaskBoardRows -Path (Resolve-TaskBoardPath $TaskFilePath) -PropertyName "tasks"
+    $reportRows = Read-TaskBoardRows -Path (Resolve-TaskBoardPath $ReportFilePath) -PropertyName "reports"
+    $suggestionRows = Read-TaskBoardRows -Path (Resolve-TaskBoardPath $SuggestionFilePath) -PropertyName "suggestions"
+
+    Write-Host "Task Board summary"
+    Write-Host ("tasks={0} reports={1} suggestions={2}" -f $taskRows.Count, $reportRows.Count, $suggestionRows.Count)
+
+    $rows = @()
+    $rows += $taskRows | ForEach-Object {
+        [pscustomobject]@{
+            ref = "task|$($_.id)"
+            type = "task"
+            severity = $_.severity
+            status = $_.status
+            title = $_.title
+        }
+    }
+    $rows += $reportRows | ForEach-Object {
+        [pscustomobject]@{
+            ref = "report|$($_.id)"
+            type = "report"
+            severity = $_.severity
+            status = ""
+            title = $_.title
+        }
+    }
+    $rows += $suggestionRows | ForEach-Object {
+        [pscustomobject]@{
+            ref = "suggestion|$($_.id)"
+            type = "suggestion"
+            severity = $_.severity
+            status = $_.status
+            title = $_.title
+        }
+    }
+
+    $rows | Select-Object -First ([Math]::Max(1, $Top)) | Format-Table -AutoSize
+    return
+}
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -56,8 +131,6 @@ if ($consoleWindow -ne [IntPtr]::Zero) {
     [StrategicNexusTaskBoardNative]::ShowWindow($consoleWindow, 0) | Out-Null
 }
 [StrategicNexusTaskBoardNative]::FreeConsole() | Out-Null
-
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 
 function Resolve-ProjectPath {
     param([string]$Path)
