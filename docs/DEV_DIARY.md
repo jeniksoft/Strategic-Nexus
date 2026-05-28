@@ -62,6 +62,8 @@ Current engineering stance:
 
 # Daily Entries
 
+Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
+
 ## 2026-05-28
 
 Projekt dnes dostal prvni overeny vertikalni produktovy pruchod pro offline spine a soucasne presnejsi casove ukotveni companion status snapshotu.
@@ -77,7 +79,7 @@ Co to znamena pro architekturu a runtime interoperability research:
 
 * Stabilizacni smer `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility` uz neni jen roadmapovy popis, ale testovany produktovy pruchod.
 * Projekt tim dale upevnuje host-authoritative model s offline companion vrstvou na integracni boundary mezi archivem, analyzou a next-session generated overlay pripravu.
-* Casove oznaceni snapshotu zlepsuje dohledatelnost stavu pri runtime reverse engineering a runtime interoperability research bez rozsireni produkcniho zasahu do bezici session.
+* Casove oznaceni snapshotu zlepsuje dohledatelnost stavu pri ladeni integracni hranice mezi offline archivem, analyzou a pripravenou next-session overlay vrstvou bez rozsireni produkcniho zasahu do bezici session.
 * DSL zustava explicitni a validovany vstup. Tento krok tedy stale nepredava LLM primou pravomoc generovat gameplay skript mimo kontrolovany scripted event/effect path.
 
 Testy a stav overeni:
