@@ -953,6 +953,12 @@ int Application::run(const RunConfig& config) const
             std::cout << "offline_spine_brief_written=true\n";
             std::cout << "offline_spine_overlay_verified=true\n";
             std::cout << "offline_spine_status_center_state=" << snapshot.statusCenter.state << "\n";
+            std::cout << "offline_spine_work_directory=" << sanitizeCliValue(config.offlineSpineWorkDirectory.generic_string()) << "\n";
+            std::cout << "offline_spine_ledger_output_path=" << sanitizeCliValue(ledgerPath.generic_string()) << "\n";
+            std::cout << "offline_spine_brief_output_path=" << sanitizeCliValue(briefPath.generic_string()) << "\n";
+            std::cout << "offline_spine_overlay_output_path=" << sanitizeCliValue(overlayDirectory.generic_string()) << "\n";
+            std::cout << "offline_spine_status_output_path=" << sanitizeCliValue(config.offlineSpineStatusOutputPath.generic_string()) << "\n";
+            std::cout << "offline_spine_status_generated_at_local=" << sanitizeCliValue(snapshot.generatedAtLocal) << "\n";
             std::cout << "offline_spine_status_output_written=true\n";
             return 0;
         }

@@ -1108,6 +1108,12 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_brief_written=true"
     Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_overlay_verified=true"
     Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_status_center_state=ready"
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_work_directory="
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_ledger_output_path="
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_brief_output_path="
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_overlay_output_path="
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_status_output_path="
+    Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_status_generated_at_local="
     Assert-Contains -Name "offline spine app" -Text $offlineSpineText -Expected "offline_spine_status_output_written=true"
 
     $offlineLedgerJson = Get-Content -Raw -LiteralPath (Join-Path $offlineSpineWorkDir "season_delta_ledger.json")
