@@ -819,6 +819,27 @@ int Application::run(const RunConfig& config) const
 
             const auto overlayDirectory = config.offlineSpineGeneratedOverlayDirectory;
             {
+                const auto containsAnyRegularFile = [](const std::filesystem::path& directory) {
+                    std::error_code iterateError;
+                    std::filesystem::recursive_directory_iterator it(
+                        directory,
+                        std::filesystem::directory_options::skip_permission_denied,
+                        iterateError);
+                    if (iterateError) {
+                        return true;
+                    }
+                    for (const auto& entry : it) {
+                        std::error_code entryError;
+                        if (entry.is_regular_file(entryError)) {
+                            return true;
+                        }
+                        if (entryError) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
                 std::error_code ec;
                 if (std::filesystem::exists(overlayDirectory, ec)) {
                     if (ec || !std::filesystem::is_directory(overlayDirectory, ec)) {
@@ -826,9 +847,9 @@ int Application::run(const RunConfig& config) const
                         std::cout << "offline_spine_reason=overlay output path is not a usable directory\n";
                         return 1;
                     }
-                    if (!std::filesystem::is_empty(overlayDirectory, ec) || ec) {
+                    if (containsAnyRegularFile(overlayDirectory)) {
                         std::cout << "offline_spine_success=false\n";
-                        std::cout << "offline_spine_reason=overlay output directory must be empty\n";
+                        std::cout << "offline_spine_reason=overlay output directory must not contain files\n";
                         return 1;
                     }
                 }

@@ -1128,6 +1128,35 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "offline spine status json" -Text $offlineStatusJson -Expected '"status_center":'
     Assert-Contains -Name "offline spine status json" -Text $offlineStatusJson -Expected '"state": "ready"'
 
+    $offlineSpineWorkDirPrecreated = Join-Path $archiveRoot "session_cli_offline_spine_work_precreated"
+    $offlineSpineOverlayDirPrecreated = Join-Path $archiveRoot "session_cli_offline_spine_overlay_precreated"
+    $offlineSpineStatusPathPrecreated = Join-Path $archiveRoot "session_cli_offline_spine_status_precreated.json"
+    Remove-Item -LiteralPath $offlineSpineWorkDirPrecreated -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $offlineSpineOverlayDirPrecreated -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $offlineSpineStatusPathPrecreated -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path (Join-Path $offlineSpineOverlayDirPrecreated "events") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $offlineSpineOverlayDirPrecreated "common/scripted_effects") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $offlineSpineOverlayDirPrecreated "common/scripted_triggers") | Out-Null
+
+    $offlineSpineOutputPrecreated = & $exePath `
+        --run-offline-spine `
+        (Join-Path $archiveRoot "session_cli") `
+        "campaign_cli" `
+        "empire_cli" `
+        (Join-Path $repoRoot "resources/generated_overlay_valid.dsl") `
+        $offlineSpineWorkDirPrecreated `
+        $offlineSpineOverlayDirPrecreated `
+        $offlineSpineStatusPathPrecreated
+    $offlineSpineExitCodePrecreated = $LASTEXITCODE
+    $offlineSpineTextPrecreated = $offlineSpineOutputPrecreated -join "`n"
+
+    if ($offlineSpineExitCodePrecreated -ne 0) {
+        throw "offline spine app failed for precreated overlay directory. Actual output:`n$offlineSpineTextPrecreated"
+    }
+
+    Assert-Contains -Name "offline spine app (precreated overlay directory)" -Text $offlineSpineTextPrecreated -Expected "offline_spine_success=true"
+
     Write-Host "[PASS] autosave_archive"
 }
 
