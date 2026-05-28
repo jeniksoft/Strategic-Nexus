@@ -343,6 +343,13 @@ When a trustworthy reset timestamp and current remaining percentage are availabl
 
 This means a high remaining budget shortly before reset should increase cadence more aggressively than the simple threshold table would suggest, as long as useful safe work exists.
 
+The reserve-target calculation should be corrected by recent usage history when enough post-reset samples exist. Historical burn rate is a correction signal, not the authority:
+
+* if actual burn is far behind the reserve trajectory, tighten cadence by one safe step
+* if actual burn is far ahead of the reserve trajectory, soften cadence by one safe step
+* ignore samples across a known reset boundary
+* deduplicate repeated readings with the same used percentage so they do not fake a trend
+
 Codex should increase Free Work cadence only when all of these are true:
 
 * the user-declared remaining budget is high
@@ -381,6 +388,7 @@ tools/dev_attention/read_codex_rate_limits.ps1
 Inputs:
 
 * `.codex_local/usage_budget_state.md`
+* `.codex_local/usage_budget_log.csv`
 * `dist/private_reports/codex_rate_limits.json` when refreshed
 * `dist/private_reports/project_progress_estimate.json`
 * current `sn-bounded-free-work-execution` automation cadence
