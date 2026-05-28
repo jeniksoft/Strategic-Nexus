@@ -101,9 +101,9 @@ Invoke-TaskBoardJsonMutation -Path $suggestionPath -Mutate {
             severity = if ($suggestion.severity) { $suggestion.severity } else { "normal" }
             status = "navrh"
             proposal = $next
-            benefit = "Dalsi prace z prijateho nebo realizovaneho navrhu bude videt jako samostatna polozka a nezapadne v detailu."
-            why = "Majitel nemusi rucne hledat navazujici kroky v uz prijatych nebo hotovych navrzich."
-            next = "Rozhodnout, jestli se tenhle navazujici krok ma prijmout a naplanovat."
+            benefit = "Navaze na uz potvrzeny smer a rozbije dalsi praci na mensi overitelny krok."
+            why = "Puvodni navrh uz je prijaty nebo hotovy, ale jeho dalsi krok jeste potrebuje samostatne rozhodnuti a prioritu."
+            next = "Overit, jestli je tento konkretni krok porad aktualni. Pokud ano, prijmout ho nebo prevest na ukol."
             source_suggestion_id = $sourceId
             source_suggestion_title = [string]$suggestion.title
         }
