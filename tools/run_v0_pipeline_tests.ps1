@@ -510,6 +510,7 @@ function Invoke-GeneratedOverlayCompileCase {
     foreach ($expected in @(
         "generated_overlay_success=true",
         "generated_overlay_rule_count=1",
+        "generated_overlay_output_path=$($overlayOutputPath.Replace('\','/'))",
         "generated_overlay_events_written=true",
         "generated_overlay_effects_written=true",
         "generated_overlay_triggers_written=true",

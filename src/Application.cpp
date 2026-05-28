@@ -664,6 +664,7 @@ int Application::run(const RunConfig& config) const
             const bool success = eventsWritten && effectsWritten && triggersWritten && manifestWritten;
             std::cout << "generated_overlay_success=" << (success ? "true" : "false") << "\n";
             std::cout << "generated_overlay_rule_count=" << parseResult.program.rules.size() << "\n";
+            std::cout << "generated_overlay_output_path=" << sanitizeCliValue(outputDirectory.generic_string()) << "\n";
             std::cout << "generated_overlay_events_written=" << (eventsWritten ? "true" : "false") << "\n";
             std::cout << "generated_overlay_effects_written=" << (effectsWritten ? "true" : "false") << "\n";
             std::cout << "generated_overlay_triggers_written=" << (triggersWritten ? "true" : "false") << "\n";
