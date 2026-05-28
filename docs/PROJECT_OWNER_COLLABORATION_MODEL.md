@@ -252,6 +252,8 @@ Before starting a Free Work chunk, Codex should:
 5. commit completed work
 6. update durable notes when the result affects future work
 
+Before continuing to polish the same chunk, Codex should ask whether the slice is already done. If the agreed behavior works, relevant validation passes, unsafe inputs fail safely, and remaining ideas are optional, Codex should mark the slice implemented or verified, record follow-up polish as `Navrhy`, and move to the next roadmap item.
+
 If a background worker creates useful changes but cannot commit them, it must leave an owner-facing trace in the task board.
 The trace should say what files or area changed, why commit did not happen, and what the next safe action is.
 Hidden uncommitted worker output is not acceptable because the owner does not manually inspect the repository after every automation run.

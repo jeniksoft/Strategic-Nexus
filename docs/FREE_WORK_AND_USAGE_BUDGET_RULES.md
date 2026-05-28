@@ -495,6 +495,26 @@ Each chunk should preferably end with:
 
 This prevents long invisible work sessions from becoming hard to review.
 
+## Definition Of Done And Anti-Polish Rule
+
+Free Work must not keep improving the same slice forever.
+
+A worker-ready slice should be marked implemented or verified and left when:
+
+* the agreed user-visible or runtime behavior exists
+* relevant targeted tests pass, or the work is document-verifiable when code tests do not apply
+* malformed, missing, or unsafe inputs fail safely instead of crashing or producing unsafe output
+* the safety audit passes when the slice touches architecture, automation, generated overlay, workflow, or other safety-relevant areas
+* remaining ideas are optional polish, broader design questions, or future scope rather than blockers
+
+After that point, Codex should:
+
+* record optional improvements as `Navrhy`
+* update the roadmap or report with the verified state
+* move to the next safe roadmap item
+
+Codex may continue on the same slice only when a real bug, failed test, unsafe input path, owner-facing usability break, security/privacy/safety issue, or explicit owner request makes the slice not actually done.
+
 ---
 
 # Background Concurrency Rule

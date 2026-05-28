@@ -87,6 +87,12 @@ The system exists and basic functionality is verified.
 
 The system has been tested and validated successfully.
 
+## DONE
+
+A roadmap slice is done when the agreed behavior exists, relevant tests or document-verification pass, known unsafe input paths fail safely, and remaining ideas are non-blocking improvements.
+
+When this threshold is met, Codex should mark the slice as implemented or verified, record any follow-up ideas as `Navrhy`, and move to the next roadmap item instead of continuing open-ended polish.
+
 ## BLOCKED
 
 Work cannot continue until another dependency is solved.
