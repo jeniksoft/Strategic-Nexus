@@ -829,7 +829,7 @@ int Application::run(const RunConfig& config) const
             const bool ledgerWritten = common::writeTextFileAtomically(ledgerPath, serializeSeasonDeltaLedger(ledger));
             if (!ledger.ok || !ledgerWritten) {
                 std::cout << "offline_spine_success=false\n";
-                std::cout << "offline_spine_reason=" << sanitizeCliValue(ledger.ok ? "failed to write season delta ledger" : ledger.reason) << "\n";
+                std::cout << "offline_spine_reason=" << sanitizeCliValue(!ledger.ok ? ledger.reason : "failed to write season delta ledger") << "\n";
                 return 1;
             }
 
@@ -839,7 +839,7 @@ int Application::run(const RunConfig& config) const
             const bool briefWritten = common::writeTextFileAtomically(briefPath, serializeSeasonEmpireBrief(brief));
             if (!brief.ok || !briefWritten) {
                 std::cout << "offline_spine_success=false\n";
-                std::cout << "offline_spine_reason=" << sanitizeCliValue(brief.ok ? "failed to write empire brief" : brief.reason) << "\n";
+                std::cout << "offline_spine_reason=" << sanitizeCliValue(!brief.ok ? brief.reason : "failed to write empire brief") << "\n";
                 return 1;
             }
 
