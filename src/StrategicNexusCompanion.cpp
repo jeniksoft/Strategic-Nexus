@@ -8,6 +8,7 @@
 
 #include <filesystem>
 #include <iomanip>
+#include <ctime>
 #include <sstream>
 #include <string>
 #include <system_error>
@@ -64,6 +65,21 @@ std::string jsonString(const std::string& value)
 std::string pathString(const std::filesystem::path& path)
 {
     return path.generic_string();
+}
+
+std::string formatLocalTimestamp(std::chrono::system_clock::time_point now)
+{
+    const std::time_t timeValue = std::chrono::system_clock::to_time_t(now);
+    std::tm localTime{};
+    if (localtime_s(&localTime, &timeValue) != 0) {
+        return std::string();
+    }
+
+    std::ostringstream output;
+    output << localTime.tm_mday << "." << (localTime.tm_mon + 1) << "." << (localTime.tm_year + 1900) << "  "
+           << localTime.tm_hour << ":" << std::setw(2) << std::setfill('0') << localTime.tm_min << ":"
+           << std::setw(2) << std::setfill('0') << localTime.tm_sec;
+    return output.str();
 }
 
 CompanionSubsystemStatus buildArchiveStatus(const std::filesystem::path& archiveRoot)
@@ -273,6 +289,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
 {
     CompanionStatusSnapshot snapshot;
     snapshot.lifecycle.startWithWindowsEnabled = config.startWithWindowsEnabled;
+    snapshot.generatedAtLocal = formatLocalTimestamp(std::chrono::system_clock::now());
     snapshot.archive = buildArchiveStatus(config.archiveRoot);
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
     snapshot.statusCenter = buildStatusCenterStatus(snapshot.archive, snapshot.generatedOverlay);
@@ -286,6 +303,7 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"schema_version\": 1,\n";
     output << "  \"app_name\": " << jsonString(snapshot.appName) << ",\n";
     output << "  \"abbreviation\": " << jsonString(snapshot.abbreviation) << ",\n";
+    output << "  \"generated_at_local\": " << jsonString(snapshot.generatedAtLocal) << ",\n";
     output << "  \"lifecycle\": {\n";
     output << "    \"start_with_windows_enabled\": "
            << (snapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << ",\n";

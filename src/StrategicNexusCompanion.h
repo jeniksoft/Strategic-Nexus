@@ -44,6 +44,7 @@ struct CompanionLifecycleStatus {
 struct CompanionStatusSnapshot {
     std::string appName = "Strategic Nexus Companion";
     std::string abbreviation = "SNC";
+    std::string generatedAtLocal;
     CompanionLifecycleStatus lifecycle;
     CompanionSubsystemStatus archive;
     CompanionSubsystemStatus generatedOverlay;
