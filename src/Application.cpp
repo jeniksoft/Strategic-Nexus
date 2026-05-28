@@ -772,17 +772,17 @@ int Application::run(const RunConfig& config) const
                 return path.empty() ? std::string() : path.generic_string();
             };
             std::cout << "snc_status_success=" << (success ? "true" : "false") << "\n";
-            std::cout << "snc_app_name=" << snapshot.appName << "\n";
-            std::cout << "snc_abbreviation=" << snapshot.abbreviation << "\n";
-            std::cout << "snc_archive_state=" << snapshot.archive.state << "\n";
+            std::cout << "snc_app_name=" << sanitizeCliValue(snapshot.appName) << "\n";
+            std::cout << "snc_abbreviation=" << sanitizeCliValue(snapshot.abbreviation) << "\n";
+            std::cout << "snc_archive_state=" << sanitizeCliValue(snapshot.archive.state) << "\n";
             std::cout << "snc_archive_reason=" << sanitizeCliValue(snapshot.archive.reason) << "\n";
-            std::cout << "snc_archive_path=" << stdoutPath(snapshot.archive.path) << "\n";
-            std::cout << "snc_generated_overlay_state=" << snapshot.generatedOverlay.state << "\n";
+            std::cout << "snc_archive_path=" << sanitizeCliValue(stdoutPath(snapshot.archive.path)) << "\n";
+            std::cout << "snc_generated_overlay_state=" << sanitizeCliValue(snapshot.generatedOverlay.state) << "\n";
             std::cout << "snc_generated_overlay_reason=" << sanitizeCliValue(snapshot.generatedOverlay.reason) << "\n";
-            std::cout << "snc_generated_overlay_path=" << stdoutPath(snapshot.generatedOverlay.path) << "\n";
-            std::cout << "snc_status_center_state=" << snapshot.statusCenter.state << "\n";
+            std::cout << "snc_generated_overlay_path=" << sanitizeCliValue(stdoutPath(snapshot.generatedOverlay.path)) << "\n";
+            std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
-            std::cout << "snc_status_center_path=" << stdoutPath(snapshot.statusCenter.path) << "\n";
+            std::cout << "snc_status_center_path=" << sanitizeCliValue(stdoutPath(snapshot.statusCenter.path)) << "\n";
             std::cout << "snc_status_output_written=" << (outputRequested && written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "snc_status_reason=failed to write status snapshot\n";
