@@ -1153,6 +1153,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "season_delta_ledger_reason=" << sanitizeCliValue(reason) << "\n";
             std::cout << "season_delta_ledger_campaign_id=" << sanitizeCliValue(ledger.campaignId) << "\n";
             std::cout << "season_delta_ledger_save_count=" << ledger.copiedSaveCount << "\n";
+            std::cout << "season_delta_ledger_output_path=" << sanitizeCliValue(config.seasonDeltaLedgerOutputPath.generic_string()) << "\n";
             std::cout << "season_delta_ledger_output_written=" << (written ? "true" : "false") << "\n";
             return success ? 0 : 1;
         }
@@ -1187,6 +1188,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "archive_empire_brief_reason=" << sanitizeCliValue(reason) << "\n";
             std::cout << "archive_empire_brief_campaign_id=" << sanitizeCliValue(brief.campaignId) << "\n";
             std::cout << "archive_empire_brief_empire_id=" << sanitizeCliValue(brief.empireId) << "\n";
+            std::cout << "archive_empire_brief_output_path=" << sanitizeCliValue(config.archiveEmpireBriefOutputPath.generic_string()) << "\n";
             std::cout << "archive_empire_brief_output_written=" << (written ? "true" : "false") << "\n";
             return success ? 0 : 1;
         }
