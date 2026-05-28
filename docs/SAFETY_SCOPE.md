@@ -91,6 +91,10 @@ Keep this repository private unless the public branch has been reviewed to conta
 
 Codex must maintain a local working copy of the GitHub repository as a backup and source of continuity.
 
+Remote GitHub availability is not a continuity guarantee. A GitHub account, repository, token, organization, or service can become unavailable because of suspension, deletion, access loss, rate limits, platform enforcement, credential failure, or outage.
+
+Project recovery must therefore be local-first and multi-copy. Important source must not exist only as generated binaries or only in one remote service.
+
 Before risky repository operations, major architecture rewrites, or cleanup commits, verify the local clone is present and healthy enough to preserve the current project state.
 
 The local copy is not a place to hide unsafe material. It must follow the same legal, GitHub-rule, OpenAI-rule, and safe-use boundaries as the remote repository.
