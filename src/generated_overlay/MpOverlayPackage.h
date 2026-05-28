@@ -24,6 +24,12 @@ struct MpOverlayPackageFileVerification {
 struct MpOverlayPackageVerificationResult {
     bool ok = false;
     std::string reason;
+    std::string campaignId;
+    std::string overlayVersion;
+    std::string gameVersion;
+    std::string strategicNexusModVersion;
+    std::string handoffStatus;
+    std::string statusText;
     std::vector<MpOverlayPackageFileVerification> files;
     std::vector<std::string> unexpectedFiles;
 };
@@ -52,4 +58,3 @@ public:
 };
 
 } // namespace strategic_nexus::generated_overlay
-

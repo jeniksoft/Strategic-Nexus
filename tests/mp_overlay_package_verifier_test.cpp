@@ -119,6 +119,14 @@ int main()
         std::cerr << "verify failed: " << verifyResult.reason << "\n";
         return 1;
     }
+    if (verifyResult.campaignId != "campaign_mp_001" || verifyResult.overlayVersion != "overlay_v1") {
+        std::cerr << "verify did not parse package metadata\n";
+        return 1;
+    }
+    if (verifyResult.statusText.find("campaign_id: campaign_mp_001") == std::string::npos) {
+        std::cerr << "verify did not produce copyable status text\n";
+        return 1;
+    }
 
     writeTextFileAtomically(packageRoot / "local_debug.txt", "not part of package\n");
     const auto unexpectedResult = verifier.verify(packageRoot);

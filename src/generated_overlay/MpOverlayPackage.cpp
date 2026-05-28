@@ -77,6 +77,16 @@ std::optional<std::size_t> extractSizeFromObject(const std::string& objectText, 
     }
 }
 
+std::optional<bool> extractBoolFromObject(const std::string& objectText, const char* key)
+{
+    const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*(true|false)");
+    std::smatch match;
+    if (!std::regex_search(objectText, match, pattern)) {
+        return std::nullopt;
+    }
+    return match[1].str() == "true";
+}
+
 std::vector<std::string> extractFileObjects(const std::string& text)
 {
     std::vector<std::string> objects;
@@ -130,6 +140,25 @@ std::vector<std::string> extractFileObjects(const std::string& text)
     }
 
     return objects;
+}
+
+std::string buildCopyableStatusText(
+    const std::string& campaignId,
+    const std::string& overlayVersion,
+    const std::string& gameVersion,
+    const std::string& strategicNexusModVersion,
+    const std::string& handoffStatus,
+    bool previousHostAvailable)
+{
+    std::ostringstream text;
+    text << "Strategic Nexus MP overlay package\n";
+    text << "campaign_id: " << campaignId << "\n";
+    text << "overlay_version: " << overlayVersion << "\n";
+    text << "game_version: " << gameVersion << "\n";
+    text << "strategic_nexus_mod_version: " << strategicNexusModVersion << "\n";
+    text << "handoff_status: " << handoffStatus << "\n";
+    text << "previous_host_available: " << (previousHostAvailable ? "true" : "false") << "\n";
+    return text.str();
 }
 
 bool isSafePackageRelativePath(const std::string& relativePath)
@@ -333,6 +362,32 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
         result.reason = "malformed MP overlay package manifest";
         return result;
     }
+
+    const auto campaignId = extractStringFromObject(manifestText, "campaign_id");
+    const auto overlayVersion = extractStringFromObject(manifestText, "overlay_version");
+    const auto gameVersion = extractStringFromObject(manifestText, "game_version");
+    const auto strategicNexusModVersion = extractStringFromObject(manifestText, "strategic_nexus_mod_version");
+    const auto handoffStatus = extractStringFromObject(manifestText, "handoff_status");
+    const auto previousHostAvailable = extractBoolFromObject(manifestText, "previous_host_available");
+
+    if (!campaignId.has_value() || !overlayVersion.has_value() || !gameVersion.has_value() ||
+        !strategicNexusModVersion.has_value() || !handoffStatus.has_value() || !previousHostAvailable.has_value()) {
+        result.reason = "malformed MP overlay package manifest";
+        return result;
+    }
+
+    result.campaignId = *campaignId;
+    result.overlayVersion = *overlayVersion;
+    result.gameVersion = *gameVersion;
+    result.strategicNexusModVersion = *strategicNexusModVersion;
+    result.handoffStatus = *handoffStatus;
+    result.statusText = buildCopyableStatusText(
+        result.campaignId,
+        result.overlayVersion,
+        result.gameVersion,
+        result.strategicNexusModVersion,
+        result.handoffStatus,
+        *previousHostAvailable);
 
     const auto objects = extractFileObjects(manifestText);
     if (objects.empty()) {

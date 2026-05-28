@@ -721,6 +721,25 @@ int Application::run(const RunConfig& config) const
 
             std::cout << "mp_overlay_package_ok=" << (result.ok ? "true" : "false") << "\n";
             std::cout << "mp_overlay_package_reason=" << sanitizeCliValue(result.reason) << "\n";
+            if (!result.campaignId.empty()) {
+                std::cout << "mp_overlay_package_campaign_id=" << sanitizeCliValue(result.campaignId) << "\n";
+            }
+            if (!result.overlayVersion.empty()) {
+                std::cout << "mp_overlay_package_overlay_version=" << sanitizeCliValue(result.overlayVersion) << "\n";
+            }
+            if (!result.gameVersion.empty()) {
+                std::cout << "mp_overlay_package_game_version=" << sanitizeCliValue(result.gameVersion) << "\n";
+            }
+            if (!result.strategicNexusModVersion.empty()) {
+                std::cout << "mp_overlay_package_strategic_nexus_mod_version="
+                          << sanitizeCliValue(result.strategicNexusModVersion) << "\n";
+            }
+            if (!result.handoffStatus.empty()) {
+                std::cout << "mp_overlay_package_handoff_status=" << sanitizeCliValue(result.handoffStatus) << "\n";
+            }
+            if (!result.statusText.empty()) {
+                std::cout << "mp_overlay_package_status_text=" << sanitizeCliValue(result.statusText) << "\n";
+            }
             std::cout << "mp_overlay_package_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
                 std::cout << "mp_overlay_package_file=" << sanitizeCliValue(file.path)
