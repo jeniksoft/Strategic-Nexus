@@ -64,19 +64,38 @@ Current engineering stance:
 
 ## 2026-05-28
 
-Projekt dnes dostal prvni overeny vertikalni runtime rez pro offline product spine.
+Projekt dnes dostal prvni overeny vertikalni produktovy pruchod pro offline spine a soucasne presnejsi casove ukotveni companion status snapshotu.
 
 Co pribylo v repozitari:
 
 * Pribyl CLI rezim `--run-offline-spine`, ktery spoji jednu overenou archivni session, season delta ledger, empire brief, explicitne dodany validni DSL, vygenerovany overlay manifest a SNC status snapshot.
 * Companion status vrstva nove umi brat konkretni archivni session s `manifest.json` jako pripraveny archivni vstup, nejen nadrazeny archivni adresar se session podslozkami.
-* V0 regression testy overuji cely pruchod: archiv se verifikuje, ledger a brief se zapisi, DSL se zvaliduje, overlay se zkompiluje a manifest overi, a Status Center skonci ve stavu `ready`.
+* Smoke runner byl rozsiren tak, aby spine kontrola zahrnula i companion test a nevalidovala jen izolovane pipeline komponenty.
+* Nejnovnejsi dnesni commit doplnil do SNC status snapshotu lokalni `generated_at_local` cas, aby bylo z verejneho i lokalniho vystupu jasne, kdy byl snapshot skutecne vytvoren.
 
-Proc je to dulezite:
+Co to znamena pro architekturu a runtime interoperability research:
 
-* Stabilizacni smer `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility` uz neni jen roadmapova veta, ale testovany produktovy pruchod.
-* DSL zustava explicitni vstup. Tento krok tedy jeste nedava LLM pravomoc primo generovat gameplay skript bez validace; pouze propojuje potvrzene vrstvy do jednoho bezpecnejsiho harnessu.
-* Dalsi rozsireni muze navazat na jasne ohraniceny spine misto dalsiho skladani izolovanych utilit.
+* Stabilizacni smer `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility` uz neni jen roadmapovy popis, ale testovany produktovy pruchod.
+* Projekt tim dale upevnuje host-authoritative model s offline companion vrstvou na integracni boundary mezi archivem, analyzou a next-session generated overlay pripravu.
+* Casove oznaceni snapshotu zlepsuje dohledatelnost stavu pri runtime reverse engineering a runtime interoperability research bez rozsireni produkcniho zasahu do bezici session.
+* DSL zustava explicitni a validovany vstup. Tento krok tedy stale nepredava LLM primou pravomoc generovat gameplay skript mimo kontrolovany scripted event/effect path.
+
+Testy a stav overeni:
+
+* Repozitar obsahuje regression coverage pro offline spine pruchod i navazujici companion test.
+* Verejny GitHub Actions beh `Windows Tests` pro commit `Add offline spine harness` skoncil uspesne dne 28.5.2026 v 00:54:29 mistniho casu.
+* Nejnovnejsi commit `SNC status snapshot: add generated_at_local timestamp` je v tuto chvili lokalne o jeden commit pred `origin/master`, takze jeho verejny CI vysledek zatim neni k dispozici.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi multiplayer ucastniky.
+* Offline spine uz spojuje klicove vrstvy, ale stale neuzavira finalni manifest/export contract, campaign marker handshake ani empire identity resolver.
+* Presnejsi status snapshot zlepsuje auditovatelnost, ale sam o sobe jeste neresi finalni doruceni artefaktu pres checksum-sensitive integration boundary.
+
+Doporuceny dalsi krok:
+
+* Pushnout nejnovnejsi snapshot commit spolu s touto denikovou aktualizaci a potvrdit navazujici verejny CI signal.
+* Potom navazat formalnim generated overlay export contractem a end-to-end testem pro checksum-safe dalsi session distribuci.
 
 ## 2026-05-26
 
