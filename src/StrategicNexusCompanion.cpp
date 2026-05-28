@@ -5,6 +5,7 @@
 
 #include "common/FileUtil.h"
 #include "generated_overlay/ManifestVerifier.h"
+#include "StellarisSavePathResolver.h"
 
 #include <filesystem>
 #include <iomanip>
@@ -80,6 +81,37 @@ std::string formatLocalTimestamp(std::chrono::system_clock::time_point now)
            << localTime.tm_hour << ":" << std::setw(2) << std::setfill('0') << localTime.tm_min << ":"
            << std::setw(2) << std::setfill('0') << localTime.tm_sec;
     return output.str();
+}
+
+CompanionSubsystemStatus buildSaveDiscoveryStatus()
+{
+    CompanionSubsystemStatus status;
+    status.state = "starting";
+    status.reason = "discovering Stellaris save roots";
+
+    const StellarisSavePathResolver resolver;
+    const auto discovery = resolver.discoverFromEnvironment();
+
+    if (discovery.candidates.empty()) {
+        status.state = "needs_setup";
+        status.reason = "save discovery unavailable";
+        return status;
+    }
+
+    status.path = discovery.candidates.front().path;
+
+    for (const auto& candidate : discovery.candidates) {
+        if (candidate.exists) {
+            status.state = "ready";
+            status.reason = "Stellaris save root discovered";
+            status.path = candidate.path;
+            return status;
+        }
+    }
+
+    status.state = "needs_attention";
+    status.reason = "no Stellaris save roots found";
+    return status;
 }
 
 CompanionSubsystemStatus buildArchiveStatus(const std::filesystem::path& archiveRoot)
@@ -224,6 +256,7 @@ CompanionSubsystemStatus buildGeneratedOverlayStatus(const std::filesystem::path
 }
 
 CompanionSubsystemStatus buildStatusCenterStatus(
+    const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay)
 {
@@ -245,6 +278,9 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         if (archiveNeedsAttention) {
             status.reason = "archive needs attention";
             status.path = archive.path;
+            if (archive.state == "needs_setup" && !saveDiscovery.path.empty()) {
+                status.path = saveDiscovery.path;
+            }
             return status;
         }
         status.reason = "generated overlay needs attention";
@@ -290,9 +326,10 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     CompanionStatusSnapshot snapshot;
     snapshot.lifecycle.startWithWindowsEnabled = config.startWithWindowsEnabled;
     snapshot.generatedAtLocal = formatLocalTimestamp(std::chrono::system_clock::now());
+    snapshot.saveDiscovery = buildSaveDiscoveryStatus();
     snapshot.archive = buildArchiveStatus(config.archiveRoot);
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
-    snapshot.statusCenter = buildStatusCenterStatus(snapshot.archive, snapshot.generatedOverlay);
+    snapshot.statusCenter = buildStatusCenterStatus(snapshot.saveDiscovery, snapshot.archive, snapshot.generatedOverlay);
     return snapshot;
 }
 
@@ -316,6 +353,9 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  },\n";
     output << "  \"archive_status\": ";
     writeSubsystemJson(output, snapshot.archive, "  ");
+    output << ",\n";
+    output << "  \"save_discovery_status\": ";
+    writeSubsystemJson(output, snapshot.saveDiscovery, "  ");
     output << ",\n";
     output << "  \"generated_overlay_status\": ";
     writeSubsystemJson(output, snapshot.generatedOverlay, "  ");

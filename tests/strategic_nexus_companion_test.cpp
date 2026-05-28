@@ -5,6 +5,7 @@
 
 #include "generated_overlay/ManifestVerifier.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -34,6 +35,12 @@ int main()
     std::filesystem::create_directories(overlayRoot);
     std::filesystem::create_directories(overlayEmptyRoot);
     std::filesystem::create_directories(overlayNoManifestNonEmptyRoot);
+
+    const auto userProfileRoot = root / "user_profile";
+    std::filesystem::create_directories(
+        userProfileRoot / "Documents" / "Paradox Interactive" / "Stellaris" / "save games");
+    _putenv_s("USERPROFILE", userProfileRoot.string().c_str());
+    _putenv_s("OneDrive", (root / "one_drive").string().c_str());
     {
         std::ofstream out(overlayNoManifestNonEmptyRoot / "unexpected.txt", std::ios::binary);
         out << "unexpected\n";
@@ -110,6 +117,7 @@ int main()
     requireCondition(ready.lifecycle.windowCloseBehavior == "minimize_to_tray", "window close should minimize to tray");
     requireCondition(ready.lifecycle.explicitExitBehavior == "stop_without_restart", "explicit exit should stop without restart");
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");
+    requireCondition(ready.saveDiscovery.state == "ready", "save discovery should find at least one save root in fixture");
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest verifies");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
@@ -167,6 +175,7 @@ int main()
     requireCondition(json.find("\"abbreviation\": \"SNC\"") != std::string::npos, "JSON should include abbreviation");
     requireCondition(json.find("\"generated_at_local\": \"") != std::string::npos, "JSON should include generated_at_local timestamp");
     requireCondition(json.find("\"archive_status\"") != std::string::npos, "JSON should include archive status");
+    requireCondition(json.find("\"save_discovery_status\"") != std::string::npos, "JSON should include save discovery status");
     requireCondition(json.find("\"generated_overlay_status\"") != std::string::npos, "JSON should include overlay status");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
 

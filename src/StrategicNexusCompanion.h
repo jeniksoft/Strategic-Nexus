@@ -46,6 +46,7 @@ struct CompanionStatusSnapshot {
     std::string abbreviation = "SNC";
     std::string generatedAtLocal;
     CompanionLifecycleStatus lifecycle;
+    CompanionSubsystemStatus saveDiscovery;
     CompanionSubsystemStatus archive;
     CompanionSubsystemStatus generatedOverlay;
     CompanionSubsystemStatus statusCenter;

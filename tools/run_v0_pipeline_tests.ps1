@@ -167,6 +167,7 @@ $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_comp
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
     (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp"),
+    (Join-Path $repoRoot "src/StellarisSavePathResolver.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
     (Join-Path $repoRoot "src/common/FileUtil.cpp"),
     (Join-Path $repoRoot "src/common/JsonSanity.cpp")
