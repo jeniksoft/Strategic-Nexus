@@ -1116,10 +1116,10 @@ int Application::run(const RunConfig& config) const
             std::cout << "archive_v0_pipeline_decision_written=" << (result.decisionOutputWritten ? "true" : "false") << "\n";
             std::cout << "archive_v0_pipeline_audit_requested=" << (result.auditOutputRequested ? "true" : "false") << "\n";
             std::cout << "archive_v0_pipeline_audit_written=" << (result.auditOutputWritten ? "true" : "false") << "\n";
-            std::cout << "archive_v0_pipeline_campaign_id=" << result.input.campaignId << "\n";
-            std::cout << "archive_v0_pipeline_empire_id=" << result.input.empireId << "\n";
-            std::cout << "archive_v0_pipeline_military_posture=" << result.payload.militaryPosture << "\n";
-            std::cout << "archive_v0_pipeline_research_bias=" << result.payload.researchBias << "\n";
+            std::cout << "archive_v0_pipeline_campaign_id=" << sanitizeCliValue(result.input.campaignId) << "\n";
+            std::cout << "archive_v0_pipeline_empire_id=" << sanitizeCliValue(result.input.empireId) << "\n";
+            std::cout << "archive_v0_pipeline_military_posture=" << sanitizeCliValue(result.payload.militaryPosture) << "\n";
+            std::cout << "archive_v0_pipeline_research_bias=" << sanitizeCliValue(result.payload.researchBias) << "\n";
             if (!result.auditReason.empty()) {
                 std::cout << "archive_v0_pipeline_audit_reason=" << sanitizeCliValue(result.auditReason) << "\n";
             }
@@ -1151,7 +1151,7 @@ int Application::run(const RunConfig& config) const
             }
             std::cout << "season_delta_ledger_success=" << (success ? "true" : "false") << "\n";
             std::cout << "season_delta_ledger_reason=" << sanitizeCliValue(reason) << "\n";
-            std::cout << "season_delta_ledger_campaign_id=" << ledger.campaignId << "\n";
+            std::cout << "season_delta_ledger_campaign_id=" << sanitizeCliValue(ledger.campaignId) << "\n";
             std::cout << "season_delta_ledger_save_count=" << ledger.copiedSaveCount << "\n";
             std::cout << "season_delta_ledger_output_written=" << (written ? "true" : "false") << "\n";
             return success ? 0 : 1;
@@ -1185,8 +1185,8 @@ int Application::run(const RunConfig& config) const
             }
             std::cout << "archive_empire_brief_success=" << (success ? "true" : "false") << "\n";
             std::cout << "archive_empire_brief_reason=" << sanitizeCliValue(reason) << "\n";
-            std::cout << "archive_empire_brief_campaign_id=" << brief.campaignId << "\n";
-            std::cout << "archive_empire_brief_empire_id=" << brief.empireId << "\n";
+            std::cout << "archive_empire_brief_campaign_id=" << sanitizeCliValue(brief.campaignId) << "\n";
+            std::cout << "archive_empire_brief_empire_id=" << sanitizeCliValue(brief.empireId) << "\n";
             std::cout << "archive_empire_brief_output_written=" << (written ? "true" : "false") << "\n";
             return success ? 0 : 1;
         }
