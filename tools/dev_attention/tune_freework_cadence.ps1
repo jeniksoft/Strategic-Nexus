@@ -2,7 +2,8 @@ param(
     [string]$UsageBudgetStatePath = ".codex_local/usage_budget_state.md",
     [string]$ProjectProgressPath = "dist/private_reports/project_progress_estimate.json",
     [string]$FreeworkAutomationPath = "$env:USERPROFILE\.codex\automations\sn-bounded-free-work-execution\automation.toml",
-    [string]$OutputPath = "dist/private_reports/freework_cadence_recommendation.json"
+    [string]$OutputPath = "dist/private_reports/freework_cadence_recommendation.json",
+    [int]$TargetReservePercent = 5
 )
 
 $ErrorActionPreference = "Stop"
@@ -151,14 +152,34 @@ if (-not $hasUsefulProjectWork) {
 }
 
 if ($hasUsefulProjectWork -and $null -ne $hoursToReset) {
-    if ($remainingPercent -ge 85 -and $hoursToReset -le 48) {
+    $targetReserve = [Math]::Max(0, [Math]::Min(50, $TargetReservePercent))
+    $spendableToReserve = [Math]::Max(0, $remainingPercent - $targetReserve)
+    $targetSpendPerDay = if ($hoursToReset -gt 0) {
+        $spendableToReserve / $hoursToReset * 24.0
+    } else {
+        0.0
+    }
+
+    if ($spendableToReserve -le 0) {
+        $intervalHours = 24
+        $chunkMode = "reserve-only"
+        $reason = "remaining budget is already at or below target reserve"
+    } elseif ($targetSpendPerDay -ge 18) {
+        $intervalHours = 1
+        $chunkMode = "frequent-one-bounded-chunk"
+        $reason = "target 5% reserve at reset requires high burn rate"
+    } elseif ($targetSpendPerDay -ge 10) {
+        $intervalHours = 2
+        $chunkMode = "standard-one-bounded-chunk"
+        $reason = "target 5% reserve at reset requires faster than default cadence"
+    } elseif ($targetSpendPerDay -ge 6) {
+        $intervalHours = 3
+        $chunkMode = "focused"
+        $reason = "target 5% reserve at reset requires moderate cadence"
+    } elseif ($remainingPercent -ge 85 -and $hoursToReset -le 48) {
         $intervalHours = 1
         $chunkMode = "frequent-one-bounded-chunk"
         $reason = "high remaining budget with less than 48 hours to reset"
-    } elseif ($remainingPercent -ge 75 -and $hoursToReset -le 24) {
-        $intervalHours = 1
-        $chunkMode = "frequent-small-chunks"
-        $reason = "use remaining paid capacity before imminent reset while preserving safety"
     } elseif ($remainingPercent -ge 90 -and $hoursToReset -le 96) {
         $intervalHours = 2
         $chunkMode = "standard-one-bounded-chunk"
@@ -182,6 +203,9 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
     remaining_budget_reading_source = $usage.reading_source
     hours_to_estimated_reset = if ($null -ne $hoursToReset) { [Math]::Round($hoursToReset, 1) } else { $null }
     reset_reading_source = $usage.reset_source
+    target_reserve_percent_at_reset = [Math]::Max(0, [Math]::Min(50, $TargetReservePercent))
+    spendable_budget_before_reserve_percent = if ($null -ne $hoursToReset) { [Math]::Max(0, $remainingPercent - [Math]::Max(0, [Math]::Min(50, $TargetReservePercent))) } else { $null }
+    target_spend_percent_per_day_until_reset = if ($null -ne $hoursToReset -and $hoursToReset -gt 0) { [Math]::Round(([Math]::Max(0, $remainingPercent - [Math]::Max(0, [Math]::Min(50, $TargetReservePercent))) / $hoursToReset * 24.0), 2) } else { $null }
     remaining_project_complexity_points = $remainingPoints
     has_useful_project_work = $hasUsefulProjectWork
     recommended_freework_rrule = $recommendedRRule

@@ -335,6 +335,14 @@ This does not override safety, usefulness, or owner-decision boundaries.
 
 Codex should not burn compute just to avoid theoretical waste.
 
+When a trustworthy reset timestamp and current remaining percentage are available, cadence planning should target a small reserve at the reset, not merely classify the current remaining percentage. Default target reserve:
+
+```text
+5% remaining at reset
+```
+
+This means a high remaining budget shortly before reset should increase cadence more aggressively than the simple threshold table would suggest, as long as useful safe work exists.
+
 Codex should increase Free Work cadence only when all of these are true:
 
 * the user-declared remaining budget is high
@@ -394,12 +402,13 @@ The tuner recommends:
 Default cadence policy:
 
 ```text
+target reserve when reset is known: about 5% remaining at reset
 >80% remaining budget: every 2 hours
 60-80% remaining budget: every 4 hours
 40-60% remaining budget: every 6 hours
 <40% remaining budget: every 12 hours, critical-only
 no useful roadmap work: every 24 hours or manual-only
-high remaining budget near reset: consider hourly bounded chunks
+high spendable budget near reset: hourly bounded chunks when needed to approach the reserve target
 ```
 
 The cadence tuner may recommend a more frequent gate near reset, but it must not recommend overlapping implementation chunks.
