@@ -104,7 +104,7 @@ Write-Host "==> verify MP overlay package"
 Assert-LastExitCodeOk -StepName "mp overlay package verify"
 
 Write-Host "==> SNC status snapshot (with MP package)"
-& $exe --snc-status-snapshot $archiveRoot $activeOverlayDir $statusOut "false" $packageDir
+& $exe --snc-status-snapshot $archiveRoot $activeOverlayDir $statusOut "false" $packageDir "false"
 Assert-LastExitCodeOk -StepName "snc status snapshot"
 
 if (-not (Test-Path -LiteralPath $statusOut)) {

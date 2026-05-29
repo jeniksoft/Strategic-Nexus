@@ -124,7 +124,9 @@ int main()
         archiveRoot,
         overlayRoot,
         mpPackageRoot,
-        true
+        true,
+        false,
+        false
     });
 
     requireCondition(ready.appName == "Strategic Nexus Companion", "SNC app name should be stable");
@@ -137,6 +139,10 @@ int main()
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest verifies");
     requireCondition(!ready.generatedOverlay.manifestHash.empty(), "overlay status should expose generated overlay manifest hash");
+    requireCondition(ready.generatedOverlayPublishGate.state == "ready", "publish gate should be ready when Stellaris is not running");
+    requireCondition(
+        ready.generatedOverlayPublishGate.reason == "Stellaris is not running; generated overlay publish allowed",
+        "publish gate should explain publish readiness");
     requireCondition(ready.mpOverlayPackage.state == "ready", "mp overlay package should be ready when verified");
     requireCondition(ready.mpOverlayPackage.campaignId == "campaign_mp_001", "mp overlay package should expose campaign id");
     requireCondition(ready.mpOverlayPackage.overlayVersion == "overlay_v1", "mp overlay package should expose overlay version");
@@ -161,6 +167,9 @@ int main()
         ready.statusCenterSummaryText.find("mp_overlay_balicek: ready - mp overlay package verified") != std::string::npos,
         "status center summary should include mp overlay package state");
     requireCondition(
+        ready.statusCenterSummaryText.find("publish_gate: ready - Stellaris is not running; generated overlay publish allowed") != std::string::npos,
+        "status center summary should include publish gate state");
+    requireCondition(
         ready.statusCenterSummaryText.find("generated_overlay_manifest_hash: " + ready.generatedOverlay.manifestHash) != std::string::npos,
         "status center summary should include generated overlay manifest hash");
     requireCondition(
@@ -174,17 +183,22 @@ int main()
         archiveRoot,
         overlayEmptyRoot,
         std::filesystem::path(),
+        false,
+        false,
         false
     });
     requireCondition(emptyOverlay.generatedOverlay.state == "starting", "empty overlay should be starting");
+    requireCondition(emptyOverlay.generatedOverlayPublishGate.state == "starting", "publish gate should wait for generated overlay");
     requireCondition(emptyOverlay.statusCenter.state == "starting", "status center should start when overlay is starting");
-    requireCondition(emptyOverlay.statusCenter.reason == "waiting for archive and generated overlay to become ready", "status center reason should name the waiting subsystems");
+    requireCondition(emptyOverlay.statusCenter.reason == "waiting for archive, generated overlay, and publish gate to become ready", "status center reason should name the waiting subsystems");
     requireCondition(emptyOverlay.statusCenter.path.empty(), "status center path should remain empty when multiple subsystems block readiness");
 
     const auto missingOverlay = companion.buildStatusSnapshot({
         archiveRoot,
         root / "missing_overlay",
         std::filesystem::path(),
+        false,
+        false,
         false
     });
     requireCondition(missingOverlay.generatedOverlay.state == "needs_attention", "missing overlay should need attention");
@@ -196,6 +210,8 @@ int main()
         archiveRoot,
         overlayNoManifestNonEmptyRoot,
         std::filesystem::path(),
+        false,
+        false,
         false
     });
     requireCondition(noManifestNonEmptyOverlay.generatedOverlay.state == "needs_attention", "non-empty overlay without manifest should need attention");
@@ -217,16 +233,37 @@ int main()
         archiveSessionRoot,
         overlayRoot,
         std::filesystem::path(),
-        true
+        true,
+        false,
+        false
     });
     requireCondition(directArchiveSession.archive.state == "ready", "archive session root with manifest should be ready");
     requireCondition(directArchiveSession.statusCenter.state == "ready", "status center should be ready when archive session and overlay are ready");
+
+    const auto blockedPublishGate = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        overlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        true
+    });
+    requireCondition(blockedPublishGate.generatedOverlayPublishGate.state == "blocked", "publish gate should block while Stellaris is running");
+    requireCondition(
+        blockedPublishGate.generatedOverlayPublishGate.reason == "Stellaris is running; generated overlay publish deferred",
+        "publish gate should explain Stellaris-running block");
+    requireCondition(blockedPublishGate.statusCenter.state == "waiting", "status center should wait while publish is blocked by running Stellaris");
+    requireCondition(
+        blockedPublishGate.statusCenter.reason == "Stellaris is running; generated overlay publish deferred",
+        "status center should surface publish gate block reason");
 
     const auto missingMpPackage = companion.buildStatusSnapshot({
         archiveSessionRoot,
         overlayRoot,
         root / "missing_mp_overlay_package",
-        true
+        true,
+        false,
+        false
     });
     requireCondition(missingMpPackage.archive.state == "ready", "archive should remain ready when mp package missing");
     requireCondition(missingMpPackage.generatedOverlay.state == "ready", "overlay should remain ready when mp package missing");
@@ -243,6 +280,7 @@ int main()
     requireCondition(json.find("\"save_discovery_status\"") != std::string::npos, "JSON should include save discovery status");
     requireCondition(json.find("\"generated_overlay_status\"") != std::string::npos, "JSON should include overlay status");
     requireCondition(json.find("\"manifest_hash\": \"") != std::string::npos, "JSON should include generated overlay manifest hash");
+    requireCondition(json.find("\"generated_overlay_publish_gate_status\"") != std::string::npos, "JSON should include generated overlay publish gate status");
     requireCondition(json.find("\"mp_overlay_package_status\"") != std::string::npos, "JSON should include mp overlay package status");
     requireCondition(json.find("\"campaign_id\": \"campaign_mp_001\"") != std::string::npos, "JSON should include mp overlay package campaign id");
     requireCondition(json.find("\"overlay_version\": \"overlay_v1\"") != std::string::npos, "JSON should include mp overlay package overlay version");
@@ -281,7 +319,7 @@ int main()
     {
         const auto outputPath = root / "snc_status_snapshot.json";
         const strategic_nexus::CompanionStatusLoopConfig loopConfig{
-            { archiveRoot, overlayRoot, std::filesystem::path(), true },
+            { archiveRoot, overlayRoot, std::filesystem::path(), true, false, false },
             outputPath,
             std::chrono::milliseconds(0),
             2
@@ -300,7 +338,7 @@ int main()
 
     {
         const strategic_nexus::CompanionStatusLoopConfig loopConfig{
-            { archiveRoot, overlayRoot, std::filesystem::path(), true },
+            { archiveRoot, overlayRoot, std::filesystem::path(), true, false, false },
             root,
             std::chrono::milliseconds(0),
             1

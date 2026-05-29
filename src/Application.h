@@ -108,6 +108,8 @@ struct RunConfig {
     std::string offlineSpineEmpireId;
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
+    bool sncUseDetectedStellarisState = true;
+    bool sncStellarisRunningOverride = false;
     bool generatedOverlayPublishStellarisRunning = false;
     bool generatedOverlayPublishUseDetectedStellarisState = true;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;

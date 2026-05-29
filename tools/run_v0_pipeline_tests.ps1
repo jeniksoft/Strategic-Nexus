@@ -183,6 +183,7 @@ $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_comp
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
     (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp"),
+    (Join-Path $repoRoot "src/StellarisProcessDetector.cpp"),
     (Join-Path $repoRoot "src/StellarisSavePathResolver.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/MpOverlayPackage.cpp"),
@@ -930,7 +931,8 @@ function Invoke-SncStatusSnapshotCase {
         $archiveRoot `
         $overlayRoot `
         $outputPath `
-        true
+        true `
+        false
     $sncExitCode = $LASTEXITCODE
     $sncText = $sncOutput -join "`n"
 
@@ -944,6 +946,8 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_state=ready"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_manifest_hash="
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_publish_gate_state=ready"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_publish_gate_reason=Stellaris is not running; generated overlay publish allowed"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_output_written=true"
 
@@ -953,6 +957,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"abbreviation": "SNC"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"window_close_behavior": "minimize_to_tray"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"manifest_hash": "'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"generated_overlay_publish_gate_status":'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"status_center":'
 
     Write-Host "[PASS] snc_status_snapshot"

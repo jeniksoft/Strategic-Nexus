@@ -6,6 +6,7 @@
 #include "common/FileUtil.h"
 #include "generated_overlay/ManifestVerifier.h"
 #include "generated_overlay/MpOverlayPackage.h"
+#include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 
 #include <filesystem>
@@ -316,10 +317,58 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     return status;
 }
 
+CompanionSubsystemStatus buildGeneratedOverlayPublishGateStatus(
+    const CompanionSubsystemStatus& generatedOverlay,
+    const CompanionStatusConfig& config)
+{
+    CompanionSubsystemStatus status;
+    status.path = generatedOverlay.path;
+
+    if (generatedOverlay.state == "needs_setup" || generatedOverlay.state == "needs_attention") {
+        status.state = "needs_attention";
+        status.reason = "generated overlay is not publishable";
+        return status;
+    }
+
+    if (generatedOverlay.state == "starting") {
+        status.state = "starting";
+        status.reason = "waiting for generated overlay before publish";
+        return status;
+    }
+
+    StellarisProcessStatus processStatus;
+    if (config.useDetectedStellarisState) {
+        const StellarisProcessDetector detector;
+        processStatus = detector.detectFromSystem();
+    } else {
+        processStatus.detectionAvailable = true;
+        processStatus.running = config.stellarisRunningOverride;
+        processStatus.reason =
+            config.stellarisRunningOverride ? "explicit Stellaris running override" : "explicit Stellaris not running override";
+    }
+
+    if (!processStatus.detectionAvailable) {
+        status.state = "needs_attention";
+        status.reason = "Stellaris process detection unavailable; generated overlay publish blocked";
+        return status;
+    }
+
+    if (processStatus.running) {
+        status.state = "blocked";
+        status.reason = "Stellaris is running; generated overlay publish deferred";
+        return status;
+    }
+
+    status.state = "ready";
+    status.reason = "Stellaris is not running; generated overlay publish allowed";
+    return status;
+}
+
 CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay,
+    const CompanionSubsystemStatus& generatedOverlayPublishGate,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage)
 {
     CompanionSubsystemStatus status;
@@ -330,12 +379,14 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         archive.state == "needs_setup" || archive.state == "needs_attention";
     const bool overlayNeedsAttention =
         generatedOverlay.state == "needs_setup" || generatedOverlay.state == "needs_attention";
+    const bool publishGateNeedsAttention =
+        generatedOverlayPublishGate.state == "needs_setup" || generatedOverlayPublishGate.state == "needs_attention";
     const bool mpNeedsAttention = mpOverlayPackage.state == "needs_attention";
 
-    if (archiveNeedsAttention || overlayNeedsAttention || mpNeedsAttention) {
+    if (archiveNeedsAttention || overlayNeedsAttention || publishGateNeedsAttention || mpNeedsAttention) {
         status.state = "attention_required";
-        if (archiveNeedsAttention && overlayNeedsAttention && mpNeedsAttention) {
-            status.reason = "archive, generated overlay, and mp overlay package need attention";
+        if (archiveNeedsAttention && overlayNeedsAttention && publishGateNeedsAttention && mpNeedsAttention) {
+            status.reason = "archive, generated overlay, publish gate, and mp overlay package need attention";
             return status;
         }
         if (archiveNeedsAttention && overlayNeedsAttention) {
@@ -348,6 +399,10 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         }
         if (overlayNeedsAttention && mpNeedsAttention) {
             status.reason = "generated overlay and mp overlay package need attention";
+            return status;
+        }
+        if (publishGateNeedsAttention && mpNeedsAttention) {
+            status.reason = "generated overlay publish gate and mp overlay package need attention";
             return status;
         }
         if (archiveNeedsAttention) {
@@ -363,6 +418,11 @@ CompanionSubsystemStatus buildStatusCenterStatus(
             status.path = generatedOverlay.path;
             return status;
         }
+        if (publishGateNeedsAttention) {
+            status.reason = "generated overlay publish gate needs attention";
+            status.path = generatedOverlayPublishGate.path;
+            return status;
+        }
         status.reason = "mp overlay package needs attention";
         status.path = mpOverlayPackage.path;
         return status;
@@ -370,16 +430,41 @@ CompanionSubsystemStatus buildStatusCenterStatus(
 
     const bool archiveStarting = archive.state == "starting";
     const bool overlayStarting = generatedOverlay.state == "starting";
+    const bool publishGateStarting = generatedOverlayPublishGate.state == "starting";
 
-    if (archiveStarting || overlayStarting) {
+    if (generatedOverlayPublishGate.state == "blocked") {
+        status.state = "waiting";
+        status.reason = generatedOverlayPublishGate.reason;
+        status.path = generatedOverlayPublishGate.path;
+        return status;
+    }
+
+    if (archiveStarting || overlayStarting || publishGateStarting) {
         status.state = "starting";
+        if (archiveStarting && overlayStarting && publishGateStarting) {
+            status.reason = "waiting for archive, generated overlay, and publish gate to become ready";
+            return status;
+        }
         if (archiveStarting && overlayStarting) {
             status.reason = "waiting for archive and generated overlay to become ready";
+            return status;
+        }
+        if (archiveStarting && publishGateStarting) {
+            status.reason = "waiting for archive and generated overlay publish gate to become ready";
+            return status;
+        }
+        if (overlayStarting && publishGateStarting) {
+            status.reason = "waiting for generated overlay and publish gate to become ready";
             return status;
         }
         if (archiveStarting) {
             status.reason = "waiting for archive to become ready";
             status.path = archive.path;
+            return status;
+        }
+        if (publishGateStarting) {
+            status.reason = "waiting for generated overlay publish gate to become ready";
+            status.path = generatedOverlayPublishGate.path;
             return status;
         }
         status.reason = "waiting for generated overlay to become ready";
@@ -394,6 +479,7 @@ std::string buildStatusCenterSummaryText(
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay,
+    const CompanionSubsystemStatus& generatedOverlayPublishGate,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const CompanionSubsystemStatus& statusCenter)
 {
@@ -403,6 +489,7 @@ std::string buildStatusCenterSummaryText(
     text << "nalezeni_uloziste: " << saveDiscovery.state << " - " << saveDiscovery.reason << "\n";
     text << "archiv: " << archive.state << " - " << archive.reason << "\n";
     text << "generovany_overlay: " << generatedOverlay.state << " - " << generatedOverlay.reason << "\n";
+    text << "publish_gate: " << generatedOverlayPublishGate.state << " - " << generatedOverlayPublishGate.reason << "\n";
     text << "mp_overlay_balicek: " << mpOverlayPackage.state << " - " << mpOverlayPackage.reason << "\n";
 
     if (!generatedOverlay.manifestHash.empty()) {
@@ -474,13 +561,20 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.saveDiscovery = buildSaveDiscoveryStatus();
     snapshot.archive = buildArchiveStatus(config.archiveRoot);
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
+    snapshot.generatedOverlayPublishGate = buildGeneratedOverlayPublishGateStatus(snapshot.generatedOverlay, config);
     snapshot.mpOverlayPackage = buildMpOverlayPackageStatus(config.mpOverlayPackageDirectory);
     snapshot.statusCenter =
-        buildStatusCenterStatus(snapshot.saveDiscovery, snapshot.archive, snapshot.generatedOverlay, snapshot.mpOverlayPackage);
+        buildStatusCenterStatus(
+            snapshot.saveDiscovery,
+            snapshot.archive,
+            snapshot.generatedOverlay,
+            snapshot.generatedOverlayPublishGate,
+            snapshot.mpOverlayPackage);
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
         snapshot.saveDiscovery,
         snapshot.archive,
         snapshot.generatedOverlay,
+        snapshot.generatedOverlayPublishGate,
         snapshot.mpOverlayPackage,
         snapshot.statusCenter);
     return snapshot;
@@ -512,6 +606,9 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << ",\n";
     output << "  \"generated_overlay_status\": ";
     writeSubsystemJson(output, snapshot.generatedOverlay, "  ", true);
+    output << ",\n";
+    output << "  \"generated_overlay_publish_gate_status\": ";
+    writeSubsystemJson(output, snapshot.generatedOverlayPublishGate, "  ");
     output << ",\n";
     output << "  \"mp_overlay_package_status\": ";
     writeMpOverlayPackageJson(output, snapshot.mpOverlayPackage, "  ");

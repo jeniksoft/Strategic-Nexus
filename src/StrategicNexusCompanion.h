@@ -14,6 +14,8 @@ struct CompanionStatusConfig {
     std::filesystem::path generatedOverlayDirectory;
     std::filesystem::path mpOverlayPackageDirectory;
     bool startWithWindowsEnabled = false;
+    bool useDetectedStellarisState = true;
+    bool stellarisRunningOverride = false;
 };
 
 struct CompanionStatusLoopConfig {
@@ -64,6 +66,7 @@ struct CompanionStatusSnapshot {
     CompanionSubsystemStatus saveDiscovery;
     CompanionSubsystemStatus archive;
     CompanionSubsystemStatus generatedOverlay;
+    CompanionSubsystemStatus generatedOverlayPublishGate;
     CompanionMpOverlayPackageStatus mpOverlayPackage;
     CompanionSubsystemStatus statusCenter;
     std::string statusCenterSummaryText;

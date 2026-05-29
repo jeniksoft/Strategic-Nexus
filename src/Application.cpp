@@ -209,7 +209,20 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         config.sncStartWithWindowsEnabled = argc > 5 ? std::string(argv[5]) == "true" : false;
         if (argc > 6) {
-            config.mpOverlayPackageDirectory = argv[6];
+            const std::string value = argv[6];
+            if (value == "true" || value == "false") {
+                config.sncUseDetectedStellarisState = false;
+                config.sncStellarisRunningOverride = value == "true";
+            } else {
+                config.mpOverlayPackageDirectory = argv[6];
+            }
+        }
+        if (argc > 7) {
+            const std::string value = argv[7];
+            if (value == "true" || value == "false") {
+                config.sncUseDetectedStellarisState = false;
+                config.sncStellarisRunningOverride = value == "true";
+            }
         }
         return config;
     }
@@ -853,7 +866,9 @@ int Application::run(const RunConfig& config) const
                 config.sncArchiveRoot,
                 config.sncGeneratedOverlayDirectory,
                 config.mpOverlayPackageDirectory,
-                config.sncStartWithWindowsEnabled
+                config.sncStartWithWindowsEnabled,
+                config.sncUseDetectedStellarisState,
+                config.sncStellarisRunningOverride
             });
             const auto json = serializeCompanionStatusSnapshot(snapshot);
             const bool outputRequested = !config.sncStatusOutputPath.empty();
@@ -875,6 +890,12 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_generated_overlay_reason=" << sanitizeCliValue(snapshot.generatedOverlay.reason) << "\n";
             std::cout << "snc_generated_overlay_path=" << sanitizeCliValue(stdoutPath(snapshot.generatedOverlay.path)) << "\n";
             std::cout << "snc_generated_overlay_manifest_hash=" << sanitizeCliValue(snapshot.generatedOverlay.manifestHash) << "\n";
+            std::cout << "snc_generated_overlay_publish_gate_state="
+                      << sanitizeCliValue(snapshot.generatedOverlayPublishGate.state) << "\n";
+            std::cout << "snc_generated_overlay_publish_gate_reason="
+                      << sanitizeCliValue(snapshot.generatedOverlayPublishGate.reason) << "\n";
+            std::cout << "snc_generated_overlay_publish_gate_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.generatedOverlayPublishGate.path)) << "\n";
             std::cout << "snc_mp_overlay_package_state=" << sanitizeCliValue(snapshot.mpOverlayPackage.state) << "\n";
             std::cout << "snc_mp_overlay_package_reason=" << sanitizeCliValue(snapshot.mpOverlayPackage.reason) << "\n";
             std::cout << "snc_mp_overlay_package_path=" << sanitizeCliValue(stdoutPath(snapshot.mpOverlayPackage.path)) << "\n";
