@@ -301,6 +301,7 @@ int main()
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
+    requireCondition(json.find("generated_at_local: ") != std::string::npos, "status center summary should include generated_at_local timestamp");
 
     {
         strategic_nexus::CompanionStatusSnapshot snapshot;

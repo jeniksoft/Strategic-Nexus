@@ -477,6 +477,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
 }
 
 std::string buildStatusCenterSummaryText(
+    const std::string& generatedAtLocal,
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay,
@@ -486,6 +487,9 @@ std::string buildStatusCenterSummaryText(
 {
     std::ostringstream text;
     text << "Strategic Nexus Status Center\n";
+    if (!generatedAtLocal.empty()) {
+        text << "generated_at_local: " << generatedAtLocal << "\n";
+    }
     text << "stav: " << statusCenter.state << " - " << statusCenter.reason << "\n";
     text << "nalezeni_uloziste: " << saveDiscovery.state << " - " << saveDiscovery.reason << "\n";
     text << "archiv: " << archive.state << " - " << archive.reason << "\n";
@@ -576,6 +580,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
             snapshot.generatedOverlayPublishGate,
             snapshot.mpOverlayPackage);
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
+        snapshot.generatedAtLocal,
         snapshot.saveDiscovery,
         snapshot.archive,
         snapshot.generatedOverlay,
