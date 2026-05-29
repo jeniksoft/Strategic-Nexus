@@ -208,6 +208,7 @@ Required:
 * local save campaign directory monitor
 * autosave cadence guidance for more precise history steps
 * parser skeleton
+* read-only Stellaris `.sav` ZIP container reader for `meta` and `gamestate`
 * offline worker skeleton
 * latest-session-only analysis by default
 * payload schema
@@ -253,6 +254,7 @@ The generated overlay verifier also fails closed on unknown v0 generated overlay
 `Strategic Nexus.exe --archive-stable-saves <save_root> <archive_root> <session_id> [stability_delay_ms]` provides the first read-only one-shot autosave archive harness and manifest writer.
 `Strategic Nexus.exe --verify-autosave-archive <session_archive_dir>` verifies copied saves against the archive manifest before offline analysis uses them.
 `Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits a bounded verified archive metadata summary for future offline analysis handoff.
+Stellaris `.sav` files should be read as ZIP containers with `meta` and `gamestate` entries; the first real parser should operate on verified archived copies, extract bounded structured facts, and never send raw `gamestate` text to the LLM.
 `Strategic Nexus.exe --build-season-delta-ledger <session_archive_dir> <campaign_id> <output_json>` emits the first metadata-only season delta ledger from a verified autosave archive.
 `Strategic Nexus.exe --build-empire-brief-from-archive <session_archive_dir> <campaign_id> <empire_id> <output_json>` emits a conservative empire brief from the metadata-only ledger with explicit missing parser fields.
 `Strategic Nexus.exe --build-ministry-input-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <output_json>` bridges verified archive metadata into the v0 ministry input context shape without pretending to parse save contents.

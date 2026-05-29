@@ -92,6 +92,46 @@ The LLM should interpret bounded briefs, not raw full saves, in the normal path.
 
 ---
 
+# Stellaris Save Parser Direction
+
+Strategic Nexus should treat Stellaris `.sav` files as read-only ZIP containers.
+
+Expected entries:
+
+```text
+meta
+gamestate
+```
+
+The parser should run only on verified archived copies.
+Active Stellaris saves remain game-owned source material and must not be edited, renamed, deleted, or overwritten.
+
+The first production parser should:
+
+* open `.sav` read-only as a ZIP archive
+* read `meta` before `gamestate` for version, date, campaign name, DLC, and cheap identity hints
+* read `gamestate` through narrow extractors for known fields only
+* emit structured Strategic Nexus facts, uncertainties, and missing-field notes
+* refuse corrupt ZIPs, missing entries, invalid text, unsupported versions, and oversized field values
+* never pass full raw `gamestate` text to the LLM
+
+Parser output should feed the existing chain:
+
+```text
+verified archive
+-> save parser facts
+-> season delta ledger
+-> empire brief
+-> bounded LLM interpretation
+-> validated DSL
+-> generated overlay
+```
+
+This means the parser improves the existing metadata-only archive pipeline.
+It does not replace archive verification, empire-scoped filtering, LLM context limits, DSL validation, manifest verification, or generated overlay publishing gates.
+
+---
+
 # Companion App Responsibilities
 
 The companion app may:

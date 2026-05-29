@@ -68,6 +68,57 @@ The companion app should explain this tradeoff to the user instead of changing g
 
 ---
 
+## Stellaris `.sav` Container Contract
+
+Stellaris `.sav` files are ZIP containers for Strategic Nexus purposes.
+
+Observed Stellaris save shape:
+
+```text
+*.sav
+  gamestate
+  meta
+```
+
+The file may look binary in a text editor because it is compressed, but the extracted `meta` and `gamestate` entries are text in Paradox-style syntax.
+
+Example observed metadata fields:
+
+```text
+version="Cetus v4.3.7"
+name="Aeelcorp"
+date="2200.01.13"
+```
+
+Implementation rule:
+
+* open `.sav` read-only as a ZIP archive
+* require `meta` and `gamestate` entries before treating the save as parseable
+* extract only from an archived verified copy, not directly from an active changing save
+* parse `meta` first for cheap campaign identity and version hints
+* parse `gamestate` with bounded, whitelist-based extractors
+* tolerate missing or renamed fields by emitting explicit uncertainties
+* fail closed on corrupt ZIPs, missing entries, oversized fields, unsupported syntax, or parser confidence failure
+* never write back into the `.sav`
+
+The first parser should be narrow.
+It should extract only fields needed for the next architecture slice instead of trying to understand the whole save.
+
+Recommended first extracted facts:
+
+* game version
+* save date
+* campaign name
+* player country id
+* required DLC names
+* empire/country identity hints
+* coarse planet, fleet, war, diplomacy, economy, and technology availability markers when safely parseable
+
+The parser output must be structured Strategic Nexus data.
+Raw `gamestate` text must not be passed to the LLM.
+
+---
+
 ## Correct Approach
 
 Good:
