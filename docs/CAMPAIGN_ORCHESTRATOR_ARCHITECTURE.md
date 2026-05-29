@@ -310,6 +310,51 @@ The Model Manager should:
 The companion app may automate download, installation, runtime wiring, and configuration after the user selects a model and confirms the action.
 This automation is a convenience layer; it must not bypass license acceptance, gated access, authentication, or user consent.
 
+## Local LLM Ecosystem Layers
+
+The local LLM ecosystem has four separate layers.
+
+They must not be collapsed into one product component:
+
+```text
+model weights
+-> model runtime
+-> Strategic Nexus Companion
+-> Strategic Nexus mod and generated overlay
+```
+
+Layer responsibilities:
+
+* Model weights are third-party or user-provided artifacts. Strategic Nexus records metadata and verifies local availability, but does not distribute them with the mod.
+* Model runtime is the local execution engine or API wrapper. It loads the selected model and returns text or structured candidate output. The runtime is replaceable.
+* Strategic Nexus Companion owns model selection, license-aware setup, hardware fit checks, prompt construction, offline inference calls, output validation, cache invalidation, and Status Center readiness.
+* Strategic Nexus mod owns only normal Stellaris mod files, stable scripted fallback behavior, generated overlay files, and launcher-visible mod state.
+
+Trust boundary:
+
+```text
+local saves / archive summaries / prompts / model output = untrusted or semi-trusted input
+schema validation / allowlists / DSL validator / manifest verifier / package verifier = trusted gates
+generated overlay accepted by validators = bounded trusted artifact
+active Stellaris session = never directly controlled by the LLM
+```
+
+The model runtime may fail, hallucinate, ignore instructions, produce malformed output, or produce plausible but unsafe recommendations.
+Strategic Nexus must never treat model output as trusted merely because it came from a supported local model.
+
+Model output may only become gameplay-affecting after all applicable gates pass:
+
+* bounded schema parse succeeds
+* unsupported fields are rejected
+* values are allowlisted and clamped
+* DSL validation succeeds
+* generated files are compiled deterministically
+* generated overlay manifest verification succeeds
+* publishing happens only while Stellaris is closed
+* multiplayer package verification passes when MP use is relevant
+
+If any gate fails, the companion app should keep or restore safe fallback behavior and surface an ordinary Status Center explanation.
+
 Recommended model catalog fields:
 
 ```text

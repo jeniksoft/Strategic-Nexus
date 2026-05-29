@@ -184,6 +184,86 @@ If no supported model is installed:
 Strategic Nexus should not imply that a model is included with the mod.
 It should explain the dependency plainly and offer one-click setup for supported models where license terms allow it.
 
+## Model, Runtime, Companion, And Mod Boundary
+
+Strategic Nexus must keep these components separate:
+
+```text
+LLM model weights
+local model runtime
+Strategic Nexus Companion
+Strategic Nexus Stellaris mod
+```
+
+The model weights are external local dependencies chosen by the user.
+They are not part of the mod and are not distributed as Strategic Nexus mod content.
+
+The local model runtime is a replaceable execution layer.
+It may be an installed local runtime, a user-provided local server, or another supported local inference backend.
+The runtime is responsible for loading the selected model and returning candidate output.
+The runtime is not trusted to enforce Strategic Nexus safety rules.
+
+The companion app is the policy and validation boundary.
+It owns:
+
+* supported-model catalog
+* license/use-policy metadata
+* hardware recommendation
+* user consent and model selection state
+* runtime configuration
+* offline inference calls
+* prompt and context assembly from bounded summaries
+* parsing and validating model output
+* invalidating cached analysis when the selected model changes
+* generating or refusing generated overlay candidates
+* Status Center model readiness and reduced-mode reporting
+
+The Stellaris mod is intentionally smaller and dumber.
+It owns:
+
+* stable handwritten policy kernel
+* generated overlay files already accepted by companion validators
+* ordinary scripted effects/triggers/events
+* fallback behavior when generated input is absent or rejected
+
+The mod must not:
+
+* contain model weights
+* call model runtimes
+* accept raw model output
+* parse prompts
+* trust arbitrary generated text
+
+## LLM Output Trust Boundary
+
+All model output is untrusted until validated.
+
+This applies even when:
+
+* the model was recommended by Strategic Nexus
+* the model is local and private
+* the runtime is supported
+* the user selected the model intentionally
+* previous outputs from the same model were valid
+
+Allowed promotion path:
+
+```text
+model output
+-> parse as bounded candidate structure
+-> reject unsupported fields
+-> validate allowlisted strategy dimensions
+-> compile through Strategic Nexus DSL
+-> verify generated overlay manifest
+-> publish only when Stellaris is closed
+```
+
+Rejected model output must not be repaired by guessing gameplay intent.
+The companion may ask the model for a new bounded candidate, fall back to deterministic defaults, or keep the previous verified overlay.
+
+No raw prompt, raw completion, model chain-of-thought, or free-form model text may enter the generated gameplay files.
+Persisted memory may store only validated structured facts, concise rationale summaries, confidence, source references, and audit metadata.
+
 ## Startup And User Explanation
 
 Strategic Nexus must assume the computer may be shut down or restarted between play sessions.

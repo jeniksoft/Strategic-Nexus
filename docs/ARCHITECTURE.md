@@ -158,6 +158,16 @@ The user must choose a supported model, and the companion app may recommend one 
 The model catalog must not treat unclear, gated, or incompatible model licenses as safe defaults.
 If no supported model is installed, Strategic Nexus runs in reduced mode: archive and deterministic verification can still operate, but new LLM interpretation is disabled and Status Center must report the missing model.
 
+The local LLM ecosystem is layered:
+- model weights: external artifacts chosen by the user, never bundled with the mod
+- model runtime: replaceable local execution backend
+- companion app: model setup, prompt construction, offline inference, validation, cache invalidation, and Status Center reporting
+- Stellaris mod: stable policy kernel, validated generated overlay, and fallback behavior
+
+The LLM client does not create trusted gameplay state by itself.
+Model output is always untrusted until it passes schema validation, allowlists, DSL validation, deterministic compilation, manifest verification, and any relevant multiplayer package verification.
+The generated mod integration layer must consume only validator-accepted artifacts, never raw model output.
+
 ### 7. Generated Mod Integration Layer
 Responsible for:
 - applying strategic weights safely

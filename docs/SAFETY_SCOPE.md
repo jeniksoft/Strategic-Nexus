@@ -63,6 +63,17 @@ The daemon is advisory. The game remains authoritative. Invalid, missing, stale,
 ## LLM Boundary
 
 LLM output is untrusted until validated.
+This remains true even for a supported local model selected through the companion Model Manager.
+
+Strategic Nexus separates:
+
+* external model weights
+* replaceable local model runtime
+* companion app validation and orchestration
+* ordinary Stellaris mod files and generated overlays
+
+The mod must never distribute model weights, call a model runtime, or consume raw model output.
+Only companion-validated, manifest-verified generated overlay artifacts may become gameplay-affecting.
 
 The LLM may recommend bounded values such as:
 
