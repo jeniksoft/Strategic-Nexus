@@ -37,6 +37,9 @@ int main()
     const auto pathPresent = detector.detectFromProcessNames({ "C:/Games/Stellaris/stellaris.exe" });
     requireCondition(pathPresent.running, "detector should match path-like process names");
 
+    const auto quotedAndSpacedPresent = detector.detectFromProcessNames({ "  \"Stellaris.exe\"  " });
+    requireCondition(quotedAndSpacedPresent.running, "detector should match quoted and spaced process names");
+
     const auto json = strategic_nexus::serializeStellarisProcessStatus(present);
     requireCondition(json.find("\"running\": true") != std::string::npos, "JSON should include running state");
     requireCondition(json.find("\"Stellaris.exe\"") != std::string::npos, "JSON should include matched process name");

@@ -19,6 +19,13 @@ namespace {
 
 std::string normalizeProcessName(std::string value)
 {
+    const auto firstNonWhitespace = value.find_first_not_of(" \t\r\n\"'");
+    if (firstNonWhitespace == std::string::npos) {
+        return std::string();
+    }
+    const auto lastNonWhitespace = value.find_last_not_of(" \t\r\n\"'");
+    value = value.substr(firstNonWhitespace, lastNonWhitespace - firstNonWhitespace + 1);
+
     std::replace(value.begin(), value.end(), '\\', '/');
     const auto slash = value.find_last_of('/');
     if (slash != std::string::npos) {
