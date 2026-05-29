@@ -64,6 +64,7 @@ struct CompanionStatusSnapshot {
     CompanionSubsystemStatus generatedOverlay;
     CompanionMpOverlayPackageStatus mpOverlayPackage;
     CompanionSubsystemStatus statusCenter;
+    std::string statusCenterSummaryText;
 };
 
 class StrategicNexusCompanion {

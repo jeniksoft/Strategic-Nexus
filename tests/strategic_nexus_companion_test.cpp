@@ -146,6 +146,18 @@ int main()
         ready.mpOverlayPackage.statusText.find("campaign_id: campaign_mp_001") != std::string::npos,
         "mp overlay package should include copyable status text");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
+    requireCondition(
+        ready.statusCenterSummaryText.find("status: starting - waiting for archive to become ready") != std::string::npos,
+        "status center summary should include overall state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("archive: starting - no archive sessions yet") != std::string::npos,
+        "status center summary should include archive state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_overlay_package: ready - mp overlay package verified") != std::string::npos,
+        "status center summary should include mp overlay package state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("campaign_id: campaign_mp_001") != std::string::npos,
+        "status center summary should include MP campaign id");
 
     const auto emptyOverlay = companion.buildStatusSnapshot({
         archiveRoot,
@@ -228,6 +240,8 @@ int main()
         json.find("\"handoff_status\": \"degraded_previous_host_unavailable\"") != std::string::npos,
         "JSON should include mp overlay package handoff status");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
+    requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
+    requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
 
     {
         strategic_nexus::CompanionStatusSnapshot snapshot;
@@ -239,6 +253,7 @@ int main()
         snapshot.generatedOverlay.reason = "y";
         snapshot.statusCenter.state = "ready";
         snapshot.statusCenter.reason = snapshot.appName;
+        snapshot.statusCenterSummaryText = snapshot.appName;
 
         const auto escaped = strategic_nexus::serializeCompanionStatusSnapshot(snapshot);
         const std::string expected = "A\\\"B\\\\C\\nD\\tE\\rF\\bG\\fH\\u0001";
@@ -267,6 +282,7 @@ int main()
         requireCondition(content.find("\"schema_version\": 1") != std::string::npos, "status snapshot should include schema version");
         requireCondition(content.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "status snapshot should include app name");
         requireCondition(content.find("\"status_center\"") != std::string::npos, "status snapshot should include status center");
+        requireCondition(content.find("\"status_center_summary_text\"") != std::string::npos, "status snapshot should include status center summary text");
     }
 
     {

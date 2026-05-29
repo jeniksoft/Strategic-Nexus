@@ -45,6 +45,11 @@ $overlayDir = Join-Path $smokeRoot "generated_overlay"
 $packageDir = Join-Path $smokeRoot "mp_overlay_package"
 $statusOut = Join-Path $smokeRoot "snc_status_snapshot.json"
 
+Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $overlayDir -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $packageDir -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $statusOut -Force -ErrorAction SilentlyContinue
+
 New-Item -ItemType Directory -Force -Path $workDir | Out-Null
 New-Item -ItemType Directory -Force -Path $overlayDir | Out-Null
 New-Item -ItemType Directory -Force -Path $packageDir | Out-Null

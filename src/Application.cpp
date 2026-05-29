@@ -798,6 +798,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
             std::cout << "snc_status_center_path=" << sanitizeCliValue(stdoutPath(snapshot.statusCenter.path)) << "\n";
+            std::cout << "snc_status_center_summary_text=" << sanitizeCliValue(snapshot.statusCenterSummaryText) << "\n";
             std::cout << "snc_status_output_written=" << (outputRequested && written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "snc_status_reason=failed to write status snapshot\n";
@@ -974,6 +975,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "offline_spine_overlay_output_path=" << sanitizeCliValue(overlayDirectory.generic_string()) << "\n";
             std::cout << "offline_spine_status_output_path=" << sanitizeCliValue(config.offlineSpineStatusOutputPath.generic_string()) << "\n";
             std::cout << "offline_spine_status_generated_at_local=" << sanitizeCliValue(snapshot.generatedAtLocal) << "\n";
+            std::cout << "offline_spine_status_center_summary_text=" << sanitizeCliValue(snapshot.statusCenterSummaryText) << "\n";
             std::cout << "offline_spine_status_output_written=true\n";
             return 0;
         }

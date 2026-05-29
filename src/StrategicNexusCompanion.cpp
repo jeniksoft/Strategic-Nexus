@@ -388,6 +388,39 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     return status;
 }
 
+std::string buildStatusCenterSummaryText(
+    const CompanionSubsystemStatus& saveDiscovery,
+    const CompanionSubsystemStatus& archive,
+    const CompanionSubsystemStatus& generatedOverlay,
+    const CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const CompanionSubsystemStatus& statusCenter)
+{
+    std::ostringstream text;
+    text << "Strategic Nexus Status Center\n";
+    text << "status: " << statusCenter.state << " - " << statusCenter.reason << "\n";
+    text << "save_discovery: " << saveDiscovery.state << " - " << saveDiscovery.reason << "\n";
+    text << "archive: " << archive.state << " - " << archive.reason << "\n";
+    text << "generated_overlay: " << generatedOverlay.state << " - " << generatedOverlay.reason << "\n";
+    text << "mp_overlay_package: " << mpOverlayPackage.state << " - " << mpOverlayPackage.reason << "\n";
+
+    if (!mpOverlayPackage.campaignId.empty()) {
+        text << "campaign_id: " << mpOverlayPackage.campaignId << "\n";
+    }
+    if (!mpOverlayPackage.overlayVersion.empty()) {
+        text << "overlay_version: " << mpOverlayPackage.overlayVersion << "\n";
+    }
+    if (!mpOverlayPackage.gameVersion.empty()) {
+        text << "game_version: " << mpOverlayPackage.gameVersion << "\n";
+    }
+    if (!mpOverlayPackage.strategicNexusModVersion.empty()) {
+        text << "strategic_nexus_mod_version: " << mpOverlayPackage.strategicNexusModVersion << "\n";
+    }
+    if (!mpOverlayPackage.handoffStatus.empty()) {
+        text << "handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
+    }
+    return text.str();
+}
+
 void writeSubsystemJson(std::ostringstream& output, const CompanionSubsystemStatus& status, const std::string& indent)
 {
     output << indent << "{\n";
@@ -425,6 +458,12 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.mpOverlayPackage = buildMpOverlayPackageStatus(config.mpOverlayPackageDirectory);
     snapshot.statusCenter =
         buildStatusCenterStatus(snapshot.saveDiscovery, snapshot.archive, snapshot.generatedOverlay, snapshot.mpOverlayPackage);
+    snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
+        snapshot.saveDiscovery,
+        snapshot.archive,
+        snapshot.generatedOverlay,
+        snapshot.mpOverlayPackage,
+        snapshot.statusCenter);
     return snapshot;
 }
 
@@ -460,7 +499,8 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << ",\n";
     output << "  \"status_center\": ";
     writeSubsystemJson(output, snapshot.statusCenter, "  ");
-    output << "\n";
+    output << ",\n";
+    output << "  \"status_center_summary_text\": " << jsonString(snapshot.statusCenterSummaryText) << "\n";
     output << "}\n";
     return output.str();
 }
