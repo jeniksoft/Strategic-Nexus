@@ -69,7 +69,9 @@ SeasonEmpireBrief SeasonEmpireBriefBuilder::build(
     SeasonEmpireBrief brief;
     const bool campaignIdValid = hasNonWhitespace(ledger.campaignId);
     const bool empireIdValid = hasNonWhitespace(empireId);
-    const bool supportedLedgerQuality = ledger.deltaQuality == "metadata_only";
+    const bool supportedLedgerQuality =
+        ledger.deltaQuality == "metadata_only" ||
+        ledger.deltaQuality == "metadata_plus_save_headline";
     brief.ok = ledger.ok && campaignIdValid && empireIdValid && supportedLedgerQuality;
     brief.reason = ledger.ok ? "accepted" : ledger.reason;
     if (ledger.ok && !campaignIdValid) {

@@ -10,6 +10,7 @@
 #include <vector>
 
 namespace strategic_nexus {
+struct SaveParserSummary;
 
 struct SeasonDeltaLedger {
     bool ok = false;
@@ -32,6 +33,10 @@ public:
     SeasonDeltaLedger build(
         const AutosaveArchiveSummary& summary,
         const std::string& campaignId) const;
+    SeasonDeltaLedger build(
+        const AutosaveArchiveSummary& summary,
+        const std::string& campaignId,
+        const SaveParserSummary* parsedHeadline) const;
 };
 
 std::string serializeSeasonDeltaLedger(const SeasonDeltaLedger& ledger);

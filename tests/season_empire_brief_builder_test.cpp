@@ -70,6 +70,13 @@ int main()
         unsupportedQuality.reason == "unsupported source ledger quality",
         "brief should explain unsupported source ledger quality");
 
+    strategic_nexus::SeasonDeltaLedger parsedHeadlineLedger = ledger;
+    parsedHeadlineLedger.deltaQuality = "metadata_plus_save_headline";
+    const auto parsedHeadlineBrief = builder.build(parsedHeadlineLedger, "empire_001");
+    requireCondition(
+        parsedHeadlineBrief.ok,
+        "brief should accept metadata_plus_save_headline ledger quality");
+
     std::cout << "season empire brief builder tests passed.\n";
     return 0;
 }

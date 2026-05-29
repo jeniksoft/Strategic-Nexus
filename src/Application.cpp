@@ -89,6 +89,20 @@ bool hasNonWhitespace(const std::string& value)
     return false;
 }
 
+bool parseLatestArchivedSaveHeadline(
+    const AutosaveArchiveSummary& summary,
+    SaveParserSummary& outSummary)
+{
+    if (!summary.ok || summary.sessionArchiveDirectory.empty() || summary.lastArchivedPath.empty()) {
+        return false;
+    }
+
+    const std::filesystem::path latestArchivedSave = summary.sessionArchiveDirectory / summary.lastArchivedPath;
+    SaveParser parser;
+    outSummary = parser.parseSummary(latestArchivedSave);
+    return true;
+}
+
 } // namespace
 
 RunConfig parseRunConfig(int argc, char* argv[])
@@ -1018,8 +1032,13 @@ int Application::run(const RunConfig& config) const
                 return 1;
             }
 
+            SaveParserSummary parsedHeadline;
+            const bool hasParsedHeadline = parseLatestArchivedSaveHeadline(summary, parsedHeadline);
             const SeasonDeltaLedgerBuilder ledgerBuilder;
-            const auto ledger = ledgerBuilder.build(summary, config.offlineSpineCampaignId);
+            const auto ledger = ledgerBuilder.build(
+                summary,
+                config.offlineSpineCampaignId,
+                hasParsedHeadline ? &parsedHeadline : nullptr);
             const auto ledgerPath = config.offlineSpineWorkDirectory / "season_delta_ledger.json";
             const bool ledgerWritten = common::writeTextFileAtomically(ledgerPath, serializeSeasonDeltaLedger(ledger));
             if (!ledger.ok || !ledgerWritten) {
@@ -1301,8 +1320,13 @@ int Application::run(const RunConfig& config) const
 	            const AutosaveArchiveSummarizer summarizer;
 	            const auto summary = summarizer.summarize(config.seasonDeltaLedgerDirectory);
 
+	            SaveParserSummary parsedHeadline;
+	            const bool hasParsedHeadline = parseLatestArchivedSaveHeadline(summary, parsedHeadline);
 	            const SeasonDeltaLedgerBuilder builder;
-	            const auto ledger = builder.build(summary, config.seasonDeltaLedgerCampaignId);
+	            const auto ledger = builder.build(
+                    summary,
+                    config.seasonDeltaLedgerCampaignId,
+                    hasParsedHeadline ? &parsedHeadline : nullptr);
 	            const bool written = common::writeTextFileAtomically(
 	                config.seasonDeltaLedgerOutputPath,
                 serializeSeasonDeltaLedger(ledger));
@@ -1334,8 +1358,13 @@ int Application::run(const RunConfig& config) const
 	            const AutosaveArchiveSummarizer summarizer;
 	            const auto summary = summarizer.summarize(config.archiveEmpireBriefDirectory);
 
+	            SaveParserSummary parsedHeadline;
+	            const bool hasParsedHeadline = parseLatestArchivedSaveHeadline(summary, parsedHeadline);
 	            const SeasonDeltaLedgerBuilder ledgerBuilder;
-	            const auto ledger = ledgerBuilder.build(summary, config.archiveEmpireBriefCampaignId);
+	            const auto ledger = ledgerBuilder.build(
+                    summary,
+                    config.archiveEmpireBriefCampaignId,
+                    hasParsedHeadline ? &parsedHeadline : nullptr);
 	            const SeasonEmpireBriefBuilder briefBuilder;
             const auto brief = briefBuilder.build(ledger, config.archiveEmpireBriefEmpireId);
             const bool written = common::writeTextFileAtomically(

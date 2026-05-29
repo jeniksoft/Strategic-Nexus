@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Antonin Jenik
 
 #include "SeasonDeltaLedgerBuilder.h"
+#include "SaveParser.h"
 
 #include <iostream>
 #include <string>
@@ -77,6 +78,30 @@ int main()
     requireCondition(badLedger.facts.empty(), "failed ledger should not emit verification facts");
     requireCondition(badLedger.uncertainties.size() == 1, "failed ledger should emit bounded uncertainties");
     requireCondition(badLedger.uncertainties[0] == "archive_not_verified", "failed ledger should explain uncertainty");
+
+    strategic_nexus::SaveParserSummary parsedHeadline;
+    parsedHeadline.ok = true;
+    parsedHeadline.reason = "accepted";
+    parsedHeadline.playerCountryId = "country_7";
+    parsedHeadline.saveDate = "2301.01.01";
+    parsedHeadline.ownedFleetCount = 12;
+    parsedHeadline.activeWarCount = 1;
+    parsedHeadline.missingFields.push_back("government");
+
+    const auto parsedLedger = builder.build(summary, "campaign_001", &parsedHeadline);
+    requireCondition(parsedLedger.ok, "ledger should accept parsed headline when archive is verified");
+    requireCondition(
+        parsedLedger.deltaQuality == "metadata_plus_save_headline",
+        "ledger should expose headline-enhanced delta quality");
+    requireCondition(
+        parsedLedger.facts.size() == 10,
+        "headline-enhanced ledger should append bounded parsed headline facts");
+    requireCondition(
+        parsedLedger.uncertainties.size() == 3,
+        "headline-enhanced ledger should keep bounded uncertainty count");
+    requireCondition(
+        parsedLedger.uncertainties[0] == "save_headline_missing_fields_reported",
+        "headline-enhanced ledger should report headline field uncertainty");
 
     std::cout << "season delta ledger builder tests passed.\n";
     return 0;

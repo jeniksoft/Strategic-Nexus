@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Antonin Jenik
 
 #include "SeasonDeltaLedgerBuilder.h"
+#include "SaveParser.h"
 
 #include <iomanip>
 #include <sstream>
@@ -80,6 +81,14 @@ SeasonDeltaLedger SeasonDeltaLedgerBuilder::build(
     const AutosaveArchiveSummary& summary,
     const std::string& campaignId) const
 {
+    return build(summary, campaignId, nullptr);
+}
+
+SeasonDeltaLedger SeasonDeltaLedgerBuilder::build(
+    const AutosaveArchiveSummary& summary,
+    const std::string& campaignId,
+    const SaveParserSummary* parsedHeadline) const
+{
     SeasonDeltaLedger ledger;
     const bool campaignIdValid = hasNonWhitespace(campaignId);
     const bool hasCopiedSaves = summary.copiedSaveCount > 0;
@@ -111,7 +120,26 @@ SeasonDeltaLedger SeasonDeltaLedgerBuilder::build(
             ledger.facts.push_back("last_archive_hash:" + summary.lastContentHash);
         }
 
-        ledger.uncertainties.push_back("save_content_not_parsed_yet");
+        if (parsedHeadline != nullptr && parsedHeadline->ok) {
+            ledger.deltaQuality = "metadata_plus_save_headline";
+            ledger.facts.push_back("save_headline_parsed:true");
+            if (!parsedHeadline->playerCountryId.empty()) {
+                ledger.facts.push_back("player_country_id:" + parsedHeadline->playerCountryId);
+            }
+            if (!parsedHeadline->saveDate.empty()) {
+                ledger.facts.push_back("save_date:" + parsedHeadline->saveDate);
+            }
+            ledger.facts.push_back(countFact("headline_owned_fleet_count", parsedHeadline->ownedFleetCount));
+            ledger.facts.push_back(countFact("headline_active_war_count", parsedHeadline->activeWarCount));
+            if (!parsedHeadline->missingFields.empty()) {
+                ledger.uncertainties.push_back("save_headline_missing_fields_reported");
+            }
+        } else if (parsedHeadline != nullptr && !parsedHeadline->ok) {
+            ledger.uncertainties.push_back("save_headline_parse_failed:" + parsedHeadline->reason);
+            ledger.uncertainties.push_back("save_content_not_parsed_yet");
+        } else {
+            ledger.uncertainties.push_back("save_content_not_parsed_yet");
+        }
         ledger.uncertainties.push_back("empire_state_not_extracted_yet");
         ledger.uncertainties.push_back("campaign_identity_supplied_by_orchestrator");
     } else if (!summary.ok) {
