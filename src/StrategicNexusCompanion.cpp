@@ -296,6 +296,11 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
 
     const generated_overlay::MpOverlayPackageVerifier verifier;
     const auto verification = verifier.verify(packageDirectory);
+    status.campaignId = verification.campaignId;
+    status.overlayVersion = verification.overlayVersion;
+    status.gameVersion = verification.gameVersion;
+    status.strategicNexusModVersion = verification.strategicNexusModVersion;
+    status.handoffStatus = verification.handoffStatus;
     if (verification.ok) {
         status.state = "ready";
         status.reason = "mp overlay package verified";
@@ -398,6 +403,11 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
     output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
     output << indent << "  \"path\": " << jsonString(pathString(status.path)) << ",\n";
+    output << indent << "  \"campaign_id\": " << jsonString(status.campaignId) << ",\n";
+    output << indent << "  \"overlay_version\": " << jsonString(status.overlayVersion) << ",\n";
+    output << indent << "  \"game_version\": " << jsonString(status.gameVersion) << ",\n";
+    output << indent << "  \"strategic_nexus_mod_version\": " << jsonString(status.strategicNexusModVersion) << ",\n";
+    output << indent << "  \"handoff_status\": " << jsonString(status.handoffStatus) << ",\n";
     output << indent << "  \"status_text\": " << jsonString(status.statusText) << "\n";
     output << indent << "}";
 }

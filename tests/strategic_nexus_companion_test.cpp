@@ -137,6 +137,11 @@ int main()
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest verifies");
     requireCondition(ready.mpOverlayPackage.state == "ready", "mp overlay package should be ready when verified");
+    requireCondition(ready.mpOverlayPackage.campaignId == "campaign_mp_001", "mp overlay package should expose campaign id");
+    requireCondition(ready.mpOverlayPackage.overlayVersion == "overlay_v1", "mp overlay package should expose overlay version");
+    requireCondition(ready.mpOverlayPackage.gameVersion == "stellaris_4.x", "mp overlay package should expose game version");
+    requireCondition(ready.mpOverlayPackage.strategicNexusModVersion == "strategic_nexus_v0", "mp overlay package should expose mod version");
+    requireCondition(ready.mpOverlayPackage.handoffStatus == "degraded_previous_host_unavailable", "mp overlay package should expose handoff status");
     requireCondition(
         ready.mpOverlayPackage.statusText.find("campaign_id: campaign_mp_001") != std::string::npos,
         "mp overlay package should include copyable status text");
@@ -215,6 +220,13 @@ int main()
     requireCondition(json.find("\"save_discovery_status\"") != std::string::npos, "JSON should include save discovery status");
     requireCondition(json.find("\"generated_overlay_status\"") != std::string::npos, "JSON should include overlay status");
     requireCondition(json.find("\"mp_overlay_package_status\"") != std::string::npos, "JSON should include mp overlay package status");
+    requireCondition(json.find("\"campaign_id\": \"campaign_mp_001\"") != std::string::npos, "JSON should include mp overlay package campaign id");
+    requireCondition(json.find("\"overlay_version\": \"overlay_v1\"") != std::string::npos, "JSON should include mp overlay package overlay version");
+    requireCondition(json.find("\"game_version\": \"stellaris_4.x\"") != std::string::npos, "JSON should include mp overlay package game version");
+    requireCondition(json.find("\"strategic_nexus_mod_version\": \"strategic_nexus_v0\"") != std::string::npos, "JSON should include mp overlay package mod version");
+    requireCondition(
+        json.find("\"handoff_status\": \"degraded_previous_host_unavailable\"") != std::string::npos,
+        "JSON should include mp overlay package handoff status");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
 
     {

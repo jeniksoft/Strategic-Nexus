@@ -788,6 +788,12 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_state=" << sanitizeCliValue(snapshot.mpOverlayPackage.state) << "\n";
             std::cout << "snc_mp_overlay_package_reason=" << sanitizeCliValue(snapshot.mpOverlayPackage.reason) << "\n";
             std::cout << "snc_mp_overlay_package_path=" << sanitizeCliValue(stdoutPath(snapshot.mpOverlayPackage.path)) << "\n";
+            std::cout << "snc_mp_overlay_package_campaign_id=" << sanitizeCliValue(snapshot.mpOverlayPackage.campaignId) << "\n";
+            std::cout << "snc_mp_overlay_package_overlay_version=" << sanitizeCliValue(snapshot.mpOverlayPackage.overlayVersion) << "\n";
+            std::cout << "snc_mp_overlay_package_game_version=" << sanitizeCliValue(snapshot.mpOverlayPackage.gameVersion) << "\n";
+            std::cout << "snc_mp_overlay_package_strategic_nexus_mod_version="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.strategicNexusModVersion) << "\n";
+            std::cout << "snc_mp_overlay_package_handoff_status=" << sanitizeCliValue(snapshot.mpOverlayPackage.handoffStatus) << "\n";
             std::cout << "snc_mp_overlay_package_status_text=" << sanitizeCliValue(snapshot.mpOverlayPackage.statusText) << "\n";
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
