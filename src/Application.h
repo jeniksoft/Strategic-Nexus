@@ -32,6 +32,7 @@ struct RunConfig {
     bool planCampaignLibraryMode = false;
     bool compileCampaignLibraryOverlayMode = false;
     bool discoverStellarisSaveRootsMode = false;
+    bool detectStellarisRunningMode = false;
     bool exportMpOverlayPackageMode = false;
     bool verifyMpOverlayPackageMode = false;
     bool sncStatusSnapshotMode = false;
@@ -88,6 +89,7 @@ struct RunConfig {
     std::filesystem::path campaignLibraryOverlaySaveRoot;
     std::filesystem::path campaignLibraryOverlayOutputDirectory;
     std::filesystem::path stellarisSaveRootsOutputPath;
+    std::filesystem::path stellarisRunningOutputPath;
     std::filesystem::path mpOverlaySourceDirectory;
     std::filesystem::path mpOverlayPackageDirectory;
     std::filesystem::path sncArchiveRoot;
@@ -107,6 +109,7 @@ struct RunConfig {
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
     bool generatedOverlayPublishStellarisRunning = false;
+    bool generatedOverlayPublishUseDetectedStellarisState = true;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;
     std::int64_t v0SequenceId = 1;
     std::int64_t v0CreatedUnixMs = 0;

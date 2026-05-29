@@ -13,6 +13,7 @@
 #include "RequestFileReader.h"
 #include "SeasonDeltaLedgerBuilder.h"
 #include "SeasonEmpireBriefBuilder.h"
+#include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "StrategicNexusCompanion.h"
 #include "StrategicWorker.h"
@@ -222,7 +223,22 @@ RunConfig parseRunConfig(int argc, char* argv[])
         if (argc > 3) {
             config.generatedOverlayPublishActiveDirectory = argv[3];
         }
-        config.generatedOverlayPublishStellarisRunning = argc > 4 ? std::string(argv[4]) == "true" : false;
+        if (argc > 4) {
+            const std::string value = argv[4];
+            if (value == "true" || value == "false") {
+                config.generatedOverlayPublishUseDetectedStellarisState = false;
+                config.generatedOverlayPublishStellarisRunning = value == "true";
+            }
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--detect-stellaris-running") {
+        config.detectStellarisRunningMode = true;
+
+        if (argc > 2) {
+            config.stellarisRunningOutputPath = argv[2];
+        }
         return config;
     }
 
@@ -713,14 +729,35 @@ int Application::run(const RunConfig& config) const
         }
 
         if (config.generatedOverlayPublishMode) {
+            bool stellarisRunning = config.generatedOverlayPublishStellarisRunning;
+            bool detectionAvailable = false;
+            std::string stellarisRunningReason =
+                config.generatedOverlayPublishStellarisRunning ? "explicit true" : "explicit false";
+            if (config.generatedOverlayPublishUseDetectedStellarisState) {
+                const StellarisProcessDetector detector;
+                const auto processStatus = detector.detectFromSystem();
+                stellarisRunning = processStatus.running;
+                detectionAvailable = processStatus.detectionAvailable;
+                stellarisRunningReason = processStatus.reason;
+                if (!processStatus.detectionAvailable) {
+                    stellarisRunning = true;
+                    stellarisRunningReason += "; publish blocked because process detection is unavailable";
+                }
+            }
+
             const generated_overlay::GeneratedOverlayPublisher publisher;
             const auto result = publisher.publish(
                 config.generatedOverlayPublishStagedDirectory,
                 config.generatedOverlayPublishActiveDirectory,
-                config.generatedOverlayPublishStellarisRunning);
+                stellarisRunning);
 
             std::cout << "generated_overlay_publish_ok=" << (result.ok ? "true" : "false") << "\n";
             std::cout << "generated_overlay_publish_reason=" << sanitizeCliValue(result.reason) << "\n";
+            std::cout << "generated_overlay_publish_stellaris_detection_available="
+                      << (detectionAvailable ? "true" : "false") << "\n";
+            std::cout << "generated_overlay_publish_stellaris_running=" << (stellarisRunning ? "true" : "false") << "\n";
+            std::cout << "generated_overlay_publish_stellaris_reason="
+                      << sanitizeCliValue(stellarisRunningReason) << "\n";
             std::cout << "generated_overlay_publish_source_path="
                       << sanitizeCliValue(result.sourceDirectory.generic_string()) << "\n";
             std::cout << "generated_overlay_publish_active_path="
@@ -1459,6 +1496,25 @@ int Application::run(const RunConfig& config) const
             if (!written) {
                 std::cout << "stellaris_save_roots_reason=failed to write save root discovery\n";
             }
+            return written ? 0 : 1;
+        }
+
+        if (config.detectStellarisRunningMode) {
+            const StellarisProcessDetector detector;
+            const auto status = detector.detectFromSystem();
+            const auto json = serializeStellarisProcessStatus(status);
+            const bool outputRequested = !config.stellarisRunningOutputPath.empty();
+            const bool written = outputRequested ? common::writeTextFileAtomically(config.stellarisRunningOutputPath, json) : true;
+
+            std::cout << "stellaris_process_detection_available="
+                      << (status.detectionAvailable ? "true" : "false") << "\n";
+            std::cout << "stellaris_running=" << (status.running ? "true" : "false") << "\n";
+            std::cout << "stellaris_running_reason=" << sanitizeCliValue(status.reason) << "\n";
+            std::cout << "stellaris_running_match_count=" << status.matchedProcessNames.size() << "\n";
+            for (const auto& processName : status.matchedProcessNames) {
+                std::cout << "stellaris_running_match=" << sanitizeCliValue(processName) << "\n";
+            }
+            std::cout << "stellaris_running_output_written=" << (outputRequested && written ? "true" : "false") << "\n";
             return written ? 0 : 1;
         }
 

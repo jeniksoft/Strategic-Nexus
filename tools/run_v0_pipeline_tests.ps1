@@ -174,6 +174,11 @@ $stellarisSavePathResolverSourceFiles = @(
     (Join-Path $repoRoot "tests/stellaris_save_path_resolver_test.cpp"),
     (Join-Path $repoRoot "src/StellarisSavePathResolver.cpp")
 )
+$stellarisProcessDetectorExePath = Join-Path $repoRoot "dist/stellaris_process_detector_test.exe"
+$stellarisProcessDetectorSourceFiles = @(
+    (Join-Path $repoRoot "tests/stellaris_process_detector_test.cpp"),
+    (Join-Path $repoRoot "src/StellarisProcessDetector.cpp")
+)
 $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_companion_test.exe"
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
@@ -185,26 +190,45 @@ $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
 
+function Invoke-ClCompile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$SourceFiles,
+
+        [Parameter(Mandatory = $true)]
+        [string]$OutputPath
+    )
+
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $SourceFiles /Fe:$OutputPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "$Name compile failed (exit code $LASTEXITCODE)."
+    }
+}
+
 Push-Location $repoRoot
 try {
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $sourceFiles /Fe:$exePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $autosaveArchiverSourceFiles /Fe:$autosaveArchiverExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $autosaveArchiveVerifierSourceFiles /Fe:$autosaveArchiveVerifierExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $autosaveArchiveSummarizerSourceFiles /Fe:$autosaveArchiveSummarizerExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $archiveMinistryInputBuilderSourceFiles /Fe:$archiveMinistryInputBuilderExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $seasonDeltaLedgerBuilderSourceFiles /Fe:$seasonDeltaLedgerBuilderExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $seasonEmpireBriefBuilderSourceFiles /Fe:$seasonEmpireBriefBuilderExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $cabinetContractSourceFiles /Fe:$cabinetContractExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $priorityScoreSourceFiles /Fe:$priorityScoreExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $processingQueueSourceFiles /Fe:$processingQueueExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayContractSourceFiles /Fe:$generatedOverlayContractExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayVerifierSourceFiles /Fe:$generatedOverlayVerifierExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayPublisherSourceFiles /Fe:$generatedOverlayPublisherExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $mpOverlayPackageVerifierSourceFiles /Fe:$mpOverlayPackageVerifierExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignSaveScannerSourceFiles /Fe:$campaignSaveScannerExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignLibraryPlannerSourceFiles /Fe:$campaignLibraryPlannerExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $stellarisSavePathResolverSourceFiles /Fe:$stellarisSavePathResolverExePath
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $strategicNexusCompanionSourceFiles /Fe:$strategicNexusCompanionExePath
+    Invoke-ClCompile -Name "strategic_nexus_app_test" -SourceFiles $sourceFiles -OutputPath $exePath
+    Invoke-ClCompile -Name "autosave_archiver_test" -SourceFiles $autosaveArchiverSourceFiles -OutputPath $autosaveArchiverExePath
+    Invoke-ClCompile -Name "autosave_archive_verifier_test" -SourceFiles $autosaveArchiveVerifierSourceFiles -OutputPath $autosaveArchiveVerifierExePath
+    Invoke-ClCompile -Name "autosave_archive_summarizer_test" -SourceFiles $autosaveArchiveSummarizerSourceFiles -OutputPath $autosaveArchiveSummarizerExePath
+    Invoke-ClCompile -Name "archive_ministry_input_builder_test" -SourceFiles $archiveMinistryInputBuilderSourceFiles -OutputPath $archiveMinistryInputBuilderExePath
+    Invoke-ClCompile -Name "season_delta_ledger_builder_test" -SourceFiles $seasonDeltaLedgerBuilderSourceFiles -OutputPath $seasonDeltaLedgerBuilderExePath
+    Invoke-ClCompile -Name "season_empire_brief_builder_test" -SourceFiles $seasonEmpireBriefBuilderSourceFiles -OutputPath $seasonEmpireBriefBuilderExePath
+    Invoke-ClCompile -Name "v0_cabinet_contract_test" -SourceFiles $cabinetContractSourceFiles -OutputPath $cabinetContractExePath
+    Invoke-ClCompile -Name "v0_priority_score_test" -SourceFiles $priorityScoreSourceFiles -OutputPath $priorityScoreExePath
+    Invoke-ClCompile -Name "v0_processing_queue_test" -SourceFiles $processingQueueSourceFiles -OutputPath $processingQueueExePath
+    Invoke-ClCompile -Name "generated_overlay_contract_test" -SourceFiles $generatedOverlayContractSourceFiles -OutputPath $generatedOverlayContractExePath
+    Invoke-ClCompile -Name "generated_overlay_verifier_test" -SourceFiles $generatedOverlayVerifierSourceFiles -OutputPath $generatedOverlayVerifierExePath
+    Invoke-ClCompile -Name "generated_overlay_publisher_test" -SourceFiles $generatedOverlayPublisherSourceFiles -OutputPath $generatedOverlayPublisherExePath
+    Invoke-ClCompile -Name "mp_overlay_package_verifier_test" -SourceFiles $mpOverlayPackageVerifierSourceFiles -OutputPath $mpOverlayPackageVerifierExePath
+    Invoke-ClCompile -Name "campaign_save_scanner_test" -SourceFiles $campaignSaveScannerSourceFiles -OutputPath $campaignSaveScannerExePath
+    Invoke-ClCompile -Name "campaign_library_planner_test" -SourceFiles $campaignLibraryPlannerSourceFiles -OutputPath $campaignLibraryPlannerExePath
+    Invoke-ClCompile -Name "stellaris_save_path_resolver_test" -SourceFiles $stellarisSavePathResolverSourceFiles -OutputPath $stellarisSavePathResolverExePath
+    Invoke-ClCompile -Name "stellaris_process_detector_test" -SourceFiles $stellarisProcessDetectorSourceFiles -OutputPath $stellarisProcessDetectorExePath
+    Invoke-ClCompile -Name "strategic_nexus_companion_test" -SourceFiles $strategicNexusCompanionSourceFiles -OutputPath $strategicNexusCompanionExePath
 } finally {
     Pop-Location
 }
@@ -853,6 +877,32 @@ function Invoke-StellarisSaveRootDiscoveryCase {
     Assert-Contains -Name "stellaris_save_roots json" -Text $discoveryJson -Expected '"candidates":'
 
     Write-Host "[PASS] stellaris_save_roots"
+}
+
+function Invoke-StellarisProcessDetectionCase {
+    $outputPath = Join-Path $repoRoot "dist/stellaris_running.json"
+    Remove-Item -LiteralPath $outputPath -Force -ErrorAction SilentlyContinue
+
+    $detectionOutput = & $exePath `
+        --detect-stellaris-running `
+        $outputPath
+    $detectionExitCode = $LASTEXITCODE
+    $detectionText = $detectionOutput -join "`n"
+
+    if ($detectionExitCode -ne 0) {
+        throw "stellaris_running app failed. Actual output:`n$detectionText"
+    }
+
+    Assert-Contains -Name "stellaris_running app" -Text $detectionText -Expected "stellaris_process_detection_available=true"
+    Assert-Contains -Name "stellaris_running app" -Text $detectionText -Expected "stellaris_running="
+    Assert-Contains -Name "stellaris_running app" -Text $detectionText -Expected "stellaris_running_output_written=true"
+
+    $detectionJson = Get-Content -Raw -LiteralPath $outputPath
+    $null = $detectionJson | ConvertFrom-Json
+    Assert-Contains -Name "stellaris_running json" -Text $detectionJson -Expected '"schema_version": 1'
+    Assert-Contains -Name "stellaris_running json" -Text $detectionJson -Expected '"running":'
+
+    Write-Host "[PASS] stellaris_running"
 }
 
 function Invoke-SncStatusSnapshotCase {
@@ -1552,6 +1602,7 @@ Invoke-CampaignSaveDiffCase
 Invoke-CampaignLibraryPlanCase
 Invoke-CampaignLibraryOverlayCase
 Invoke-StellarisSaveRootDiscoveryCase
+Invoke-StellarisProcessDetectionCase
 Invoke-SncStatusSnapshotCase
 Invoke-AutosaveArchiveCase
 Invoke-AutosaveArchiveVerifyMismatchCase
@@ -1634,6 +1685,11 @@ if ($LASTEXITCODE -ne 0) {
 & $stellarisSavePathResolverExePath
 if ($LASTEXITCODE -ne 0) {
     throw "stellaris save path resolver tests failed."
+}
+
+& $stellarisProcessDetectorExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "stellaris process detector tests failed."
 }
 
 & $strategicNexusCompanionExePath
