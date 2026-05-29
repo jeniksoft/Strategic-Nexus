@@ -19,6 +19,7 @@ struct RunConfig {
     bool v0PriorityQueueMode = false;
     bool generatedOverlayCompileMode = false;
     bool generatedOverlayVerifyMode = false;
+    bool generatedOverlayPublishMode = false;
     bool archiveStableSavesMode = false;
     bool verifyAutosaveArchiveMode = false;
     bool summarizeAutosaveArchiveMode = false;
@@ -49,6 +50,8 @@ struct RunConfig {
     std::filesystem::path generatedOverlayDslInputPath;
     std::filesystem::path generatedOverlayOutputDirectory;
     std::filesystem::path generatedOverlayVerifyDirectory;
+    std::filesystem::path generatedOverlayPublishStagedDirectory;
+    std::filesystem::path generatedOverlayPublishActiveDirectory;
     std::filesystem::path autosaveArchiveSourceRoot;
     std::filesystem::path autosaveArchiveRoot;
     std::filesystem::path autosaveArchiveVerifyDirectory;
@@ -103,6 +106,7 @@ struct RunConfig {
     std::string offlineSpineEmpireId;
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
+    bool generatedOverlayPublishStellarisRunning = false;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;
     std::int64_t v0SequenceId = 1;
     std::int64_t v0CreatedUnixMs = 0;

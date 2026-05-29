@@ -20,6 +20,7 @@
 #include "common/FileUtil.h"
 #include "generated_overlay/DslParser.h"
 #include "generated_overlay/DslValidator.h"
+#include "generated_overlay/GeneratedOverlayPublisher.h"
 #include "generated_overlay/ManifestVerifier.h"
 #include "generated_overlay/MpOverlayPackage.h"
 #include "generated_overlay/OverlayCompiler.h"
@@ -209,6 +210,19 @@ RunConfig parseRunConfig(int argc, char* argv[])
         if (argc > 6) {
             config.mpOverlayPackageDirectory = argv[6];
         }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--publish-generated-overlay") {
+        config.generatedOverlayPublishMode = true;
+
+        if (argc > 2) {
+            config.generatedOverlayPublishStagedDirectory = argv[2];
+        }
+        if (argc > 3) {
+            config.generatedOverlayPublishActiveDirectory = argv[3];
+        }
+        config.generatedOverlayPublishStellarisRunning = argc > 4 ? std::string(argv[4]) == "true" : false;
         return config;
     }
 
@@ -690,6 +704,38 @@ int Application::run(const RunConfig& config) const
             std::cout << "generated_overlay_manifest_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
                 std::cout << "generated_overlay_manifest_file=" << sanitizeCliValue(file.path)
+                          << ";exists=" << (file.exists ? "true" : "false")
+                          << ";hash_matches=" << (file.hashMatches ? "true" : "false")
+                          << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")
+                          << "\n";
+            }
+            return result.ok ? 0 : 1;
+        }
+
+        if (config.generatedOverlayPublishMode) {
+            const generated_overlay::GeneratedOverlayPublisher publisher;
+            const auto result = publisher.publish(
+                config.generatedOverlayPublishStagedDirectory,
+                config.generatedOverlayPublishActiveDirectory,
+                config.generatedOverlayPublishStellarisRunning);
+
+            std::cout << "generated_overlay_publish_ok=" << (result.ok ? "true" : "false") << "\n";
+            std::cout << "generated_overlay_publish_reason=" << sanitizeCliValue(result.reason) << "\n";
+            std::cout << "generated_overlay_publish_source_path="
+                      << sanitizeCliValue(result.sourceDirectory.generic_string()) << "\n";
+            std::cout << "generated_overlay_publish_active_path="
+                      << sanitizeCliValue(result.activeDirectory.generic_string()) << "\n";
+            if (!result.sourceManifestHash.empty()) {
+                std::cout << "generated_overlay_publish_source_manifest_hash="
+                          << sanitizeCliValue(result.sourceManifestHash) << "\n";
+            }
+            if (!result.publishedManifestHash.empty()) {
+                std::cout << "generated_overlay_publish_manifest_hash="
+                          << sanitizeCliValue(result.publishedManifestHash) << "\n";
+            }
+            std::cout << "generated_overlay_publish_file_count=" << result.files.size() << "\n";
+            for (const auto& file : result.files) {
+                std::cout << "generated_overlay_publish_file=" << sanitizeCliValue(file.path)
                           << ";exists=" << (file.exists ? "true" : "false")
                           << ";hash_matches=" << (file.hashMatches ? "true" : "false")
                           << ";byte_count_matches=" << (file.byteCountMatches ? "true" : "false")

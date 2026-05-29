@@ -42,16 +42,20 @@ $distDir = Join-Path $repoRoot "dist"
 $smokeRoot = Join-Path $distDir "end_to_end_spine_smoke"
 $workDir = Join-Path $smokeRoot "work"
 $overlayDir = Join-Path $smokeRoot "generated_overlay"
+$activeOverlayDir = Join-Path $smokeRoot "active_generated_overlay"
 $packageDir = Join-Path $smokeRoot "mp_overlay_package"
 $statusOut = Join-Path $smokeRoot "snc_status_snapshot.json"
 
 Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $overlayDir -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $activeOverlayDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $packageDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $statusOut -Force -ErrorAction SilentlyContinue
 
 New-Item -ItemType Directory -Force -Path $workDir | Out-Null
 New-Item -ItemType Directory -Force -Path $overlayDir | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $activeOverlayDir "stale") | Out-Null
+Set-Content -LiteralPath (Join-Path $activeOverlayDir "stale/old.txt") -Encoding UTF8 -Value "old"
 New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
 
 $archiveRoot = Join-Path $smokeRoot "archive_root"
@@ -74,13 +78,25 @@ Write-Host "==> offline spine (archive -> ledger -> brief -> DSL -> overlay -> s
 & $exe --run-offline-spine $archiveSessionDir $campaignId $empireId $dslInput $workDir $overlayDir $statusOut
 Assert-LastExitCodeOk -StepName "offline spine"
 
+Write-Host "==> publish generated overlay to active directory"
+& $exe --publish-generated-overlay $overlayDir $activeOverlayDir "false"
+Assert-LastExitCodeOk -StepName "generated overlay publish"
+
+if (Test-Path -LiteralPath (Join-Path $activeOverlayDir "stale/old.txt")) {
+    throw "Published generated overlay should replace stale active files."
+}
+
+Write-Host "==> verify active generated overlay"
+& $exe --verify-generated-overlay $activeOverlayDir
+Assert-LastExitCodeOk -StepName "active generated overlay verify"
+
 Write-Host "==> stage archive root for SNC status"
 $stagedSessionDir = Join-Path $archiveRoot "session_cli"
 Remove-Item -LiteralPath $stagedSessionDir -Recurse -Force -ErrorAction SilentlyContinue
 Copy-Item -LiteralPath $archiveSessionDir -Destination $stagedSessionDir -Recurse -Force
 
 Write-Host "==> export MP overlay package"
-& $exe --export-mp-overlay-package $overlayDir $campaignId "smoke_v1" "smoke_game_v1" "smoke_sn_mod_v1" $packageDir "false"
+& $exe --export-mp-overlay-package $activeOverlayDir $campaignId "smoke_v1" "smoke_game_v1" "smoke_sn_mod_v1" $packageDir "false"
 Assert-LastExitCodeOk -StepName "mp overlay package export"
 
 Write-Host "==> verify MP overlay package"
@@ -88,7 +104,7 @@ Write-Host "==> verify MP overlay package"
 Assert-LastExitCodeOk -StepName "mp overlay package verify"
 
 Write-Host "==> SNC status snapshot (with MP package)"
-& $exe --snc-status-snapshot $archiveRoot $overlayDir $statusOut "false" $packageDir
+& $exe --snc-status-snapshot $archiveRoot $activeOverlayDir $statusOut "false" $packageDir
 Assert-LastExitCodeOk -StepName "snc status snapshot"
 
 if (-not (Test-Path -LiteralPath $statusOut)) {

@@ -137,6 +137,17 @@ $generatedOverlayVerifierSourceFiles = @(
     (Join-Path $repoRoot "src/common/JsonSanity.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/OverlayCompiler.cpp")
 )
+$generatedOverlayPublisherExePath = Join-Path $repoRoot "dist/generated_overlay_publisher_test.exe"
+$generatedOverlayPublisherSourceFiles = @(
+    (Join-Path $repoRoot "tests/generated_overlay_publisher_test.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslParser.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslValidator.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/GeneratedOverlayPublisher.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/OverlayCompiler.cpp")
+)
 $mpOverlayPackageVerifierExePath = Join-Path $repoRoot "dist/mp_overlay_package_verifier_test.exe"
 $mpOverlayPackageVerifierSourceFiles = @(
     (Join-Path $repoRoot "tests/mp_overlay_package_verifier_test.cpp"),
@@ -188,6 +199,7 @@ try {
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $processingQueueSourceFiles /Fe:$processingQueueExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayContractSourceFiles /Fe:$generatedOverlayContractExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayVerifierSourceFiles /Fe:$generatedOverlayVerifierExePath
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $generatedOverlayPublisherSourceFiles /Fe:$generatedOverlayPublisherExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $mpOverlayPackageVerifierSourceFiles /Fe:$mpOverlayPackageVerifierExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignSaveScannerSourceFiles /Fe:$campaignSaveScannerExePath
     & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $campaignLibraryPlannerSourceFiles /Fe:$campaignLibraryPlannerExePath
@@ -548,6 +560,42 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_reason=accepted"
     Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_hash="
     Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_file_count=3"
+
+    $activeOverlayPath = Join-Path $repoRoot "dist/generated_overlay_active"
+    Remove-Item -LiteralPath $activeOverlayPath -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path (Join-Path $activeOverlayPath "stale") | Out-Null
+    Set-Content -LiteralPath (Join-Path $activeOverlayPath "stale/old.txt") -Encoding UTF8 -Value "old"
+
+    $blockedPublishOutput = & $exePath `
+        --publish-generated-overlay `
+        $overlayOutputPath `
+        (Join-Path $repoRoot "dist/generated_overlay_blocked_active") `
+        true
+    $blockedPublishExitCode = $LASTEXITCODE
+    $blockedPublishText = $blockedPublishOutput -join "`n"
+    if ($blockedPublishExitCode -ne 1) {
+        throw "generated_overlay_publish blocked app failed. Expected exit code 1, got $blockedPublishExitCode. Actual output:`n$blockedPublishText"
+    }
+    Assert-Contains -Name "generated_overlay_publish blocked app" -Text $blockedPublishText -Expected "generated_overlay_publish_ok=false"
+    Assert-Contains -Name "generated_overlay_publish blocked app" -Text $blockedPublishText -Expected "generated_overlay_publish_reason=Stellaris is running; generated overlay publish deferred"
+
+    $publishOutput = & $exePath `
+        --publish-generated-overlay `
+        $overlayOutputPath `
+        $activeOverlayPath `
+        false
+    $publishExitCode = $LASTEXITCODE
+    $publishText = $publishOutput -join "`n"
+    if ($publishExitCode -ne 0) {
+        throw "generated_overlay_publish app failed. Actual output:`n$publishText"
+    }
+    Assert-Contains -Name "generated_overlay_publish app" -Text $publishText -Expected "generated_overlay_publish_ok=true"
+    Assert-Contains -Name "generated_overlay_publish app" -Text $publishText -Expected "generated_overlay_publish_reason=published"
+    Assert-Contains -Name "generated_overlay_publish app" -Text $publishText -Expected "generated_overlay_publish_manifest_hash="
+    Assert-Contains -Name "generated_overlay_publish app" -Text $publishText -Expected "generated_overlay_publish_file_count=3"
+    if (Test-Path -LiteralPath (Join-Path $activeOverlayPath "stale/old.txt")) {
+        throw "generated_overlay_publish should replace stale active overlay files."
+    }
 
     Write-Host "[PASS] generated_overlay_compile"
 }
@@ -1561,6 +1609,11 @@ if ($LASTEXITCODE -ne 0) {
 & $generatedOverlayVerifierExePath
 if ($LASTEXITCODE -ne 0) {
     throw "generated overlay verifier tests failed."
+}
+
+& $generatedOverlayPublisherExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "generated overlay publisher tests failed."
 }
 
 & $mpOverlayPackageVerifierExePath
