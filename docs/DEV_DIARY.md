@@ -64,6 +64,39 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-05-29
+
+Projekt dnes zpresnil verejny status companion vrstvy pro multiplayer generated overlay pripravu a soucasne doplnil dokumentacni a vyvojove workflow detaily kolem dalsi implementace.
+
+Co pribylo v repozitari:
+
+* Nejnovnejsi lokalni commit rozsiruje SNC status snapshot o viditelnost stavu MP overlay package, tedy o dalsi potvrzeny stavovy signal na integration boundary mezi offline analyzou, generated overlay pripravenosti a companion vystupem.
+* Verejne pushnute commity doplnily definici `Free Work` definition of done v projektove dokumentaci a upravily starsi task board list mode tak, aby zustal neinteraktivni a lepe pouzitelny pro automatizovane vyvojove workflow.
+* Nejde o novy runtime zasah do bezici session; jde o zpresneni stavove observability a podpurneho developerskeho workflow kolem existujiciho host-authoritative smeru.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Companion vrstva dal spevnuje roli bezpecneho statusoveho rozhrani mezi archivovanou kampani, offline analyzou a pripravenym next-session generated overlay artefaktem.
+* Nova viditelnost MP overlay package stavu zmensuje nejasnost kolem toho, zda je scripted event/effect path pripraven do dalsi session jako validni staged vystup, aniz by se rozsiril produkcni zasah do aktivniho runtime.
+* Dokumentacni doplneni definition of done pomaha drzet runtime interoperability research v uzsim a auditovatelnem rozsahu, kde se implementace uzavira pres jasne overitelne vystupy misto volne formulovanych mezistavu.
+
+Testy a stav overeni:
+
+* Pro commit `docs: add Free Work definition of done` (`b345c36`) je na verejnem GitHub Actions videt uspesny beh `Windows Tests #19`, spusteny push udalosti dne 28.5.2026 ve 21:01, s celkovou dobou 6 minut.
+* Nejnovejsi commit `SNC status snapshot: include MP overlay package status` (`863a1b3`) je v tuto chvili lokalne o jeden commit pred `origin/master`, takze pro nej jeste neni verejny CI vysledek k dispozici.
+* Tento denikovy beh neprovadel novy plny lokalni test run; zapis shrnuje potvrzeny stav z existujicich commit signalu a verejne dohledatelneho CI.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi multiplayer ucastniky.
+* Lepsi status snapshot zmensuje diagnostickou nejistotu, ale sam o sobe jeste neuzavira finalni export contract, campaign marker handshake ani empire identity resolver.
+* Cast dnesniho postupu sla do observability a developerske discipliny; to je uzitecne pro spolehlivost, ale samo o sobe to jeste neprevadi runtime interoperability research do plneho end-to-end dodani.
+
+Doporuceny dalsi krok:
+
+* Pushnout nejnovnejsi snapshot commit spolu s touto denikovou aktualizaci a potvrdit navazujici verejny `Windows Tests` signal i pro novy status snapshot.
+* Potom navazat explicitnim generated overlay export contractem a end-to-end overenim checksum-safe distribuce mezi host-authoritative pripravenou dalsi session a companion artefakty.
+
 ## 2026-05-28
 
 Projekt dnes dostal prvni overeny vertikalni produktovy pruchod pro offline spine a soucasne presnejsi casove ukotveni companion status snapshotu.
