@@ -301,6 +301,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.gameVersion = verification.gameVersion;
     status.strategicNexusModVersion = verification.strategicNexusModVersion;
     status.handoffStatus = verification.handoffStatus;
+    status.packageManifestHash = verification.packageManifestHash;
     if (verification.ok) {
         status.state = "ready";
         status.reason = "mp overlay package verified";
@@ -397,11 +398,11 @@ std::string buildStatusCenterSummaryText(
 {
     std::ostringstream text;
     text << "Strategic Nexus Status Center\n";
-    text << "status: " << statusCenter.state << " - " << statusCenter.reason << "\n";
-    text << "save_discovery: " << saveDiscovery.state << " - " << saveDiscovery.reason << "\n";
-    text << "archive: " << archive.state << " - " << archive.reason << "\n";
-    text << "generated_overlay: " << generatedOverlay.state << " - " << generatedOverlay.reason << "\n";
-    text << "mp_overlay_package: " << mpOverlayPackage.state << " - " << mpOverlayPackage.reason << "\n";
+    text << "stav: " << statusCenter.state << " - " << statusCenter.reason << "\n";
+    text << "nalezeni_uloziste: " << saveDiscovery.state << " - " << saveDiscovery.reason << "\n";
+    text << "archiv: " << archive.state << " - " << archive.reason << "\n";
+    text << "generovany_overlay: " << generatedOverlay.state << " - " << generatedOverlay.reason << "\n";
+    text << "mp_overlay_balicek: " << mpOverlayPackage.state << " - " << mpOverlayPackage.reason << "\n";
 
     if (!mpOverlayPackage.campaignId.empty()) {
         text << "campaign_id: " << mpOverlayPackage.campaignId << "\n";
@@ -417,6 +418,9 @@ std::string buildStatusCenterSummaryText(
     }
     if (!mpOverlayPackage.handoffStatus.empty()) {
         text << "handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
+    }
+    if (!mpOverlayPackage.packageManifestHash.empty()) {
+        text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
     return text.str();
 }
@@ -441,6 +445,7 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"game_version\": " << jsonString(status.gameVersion) << ",\n";
     output << indent << "  \"strategic_nexus_mod_version\": " << jsonString(status.strategicNexusModVersion) << ",\n";
     output << indent << "  \"handoff_status\": " << jsonString(status.handoffStatus) << ",\n";
+    output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
     output << indent << "  \"status_text\": " << jsonString(status.statusText) << "\n";
     output << indent << "}";
 }

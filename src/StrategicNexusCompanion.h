@@ -44,6 +44,7 @@ struct CompanionMpOverlayPackageStatus {
     std::string gameVersion;
     std::string strategicNexusModVersion;
     std::string handoffStatus;
+    std::string packageManifestHash;
     std::string statusText;
 };
 

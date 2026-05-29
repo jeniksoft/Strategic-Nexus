@@ -128,6 +128,14 @@ int main()
         std::cerr << "verify did not produce copyable status text\n";
         return 1;
     }
+    if (verifyResult.packageManifestHash.empty()) {
+        std::cerr << "verify did not expose package manifest hash\n";
+        return 1;
+    }
+    if (verifyResult.statusText.find("package_manifest_hash: " + verifyResult.packageManifestHash) == std::string::npos) {
+        std::cerr << "copyable status text did not include package manifest hash\n";
+        return 1;
+    }
 
     {
         auto emptyGameVersionManifest = originalManifest;

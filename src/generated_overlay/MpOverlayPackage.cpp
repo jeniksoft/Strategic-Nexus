@@ -148,6 +148,7 @@ std::string buildCopyableStatusText(
     const std::string& gameVersion,
     const std::string& strategicNexusModVersion,
     const std::string& handoffStatus,
+    const std::string& packageManifestHash,
     bool previousHostAvailable)
 {
     std::ostringstream text;
@@ -157,6 +158,7 @@ std::string buildCopyableStatusText(
     text << "game_version: " << gameVersion << "\n";
     text << "strategic_nexus_mod_version: " << strategicNexusModVersion << "\n";
     text << "handoff_status: " << handoffStatus << "\n";
+    text << "package_manifest_hash: " << packageManifestHash << "\n";
     text << "previous_host_available: " << (previousHostAvailable ? "true" : "false") << "\n";
     return text.str();
 }
@@ -359,6 +361,7 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     }
 
     const std::string manifestText = common::readTextFile(manifestPath);
+    result.packageManifestHash = fnv1a64Hex(manifestText);
     if (!common::hasBalancedJsonDelimiters(manifestText)) {
         result.reason = "malformed MP overlay package manifest";
         return result;
@@ -398,6 +401,7 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
         result.gameVersion,
         result.strategicNexusModVersion,
         result.handoffStatus,
+        result.packageManifestHash,
         *previousHostAvailable);
 
     const auto objects = extractFileObjects(manifestText);

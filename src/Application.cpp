@@ -741,6 +741,9 @@ int Application::run(const RunConfig& config) const
             if (!result.handoffStatus.empty()) {
                 std::cout << "mp_overlay_package_handoff_status=" << sanitizeCliValue(result.handoffStatus) << "\n";
             }
+            if (!result.packageManifestHash.empty()) {
+                std::cout << "mp_overlay_package_manifest_hash=" << sanitizeCliValue(result.packageManifestHash) << "\n";
+            }
             if (!result.statusText.empty()) {
                 std::cout << "mp_overlay_package_status_text=" << sanitizeCliValue(result.statusText) << "\n";
             }
@@ -794,6 +797,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_strategic_nexus_mod_version="
                       << sanitizeCliValue(snapshot.mpOverlayPackage.strategicNexusModVersion) << "\n";
             std::cout << "snc_mp_overlay_package_handoff_status=" << sanitizeCliValue(snapshot.mpOverlayPackage.handoffStatus) << "\n";
+            std::cout << "snc_mp_overlay_package_manifest_hash=" << sanitizeCliValue(snapshot.mpOverlayPackage.packageManifestHash) << "\n";
             std::cout << "snc_mp_overlay_package_status_text=" << sanitizeCliValue(snapshot.mpOverlayPackage.statusText) << "\n";
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";

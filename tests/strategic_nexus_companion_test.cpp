@@ -142,22 +142,29 @@ int main()
     requireCondition(ready.mpOverlayPackage.gameVersion == "stellaris_4.x", "mp overlay package should expose game version");
     requireCondition(ready.mpOverlayPackage.strategicNexusModVersion == "strategic_nexus_v0", "mp overlay package should expose mod version");
     requireCondition(ready.mpOverlayPackage.handoffStatus == "degraded_previous_host_unavailable", "mp overlay package should expose handoff status");
+    requireCondition(!ready.mpOverlayPackage.packageManifestHash.empty(), "mp overlay package should expose package manifest hash");
     requireCondition(
         ready.mpOverlayPackage.statusText.find("campaign_id: campaign_mp_001") != std::string::npos,
         "mp overlay package should include copyable status text");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("package_manifest_hash: " + ready.mpOverlayPackage.packageManifestHash) != std::string::npos,
+        "mp overlay package status text should include package manifest hash");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
     requireCondition(
-        ready.statusCenterSummaryText.find("status: starting - waiting for archive to become ready") != std::string::npos,
+        ready.statusCenterSummaryText.find("stav: starting - waiting for archive to become ready") != std::string::npos,
         "status center summary should include overall state");
     requireCondition(
-        ready.statusCenterSummaryText.find("archive: starting - no archive sessions yet") != std::string::npos,
+        ready.statusCenterSummaryText.find("archiv: starting - no archive sessions yet") != std::string::npos,
         "status center summary should include archive state");
     requireCondition(
-        ready.statusCenterSummaryText.find("mp_overlay_package: ready - mp overlay package verified") != std::string::npos,
+        ready.statusCenterSummaryText.find("mp_overlay_balicek: ready - mp overlay package verified") != std::string::npos,
         "status center summary should include mp overlay package state");
     requireCondition(
         ready.statusCenterSummaryText.find("campaign_id: campaign_mp_001") != std::string::npos,
         "status center summary should include MP campaign id");
+    requireCondition(
+        ready.statusCenterSummaryText.find("package_manifest_hash: " + ready.mpOverlayPackage.packageManifestHash) != std::string::npos,
+        "status center summary should include MP package manifest hash");
 
     const auto emptyOverlay = companion.buildStatusSnapshot({
         archiveRoot,
@@ -239,6 +246,7 @@ int main()
     requireCondition(
         json.find("\"handoff_status\": \"degraded_previous_host_unavailable\"") != std::string::npos,
         "JSON should include mp overlay package handoff status");
+    requireCondition(json.find("\"package_manifest_hash\": \"") != std::string::npos, "JSON should include mp overlay package manifest hash");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
