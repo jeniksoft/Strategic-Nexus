@@ -303,6 +303,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.gameVersion = verification.gameVersion;
     status.strategicNexusModVersion = verification.strategicNexusModVersion;
     status.handoffStatus = verification.handoffStatus;
+    status.readiness = verification.readiness;
     status.packageManifestHash = verification.packageManifestHash;
     if (verification.ok) {
         status.state = "ready";
@@ -510,6 +511,9 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.handoffStatus.empty()) {
         text << "handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
     }
+    if (!mpOverlayPackage.readiness.empty()) {
+        text << "mp_readiness: " << mpOverlayPackage.readiness << "\n";
+    }
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
@@ -546,6 +550,7 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"game_version\": " << jsonString(status.gameVersion) << ",\n";
     output << indent << "  \"strategic_nexus_mod_version\": " << jsonString(status.strategicNexusModVersion) << ",\n";
     output << indent << "  \"handoff_status\": " << jsonString(status.handoffStatus) << ",\n";
+    output << indent << "  \"readiness\": " << jsonString(status.readiness) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
     output << indent << "  \"status_text\": " << jsonString(status.statusText) << "\n";
     output << indent << "}";

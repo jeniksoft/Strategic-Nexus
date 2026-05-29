@@ -136,6 +136,13 @@ int main()
         std::cerr << "copyable status text did not include package manifest hash\n";
         return 1;
     }
+    if (verifyResult.readiness != "ready_for_mp" ||
+        verifyResult.statusText.find("readiness: ready_for_mp") == std::string::npos ||
+        verifyResult.statusText.find("mp_join_check: every player must use this same package_manifest_hash before joining") ==
+            std::string::npos) {
+        std::cerr << "verify did not expose MP readiness in copyable status text\n";
+        return 1;
+    }
 
     {
         auto emptyGameVersionManifest = originalManifest;
@@ -166,6 +173,10 @@ int main()
         std::cerr << "unexpected-file verification did not fail closed\n";
         return 1;
     }
+    if (unexpectedResult.readiness != "not_ready" || !unexpectedResult.statusText.empty()) {
+        std::cerr << "unexpected-file verification exposed shareable ready text\n";
+        return 1;
+    }
 
     std::filesystem::remove(packageRoot / "local_debug.txt");
     writeTextFileAtomically(
@@ -174,6 +185,10 @@ int main()
     const auto tamperedResult = verifier.verify(packageRoot);
     if (tamperedResult.ok || tamperedResult.reason != "MP overlay package files do not match manifest") {
         std::cerr << "tamper verification did not fail closed\n";
+        return 1;
+    }
+    if (tamperedResult.readiness != "not_ready" || !tamperedResult.statusText.empty()) {
+        std::cerr << "tamper verification exposed shareable ready text\n";
         return 1;
     }
 

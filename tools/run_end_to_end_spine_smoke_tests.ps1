@@ -110,6 +110,13 @@ Assert-LastExitCodeOk -StepName "snc status snapshot"
 if (-not (Test-Path -LiteralPath $statusOut)) {
     throw "SNC status snapshot output missing: $statusOut"
 }
+$snapshotJson = Get-Content -Raw -LiteralPath $statusOut
+if ($snapshotJson -notmatch '"readiness":\s*"ready_for_mp"') {
+    throw "SNC status snapshot did not include MP readiness"
+}
+if ($snapshotJson -notmatch 'mp_join_check: every player must use this same package_manifest_hash before joining') {
+    throw "SNC status snapshot did not include copyable MP join check"
+}
 
 Write-Host "end_to_end_spine_smoke_ok=true"
 Write-Host ("end_to_end_spine_smoke_output=" + $statusOut)

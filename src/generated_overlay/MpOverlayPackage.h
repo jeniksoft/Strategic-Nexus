@@ -29,6 +29,7 @@ struct MpOverlayPackageVerificationResult {
     std::string gameVersion;
     std::string strategicNexusModVersion;
     std::string handoffStatus;
+    std::string readiness;
     std::string packageManifestHash;
     std::string statusText;
     std::vector<MpOverlayPackageFileVerification> files;

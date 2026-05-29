@@ -258,6 +258,7 @@ SNC status snapshots now also include `status_center_summary_text`, a copyable h
 SNC status snapshots now include `generated_overlay_publish_gate_status`; Status Center summary shows whether generated overlay publish is currently allowed, waiting for generated overlay readiness, blocked because Stellaris is running, or blocked because process detection is unavailable.
 Generated overlay verification now exposes `generated_overlay_manifest_hash`; SNC status JSON, CLI output, and Status Center summary include it as a stable generated overlay identity signal.
 MP overlay package verification now exposes `package_manifest_hash`; SNC status JSON, CLI output, copyable MP package text, and Status Center summary include that hash as a stable package identity signal.
+MP overlay package verification now exposes `readiness`; copyable MP package status text is emitted only after the manifest, expected files, hashes, byte counts, and unexpected-file scan all pass, and Status Center summary surfaces `mp_readiness: ready_for_mp` for verified packages.
 `tools/run_end_to_end_spine_smoke_tests.ps1` is repeatable and clears only its own smoke output directories before rerunning the spine through staged overlay publish, active overlay verification, MP package export, and SNC status snapshot.
 
 ---

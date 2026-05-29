@@ -148,6 +148,7 @@ std::string buildCopyableStatusText(
     const std::string& gameVersion,
     const std::string& strategicNexusModVersion,
     const std::string& handoffStatus,
+    const std::string& readiness,
     const std::string& packageManifestHash,
     bool previousHostAvailable)
 {
@@ -158,8 +159,10 @@ std::string buildCopyableStatusText(
     text << "game_version: " << gameVersion << "\n";
     text << "strategic_nexus_mod_version: " << strategicNexusModVersion << "\n";
     text << "handoff_status: " << handoffStatus << "\n";
+    text << "readiness: " << readiness << "\n";
     text << "package_manifest_hash: " << packageManifestHash << "\n";
     text << "previous_host_available: " << (previousHostAvailable ? "true" : "false") << "\n";
+    text << "mp_join_check: every player must use this same package_manifest_hash before joining\n";
     return text.str();
 }
 
@@ -395,14 +398,6 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     result.gameVersion = *gameVersion;
     result.strategicNexusModVersion = *strategicNexusModVersion;
     result.handoffStatus = *handoffStatus;
-    result.statusText = buildCopyableStatusText(
-        result.campaignId,
-        result.overlayVersion,
-        result.gameVersion,
-        result.strategicNexusModVersion,
-        result.handoffStatus,
-        result.packageManifestHash,
-        *previousHostAvailable);
 
     const auto objects = extractFileObjects(manifestText);
     if (objects.empty()) {
@@ -462,10 +457,22 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     const bool unexpected = !result.unexpectedFiles.empty();
     result.ok = allOk && !unexpected;
     if (result.ok) {
+        result.readiness = "ready_for_mp";
+        result.statusText = buildCopyableStatusText(
+            result.campaignId,
+            result.overlayVersion,
+            result.gameVersion,
+            result.strategicNexusModVersion,
+            result.handoffStatus,
+            result.readiness,
+            result.packageManifestHash,
+            *previousHostAvailable);
         result.reason = "accepted";
     } else if (unexpected) {
+        result.readiness = "not_ready";
         result.reason = "MP overlay package contains unexpected files";
     } else {
+        result.readiness = "not_ready";
         result.reason = "MP overlay package files do not match manifest";
     }
     return result;
