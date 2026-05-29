@@ -184,6 +184,8 @@ If no supported model is installed:
 Strategic Nexus should not imply that a model is included with the mod.
 It should explain the dependency plainly and offer one-click setup for supported models where license terms allow it.
 
+Canonical details for the model weights, runtime, companion, validation, reduced-mode, and mod boundary are in [LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md).
+
 ## Model, Runtime, Companion, And Mod Boundary
 
 Strategic Nexus must keep these components separate:

@@ -158,6 +158,9 @@ The user must choose a supported model, and the companion app may recommend one 
 The model catalog must not treat unclear, gated, or incompatible model licenses as safe defaults.
 If no supported model is installed, Strategic Nexus runs in reduced mode: archive and deterministic verification can still operate, but new LLM interpretation is disabled and Status Center must report the missing model.
 
+Canonical local model/runtime/companion/mod boundary:
+[LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md)
+
 The local LLM ecosystem is layered:
 - model weights: external artifacts chosen by the user, never bundled with the mod
 - model runtime: replaceable local execution backend

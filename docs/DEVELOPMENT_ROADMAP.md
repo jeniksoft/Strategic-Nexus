@@ -32,6 +32,8 @@ Use `MULTIPLAYER_SEASON_ORCHESTRATOR.md` as the target release direction for low
 
 Use `META_RULE_LANGUAGE_AND_COMPILER.md` for the bounded DSL and deterministic compiler that converts LLM proposals into generated mod overlays.
 
+Use `LOCAL_LLM_INTEGRATION_CONTRACT.md` for the model-weights, local runtime, companion Model Manager, validation, reduced-mode, and mod boundary contract.
+
 ---
 
 # Current Scope Discipline
@@ -199,6 +201,7 @@ Required:
 * no auto-restart after explicit user exit or normal OS shutdown/restart/logoff
 * local crash/support report preparation with explicit approval before sending to `support@jeniksoft.cz`
 * companion Model Manager for user-selected supported local LLM models
+* local LLM integration contract for model weights, runtime, companion, validator, reduced-mode, and mod separation
 * no LLM model weights distributed with the Stellaris mod
 * reduced-mode Status Center warning when no supported local model is installed
 * autosave archive skeleton
@@ -231,6 +234,7 @@ Current implementation boundary:
 Follow `V0_SCOPE_AND_PIPELINE_PLAN.md` for bounded payload validation and deterministic pipeline shape.
 Follow `OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md` for the production delivery model.
 Follow `CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md` for release automation and low-interaction UX.
+Follow `LOCAL_LLM_INTEGRATION_CONTRACT.md` for local model installation, runtime trust boundaries, reduced mode, and validator-owned promotion into generated overlays.
 
 The first pipeline should prove the small `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay` direction before expanding strategic complexity.
 Generated overlays should come from validated DSL programs, not raw LLM script.

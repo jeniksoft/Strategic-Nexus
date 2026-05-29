@@ -310,6 +310,8 @@ The Model Manager should:
 The companion app may automate download, installation, runtime wiring, and configuration after the user selects a model and confirms the action.
 This automation is a convenience layer; it must not bypass license acceptance, gated access, authentication, or user consent.
 
+Canonical details for the model weights, runtime, companion, validation, reduced-mode, and mod boundary are in [LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md).
+
 ## Local LLM Ecosystem Layers
 
 The local LLM ecosystem has four separate layers.

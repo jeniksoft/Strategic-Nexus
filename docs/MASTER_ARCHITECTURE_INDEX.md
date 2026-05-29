@@ -76,6 +76,7 @@ Core documents:
 * [V0_SCOPE_AND_PIPELINE_PLAN.md](V0_SCOPE_AND_PIPELINE_PLAN.md) - bounded v0 scope and offline validator pipeline boundary
 * [OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md](OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md) - revised session-to-session architecture, autosave archiving, campaign analysis, and next-session mod refresh
 * [CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md](CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md) - target release orchestrator architecture for minimal mandatory user interaction
+* [LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md) - local model weights, runtime, companion, validation, reduced-mode, and mod boundary contract
 * [META_RULE_LANGUAGE_AND_COMPILER.md](META_RULE_LANGUAGE_AND_COMPILER.md) - bounded DSL and deterministic compiler from LLM proposals to generated mod overlay
 * [GENERATED_OVERLAY_LAYOUT_CONTRACT.md](GENERATED_OVERLAY_LAYOUT_CONTRACT.md) - v0 generated overlay file layout and staging contract
 * [MULTIPLAYER_SEASON_ORCHESTRATOR.md](MULTIPLAYER_SEASON_ORCHESTRATOR.md) - host-coordinated low-friction multiplayer season/package architecture
@@ -104,6 +105,9 @@ SNC acts as a campaign orchestrator and should automate safe staging decisions w
 Local analysis updates campaign-scoped memory between play sessions.
 The generated mod overlay applies bounded strategic state on the next launch.
 The LLM proposes only bounded DSL rules; the compiler validates and translates them.
+LLM model weights are external user-selected dependencies and are never distributed with the mod.
+The local model runtime is replaceable and is not a safety boundary.
+The companion validates all model output before any generated overlay can be accepted.
 The mod applies safe scripted behavior and fallback logic.
 ```
 
@@ -311,6 +315,7 @@ Status:
 
 Primary documents:
 
+* [LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md)
 * [LLM_DECISION_CONTRACT.md](LLM_DECISION_CONTRACT.md)
 * [LLM_CONTEXT_BUDGET_RULES.md](LLM_CONTEXT_BUDGET_RULES.md)
 * [LLM_MODEL_SELECTION_AND_TASK_FIT_RULES.md](LLM_MODEL_SELECTION_AND_TASK_FIT_RULES.md)
@@ -324,6 +329,7 @@ Important distinction:
 
 * `CODEX_MODEL_USAGE_RULES.md` governs Codex development behavior
 * `FREE_WORK_AND_USAGE_BUDGET_RULES.md` governs Codex autonomous work intensity from user-declared remaining usage budget
+* `LOCAL_LLM_INTEGRATION_CONTRACT.md` governs future Strategic Nexus model weights, runtime, companion, validation, reduced-mode, and mod separation
 * `LLM_MODEL_SELECTION_AND_TASK_FIT_RULES.md` governs future Strategic Nexus daemon/model selection
 
 Current target:
