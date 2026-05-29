@@ -14,8 +14,11 @@ The roadmap is a living document and must be continuously updated.
 
 Before using this roadmap for autonomous Free Work, revalidate the selected item against the current canonical architecture documents.
 If this roadmap conflicts with newer architecture decisions, update the roadmap or ask the project owner before implementing the stale item.
-If a roadmap item is stale, blocked, or requires user interaction, mark or note why, then continue with another safe high-value item when possible.
-Roadmap order is priority guidance, not mandatory execution order.
+Roadmap order is the default implementation order.
+Codex should finish the current active roadmap slice before starting the next one, then take the next unblocked item in order.
+Codex should skip ahead only when the current item is genuinely blocked, stale, unsafe, externally unavailable, or requires owner input before meaningful progress can continue.
+When Codex skips a roadmap item, it must record the blocker, what would unblock it, and the date/commit context when useful, then continue with the next unblocked item in roadmap order.
+Speculative optimization, polish, or preference for a more interesting task is not a valid reason to skip roadmap order.
 
 Use `MASTER_ARCHITECTURE_INDEX.md` as the canonical navigation layer for project architecture.
 
@@ -34,6 +37,9 @@ Use `META_RULE_LANGUAGE_AND_COMPILER.md` for the bounded DSL and deterministic c
 # Current Scope Discipline
 
 Roadmap work should prefer completed vertical slices over broad parallel expansion.
+
+Work should proceed sequentially inside the active stabilization slice.
+Each step should be implemented, verified, documented when needed, and either marked done or explicitly blocked before Codex moves to the next step.
 
 Default stabilization slice:
 

@@ -808,11 +808,11 @@ verified archive -> season delta ledger -> empire brief -> validated DSL -> gene
 
 ---
 
-# Roadmap Revalidation Rule
+# Roadmap Revalidation And Order Rule
 
-Before starting each new Free Work task, Codex should treat the roadmap as a candidate priority list, not as unquestionable truth.
+Before starting each new Free Work task, Codex should treat the roadmap as the default ordered implementation sequence, not as an unordered menu.
 
-Codex must briefly revalidate the selected roadmap item against current canonical architecture:
+Codex must briefly revalidate the next roadmap item in order against current canonical architecture:
 
 1. `MASTER_ARCHITECTURE_INDEX.md`
 2. `ARCHITECTURE.md`
@@ -820,25 +820,28 @@ Codex must briefly revalidate the selected roadmap item against current canonica
 4. relevant subsystem rule documents
 5. recent committed implementation state
 
-If the roadmap item still matches the architecture, Codex may continue.
+If the roadmap item still matches the architecture and is not blocked, Codex should continue with that item.
 
 If the roadmap is stale or conflicts with the current architecture, Codex should first:
 
 * update the roadmap when the correction is obvious and low-risk
-* mark or note the stale/conflicting item as skipped when it cannot be corrected immediately
-* continue with another suitable roadmap item when possible
+* mark or note the stale/conflicting item as blocked or skipped when it cannot be corrected immediately
+* record what would unblock it and the current date/commit context when useful
+* continue with the next unblocked roadmap item in order
 * ask the user only when no useful safe task remains or when the conflict must be resolved before meaningful progress can continue
 
 Codex should choose the next task by:
 
 * roadmap priority
+* roadmap order within the active vertical slice
 * user availability
 * local testability
 * implementation value
 * safety and rollback simplicity
 * remaining declared usage budget
 
-The roadmap should guide Free Work, not override architectural truth.
+The roadmap should guide Free Work in order, but it must not override architectural truth.
+Codex should not skip ahead because a later item is easier, more interesting, or cosmetically nicer.
 
 ---
 
@@ -846,14 +849,14 @@ The roadmap should guide Free Work, not override architectural truth.
 
 Free Work should not stop just because one roadmap item is stale, blocked, or needs user input.
 
-When a selected roadmap item cannot be worked safely, Codex should record its state and move to the next valuable item when possible.
+When the next roadmap item cannot be worked safely, Codex should record its state and move to the next unblocked roadmap item in order when possible.
 
 Use these states in docs, task-board notes, or implementation notes as appropriate:
 
 * `ACTIVE` - currently being worked
 * `DONE` - completed and verified enough for the current phase
 * `SKIPPED_STALE` - roadmap item conflicts with current architecture
-* `SKIPPED_LOW_VALUE` - item is technically possible but not worth current budget
+* `SKIPPED_LOW_VALUE` - item is technically possible but not worth current budget; use sparingly and not to bypass the active stabilization slice
 * `BLOCKED_USER` - needs project-owner input
 * `BLOCKED_EXTERNAL` - needs external/manual action, unavailable tool, or unavailable environment
 * `RESUME_CANDIDATE` - should be reconsidered after architecture, budget, or user input changes
@@ -873,7 +876,7 @@ When the situation changes, Codex should update or clear the stale/blocked recor
 Free Work should prefer:
 
 ```text
-record blocker -> continue another safe task
+record blocker -> continue next unblocked roadmap item in order
 ```
 
 over:

@@ -74,7 +74,7 @@ Bounded bug fixes should be handled automatically unless the fix requires owner-
 
 Codex should not stall just because one item needs the owner.
 
-If a task needs owner input, Codex should record it visibly and continue with another safe high-value task when possible.
+If a task needs owner input, Codex should record it visibly and continue with the next unblocked roadmap item in order when possible.
 
 ---
 
