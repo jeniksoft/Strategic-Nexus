@@ -121,6 +121,7 @@ int main()
     const ManifestVerifier verifier;
     const auto accepted = verifier.verify(overlayRoot);
     requireCondition(accepted.ok, "verifier should accept intact generated overlay");
+    requireCondition(!accepted.manifestHash.empty(), "verifier should expose generated overlay manifest hash");
     requireCondition(accepted.files.size() == 3, "verifier should report three generated gameplay files");
     for (const auto& file : accepted.files) {
         requireCondition(

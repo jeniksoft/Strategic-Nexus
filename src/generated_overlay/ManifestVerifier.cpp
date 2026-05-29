@@ -179,6 +179,7 @@ ManifestVerificationResult ManifestVerifier::verify(const std::filesystem::path&
         result.reason = "malformed generated overlay manifest";
         return result;
     }
+    result.manifestHash = fnv1a64Hex(manifestText);
 
     const auto objects = extractManifestFileObjects(manifestText);
     if (objects.empty()) {

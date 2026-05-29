@@ -33,6 +33,7 @@ struct CompanionSubsystemStatus {
     std::string state;
     std::string reason;
     std::filesystem::path path;
+    std::string manifestHash;
 };
 
 struct CompanionMpOverlayPackageStatus {

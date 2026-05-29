@@ -24,6 +24,7 @@ struct ManifestFileVerification {
 struct ManifestVerificationResult {
     bool ok = false;
     std::string reason;
+    std::string manifestHash;
     std::vector<ManifestFileVerification> files;
     std::vector<std::string> unexpectedFiles;
 };

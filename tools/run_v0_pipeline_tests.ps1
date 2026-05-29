@@ -546,6 +546,7 @@ function Invoke-GeneratedOverlayCompileCase {
 
     Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_ok=true"
     Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_reason=accepted"
+    Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_hash="
     Assert-Contains -Name "generated_overlay_verify app" -Text $verifyText -Expected "generated_overlay_manifest_file_count=3"
 
     Write-Host "[PASS] generated_overlay_compile"
@@ -844,6 +845,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_abbreviation=SNC"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_state=ready"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_manifest_hash="
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_output_written=true"
 
@@ -852,6 +854,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"app_name": "Strategic Nexus Companion"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"abbreviation": "SNC"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"window_close_behavior": "minimize_to_tray"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"manifest_hash": "'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"status_center":'
 
     Write-Host "[PASS] snc_status_snapshot"

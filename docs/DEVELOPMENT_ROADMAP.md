@@ -247,6 +247,7 @@ The generated overlay verifier also fails closed on unknown v0 generated overlay
 `Strategic Nexus.exe --run-offline-spine <session_archive_dir> <campaign_id> <empire_id> <input.dsl> <work_dir> <overlay_output_dir> <status_output_json>` verifies one archive session, writes the metadata-only season delta ledger and empire brief, compiles an explicit validated DSL into a generated overlay, verifies the overlay manifest, and emits an SNC status snapshot.
 This is the first tested vertical product spine for `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility`.
 SNC status snapshots now also include `status_center_summary_text`, a copyable human-readable status summary for archive, save discovery, generated overlay, and MP overlay package readiness.
+Generated overlay verification now exposes `generated_overlay_manifest_hash`; SNC status JSON, CLI output, and Status Center summary include it as a stable generated overlay identity signal.
 MP overlay package verification now exposes `package_manifest_hash`; SNC status JSON, CLI output, copyable MP package text, and Status Center summary include that hash as a stable package identity signal.
 `tools/run_end_to_end_spine_smoke_tests.ps1` is repeatable and clears only its own smoke output directories before rerunning the spine.
 

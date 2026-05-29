@@ -684,6 +684,9 @@ int Application::run(const RunConfig& config) const
 
             std::cout << "generated_overlay_manifest_ok=" << (result.ok ? "true" : "false") << "\n";
             std::cout << "generated_overlay_manifest_reason=" << sanitizeCliValue(result.reason) << "\n";
+            if (!result.manifestHash.empty()) {
+                std::cout << "generated_overlay_manifest_hash=" << sanitizeCliValue(result.manifestHash) << "\n";
+            }
             std::cout << "generated_overlay_manifest_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
                 std::cout << "generated_overlay_manifest_file=" << sanitizeCliValue(file.path)
@@ -788,6 +791,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_generated_overlay_state=" << sanitizeCliValue(snapshot.generatedOverlay.state) << "\n";
             std::cout << "snc_generated_overlay_reason=" << sanitizeCliValue(snapshot.generatedOverlay.reason) << "\n";
             std::cout << "snc_generated_overlay_path=" << sanitizeCliValue(stdoutPath(snapshot.generatedOverlay.path)) << "\n";
+            std::cout << "snc_generated_overlay_manifest_hash=" << sanitizeCliValue(snapshot.generatedOverlay.manifestHash) << "\n";
             std::cout << "snc_mp_overlay_package_state=" << sanitizeCliValue(snapshot.mpOverlayPackage.state) << "\n";
             std::cout << "snc_mp_overlay_package_reason=" << sanitizeCliValue(snapshot.mpOverlayPackage.reason) << "\n";
             std::cout << "snc_mp_overlay_package_path=" << sanitizeCliValue(stdoutPath(snapshot.mpOverlayPackage.path)) << "\n";

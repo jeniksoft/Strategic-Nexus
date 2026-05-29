@@ -136,6 +136,7 @@ int main()
     requireCondition(ready.saveDiscovery.state == "ready", "save discovery should find at least one save root in fixture");
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest verifies");
+    requireCondition(!ready.generatedOverlay.manifestHash.empty(), "overlay status should expose generated overlay manifest hash");
     requireCondition(ready.mpOverlayPackage.state == "ready", "mp overlay package should be ready when verified");
     requireCondition(ready.mpOverlayPackage.campaignId == "campaign_mp_001", "mp overlay package should expose campaign id");
     requireCondition(ready.mpOverlayPackage.overlayVersion == "overlay_v1", "mp overlay package should expose overlay version");
@@ -159,6 +160,9 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_overlay_balicek: ready - mp overlay package verified") != std::string::npos,
         "status center summary should include mp overlay package state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_manifest_hash: " + ready.generatedOverlay.manifestHash) != std::string::npos,
+        "status center summary should include generated overlay manifest hash");
     requireCondition(
         ready.statusCenterSummaryText.find("campaign_id: campaign_mp_001") != std::string::npos,
         "status center summary should include MP campaign id");
@@ -238,6 +242,7 @@ int main()
     requireCondition(json.find("\"archive_status\"") != std::string::npos, "JSON should include archive status");
     requireCondition(json.find("\"save_discovery_status\"") != std::string::npos, "JSON should include save discovery status");
     requireCondition(json.find("\"generated_overlay_status\"") != std::string::npos, "JSON should include overlay status");
+    requireCondition(json.find("\"manifest_hash\": \"") != std::string::npos, "JSON should include generated overlay manifest hash");
     requireCondition(json.find("\"mp_overlay_package_status\"") != std::string::npos, "JSON should include mp overlay package status");
     requireCondition(json.find("\"campaign_id\": \"campaign_mp_001\"") != std::string::npos, "JSON should include mp overlay package campaign id");
     requireCondition(json.find("\"overlay_version\": \"overlay_v1\"") != std::string::npos, "JSON should include mp overlay package overlay version");

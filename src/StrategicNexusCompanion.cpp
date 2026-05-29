@@ -224,6 +224,7 @@ CompanionSubsystemStatus buildGeneratedOverlayStatus(const std::filesystem::path
 
     const generated_overlay::ManifestVerifier verifier;
     const auto verification = verifier.verify(overlayDirectory);
+    status.manifestHash = verification.manifestHash;
     if (verification.ok) {
         status.state = "ready";
         status.reason = "generated overlay verified";
@@ -404,6 +405,9 @@ std::string buildStatusCenterSummaryText(
     text << "generovany_overlay: " << generatedOverlay.state << " - " << generatedOverlay.reason << "\n";
     text << "mp_overlay_balicek: " << mpOverlayPackage.state << " - " << mpOverlayPackage.reason << "\n";
 
+    if (!generatedOverlay.manifestHash.empty()) {
+        text << "generated_overlay_manifest_hash: " << generatedOverlay.manifestHash << "\n";
+    }
     if (!mpOverlayPackage.campaignId.empty()) {
         text << "campaign_id: " << mpOverlayPackage.campaignId << "\n";
     }
@@ -425,12 +429,22 @@ std::string buildStatusCenterSummaryText(
     return text.str();
 }
 
-void writeSubsystemJson(std::ostringstream& output, const CompanionSubsystemStatus& status, const std::string& indent)
+void writeSubsystemJson(
+    std::ostringstream& output,
+    const CompanionSubsystemStatus& status,
+    const std::string& indent,
+    const bool includeManifestHash = false)
 {
     output << indent << "{\n";
     output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
     output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
-    output << indent << "  \"path\": " << jsonString(pathString(status.path)) << "\n";
+    output << indent << "  \"path\": " << jsonString(pathString(status.path));
+    if (includeManifestHash) {
+        output << ",\n";
+        output << indent << "  \"manifest_hash\": " << jsonString(status.manifestHash) << "\n";
+    } else {
+        output << "\n";
+    }
     output << indent << "}";
 }
 
@@ -497,7 +511,7 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     writeSubsystemJson(output, snapshot.saveDiscovery, "  ");
     output << ",\n";
     output << "  \"generated_overlay_status\": ";
-    writeSubsystemJson(output, snapshot.generatedOverlay, "  ");
+    writeSubsystemJson(output, snapshot.generatedOverlay, "  ", true);
     output << ",\n";
     output << "  \"mp_overlay_package_status\": ";
     writeMpOverlayPackageJson(output, snapshot.mpOverlayPackage, "  ");
