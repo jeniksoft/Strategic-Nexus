@@ -52,6 +52,24 @@ int main()
     requireCondition(rejected.missingInformation.empty(), "rejected brief should not emit missing-information payload");
     requireCondition(rejected.compressionNotes.empty(), "rejected brief should not emit compression notes");
 
+    const auto whitespaceRejected = builder.build(ledger, " \t\r\n");
+    requireCondition(!whitespaceRejected.ok, "brief should reject whitespace-only empire id");
+    requireCondition(whitespaceRejected.reason == "missing empire id", "brief should treat whitespace empire id as missing");
+
+    strategic_nexus::SeasonDeltaLedger missingCampaignLedger = ledger;
+    missingCampaignLedger.campaignId = " \t\r\n";
+    const auto missingCampaign = builder.build(missingCampaignLedger, "empire_001");
+    requireCondition(!missingCampaign.ok, "brief should reject missing campaign id");
+    requireCondition(missingCampaign.reason == "missing campaign id", "brief should explain missing campaign id");
+
+    strategic_nexus::SeasonDeltaLedger unsupportedQualityLedger = ledger;
+    unsupportedQualityLedger.deltaQuality = "future_quality";
+    const auto unsupportedQuality = builder.build(unsupportedQualityLedger, "empire_001");
+    requireCondition(!unsupportedQuality.ok, "brief should reject unsupported source ledger quality");
+    requireCondition(
+        unsupportedQuality.reason == "unsupported source ledger quality",
+        "brief should explain unsupported source ledger quality");
+
     std::cout << "season empire brief builder tests passed.\n";
     return 0;
 }

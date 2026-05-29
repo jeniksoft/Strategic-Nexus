@@ -1058,6 +1058,20 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"campaign_id": "campaign_cli"'
     Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"save_content_not_parsed_yet"'
 
+    $invalidInputOutput = & $exePath `
+        --build-ministry-input-from-archive `
+        (Join-Path $archiveRoot "session_cli") `
+        "  " `
+        "empire_cli" `
+        "military" `
+        (Join-Path $archiveRoot "session_cli_invalid_ministry_input.json")
+    $invalidInputExitCode = $LASTEXITCODE
+    $invalidInputText = $invalidInputOutput -join "`n"
+    if ($invalidInputExitCode -eq 0) {
+        throw "archive ministry input app expected failure for whitespace campaign id. Actual output:`n$invalidInputText"
+    }
+    Assert-Contains -Name "archive ministry input app (whitespace campaign id)" -Text $invalidInputText -Expected "archive_ministry_input_success=false"
+
     $archivePipelineInputPath = Join-Path $archiveRoot "session_cli_archive_pipeline_input.json"
     $archivePipelineDecisionPath = Join-Path $archiveRoot "session_cli_archive_pipeline_decision.json"
     $archivePipelineAuditPath = Join-Path $archiveRoot "session_cli_archive_pipeline_audit.json"
@@ -1086,6 +1100,25 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "archive v0 pipeline app" -Text $archivePipelineText -Expected "archive_v0_pipeline_campaign_id=campaign_cli"
     Assert-Contains -Name "archive v0 pipeline app" -Text $archivePipelineText -Expected "archive_v0_pipeline_empire_id=empire_cli"
 
+    $badArchivePipelineOutput = & $exePath `
+        --v0-pipeline-from-archive `
+        (Join-Path $archiveRoot "session_cli") `
+        "campaign_cli" `
+        "   " `
+        "military" `
+        (Join-Path $archiveRoot "session_cli_archive_pipeline_input_bad.json") `
+        (Join-Path $archiveRoot "session_cli_archive_pipeline_decision_bad.json") `
+        301 `
+        123456 `
+        30000 `
+        (Join-Path $archiveRoot "session_cli_archive_pipeline_audit_bad.json")
+    $badArchivePipelineExitCode = $LASTEXITCODE
+    $badArchivePipelineText = $badArchivePipelineOutput -join "`n"
+    if ($badArchivePipelineExitCode -eq 0) {
+        throw "archive v0 pipeline app expected failure for whitespace empire id. Actual output:`n$badArchivePipelineText"
+    }
+    Assert-Contains -Name "archive v0 pipeline app (whitespace empire id)" -Text $badArchivePipelineText -Expected "archive_v0_pipeline_success=false"
+
     $archivePipelineDecisionJson = Get-Content -Raw -LiteralPath $archivePipelineDecisionPath
     $null = $archivePipelineDecisionJson | ConvertFrom-Json
     Assert-Contains -Name "archive v0 pipeline decision json" -Text $archivePipelineDecisionJson -Expected '"campaign_id": "campaign_cli"'
@@ -1113,6 +1146,18 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "season delta ledger app" -Text $ledgerText -Expected "season_delta_ledger_success=true"
     Assert-Contains -Name "season delta ledger app" -Text $ledgerText -Expected "season_delta_ledger_campaign_id=campaign_cli"
     Assert-Contains -Name "season delta ledger app" -Text $ledgerText -Expected "season_delta_ledger_save_count=1"
+
+    $badWhitespaceLedgerOutput = & $exePath `
+        --build-season-delta-ledger `
+        (Join-Path $archiveRoot "session_cli") `
+        "   " `
+        (Join-Path $archiveRoot "session_cli_delta_ledger_whitespace.json")
+    $badWhitespaceLedgerExitCode = $LASTEXITCODE
+    $badWhitespaceLedgerText = $badWhitespaceLedgerOutput -join "`n"
+    if ($badWhitespaceLedgerExitCode -eq 0) {
+        throw "season delta ledger app expected failure for whitespace campaign id. Actual output:`n$badWhitespaceLedgerText"
+    }
+    Assert-Contains -Name "season delta ledger app (whitespace campaign id)" -Text $badWhitespaceLedgerText -Expected "season_delta_ledger_success=false"
 
     $ledgerJson = Get-Content -Raw -LiteralPath $ledgerPath
     $null = $ledgerJson | ConvertFrom-Json
@@ -1162,6 +1207,19 @@ function Invoke-AutosaveArchiveCase {
     Assert-Contains -Name "archive empire brief app" -Text $briefText -Expected "archive_empire_brief_success=true"
     Assert-Contains -Name "archive empire brief app" -Text $briefText -Expected "archive_empire_brief_campaign_id=campaign_cli"
     Assert-Contains -Name "archive empire brief app" -Text $briefText -Expected "archive_empire_brief_empire_id=empire_cli"
+
+    $badWhitespaceBriefOutput = & $exePath `
+        --build-empire-brief-from-archive `
+        (Join-Path $archiveRoot "session_cli") `
+        "campaign_cli" `
+        "   " `
+        (Join-Path $archiveRoot "session_cli_empire_brief_whitespace.json")
+    $badWhitespaceBriefExitCode = $LASTEXITCODE
+    $badWhitespaceBriefText = $badWhitespaceBriefOutput -join "`n"
+    if ($badWhitespaceBriefExitCode -eq 0) {
+        throw "archive empire brief app expected failure for whitespace empire id. Actual output:`n$badWhitespaceBriefText"
+    }
+    Assert-Contains -Name "archive empire brief app (whitespace empire id)" -Text $badWhitespaceBriefText -Expected "archive_empire_brief_success=false"
 
     $briefJson = Get-Content -Raw -LiteralPath $briefPath
     $null = $briefJson | ConvertFrom-Json

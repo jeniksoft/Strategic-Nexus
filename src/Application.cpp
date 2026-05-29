@@ -79,6 +79,16 @@ std::string sanitizeCliValue(const std::string& value)
     return output.str();
 }
 
+bool hasNonWhitespace(const std::string& value)
+{
+    for (const char ch : value) {
+        if (!(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')) {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace
 
 RunConfig parseRunConfig(int argc, char* argv[])
@@ -1180,9 +1190,9 @@ int Application::run(const RunConfig& config) const
 
         if (config.buildMinistryInputFromArchiveMode) {
             if (config.archiveMinistryInputDirectory.empty() ||
-                config.archiveMinistryInputCampaignId.empty() ||
-                config.archiveMinistryInputEmpireId.empty() ||
-                config.archiveMinistryInputMinistry.empty() ||
+                !hasNonWhitespace(config.archiveMinistryInputCampaignId) ||
+                !hasNonWhitespace(config.archiveMinistryInputEmpireId) ||
+                !hasNonWhitespace(config.archiveMinistryInputMinistry) ||
                 config.archiveMinistryInputOutputPath.empty()) {
                 std::cout << "archive_ministry_input_success=false\n";
                 std::cout << "archive_ministry_input_reason=missing archive directory, identity, ministry, or output path\n";
@@ -1220,9 +1230,9 @@ int Application::run(const RunConfig& config) const
 
         if (config.v0PipelineFromArchiveMode) {
             if (config.archivePipelineDirectory.empty() ||
-                config.archivePipelineCampaignId.empty() ||
-                config.archivePipelineEmpireId.empty() ||
-                config.archivePipelineMinistry.empty() ||
+                !hasNonWhitespace(config.archivePipelineCampaignId) ||
+                !hasNonWhitespace(config.archivePipelineEmpireId) ||
+                !hasNonWhitespace(config.archivePipelineMinistry) ||
                 config.archivePipelineMinistryInputOutputPath.empty() ||
                 config.archivePipelineDecisionOutputPath.empty()) {
                 std::cout << "archive_v0_pipeline_success=false\n";
@@ -1281,7 +1291,7 @@ int Application::run(const RunConfig& config) const
 
 	        if (config.buildSeasonDeltaLedgerMode) {
 	            if (config.seasonDeltaLedgerDirectory.empty() ||
-	                config.seasonDeltaLedgerCampaignId.empty() ||
+	                !hasNonWhitespace(config.seasonDeltaLedgerCampaignId) ||
 	                config.seasonDeltaLedgerOutputPath.empty()) {
 	                std::cout << "season_delta_ledger_success=false\n";
 	                std::cout << "season_delta_ledger_reason=missing archive directory, campaign id, or output path\n";
@@ -1313,8 +1323,8 @@ int Application::run(const RunConfig& config) const
 
 	        if (config.buildEmpireBriefFromArchiveMode) {
 	            if (config.archiveEmpireBriefDirectory.empty() ||
-	                config.archiveEmpireBriefCampaignId.empty() ||
-	                config.archiveEmpireBriefEmpireId.empty() ||
+	                !hasNonWhitespace(config.archiveEmpireBriefCampaignId) ||
+	                !hasNonWhitespace(config.archiveEmpireBriefEmpireId) ||
 	                config.archiveEmpireBriefOutputPath.empty()) {
 	                std::cout << "archive_empire_brief_success=false\n";
 	                std::cout << "archive_empire_brief_reason=missing archive directory, identity, or output path\n";

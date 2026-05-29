@@ -9,6 +9,16 @@
 namespace strategic_nexus {
 namespace {
 
+bool hasNonWhitespace(const std::string& value)
+{
+    for (const char ch : value) {
+        if (!(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string jsonEscape(const std::string& value)
 {
     std::ostringstream output;
@@ -71,10 +81,14 @@ SeasonDeltaLedger SeasonDeltaLedgerBuilder::build(
     const std::string& campaignId) const
 {
     SeasonDeltaLedger ledger;
-    ledger.ok = summary.ok && !campaignId.empty();
+    const bool campaignIdValid = hasNonWhitespace(campaignId);
+    const bool hasCopiedSaves = summary.copiedSaveCount > 0;
+    ledger.ok = summary.ok && campaignIdValid && hasCopiedSaves;
     ledger.reason = summary.ok ? "accepted" : summary.reason;
-    if (summary.ok && campaignId.empty()) {
+    if (summary.ok && !campaignIdValid) {
         ledger.reason = "missing campaign id";
+    } else if (summary.ok && !hasCopiedSaves) {
+        ledger.reason = "no copied saves in verified archive";
     }
     ledger.sessionArchiveDirectory = summary.sessionArchiveDirectory;
     ledger.campaignId = campaignId;

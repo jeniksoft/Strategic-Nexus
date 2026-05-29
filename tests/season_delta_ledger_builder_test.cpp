@@ -53,6 +53,18 @@ int main()
     requireCondition(rejected.reason == "missing campaign id", "ledger should explain missing campaign id");
     requireCondition(rejected.deltaQuality == "unavailable", "rejected ledger should mark delta quality as unavailable");
 
+    const auto whitespaceRejected = builder.build(summary, " \t\r\n");
+    requireCondition(!whitespaceRejected.ok, "ledger should reject whitespace-only campaign id");
+    requireCondition(whitespaceRejected.reason == "missing campaign id", "ledger should treat whitespace campaign id as missing");
+
+    strategic_nexus::AutosaveArchiveSummary emptyVerifiedSummary = summary;
+    emptyVerifiedSummary.copiedSaveCount = 0;
+    const auto noSavesRejected = builder.build(emptyVerifiedSummary, "campaign_001");
+    requireCondition(!noSavesRejected.ok, "ledger should reject verified archive without copied saves");
+    requireCondition(
+        noSavesRejected.reason == "no copied saves in verified archive",
+        "ledger should explain missing copied saves in verified archive");
+
     strategic_nexus::AutosaveArchiveSummary badSummary;
     badSummary.ok = false;
     badSummary.reason = "archive failure";

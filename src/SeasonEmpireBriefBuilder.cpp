@@ -9,6 +9,16 @@
 namespace strategic_nexus {
 namespace {
 
+bool hasNonWhitespace(const std::string& value)
+{
+    for (const char ch : value) {
+        if (!(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string jsonEscape(const std::string& value)
 {
     std::ostringstream output;
@@ -57,10 +67,17 @@ SeasonEmpireBrief SeasonEmpireBriefBuilder::build(
     const std::string& empireId) const
 {
     SeasonEmpireBrief brief;
-    brief.ok = ledger.ok && !empireId.empty();
+    const bool campaignIdValid = hasNonWhitespace(ledger.campaignId);
+    const bool empireIdValid = hasNonWhitespace(empireId);
+    const bool supportedLedgerQuality = ledger.deltaQuality == "metadata_only";
+    brief.ok = ledger.ok && campaignIdValid && empireIdValid && supportedLedgerQuality;
     brief.reason = ledger.ok ? "accepted" : ledger.reason;
-    if (ledger.ok && empireId.empty()) {
+    if (ledger.ok && !campaignIdValid) {
+        brief.reason = "missing campaign id";
+    } else if (ledger.ok && !empireIdValid) {
         brief.reason = "missing empire id";
+    } else if (ledger.ok && !supportedLedgerQuality) {
+        brief.reason = "unsupported source ledger quality";
     }
     brief.campaignId = ledger.campaignId;
     brief.empireId = empireId;
