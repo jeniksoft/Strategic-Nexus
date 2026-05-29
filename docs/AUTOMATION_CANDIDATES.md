@@ -88,7 +88,7 @@ Expected output:
 * refresh the daily Free Work operating plan from latest budget/cadence/project data
 * identify next 1-3 safe Free Work candidates
 * identify blockers needing owner input
-* automatically accept the daily plan when it stays inside approved `FREE_WORK_AND_USAGE_BUDGET_RULES.md`
+* automatically accept the daily plan when it stays inside approved `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
 * prefer product/runtime implementation when maintenance balance is too high and safe implementation work is available
 * update task-board entries only when action is needed
 * optionally contribute to one daily Free Work report entry instead of posting frequent small reports
@@ -135,7 +135,7 @@ Expected output:
 * run `tools/dev_attention/tune_freework_cadence.ps1`
 * write `dist/private_reports/freework_cadence_recommendation.json`
 * warn only if budget data is stale or missing during active Free Work
-* suggest current work mode from `FREE_WORK_AND_USAGE_BUDGET_RULES.md`
+* suggest current work mode from `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
 * recommend whether `sn-bounded-free-work-execution` should change cadence
 * if the recommendation differs, update the Free Work automation only when the change is clearly within approved budget rules; otherwise create a `Navrhy` item for owner review
 * if the recommendation matches current cadence, do not create report spam
@@ -185,7 +185,7 @@ Expected output:
 * read `.codex_local/usage_budget_log.csv`
 * read `.codex_local/codex_work_log.csv`
 * optionally read `dist/private_reports/freework_cadence_recommendation.json`
-* read `FREE_WORK_AND_USAGE_BUDGET_RULES.md`
+* read `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
 * estimate approximate burn rate from recent user-reported readings and known work windows when enough data exists
 * revalidate the chosen roadmap item against current architecture docs
 * if remaining budget is above 80%, allow frequent one-chunk execution

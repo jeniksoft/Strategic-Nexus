@@ -1,6 +1,7 @@
 param(
     [string]$UsageBudgetStatePath = ".codex_local/usage_budget_state.md",
     [string]$UsageBudgetLogPath = ".codex_local/usage_budget_log.csv",
+    [string]$BudgetRulesPath = "docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md",
     [string]$ProjectProgressPath = "dist/private_reports/project_progress_estimate.json",
     [string]$FreeworkAutomationPath = "$env:USERPROFILE\.codex\automations\sn-bounded-free-work-execution\automation.toml",
     [string]$OutputPath = "dist/private_reports/freework_cadence_recommendation.json",
@@ -203,8 +204,13 @@ function Get-RRuleForHours {
 
 $usagePath = Resolve-ProjectPath $UsageBudgetStatePath
 $usageLogPath = Resolve-ProjectPath $UsageBudgetLogPath
+$budgetRulesResolvedPath = Resolve-ProjectPath $BudgetRulesPath
 $progressPath = Resolve-ProjectPath $ProjectProgressPath
 $outputResolvedPath = Resolve-ProjectPath $OutputPath
+
+if (-not (Test-Path -LiteralPath $budgetRulesResolvedPath)) {
+    throw "Budget rules file not found: $budgetRulesResolvedPath"
+}
 
 $usage = Get-UsageBudgetState -Path $usagePath
 $remainingPercent = if ($null -ne $usage.remaining_percent) { [int]$usage.remaining_percent } else { 60 }
@@ -322,6 +328,8 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
     updated_at = (Get-Date).ToString("o")
     remaining_budget_percent = $remainingPercent
     remaining_budget_reading_source = $usage.reading_source
+    budget_rules_path = $budgetRulesResolvedPath
+    budget_rules_found = $true
     hours_to_estimated_reset = if ($null -ne $hoursToReset) { [Math]::Round($hoursToReset, 1) } else { $null }
     reset_reading_source = $usage.reset_source
     target_reserve_percent_at_reset = $targetReserve
@@ -344,6 +352,7 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
 } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $outputResolvedPath -Encoding UTF8
 
 Write-Host "freework_cadence_recommendation_written=$outputResolvedPath"
+Write-Host "budget_rules_path=$budgetRulesResolvedPath"
 Write-Host "recommended_freework_rrule=$recommendedRRule"
 Write-Host "current_freework_rrule=$currentRRule"
 Write-Host "should_update_freework_automation=$shouldUpdateAutomation"
