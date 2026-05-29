@@ -162,6 +162,24 @@ int main()
         rejected.reason == "generated overlay files do not match manifest",
         "verifier should explain mismatch");
 
+    writeBinaryFile(overlayRoot / "events" / "strategic_nexus_generated_events.txt", files.eventsText);
+
+    std::string duplicateManifest = readBinaryFile(overlayRoot / "strategic_nexus_generated_manifest.json");
+    const std::string needle = "\"path\": \"events/strategic_nexus_generated_events.txt\"";
+    const auto needleOffset = duplicateManifest.find(needle);
+    requireCondition(needleOffset != std::string::npos, "manifest should contain events path entry");
+    const auto objectStart = duplicateManifest.rfind('{', needleOffset);
+    const auto objectEnd = duplicateManifest.find('}', needleOffset);
+    requireCondition(objectStart != std::string::npos && objectEnd != std::string::npos && objectEnd > objectStart, "should locate manifest file object bounds");
+    const std::string objectText = duplicateManifest.substr(objectStart, objectEnd - objectStart + 1);
+    duplicateManifest.insert(objectEnd + 1, "," + objectText);
+    writeBinaryFile(overlayRoot / "strategic_nexus_generated_manifest.json", duplicateManifest);
+    const auto rejectedDuplicate = verifier.verify(overlayRoot);
+    requireCondition(!rejectedDuplicate.ok, "verifier should reject duplicate manifest entries");
+    requireCondition(
+        rejectedDuplicate.reason == "manifest contains duplicate file entry",
+        "verifier should explain duplicate entry rejection");
+
     std::cout << "generated overlay verifier tests passed.\n";
     return 0;
 }

@@ -213,6 +213,11 @@ ManifestVerificationResult ManifestVerifier::verify(const std::filesystem::path&
         file.checksumRelevance = *checksumRelevance;
         file.expectedHash = *expectedHash;
         file.expectedByteCount = *expectedBytes;
+        if (expectedFiles.find(file.path) != expectedFiles.end()) {
+            result.reason = "manifest contains duplicate file entry";
+            result.ok = false;
+            return result;
+        }
         expectedFiles.insert(file.path);
 
         const auto filePath = overlayDirectory / std::filesystem::path(file.path);
