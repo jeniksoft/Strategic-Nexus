@@ -117,6 +117,16 @@ Recommended first extracted facts:
 The parser output must be structured Strategic Nexus data.
 Raw `gamestate` text must not be passed to the LLM.
 
+Current narrow harness:
+
+```text
+Strategic Nexus.exe --parse-stellaris-save <save.sav-or-extracted-save-dir> <summary_output.json>
+```
+
+The harness accepts either a Stellaris `.sav` ZIP container or an already extracted directory containing `meta` and `gamestate`.
+It emits a bounded headline summary with parse status, save version/date/name, player country id, player empire identity, founder species, capital planet, home system, owned fleet headlines, active war count, explicit missing fields, and uncertainties.
+This is a first parser slice, not a full Paradox syntax model.
+
 ---
 
 ## Correct Approach

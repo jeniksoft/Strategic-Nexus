@@ -13,6 +13,7 @@
 #include "RequestFileReader.h"
 #include "SeasonDeltaLedgerBuilder.h"
 #include "SeasonEmpireBriefBuilder.h"
+#include "SaveParser.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "StrategicNexusCompanion.h"
@@ -251,6 +252,18 @@ RunConfig parseRunConfig(int argc, char* argv[])
 
         if (argc > 2) {
             config.stellarisRunningOutputPath = argv[2];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--parse-stellaris-save") {
+        config.parseStellarisSaveMode = true;
+
+        if (argc > 2) {
+            config.stellarisSaveParseInputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.stellarisSaveParseOutputPath = argv[3];
         }
         return config;
     }
@@ -1541,6 +1554,29 @@ int Application::run(const RunConfig& config) const
             }
             std::cout << "stellaris_running_output_written=" << (outputRequested && written ? "true" : "false") << "\n";
             return written ? 0 : 1;
+        }
+
+        if (config.parseStellarisSaveMode) {
+            if (config.stellarisSaveParseInputPath.empty() || config.stellarisSaveParseOutputPath.empty()) {
+                std::cout << "stellaris_save_parse_success=false\n";
+                std::cout << "stellaris_save_parse_reason=missing save input or output path\n";
+                return 1;
+            }
+
+            const SaveParser parser;
+            const SaveParserSummary summary = parser.parseSummary(config.stellarisSaveParseInputPath);
+            const bool written = common::writeTextFileAtomically(
+                config.stellarisSaveParseOutputPath,
+                parser.serializeSummaryJson(summary));
+            const bool success = summary.ok && written;
+
+            std::cout << "stellaris_save_parse_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "stellaris_save_parse_reason=" << sanitizeCliValue(summary.reason) << "\n";
+            std::cout << "stellaris_save_parse_player_country_id=" << sanitizeCliValue(summary.playerCountryId) << "\n";
+            std::cout << "stellaris_save_parse_empire_name=" << sanitizeCliValue(summary.empireName) << "\n";
+            std::cout << "stellaris_save_parse_save_date=" << sanitizeCliValue(summary.saveDate) << "\n";
+            std::cout << "stellaris_save_parse_output_written=" << (written ? "true" : "false") << "\n";
+            return success ? 0 : 1;
         }
 
         const StrategicWorker worker;
