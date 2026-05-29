@@ -260,7 +260,8 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
     bool previousHostAvailable) const
 {
     MpOverlayPackageExportResult result;
-    if (sourceOverlayDirectory.empty() || outputPackageDirectory.empty() || campaignId.empty() || overlayVersion.empty()) {
+    if (sourceOverlayDirectory.empty() || outputPackageDirectory.empty() || campaignId.empty() || overlayVersion.empty() ||
+        gameVersion.empty() || strategicNexusModVersion.empty()) {
         result.reason = "missing package export input";
         return result;
     }
@@ -372,6 +373,16 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
 
     if (!campaignId.has_value() || !overlayVersion.has_value() || !gameVersion.has_value() ||
         !strategicNexusModVersion.has_value() || !handoffStatus.has_value() || !previousHostAvailable.has_value()) {
+        result.reason = "malformed MP overlay package manifest";
+        return result;
+    }
+    if (campaignId->empty() || overlayVersion->empty() || gameVersion->empty() || strategicNexusModVersion->empty() ||
+        handoffStatus->empty()) {
+        result.reason = "malformed MP overlay package manifest";
+        return result;
+    }
+    const std::string expectedHandoff = *previousHostAvailable ? "complete" : "degraded_previous_host_unavailable";
+    if (*handoffStatus != expectedHandoff) {
         result.reason = "malformed MP overlay package manifest";
         return result;
     }

@@ -194,6 +194,19 @@ int main()
     requireCondition(directArchiveSession.archive.state == "ready", "archive session root with manifest should be ready");
     requireCondition(directArchiveSession.statusCenter.state == "ready", "status center should be ready when archive session and overlay are ready");
 
+    const auto missingMpPackage = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        overlayRoot,
+        root / "missing_mp_overlay_package",
+        true
+    });
+    requireCondition(missingMpPackage.archive.state == "ready", "archive should remain ready when mp package missing");
+    requireCondition(missingMpPackage.generatedOverlay.state == "ready", "overlay should remain ready when mp package missing");
+    requireCondition(missingMpPackage.mpOverlayPackage.state == "needs_attention", "missing mp overlay package should need attention");
+    requireCondition(missingMpPackage.statusCenter.state == "attention_required", "status center should surface mp overlay package attention");
+    requireCondition(missingMpPackage.statusCenter.reason == "mp overlay package needs attention", "status center reason should name mp overlay package attention");
+    requireCondition(missingMpPackage.statusCenter.path == (root / "missing_mp_overlay_package"), "status center path should point to the mp overlay package needing attention");
+
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
     requireCondition(json.find("\"abbreviation\": \"SNC\"") != std::string::npos, "JSON should include abbreviation");

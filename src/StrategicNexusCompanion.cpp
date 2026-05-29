@@ -312,7 +312,8 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
 CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
-    const CompanionSubsystemStatus& generatedOverlay)
+    const CompanionSubsystemStatus& generatedOverlay,
+    const CompanionMpOverlayPackageStatus& mpOverlayPackage)
 {
     CompanionSubsystemStatus status;
     status.state = "ready";
@@ -322,11 +323,24 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         archive.state == "needs_setup" || archive.state == "needs_attention";
     const bool overlayNeedsAttention =
         generatedOverlay.state == "needs_setup" || generatedOverlay.state == "needs_attention";
+    const bool mpNeedsAttention = mpOverlayPackage.state == "needs_attention";
 
-    if (archiveNeedsAttention || overlayNeedsAttention) {
+    if (archiveNeedsAttention || overlayNeedsAttention || mpNeedsAttention) {
         status.state = "attention_required";
+        if (archiveNeedsAttention && overlayNeedsAttention && mpNeedsAttention) {
+            status.reason = "archive, generated overlay, and mp overlay package need attention";
+            return status;
+        }
         if (archiveNeedsAttention && overlayNeedsAttention) {
             status.reason = "archive and generated overlay need attention";
+            return status;
+        }
+        if (archiveNeedsAttention && mpNeedsAttention) {
+            status.reason = "archive and mp overlay package need attention";
+            return status;
+        }
+        if (overlayNeedsAttention && mpNeedsAttention) {
+            status.reason = "generated overlay and mp overlay package need attention";
             return status;
         }
         if (archiveNeedsAttention) {
@@ -337,8 +351,13 @@ CompanionSubsystemStatus buildStatusCenterStatus(
             }
             return status;
         }
-        status.reason = "generated overlay needs attention";
-        status.path = generatedOverlay.path;
+        if (overlayNeedsAttention) {
+            status.reason = "generated overlay needs attention";
+            status.path = generatedOverlay.path;
+            return status;
+        }
+        status.reason = "mp overlay package needs attention";
+        status.path = mpOverlayPackage.path;
         return status;
     }
 
@@ -394,7 +413,8 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.archive = buildArchiveStatus(config.archiveRoot);
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
     snapshot.mpOverlayPackage = buildMpOverlayPackageStatus(config.mpOverlayPackageDirectory);
-    snapshot.statusCenter = buildStatusCenterStatus(snapshot.saveDiscovery, snapshot.archive, snapshot.generatedOverlay);
+    snapshot.statusCenter =
+        buildStatusCenterStatus(snapshot.saveDiscovery, snapshot.archive, snapshot.generatedOverlay, snapshot.mpOverlayPackage);
     return snapshot;
 }
 

@@ -100,6 +100,7 @@ int main()
     }
 
     const auto packageManifest = readTextFile(packageRoot / "strategic_nexus_mp_overlay_package_manifest.json");
+    const auto originalManifest = packageManifest;
     if (packageManifest.find("\"handoff_status\": \"degraded_previous_host_unavailable\"") == std::string::npos) {
         std::cerr << "package manifest missing degraded handoff status\n";
         return 1;
@@ -126,6 +127,29 @@ int main()
     if (verifyResult.statusText.find("campaign_id: campaign_mp_001") == std::string::npos) {
         std::cerr << "verify did not produce copyable status text\n";
         return 1;
+    }
+
+    {
+        auto emptyGameVersionManifest = originalManifest;
+        const auto needle = std::string("\"game_version\": \"stellaris_4.x\"");
+        const auto replacement = std::string("\"game_version\": \"\"");
+        const auto pos = emptyGameVersionManifest.find(needle);
+        if (pos == std::string::npos) {
+            std::cerr << "test could not locate game_version field in manifest\n";
+            return 1;
+        }
+        emptyGameVersionManifest.replace(pos, needle.size(), replacement);
+        writeTextFileAtomically(
+            packageRoot / "strategic_nexus_mp_overlay_package_manifest.json",
+            emptyGameVersionManifest);
+        const auto emptyFieldResult = verifier.verify(packageRoot);
+        if (emptyFieldResult.ok || emptyFieldResult.reason != "malformed MP overlay package manifest") {
+            std::cerr << "empty-field manifest did not fail closed\n";
+            return 1;
+        }
+        writeTextFileAtomically(
+            packageRoot / "strategic_nexus_mp_overlay_package_manifest.json",
+            originalManifest);
     }
 
     writeTextFileAtomically(packageRoot / "local_debug.txt", "not part of package\n");
