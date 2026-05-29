@@ -89,6 +89,19 @@ int main()
         unsafeRejected.reason == "autosave archive manifest contains unsafe archived_path",
         "verifier should explain unsafe archived_path rejection");
 
+    writeFile(archiveRoot / "evil.sav", "fixture");
+    const auto traversalManifest = std::regex_replace(
+        portableManifest,
+        std::regex("\"archived_path\"\\s*:\\s*\"[^\"]+\""),
+        "\"archived_path\": \"../evil.sav\"");
+    writeFile(manifestPath, traversalManifest);
+    const auto traversalRejected = verifier.verify(archiveRoot / "session_001");
+    requireCondition(!traversalRejected.ok, "verifier should reject archived_path traversal outside saves root");
+    requireCondition(
+        traversalRejected.reason == "autosave archive manifest contains unsafe archived_path",
+        "verifier should explain traversal archived_path rejection");
+    std::filesystem::remove(archiveRoot / "evil.sav");
+
     writeFile(manifestPath, portableManifest);
     writeFile(archiveRoot / "session_001" / "saves" / "001_autosave_2230.sav", "tampered");
     const auto rejected = verifier.verify(archiveRoot / "session_001");
