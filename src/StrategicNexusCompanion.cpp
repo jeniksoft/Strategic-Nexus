@@ -5,6 +5,7 @@
 
 #include "common/FileUtil.h"
 #include "generated_overlay/ManifestVerifier.h"
+#include "generated_overlay/MpOverlayPackage.h"
 #include "StellarisSavePathResolver.h"
 
 #include <filesystem>
@@ -255,6 +256,59 @@ CompanionSubsystemStatus buildGeneratedOverlayStatus(const std::filesystem::path
     return status;
 }
 
+CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesystem::path& packageDirectory)
+{
+    CompanionMpOverlayPackageStatus status;
+    status.path = packageDirectory;
+
+    if (packageDirectory.empty()) {
+        status.state = "disabled";
+        status.reason = "mp overlay package directory not configured";
+        return status;
+    }
+
+    std::error_code error;
+    const bool exists = std::filesystem::exists(packageDirectory, error);
+    if (error) {
+        status.state = "needs_attention";
+        status.reason = "mp overlay package directory inaccessible";
+        return status;
+    }
+
+    if (!exists) {
+        status.state = "needs_attention";
+        status.reason = "mp overlay package directory missing";
+        return status;
+    }
+
+    const bool isDirectory = std::filesystem::is_directory(packageDirectory, error);
+    if (error) {
+        status.state = "needs_attention";
+        status.reason = "mp overlay package directory inaccessible";
+        return status;
+    }
+
+    if (!isDirectory) {
+        status.state = "needs_attention";
+        status.reason = "mp overlay package path is not a directory";
+        return status;
+    }
+
+    const generated_overlay::MpOverlayPackageVerifier verifier;
+    const auto verification = verifier.verify(packageDirectory);
+    if (verification.ok) {
+        status.state = "ready";
+        status.reason = "mp overlay package verified";
+        status.statusText = verification.statusText;
+        return status;
+    }
+
+    status.state = "needs_attention";
+    status.reason = verification.reason.empty() ? "mp overlay package verification failed" : verification.reason;
+    status.statusText = verification.statusText;
+    return status;
+}
+
 CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
@@ -319,6 +373,16 @@ void writeSubsystemJson(std::ostringstream& output, const CompanionSubsystemStat
     output << indent << "}";
 }
 
+void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOverlayPackageStatus& status, const std::string& indent)
+{
+    output << indent << "{\n";
+    output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
+    output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
+    output << indent << "  \"path\": " << jsonString(pathString(status.path)) << ",\n";
+    output << indent << "  \"status_text\": " << jsonString(status.statusText) << "\n";
+    output << indent << "}";
+}
+
 } // namespace
 
 CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const CompanionStatusConfig& config) const
@@ -329,6 +393,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.saveDiscovery = buildSaveDiscoveryStatus();
     snapshot.archive = buildArchiveStatus(config.archiveRoot);
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
+    snapshot.mpOverlayPackage = buildMpOverlayPackageStatus(config.mpOverlayPackageDirectory);
     snapshot.statusCenter = buildStatusCenterStatus(snapshot.saveDiscovery, snapshot.archive, snapshot.generatedOverlay);
     return snapshot;
 }
@@ -359,6 +424,9 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << ",\n";
     output << "  \"generated_overlay_status\": ";
     writeSubsystemJson(output, snapshot.generatedOverlay, "  ");
+    output << ",\n";
+    output << "  \"mp_overlay_package_status\": ";
+    writeMpOverlayPackageJson(output, snapshot.mpOverlayPackage, "  ");
     output << ",\n";
     output << "  \"status_center\": ";
     writeSubsystemJson(output, snapshot.statusCenter, "  ");

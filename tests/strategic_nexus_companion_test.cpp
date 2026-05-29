@@ -4,6 +4,7 @@
 #include "StrategicNexusCompanion.h"
 
 #include "generated_overlay/ManifestVerifier.h"
+#include "generated_overlay/MpOverlayPackage.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -30,6 +31,7 @@ int main()
     const auto overlayRoot = root / "overlay";
     const auto overlayEmptyRoot = root / "overlay_empty";
     const auto overlayNoManifestNonEmptyRoot = root / "overlay_no_manifest_non_empty";
+    const auto mpPackageRoot = root / "mp_overlay_package";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
     std::filesystem::create_directories(overlayRoot);
@@ -104,10 +106,24 @@ int main()
             << "}\n";
     }
 
+    {
+        strategic_nexus::generated_overlay::MpOverlayPackageExporter exporter;
+        const auto exportResult = exporter.exportPackage(
+            overlayRoot,
+            "campaign_mp_001",
+            "overlay_v1",
+            "stellaris_4.x",
+            "strategic_nexus_v0",
+            mpPackageRoot,
+            false);
+        requireCondition(exportResult.ok, "MP overlay package export should succeed for companion test fixture");
+    }
+
     const strategic_nexus::StrategicNexusCompanion companion;
     const auto ready = companion.buildStatusSnapshot({
         archiveRoot,
         overlayRoot,
+        mpPackageRoot,
         true
     });
 
@@ -120,11 +136,16 @@ int main()
     requireCondition(ready.saveDiscovery.state == "ready", "save discovery should find at least one save root in fixture");
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest verifies");
+    requireCondition(ready.mpOverlayPackage.state == "ready", "mp overlay package should be ready when verified");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("campaign_id: campaign_mp_001") != std::string::npos,
+        "mp overlay package should include copyable status text");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
 
     const auto emptyOverlay = companion.buildStatusSnapshot({
         archiveRoot,
         overlayEmptyRoot,
+        std::filesystem::path(),
         false
     });
     requireCondition(emptyOverlay.generatedOverlay.state == "starting", "empty overlay should be starting");
@@ -135,6 +156,7 @@ int main()
     const auto missingOverlay = companion.buildStatusSnapshot({
         archiveRoot,
         root / "missing_overlay",
+        std::filesystem::path(),
         false
     });
     requireCondition(missingOverlay.generatedOverlay.state == "needs_attention", "missing overlay should need attention");
@@ -145,6 +167,7 @@ int main()
     const auto noManifestNonEmptyOverlay = companion.buildStatusSnapshot({
         archiveRoot,
         overlayNoManifestNonEmptyRoot,
+        std::filesystem::path(),
         false
     });
     requireCondition(noManifestNonEmptyOverlay.generatedOverlay.state == "needs_attention", "non-empty overlay without manifest should need attention");
@@ -165,6 +188,7 @@ int main()
     const auto directArchiveSession = companion.buildStatusSnapshot({
         archiveSessionRoot,
         overlayRoot,
+        std::filesystem::path(),
         true
     });
     requireCondition(directArchiveSession.archive.state == "ready", "archive session root with manifest should be ready");
@@ -177,6 +201,7 @@ int main()
     requireCondition(json.find("\"archive_status\"") != std::string::npos, "JSON should include archive status");
     requireCondition(json.find("\"save_discovery_status\"") != std::string::npos, "JSON should include save discovery status");
     requireCondition(json.find("\"generated_overlay_status\"") != std::string::npos, "JSON should include overlay status");
+    requireCondition(json.find("\"mp_overlay_package_status\"") != std::string::npos, "JSON should include mp overlay package status");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
 
     {
@@ -203,7 +228,7 @@ int main()
     {
         const auto outputPath = root / "snc_status_snapshot.json";
         const strategic_nexus::CompanionStatusLoopConfig loopConfig{
-            { archiveRoot, overlayRoot, true },
+            { archiveRoot, overlayRoot, std::filesystem::path(), true },
             outputPath,
             std::chrono::milliseconds(0),
             2
@@ -221,7 +246,7 @@ int main()
 
     {
         const strategic_nexus::CompanionStatusLoopConfig loopConfig{
-            { archiveRoot, overlayRoot, true },
+            { archiveRoot, overlayRoot, std::filesystem::path(), true },
             root,
             std::chrono::milliseconds(0),
             1

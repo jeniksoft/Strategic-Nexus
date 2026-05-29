@@ -12,6 +12,7 @@ namespace strategic_nexus {
 struct CompanionStatusConfig {
     std::filesystem::path archiveRoot;
     std::filesystem::path generatedOverlayDirectory;
+    std::filesystem::path mpOverlayPackageDirectory;
     bool startWithWindowsEnabled = false;
 };
 
@@ -34,6 +35,13 @@ struct CompanionSubsystemStatus {
     std::filesystem::path path;
 };
 
+struct CompanionMpOverlayPackageStatus {
+    std::string state;
+    std::string reason;
+    std::filesystem::path path;
+    std::string statusText;
+};
+
 struct CompanionLifecycleStatus {
     bool startWithWindowsEnabled = false;
     std::string windowCloseBehavior = "minimize_to_tray";
@@ -49,6 +57,7 @@ struct CompanionStatusSnapshot {
     CompanionSubsystemStatus saveDiscovery;
     CompanionSubsystemStatus archive;
     CompanionSubsystemStatus generatedOverlay;
+    CompanionMpOverlayPackageStatus mpOverlayPackage;
     CompanionSubsystemStatus statusCenter;
 };
 

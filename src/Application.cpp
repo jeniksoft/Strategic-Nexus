@@ -206,6 +206,9 @@ RunConfig parseRunConfig(int argc, char* argv[])
             config.sncStatusOutputPath = argv[4];
         }
         config.sncStartWithWindowsEnabled = argc > 5 ? std::string(argv[5]) == "true" : false;
+        if (argc > 6) {
+            config.mpOverlayPackageDirectory = argv[6];
+        }
         return config;
     }
 
@@ -760,6 +763,7 @@ int Application::run(const RunConfig& config) const
             const auto snapshot = companion.buildStatusSnapshot({
                 config.sncArchiveRoot,
                 config.sncGeneratedOverlayDirectory,
+                config.mpOverlayPackageDirectory,
                 config.sncStartWithWindowsEnabled
             });
             const auto json = serializeCompanionStatusSnapshot(snapshot);
@@ -781,6 +785,10 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_generated_overlay_state=" << sanitizeCliValue(snapshot.generatedOverlay.state) << "\n";
             std::cout << "snc_generated_overlay_reason=" << sanitizeCliValue(snapshot.generatedOverlay.reason) << "\n";
             std::cout << "snc_generated_overlay_path=" << sanitizeCliValue(stdoutPath(snapshot.generatedOverlay.path)) << "\n";
+            std::cout << "snc_mp_overlay_package_state=" << sanitizeCliValue(snapshot.mpOverlayPackage.state) << "\n";
+            std::cout << "snc_mp_overlay_package_reason=" << sanitizeCliValue(snapshot.mpOverlayPackage.reason) << "\n";
+            std::cout << "snc_mp_overlay_package_path=" << sanitizeCliValue(stdoutPath(snapshot.mpOverlayPackage.path)) << "\n";
+            std::cout << "snc_mp_overlay_package_status_text=" << sanitizeCliValue(snapshot.mpOverlayPackage.statusText) << "\n";
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
             std::cout << "snc_status_center_path=" << sanitizeCliValue(stdoutPath(snapshot.statusCenter.path)) << "\n";
@@ -935,6 +943,7 @@ int Application::run(const RunConfig& config) const
             const auto snapshot = companion.buildStatusSnapshot({
                 config.offlineSpineArchiveDirectory,
                 overlayDirectory,
+                std::filesystem::path(),
                 config.sncStartWithWindowsEnabled
             });
             const bool statusWritten = common::writeTextFileAtomically(

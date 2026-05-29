@@ -169,6 +169,7 @@ $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp"),
     (Join-Path $repoRoot "src/StellarisSavePathResolver.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/MpOverlayPackage.cpp"),
     (Join-Path $repoRoot "src/common/FileUtil.cpp"),
     (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
