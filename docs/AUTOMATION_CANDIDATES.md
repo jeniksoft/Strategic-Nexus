@@ -103,6 +103,8 @@ Windows note:
 
 If PowerShell script execution is restricted (ExecutionPolicy), prefer the `tools/dev_attention/*.cmd` wrappers (they run the corresponding `.ps1` with `-ExecutionPolicy Bypass`).
 
+If an automation references `$CODEX_HOME` but the environment variable is unset, default to `%USERPROFILE%\.codex` (the Codex desktop app default home) for local-only automation memory and state paths.
+
 ---
 
 ## 3. Usage Budget And Work Mode Check
@@ -188,7 +190,7 @@ Expected output:
 * read `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
 * estimate approximate burn rate from recent user-reported readings and known work windows when enough data exists
 * revalidate the chosen roadmap item against current architecture docs
-* if remaining budget is above 80%, allow frequent one-chunk execution
+* if remaining budget is above 80%, allow frequent bounded execution
 * if remaining budget is 60-80%, keep execution focused and shorter
 * if remaining budget is 40-60%, implement only important narrow chunks
 * if remaining budget is below 40%, do not implement unless the owner explicitly requested the exact task
@@ -196,7 +198,7 @@ Expected output:
 * if foreground or unrelated dirty work overlaps the selected task write set, choose another task or stop
 * if no roadmap-aligned, architecture-compatible, bounded, locally testable, decision-free task exists, do nothing
 * otherwise choose a chunk size from remaining budget, burn-rate estimate, and task value
-* implement at most one bounded chunk, run targeted verification, commit coherent changes, and create a Czech task-board report only for important owner-facing results
+* implement up to the currently approved sequential chunk limit, run targeted verification, commit coherent changes, and create a Czech task-board report only for important owner-facing results
 * if useful files are created or modified but cannot be committed, prefer retry-first handling: log the exact files, reason, and retry condition; create/update one Czech task-board Report/Suggestion only when the owner should know important uncommitted work exists; create `Ukoly pro me` only when owner action is genuinely required
 * write any owner-facing automation final message and inbox item title/summary in Czech; technical paths, commands, symbols, and commit identifiers may remain unchanged
 * do not create owner tasks for routine technical automation problems that Codex can retry or resolve later, such as transient git locks, delayed commits, tests still finishing, or local helper state
@@ -216,7 +218,8 @@ Do not:
 Important:
 
 This is not the same as a continuous runner.
-It is a gated one-chunk worker with permission to stop silently when work would be wasteful.
+It is a gated bounded worker with permission to stop silently when work would be wasteful.
+By default it uses one chunk per run; if the owner explicitly approves a higher sequential chunk limit, the automation may use that configured limit while preserving dirty-worktree, safety, verification, gaming quiet mode, and owner-decision stops.
 
 Observability note:
 

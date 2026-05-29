@@ -256,12 +256,13 @@ The generated overlay verifier also fails closed on unknown v0 generated overlay
 `Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits a bounded verified archive metadata summary for future offline analysis handoff.
 Stellaris `.sav` files should be read as ZIP containers with `meta` and `gamestate` entries; the first real parser should operate on verified archived copies, extract bounded structured facts, and never send raw `gamestate` text to the LLM.
 `Strategic Nexus.exe --parse-stellaris-save <save.sav-or-extracted-save-dir> <summary_output.json>` now provides the first narrow read-only save headline parser for `meta`/`gamestate`, including player country resolution, empire/species/capital/home-system headlines, owned fleet headlines, active war count, explicit missing fields, and raw-LLM-input safety uncertainty.
-`Strategic Nexus.exe --build-season-delta-ledger <session_archive_dir> <campaign_id> <output_json>` emits the first metadata-only season delta ledger from a verified autosave archive.
-`Strategic Nexus.exe --build-empire-brief-from-archive <session_archive_dir> <campaign_id> <empire_id> <output_json>` emits a conservative empire brief from the metadata-only ledger with explicit missing parser fields.
-`Strategic Nexus.exe --build-ministry-input-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <output_json>` bridges verified archive metadata into the v0 ministry input context shape without pretending to parse save contents.
+`Strategic Nexus.exe --build-season-delta-ledger <session_archive_dir> <campaign_id> <output_json>` still emits the first metadata-only season delta ledger from a verified autosave archive.
+`Strategic Nexus.exe --build-empire-brief-from-archive <session_archive_dir> <campaign_id> <empire_id> <output_json>` still emits a conservative empire brief from the metadata-only ledger with explicit missing parser fields.
+`Strategic Nexus.exe --build-ministry-input-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <output_json>` still bridges verified archive metadata into the v0 ministry input context shape without pretending to parse save contents.
 `Strategic Nexus.exe --v0-pipeline-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <ministry_input_output_json> <decision_output_json> <sequence_id> <created_unix_ms> <ttl_ms> [audit_output_json]` verifies a latest-session archive, writes conservative ministry input, and runs the deterministic v0 pipeline as an end-to-end metadata-only contract harness.
 `Strategic Nexus.exe --run-offline-spine <session_archive_dir> <campaign_id> <empire_id> <input.dsl> <work_dir> <overlay_output_dir> <status_output_json>` verifies one archive session, writes the metadata-only season delta ledger and empire brief, compiles an explicit validated DSL into a generated overlay, verifies the overlay manifest, and emits an SNC status snapshot.
 This is the first tested vertical product spine for `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility`.
+Next architecture-aligned worker step: feed the narrow `--parse-stellaris-save` summary into the season delta ledger, empire brief, ministry input, and offline spine harnesses so the spine moves from metadata-only placeholders to bounded parsed save facts.
 `Strategic Nexus.exe --publish-generated-overlay <staged_overlay_dir> <active_overlay_dir> [stellaris_running_override]` verifies a staged generated overlay, refuses to publish while Stellaris is running, copies only manifest-allowed files to a temporary snapshot, verifies that snapshot, then replaces the active generated overlay directory as a complete snapshot.
 `Strategic Nexus.exe --detect-stellaris-running [output.json]` reports whether the local Stellaris process is running; `--publish-generated-overlay` now uses that detector by default when no explicit `true`/`false` override is supplied.
 SNC status snapshots now also include `status_center_summary_text`, a copyable human-readable status summary for archive, save discovery, generated overlay, and MP overlay package readiness.
@@ -804,19 +805,15 @@ The verifier fails closed on file drift and unexpected package files.
 
 Next worker-ready slice:
 
-Extend the MP package harness toward release-companion staging and Status Center visibility.
+Extend the MP package harness toward release-companion staging, import/verify UX, and Status Center visibility.
+The core export/verify manifest slice already exists, so do not repeat it unless a regression or missing acceptance check is found.
 
-The first slice should include:
+The next slice should include:
 
-* campaign id
-* overlay version
-* game version
-* Strategic Nexus mod version
-* checksum-sensitive generated gameplay file hashes and byte counts
-* local-only diagnostic file classification
-* export package manifest generation
-* import/verify command that fails closed on drift
-* degraded handoff status when the previous host is unavailable
+* release-companion-visible package state
+* clear import/verify command surface
+* Status Center copy text for host/client readiness
+* explicit owner-facing warning when package identity, game version, mod version, or generated file hashes do not match
 
 This slice must not require knowing all future participants before the season.
 It must assume the previous host may be absent from the next season entirely.

@@ -435,6 +435,16 @@ Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_
 It first verifies the archive, then emits metadata such as copied save count, total byte count, and first/last save hash anchors.
 It does not parse save contents and must not be treated as the final strategic save summary.
 
+The current local harness for the first narrow save-content parser is:
+
+```text
+Strategic Nexus.exe --parse-stellaris-save <save.sav-or-extracted-save-dir> <summary_output.json>
+```
+
+It extracts a bounded player-empire headline summary from `meta` and `gamestate`: save version/date/name, player country id, empire identity, founder species, capital planet, home system, owned fleet headlines, active war count, missing fields, and uncertainties.
+This parser is intentionally narrow.
+The next architecture-aligned implementation step is to feed this structured parser summary into the archive ledger, empire brief, ministry input, and offline spine instead of leaving those stages metadata-only.
+
 The current local harness for producing the first season delta ledger skeleton is:
 
 ```text
@@ -444,6 +454,7 @@ Strategic Nexus.exe --build-season-delta-ledger <session_archive_dir> <campaign_
 It verifies the archived session through the archive summarizer, then writes a metadata-only ledger with archive facts, first/last hash anchors, and explicit parser uncertainties.
 This is the first contract step for the `verified archive -> season delta ledger -> empire brief` path.
 It does not extract wars, borders, alliances, economy, fleets, empire state, or personality evidence yet.
+Now that the narrow save parser exists, this ledger should be enriched from parser summaries before broader strategic memory or LLM interpretation is added.
 
 The current local harness for producing the first empire brief skeleton is:
 

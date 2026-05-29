@@ -59,7 +59,7 @@ In progress:
 Not started:
 
 * real LLM integration
-* save parser production pipeline
+* full save parser production pipeline integration
 * ministerial reasoning pipeline implementation
 * strategic memory library implementation
 * real gameplay balancing effects
@@ -79,6 +79,7 @@ Core documents:
 * [LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md) - local model weights, runtime, companion, validation, reduced-mode, and mod boundary contract
 * [META_RULE_LANGUAGE_AND_COMPILER.md](META_RULE_LANGUAGE_AND_COMPILER.md) - bounded DSL and deterministic compiler from LLM proposals to generated mod overlay
 * [GENERATED_OVERLAY_LAYOUT_CONTRACT.md](GENERATED_OVERLAY_LAYOUT_CONTRACT.md) - v0 generated overlay file layout and staging contract
+* [GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md](GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md) - bounded functional acceptance plan for proving generated overlay gameplay effect in v0 domains
 * [MULTIPLAYER_SEASON_ORCHESTRATOR.md](MULTIPLAYER_SEASON_ORCHESTRATOR.md) - host-coordinated low-friction multiplayer season/package architecture
 * [LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md](LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md) - how to read older daemon, bridge, and cadence documents after the offline architecture shift
 * [DOCUMENTATION_CONSISTENCY_AUDIT.md](DOCUMENTATION_CONSISTENCY_AUDIT.md) - focused audits for contradictions between architecture documents
@@ -307,7 +308,8 @@ No global omniscient galaxy brain.
 Status:
 
 * rules exist
-* production parser/filter implementation is not started
+* narrow player-empire save headline parser exists
+* production parser/filter integration into the archive-to-brief pipeline is not started
 
 ---
 
@@ -536,10 +538,10 @@ Tuning rule:
 
 Do next:
 
-1. Keep generated overlay DSL/compiler skeleton aligned with the offline architecture.
-2. Add exact generated overlay manifest and packaging contracts.
-3. Add deterministic validation/fallback tests for generated overlay staging and cleanup.
-4. Begin companion-app-safe local archive and campaign library scaffolding.
+1. Keep the verified archive spine aligned with the offline architecture.
+2. Feed the narrow save parser summary into the season delta ledger, empire brief, and ministry input harnesses.
+3. Add functional generated-overlay acceptance evidence for the current v0 domains.
+4. Extend companion-app-safe staging and Status Center visibility without adding realtime game control.
 5. Keep integration limited to supported mod scripting, local archives, generated overlay files, and bounded JSON payloads.
 
 Do not start yet:

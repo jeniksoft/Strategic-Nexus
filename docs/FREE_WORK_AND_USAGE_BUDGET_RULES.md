@@ -421,7 +421,9 @@ high spendable budget near reset: hourly bounded chunks when needed to approach 
 
 The cadence tuner may recommend a more frequent gate near reset, but it must not recommend overlapping implementation chunks.
 
-One Free Work run still means at most one bounded useful chunk.
+By default, one Free Work run means at most one bounded useful chunk.
+If the owner explicitly approves a throughput override for the worker, a single run may execute up to the configured number of sequential safe chunks.
+Those chunks must still be non-overlapping, roadmap-aligned, locally testable, reviewable, and stopped early when verification, safety, dirty-worktree, gaming quiet mode, or owner-decision boundaries require it.
 
 ---
 
