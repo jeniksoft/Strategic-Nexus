@@ -148,6 +148,15 @@ Responsible for:
 - local inference communication
 - prompt management
 - response validation
+- local model readiness through the companion Model Manager
+- refusing new LLM interpretation when no supported model is installed
+
+LLM model weights are not distributed with the Strategic Nexus Stellaris mod.
+The companion app owns model selection, installation assistance, local runtime wiring, and readiness reporting.
+The user must choose a supported model, and the companion app may recommend one based on hardware capability and license compatibility.
+
+The model catalog must not treat unclear, gated, or incompatible model licenses as safe defaults.
+If no supported model is installed, Strategic Nexus runs in reduced mode: archive and deterministic verification can still operate, but new LLM interpretation is disabled and Status Center must report the missing model.
 
 ### 7. Generated Mod Integration Layer
 Responsible for:

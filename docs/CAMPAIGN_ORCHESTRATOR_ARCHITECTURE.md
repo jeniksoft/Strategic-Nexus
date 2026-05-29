@@ -281,6 +281,90 @@ It should not behave like the development Task Board.
 
 ---
 
+# Local Model Manager
+
+Strategic Nexus must not distribute LLM model weights with the Stellaris mod.
+
+Reasons:
+
+* model files are large and impractical for mod distribution
+* model licenses differ and may restrict commercial, hosted, derivative, or other use cases
+* some models require the individual user to accept license or gated-access terms
+* the project must not silently bundle a model whose terms are unclear or incompatible with the release mode
+* Paradox modding terms should be treated as making the Stellaris mod itself non-commercial unless separate explicit permission says otherwise
+
+The companion app should own local model setup through a Model Manager.
+
+The Model Manager should:
+
+* detect local hardware capability such as CPU, RAM, GPU, VRAM, disk space, and operating system
+* recommend a model based on hardware fit, expected quality, runtime cost, and license compatibility
+* let the user choose another supported model when they understand the tradeoff
+* download or connect the selected model only after explicit user action
+* use official model sources, official runtimes, or a documented user-provided local path
+* preserve license metadata, model id, version, source URL, local path, and content hash in local state
+* support changing the selected model during use
+* revalidate outputs after a model change when cached analysis or generated overlays may depend on old behavior
+* show Status Center warnings when no supported model is installed, the model is missing, the model license is incompatible with the selected mode, or the model cannot run on the current hardware
+
+The companion app may automate download, installation, runtime wiring, and configuration after the user selects a model and confirms the action.
+This automation is a convenience layer; it must not bypass license acceptance, gated access, authentication, or user consent.
+
+Recommended model catalog fields:
+
+```text
+model_id
+display_name
+provider
+runtime
+source_url
+license_name
+license_url
+use_policy_url
+commercial_allowed
+requires_user_license_acceptance
+requires_login_or_gated_access
+recommended_min_ram_gb
+recommended_min_vram_gb
+recommended_gpu_class
+quality_tier
+speed_tier
+privacy_mode
+status
+last_license_review_date
+```
+
+Allowed catalog status values:
+
+```text
+approved_for_noncommercial_mod_use
+approved_for_local_experimental_use
+requires_user_license_acceptance
+restricted
+unsupported
+```
+
+The default recommendation must prefer models whose terms allow the intended local, non-commercial mod-assistant use.
+Models with unclear terms, incompatible terms, missing license metadata, or required gated approval must not be silently selected as the default.
+
+If no compatible local model is installed, Strategic Nexus should remain safe but reduced:
+
+* archive and verification can still run
+* deterministic validators can still run
+* existing generated overlays remain usable if already verified
+* new LLM interpretation should not run
+* Status Center should explain that Strategic Nexus is not fully functional until a supported model is installed
+
+The release product language should describe the model dependency similarly to an external runtime dependency:
+
+```text
+Strategic Nexus needs a supported local AI model for offline strategy analysis.
+The model is not included with the mod.
+You can choose and install a supported model from the companion app.
+```
+
+---
+
 # Policy Kernel Model
 
 The base mod should contain a stable policy kernel.

@@ -198,6 +198,9 @@ Required:
 * watchdog restart only for unexpected crashes, with backoff and crash-loop guard
 * no auto-restart after explicit user exit or normal OS shutdown/restart/logoff
 * local crash/support report preparation with explicit approval before sending to `support@jeniksoft.cz`
+* companion Model Manager for user-selected supported local LLM models
+* no LLM model weights distributed with the Stellaris mod
+* reduced-mode Status Center warning when no supported local model is installed
 * autosave archive skeleton
 * local save campaign directory monitor
 * autosave cadence guidance for more precise history steps

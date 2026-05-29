@@ -108,6 +108,7 @@ The companion app may:
 * maintain campaign-scoped memory outside the save file as durable on-disk state
 * prepare a staged mod update for the next session
 * automatically publish a validated staged overlay when confidence is high and Stellaris is closed
+* help the user choose, download, configure, verify, and switch supported local LLM models
 * show a quiet Status Center warning when user action is needed
 
 The companion app must not:
@@ -119,12 +120,69 @@ The companion app must not:
 * block the game while inference runs
 * rename, delete, overwrite, or edit active autosaves
 * modify the active mod package while Stellaris is running
+* bundle LLM model weights with the Stellaris mod
+* bypass model license acceptance, gated access, authentication, or user consent
+* run LLM interpretation when no supported model is installed and selected
 
 Process detection is allowed only as a lifecycle signal.
 It must not become game-state inspection.
 
 The development Task Board under `tools/dev_attention/` is not a release feature.
 Release UX should use a productized Status Center, not the Codex/project-owner task board.
+
+## Local LLM Model Setup
+
+LLM model weights are an external local dependency, not part of the Strategic Nexus Stellaris mod package.
+
+The user chooses which supported model to use.
+The companion app may recommend a model according to hardware capability and license compatibility, then automate the download and configuration after the user confirms.
+
+The supported-model list must be curated.
+Each model entry must include license and use-policy metadata sufficient for the companion app to decide whether the model is usable for local non-commercial mod-assistant analysis.
+
+The companion app should persist local model state:
+
+```text
+selected_model_id
+model_version
+runtime
+source_url
+license_url
+use_policy_url
+local_path
+content_hash
+installed_at
+last_verified_at
+hardware_fit
+status
+```
+
+Model status examples:
+
+```text
+no_model_installed
+model_ready
+model_missing
+model_incompatible_with_hardware
+model_license_requires_user_action
+model_license_not_supported
+model_runtime_failed
+model_changed_revalidation_needed
+```
+
+Changing models during use is allowed.
+After a model change, cached interpretation outputs and generated overlays that depended on the previous model should be treated as stale until revalidated or regenerated.
+
+If no supported model is installed:
+
+* autosave archive still works
+* deterministic archive, manifest, package, and overlay verification still work
+* existing verified generated overlays can remain active
+* new offline LLM interpretation is disabled
+* Status Center must explain that Strategic Nexus is running in reduced mode
+
+Strategic Nexus should not imply that a model is included with the mod.
+It should explain the dependency plainly and offer one-click setup for supported models where license terms allow it.
 
 ## Startup And User Explanation
 
