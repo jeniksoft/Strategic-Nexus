@@ -162,6 +162,25 @@ int main()
     }
 
     {
+        const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "duplicate_preference_domain" { ministry = military_ministry prefer military_posture defensive intensity 0.4 prefer military_posture aggressive intensity 0.6 duration = next_session confidence = 0.9 rationale = "bad" } } })");
+        requireCondition(parseResult.ok, "duplicate domain preference DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(!validation.ok, "duplicate preference domains should fail validation");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "empty_rationale" { ministry = military_ministry prefer military_posture defensive intensity 0.5 duration = next_session confidence = 0.9 rationale = "" } } })");
+        requireCondition(parseResult.ok, "empty rationale DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(!validation.ok, "empty rationale should fail validation");
+    }
+
+    {
+        const auto parseResult = parser.parse("campaign \"campaign_001\" { empire \"empire_001\" { rule \"control_char_rationale\" { ministry = military_ministry prefer military_posture defensive intensity 0.5 duration = next_session confidence = 0.9 rationale = \"line1\nline2\" } } }");
+        requireCondition(!parseResult.ok, "quoted DSL strings with control chars should fail parse");
+    }
+
+    {
         const auto overlayDir = freshTestDirectory();
         const auto eventsPath = overlayDir / "events" / "strategic_nexus_generated_events.txt";
         const std::string eventsText = "namespace = strategic_nexus_generated\n";

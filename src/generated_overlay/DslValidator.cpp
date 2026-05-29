@@ -16,6 +16,7 @@ namespace {
 constexpr std::size_t maxRulesPerProgram = 32;
 constexpr std::size_t maxPreferencesPerRule = 4;
 constexpr std::size_t maxConditionsPerRule = 8;
+constexpr std::size_t maxRationaleLength = 512;
 
 bool isSafeIdentifier(const std::string& value)
 {
@@ -163,6 +164,12 @@ DslValidationResult DslValidator::validate(const DslProgram& program) const
         if (!isAllowedMinistry(rule.ministry)) {
             addError(errors, rule.ruleId, "unknown ministry");
         }
+        if (rule.rationale.empty()) {
+            addError(errors, rule.ruleId, "rationale must not be empty");
+        }
+        if (rule.rationale.size() > maxRationaleLength) {
+            addError(errors, rule.ruleId, "rationale exceeds max length");
+        }
         if (rule.preferences.empty()) {
             addError(errors, rule.ruleId, "rule has no preferences");
         }
@@ -188,9 +195,13 @@ DslValidationResult DslValidator::validate(const DslProgram& program) const
             }
         }
 
+        std::set<std::string> seenPreferenceDomains;
         for (const auto& preference : rule.preferences) {
             if (!isAllowedPreference(preference)) {
                 addError(errors, rule.ruleId, "unsupported preference");
+            }
+            if (!seenPreferenceDomains.insert(preference.domain).second) {
+                addError(errors, rule.ruleId, "duplicate preference domain");
             }
             if (!std::isfinite(preference.intensity)) {
                 addError(errors, rule.ruleId, "intensity must be finite");

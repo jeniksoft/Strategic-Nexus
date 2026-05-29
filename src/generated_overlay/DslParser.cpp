@@ -70,6 +70,11 @@ std::vector<Token> tokenize(const std::string& text, std::string& error)
                     error = "backslash escapes are not supported in DSL strings";
                     return {};
                 }
+                const unsigned char quotedChar = static_cast<unsigned char>(text[index]);
+                if (std::iscntrl(quotedChar)) {
+                    error = "control characters are not supported in DSL strings";
+                    return {};
+                }
                 value.push_back(text[index]);
                 ++index;
             }
