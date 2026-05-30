@@ -111,6 +111,14 @@ int main()
         containsValue(badWarInput.uncertainties, "headline_war_count_invalid"),
         "invalid war count should be surfaced as explicit uncertainty");
 
+    strategic_nexus::SeasonDeltaLedger overflowWarLedger = ledger;
+    overflowWarLedger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:99999999999999999999999999999999999999"};
+    const auto overflowWarInput = builder.build(overflowWarLedger, "empire_ledger", "research");
+    requireCondition(!overflowWarInput.turnContext.isAtWar, "overflow war count should fail closed to not-at-war");
+    requireCondition(
+        containsValue(overflowWarInput.uncertainties, "headline_war_count_invalid"),
+        "overflow war count should be surfaced as explicit uncertainty");
+
     strategic_nexus::SeasonDeltaLedger badDateLedger = ledger;
     badDateLedger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:0", "save_date:22ab.07.01"};
     const auto badDateInput = builder.build(badDateLedger, "empire_ledger", "research");
@@ -131,6 +139,22 @@ int main()
     requireCondition(
         containsValue(badDayInput.uncertainties, "headline_save_date_invalid"),
         "invalid save day should be surfaced as explicit uncertainty");
+
+    strategic_nexus::SeasonDeltaLedger badSeparatorLedger = ledger;
+    badSeparatorLedger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:0", "save_date:2230-07-01"};
+    const auto badSeparatorInput = builder.build(badSeparatorLedger, "empire_ledger", "research");
+    requireCondition(
+        badSeparatorInput.turnContext.year == 0,
+        "invalid save date separators should fail closed to default year");
+    requireCondition(
+        containsValue(badSeparatorInput.uncertainties, "headline_save_date_invalid"),
+        "invalid save date separators should be surfaced as explicit uncertainty");
+    requireCondition(
+        !containsValue(badSeparatorInput.knownFacts, "turn_context_month_hint_source:save_date"),
+        "invalid save date separators should not emit month hint facts");
+    requireCondition(
+        !containsValue(badSeparatorInput.knownFacts, "turn_context_day_hint_source:save_date"),
+        "invalid save date separators should not emit day hint facts");
 
     strategic_nexus::SeasonDeltaLedger metadataOnlyLedger = ledger;
     metadataOnlyLedger.deltaQuality = "metadata_only";

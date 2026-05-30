@@ -4,6 +4,7 @@
 #include "ArchiveMinistryInputBuilder.h"
 
 #include <cctype>
+#include <limits>
 #include <sstream>
 
 namespace strategic_nexus {
@@ -34,7 +35,11 @@ bool parseNonNegativeInteger(const std::string& value, std::size_t& outValue)
         if (!std::isdigit(static_cast<unsigned char>(ch))) {
             return false;
         }
-        parsed = (parsed * 10) + static_cast<std::size_t>(ch - '0');
+        const std::size_t digit = static_cast<std::size_t>(ch - '0');
+        if (parsed > ((std::numeric_limits<std::size_t>::max() - digit) / 10)) {
+            return false;
+        }
+        parsed = (parsed * 10) + digit;
     }
 
     outValue = parsed;
@@ -49,6 +54,30 @@ bool parseFactValue(const std::string& fact, const char* key, std::string& outVa
     }
 
     outValue = fact.substr(prefix.size());
+    return true;
+}
+
+bool parseSaveDate(const std::string& value, std::size_t& outYear, std::size_t& outMonth, std::size_t& outDay)
+{
+    if (value.size() != 10) {
+        return false;
+    }
+    if (value[4] != '.' || value[7] != '.') {
+        return false;
+    }
+
+    if (!parseNonNegativeInteger(value.substr(0, 4), outYear) ||
+        !parseNonNegativeInteger(value.substr(5, 2), outMonth) ||
+        !parseNonNegativeInteger(value.substr(8, 2), outDay)) {
+        return false;
+    }
+
+    if (outMonth < 1 || outMonth > 12) {
+        return false;
+    }
+    if (outDay < 1 || outDay > 31) {
+        return false;
+    }
     return true;
 }
 
@@ -109,13 +138,10 @@ void applyParsedHeadlineYearHint(const SeasonDeltaLedger& ledger, strategic_pipe
         return;
     }
 
-    if (rawSaveDate.size() < 4) {
-        appendUncertaintyIfMissing(input, "headline_save_date_invalid");
-        return;
-    }
-
     std::size_t year = 0;
-    if (!parseNonNegativeInteger(rawSaveDate.substr(0, 4), year)) {
+    std::size_t month = 0;
+    std::size_t day = 0;
+    if (!parseSaveDate(rawSaveDate, year, month, day)) {
         appendUncertaintyIfMissing(input, "headline_save_date_invalid");
         return;
     }
@@ -143,16 +169,10 @@ void applyParsedHeadlineMonthHint(const SeasonDeltaLedger& ledger, strategic_pip
         return;
     }
 
-    if (rawSaveDate.size() < 7) {
-        appendUncertaintyIfMissing(input, "headline_save_date_invalid");
-        return;
-    }
-
     std::size_t year = 0;
     std::size_t month = 0;
-    if (!parseNonNegativeInteger(rawSaveDate.substr(0, 4), year) ||
-        !parseNonNegativeInteger(rawSaveDate.substr(5, 2), month) ||
-        month < 1 || month > 12) {
+    std::size_t day = 0;
+    if (!parseSaveDate(rawSaveDate, year, month, day)) {
         appendUncertaintyIfMissing(input, "headline_save_date_invalid");
         return;
     }
@@ -180,19 +200,10 @@ void applyParsedHeadlineDayHint(const SeasonDeltaLedger& ledger, strategic_pipel
         return;
     }
 
-    if (rawSaveDate.size() < 10) {
-        appendUncertaintyIfMissing(input, "headline_save_date_invalid");
-        return;
-    }
-
     std::size_t year = 0;
     std::size_t month = 0;
     std::size_t day = 0;
-    if (!parseNonNegativeInteger(rawSaveDate.substr(0, 4), year) ||
-        !parseNonNegativeInteger(rawSaveDate.substr(5, 2), month) ||
-        month < 1 || month > 12 ||
-        !parseNonNegativeInteger(rawSaveDate.substr(8, 2), day) ||
-        day < 1 || day > 31) {
+    if (!parseSaveDate(rawSaveDate, year, month, day)) {
         appendUncertaintyIfMissing(input, "headline_save_date_invalid");
         return;
     }
