@@ -810,6 +810,7 @@ The CLI verifier output now also emits explicit `mp_overlay_package_warning` cod
 `Strategic Nexus.exe --import-mp-overlay-package <package_dir> <target_overlay_dir> [expected_campaign_id] [expected_overlay_version] [expected_game_version] [expected_mod_version] [expected_manifest_hash]` now keeps fail-closed import verification and also emits import-side mismatch warnings (`mp_overlay_package_import_warning=*`) plus package identity metadata in CLI output, so release-companion flows can surface host/client mismatch risk directly at import time.
 MP package copyable status text now includes explicit host/client readiness lines (`host_readiness`, `host_next_step`, `client_readiness_gate`, `client_next_step`) and handoff continuity hinting for host-rotation fallback.
 Strategic Nexus Companion snapshot/status-center tests now assert these host/client readiness lines are present in `mp_overlay_package_status_text` and in copyable Status Center summary output.
+SNC MP package snapshot now carries structured `warning_codes` (plus CLI `snc_mp_overlay_package_warning_count`/`snc_mp_overlay_package_warning_code` output), so release-companion and Status Center flows can surface non-ready package reasons without parsing free-form text.
 
 Next worker-ready slice:
 
