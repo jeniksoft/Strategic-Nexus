@@ -265,6 +265,18 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareIdentityRiskWarning = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning"
     $compareIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning_reason"
     $compareIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning_code"
+    if ([string]::IsNullOrWhiteSpace($compareRecommendation)) {
+        throw "Compare output is missing real_session_v0_compare_recommendation."
+    }
+    if ([string]::IsNullOrWhiteSpace($compareOutputJsonLine)) {
+        throw "Compare output is missing real_session_v0_compare_output_json."
+    }
+    if ([string]::IsNullOrWhiteSpace($compareIdentityRiskWarning)) {
+        throw "Compare output is missing real_session_v0_compare_identity_risk_warning."
+    }
+    if ([string]::IsNullOrWhiteSpace($compareIdentityRiskWarningReason)) {
+        throw "Compare output is missing real_session_v0_compare_identity_risk_warning_reason."
+    }
     Write-Host "real_session_v0_loop_compare_auto_ok=true"
     Write-Host ("real_session_v0_loop_compare_auto_output_json=" + $compareOutputJsonLine)
     Write-Host ("real_session_v0_loop_compare_auto_recommendation=" + $compareRecommendation)
