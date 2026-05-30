@@ -9,6 +9,7 @@ param(
     [string]$EmpireId,
     [Parameter(Mandatory = $true)]
     [string]$DslInput,
+    [string]$PreviousSessionDirForCompare,
     [string]$SessionId,
     [string]$WorkDir,
     [string]$OverlayOutputDir,
@@ -60,6 +61,15 @@ function Get-KeyValueLineValue {
         return ""
     }
     return $line.Substring($prefix.Length)
+}
+
+function Get-SafeFileToken {
+    param([Parameter(Mandatory = $true)][string]$Value)
+    $safe = $Value -replace '[^A-Za-z0-9._-]', "_"
+    if ([string]::IsNullOrWhiteSpace($safe)) {
+        return "session"
+    }
+    return $safe
 }
 
 if ([string]::IsNullOrWhiteSpace($SessionId)) {
@@ -198,6 +208,30 @@ Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull
 Write-Host ("real_session_v0_loop_compare_previous_session_dir_hint=dist\\real_session_v0_loop\\<previous_session_id>")
 $compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "dist\real_session_v0_loop\<previous_session_id>" "' + $defaultRunRoot + '" "dist\private_reports\real_session_v0_compare_' + $SessionId + '.json"'
 Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
+if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
+    $previousSessionDirForCompareFull = [System.IO.Path]::GetFullPath($PreviousSessionDirForCompare)
+    if (-not (Test-Path -LiteralPath $previousSessionDirForCompareFull)) {
+        throw "PreviousSessionDirForCompare does not exist: $previousSessionDirForCompareFull"
+    }
+
+    $compareScriptPath = Join-Path $PSScriptRoot "compare_real_session_v0_outputs.ps1"
+    if (-not (Test-Path -LiteralPath $compareScriptPath)) {
+        throw "Missing compare script: $compareScriptPath"
+    }
+
+    $previousSessionToken = Get-SafeFileToken -Value (Split-Path -Leaf $previousSessionDirForCompareFull)
+    $compareOutputJson = Join-Path $repoRoot ("dist/private_reports/real_session_v0_compare_" + $previousSessionToken + "_to_" + $SessionId + ".json")
+    $compareLines = & powershell -NoProfile -ExecutionPolicy Bypass -File $compareScriptPath $previousSessionDirForCompareFull $defaultRunRoot $compareOutputJson
+    Assert-LastExitCodeOk -StepName "compare real session v0 outputs"
+    if ($null -eq $compareLines) {
+        throw "Compare script returned no output."
+    }
+    $compareRecommendation = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_recommendation"
+    $compareOutputJsonLine = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_output_json"
+    Write-Host "real_session_v0_loop_compare_auto_ok=true"
+    Write-Host ("real_session_v0_loop_compare_auto_output_json=" + $compareOutputJsonLine)
+    Write-Host ("real_session_v0_loop_compare_auto_recommendation=" + $compareRecommendation)
+}
 if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_output_dir=" + $mpPackageOutputDirFull)
     Write-Host ("real_session_v0_loop_mp_package_readiness=" + $mpExportReadiness)
