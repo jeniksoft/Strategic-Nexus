@@ -1886,6 +1886,11 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_mod_version_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_manifest_hash_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_run_id=real-session-v0-loop-"
+    $runIdLine = ($output | Where-Object { $_ -like "real_session_v0_loop_run_id=*" } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($runIdLine)) {
+        throw "real session loop mismatch forwarding case missing run id line."
+    }
+    $runIdValue = $runIdLine.Substring("real_session_v0_loop_run_id=".Length)
 
     $evidencePathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_evidence_json=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($evidencePathLine)) {
@@ -1914,6 +1919,13 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_session_command_hint"'
     if ($evidenceText -match [regex]::Escape("System.Object[]")) {
         throw "real session loop mismatch forwarding evidence arrays contains serialized System.Object[] placeholder."
+    }
+    $evidenceJson = $evidenceText | ConvertFrom-Json
+    if ([string]::IsNullOrWhiteSpace([string]$evidenceJson.run_id)) {
+        throw "real session loop mismatch forwarding evidence json missing run_id value."
+    }
+    if ([string]$evidenceJson.run_id -ne $runIdValue) {
+        throw "real session loop mismatch forwarding run_id mismatch. CLI='$runIdValue' evidence='$($evidenceJson.run_id)'."
     }
 
     Write-Host "[PASS] real_session_loop_mismatch_forwarding"
