@@ -87,6 +87,7 @@ $latestDeltaOverlayChanged = ""
 $latestDeltaArchiveSaveCountDelta = ""
 $latestDeltaGameplayChanged = ""
 $latestCompareCommandHint = ""
+$nextSessionCommandHint = ""
 $latestTrendRecommendation = "need_more_real_sessions"
 $latestIdentityRiskWarning = "false"
 $latestIdentityRiskWarningReason = "need_more_real_sessions"
@@ -187,6 +188,9 @@ if ($sessionCount -ge 2) {
         $latestTrendRecommendation = "no_pipeline_delta_detected"
     }
 }
+if ($sessionCount -ge 1) {
+    $nextSessionCommandHint = 'cmd /c tools\run_real_session_v0_loop.cmd "<save_root>" "<archive_root>" "<campaign_id>" "<empire_id>" "<dsl_input>" -PreviousSessionDirForCompare "' + $latest.session_dir + '"'
+}
 
 $result = [ordered]@{
     schema_version = 1
@@ -229,6 +233,7 @@ $result = [ordered]@{
         host_next_step_current = $latestMpHostNextStepCurrent
         client_next_step_current = $latestMpClientNextStepCurrent
     }
+    next_session_command_hint = $nextSessionCommandHint
     next_step_recommendation = $latestTrendRecommendation
 }
 
@@ -273,5 +278,8 @@ foreach ($warningCode in $latestIdentityRiskWarningCodes) {
 }
 if (-not [string]::IsNullOrWhiteSpace($latestCompareCommandHint)) {
     Write-Host ("real_session_v0_trend_latest_compare_command_hint=" + $latestCompareCommandHint)
+}
+if (-not [string]::IsNullOrWhiteSpace($nextSessionCommandHint)) {
+    Write-Host ("real_session_v0_trend_next_session_command_hint=" + $nextSessionCommandHint)
 }
 exit 0
