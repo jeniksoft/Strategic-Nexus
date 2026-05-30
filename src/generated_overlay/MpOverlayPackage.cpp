@@ -190,6 +190,21 @@ std::string buildCopyableStatusText(
     return text.str();
 }
 
+std::string buildFailureStatusText(
+    const std::string& warningCode,
+    const std::string& nextStep,
+    const std::filesystem::path& packageDirectory)
+{
+    std::ostringstream text;
+    text << "readiness: not_ready\n";
+    text << "warning_code: " << warningCode << "\n";
+    text << "next_step: " << nextStep << "\n";
+    text << "verify_command: Strategic Nexus.exe --verify-mp-overlay-package \"" << packageDirectory.generic_string() << "\"\n";
+    text << "import_command: Strategic Nexus.exe --import-mp-overlay-package \"" << packageDirectory.generic_string()
+         << "\" <target_overlay_dir>\n";
+    return text.str();
+}
+
 bool isSafePackageMetadataValue(const std::string& value)
 {
     if (value.empty() || value.size() > 96) {
@@ -399,12 +414,20 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     MpOverlayPackageVerificationResult result;
     if (packageDirectory.empty()) {
         result.reason = "missing package directory";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_missing_directory",
+            "provide an existing package directory and rerun verify",
+            packageDirectory);
         return result;
     }
 
     const auto manifestPath = packageDirectory / packageManifestFileName;
     if (!std::filesystem::exists(manifestPath)) {
         result.reason = "missing MP overlay package manifest";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_missing_manifest",
+            "re-export package on host before import/verify",
+            packageDirectory);
         return result;
     }
 
@@ -412,6 +435,10 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     result.packageManifestHash = fnv1a64Hex(manifestText);
     if (!common::hasBalancedJsonDelimiters(manifestText)) {
         result.reason = "malformed MP overlay package manifest";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_manifest_malformed",
+            "re-export package on host before import/verify",
+            packageDirectory);
         return result;
     }
 
@@ -425,21 +452,37 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     if (!campaignId.has_value() || !overlayVersion.has_value() || !gameVersion.has_value() ||
         !strategicNexusModVersion.has_value() || !handoffStatus.has_value() || !previousHostAvailable.has_value()) {
         result.reason = "malformed MP overlay package manifest";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_manifest_malformed",
+            "re-export package on host before import/verify",
+            packageDirectory);
         return result;
     }
     if (campaignId->empty() || overlayVersion->empty() || gameVersion->empty() || strategicNexusModVersion->empty() ||
         handoffStatus->empty()) {
         result.reason = "malformed MP overlay package manifest";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_manifest_malformed",
+            "re-export package on host before import/verify",
+            packageDirectory);
         return result;
     }
     if (!isSafePackageMetadataValue(*campaignId) || !isSafePackageMetadataValue(*overlayVersion) ||
         !isSafePackageMetadataValue(*gameVersion) || !isSafePackageMetadataValue(*strategicNexusModVersion)) {
         result.reason = "malformed MP overlay package manifest";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_manifest_malformed",
+            "re-export package on host before import/verify",
+            packageDirectory);
         return result;
     }
     const std::string expectedHandoff = *previousHostAvailable ? "complete" : "degraded_previous_host_unavailable";
     if (*handoffStatus != expectedHandoff) {
         result.reason = "malformed MP overlay package manifest";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_manifest_malformed",
+            "re-export package on host before import/verify",
+            packageDirectory);
         return result;
     }
 
@@ -452,6 +495,10 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     const auto objects = extractFileObjects(manifestText);
     if (objects.empty()) {
         result.reason = "MP overlay package manifest contains no files";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_manifest_no_files",
+            "re-export package on host before import/verify",
+            packageDirectory);
         return result;
     }
 
@@ -462,6 +509,10 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
         const auto parsed = parseFileEntry(object);
         if (!parsed.has_value()) {
             result.reason = "MP overlay package manifest contains invalid file entry";
+            result.statusText = buildFailureStatusText(
+                "mp_overlay_package_manifest_invalid_file_entry",
+                "re-export package on host before import/verify",
+                packageDirectory);
             return result;
         }
 
@@ -522,9 +573,17 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     } else if (unexpected) {
         result.readiness = "not_ready";
         result.reason = "MP overlay package contains unexpected files";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_unexpected_files",
+            "remove unexpected files or re-export package on host",
+            packageDirectory);
     } else {
         result.readiness = "not_ready";
         result.reason = "MP overlay package files do not match manifest";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_files_mismatch_manifest",
+            "re-export package on host and import+verify again",
+            packageDirectory);
     }
     return result;
 }
