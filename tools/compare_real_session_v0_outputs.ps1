@@ -32,6 +32,29 @@ function Get-OptionalString {
     return [string]$value.Value
 }
 
+function Get-OptionalStringArray {
+    param([Parameter(Mandatory = $true)]$Object, [Parameter(Mandatory = $true)][string]$Property)
+    if ($null -eq $Object) { return @() }
+    $value = $Object.PSObject.Properties[$Property]
+    if ($null -eq $value) { return @() }
+    if ($null -eq $value.Value) { return @() }
+
+    $rawValue = $value.Value
+    if ($rawValue -is [string]) {
+        if ([string]::IsNullOrWhiteSpace($rawValue)) { return @() }
+        return @([string]$rawValue)
+    }
+
+    $result = @()
+    foreach ($item in $rawValue) {
+        if ($null -eq $item) { continue }
+        $text = [string]$item
+        if ([string]::IsNullOrWhiteSpace($text)) { continue }
+        $result += $text
+    }
+    return @($result)
+}
+
 $previousSessionDirFull = [System.IO.Path]::GetFullPath($PreviousSessionDir)
 $currentSessionDirFull = [System.IO.Path]::GetFullPath($CurrentSessionDir)
 
@@ -79,6 +102,8 @@ $previousMpWarningCount = ""
 $currentMpWarningCount = ""
 $previousMpIdentityMismatchWarning = ""
 $currentMpIdentityMismatchWarning = ""
+$previousMpIdentityMismatchWarningCodes = @()
+$currentMpIdentityMismatchWarningCodes = @()
 if (Test-Path -LiteralPath $previousStatusWithMpPath) {
     $previousStatusWithMp = Read-JsonFile -Path $previousStatusWithMpPath
     if ($null -ne $previousStatusWithMp.mp_overlay_package_status) {
@@ -86,6 +111,7 @@ if (Test-Path -LiteralPath $previousStatusWithMpPath) {
         $previousMpReadiness = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "readiness"
         $previousMpWarningCount = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "warning_count"
         $previousMpIdentityMismatchWarning = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
+        $previousMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
     }
 }
 if (Test-Path -LiteralPath $currentStatusWithMpPath) {
@@ -95,8 +121,13 @@ if (Test-Path -LiteralPath $currentStatusWithMpPath) {
         $currentMpReadiness = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "readiness"
         $currentMpWarningCount = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "warning_count"
         $currentMpIdentityMismatchWarning = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
+        $currentMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
     }
 }
+$previousMpIdentityMismatchWarningCodes = @($previousMpIdentityMismatchWarningCodes | Sort-Object -Unique)
+$currentMpIdentityMismatchWarningCodes = @($currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
+$previousMpIdentityMismatchWarningCodesJoined = ($previousMpIdentityMismatchWarningCodes -join "|")
+$currentMpIdentityMismatchWarningCodesJoined = ($currentMpIdentityMismatchWarningCodes -join "|")
 
 $recommendation = "review_observable_deltas"
 if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -and $previousGameplayStatus -eq $currentGameplayStatus -and $previousMpManifestHash -eq $currentMpManifestHash) {
@@ -143,6 +174,11 @@ $result = [ordered]@{
         previous = $previousMpIdentityMismatchWarning
         current = $currentMpIdentityMismatchWarning
         changed = ($previousMpIdentityMismatchWarning -ne $currentMpIdentityMismatchWarning)
+    }
+    mp_identity_mismatch_warning_codes = [ordered]@{
+        previous = $previousMpIdentityMismatchWarningCodes
+        current = $currentMpIdentityMismatchWarningCodes
+        changed = ($previousMpIdentityMismatchWarningCodesJoined -ne $currentMpIdentityMismatchWarningCodesJoined)
     }
     next_step_recommendation = $recommendation
 }

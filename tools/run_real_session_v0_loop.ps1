@@ -63,6 +63,24 @@ function Get-KeyValueLineValue {
     return $line.Substring($prefix.Length)
 }
 
+function Get-KeyValueLineValues {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Lines,
+        [Parameter(Mandatory = $true)]
+        [string]$Key
+    )
+
+    $prefix = $Key + "="
+    $result = @()
+    foreach ($line in $Lines) {
+        if ($line -like "$prefix*") {
+            $result += $line.Substring($prefix.Length)
+        }
+    }
+    return @($result)
+}
+
 function Get-SafeFileToken {
     param([Parameter(Mandatory = $true)][string]$Value)
     $safe = $Value -replace '[^A-Za-z0-9._-]', "_"
@@ -145,6 +163,7 @@ $mpExportReadiness = ""
 $mpExportManifestHash = ""
 $mpExportWarningCount = ""
 $mpExportIdentityMismatchWarning = ""
+$mpExportIdentityMismatchWarningCodes = @()
 $mpExportVerifyCommand = ""
 $mpExportImportCommand = ""
 $sncStatusWithMpReadiness = ""
@@ -170,6 +189,7 @@ if ($ExportMpPackage) {
     $mpExportManifestHash = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_manifest_hash"
     $mpExportWarningCount = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_warning_count"
     $mpExportIdentityMismatchWarning = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_identity_mismatch_warning"
+    $mpExportIdentityMismatchWarningCodes = Get-KeyValueLineValues -Lines $mpExportLines -Key "mp_overlay_package_export_identity_mismatch_warning_code"
     $mpExportVerifyCommand = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_verify_command"
     $mpExportImportCommand = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_import_command"
 
@@ -238,6 +258,9 @@ if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_manifest_hash=" + $mpExportManifestHash)
     Write-Host ("real_session_v0_loop_mp_package_warning_count=" + $mpExportWarningCount)
     Write-Host ("real_session_v0_loop_mp_package_identity_mismatch_warning=" + $mpExportIdentityMismatchWarning)
+    foreach ($warningCode in $mpExportIdentityMismatchWarningCodes) {
+        Write-Host ("real_session_v0_loop_mp_package_identity_mismatch_warning_code=" + $warningCode)
+    }
     Write-Host ("real_session_v0_loop_mp_package_verify_command=" + $mpExportVerifyCommand)
     Write-Host ("real_session_v0_loop_mp_package_import_command=" + $mpExportImportCommand)
     Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpOutputJsonFull)
