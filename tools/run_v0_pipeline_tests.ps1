@@ -1267,6 +1267,140 @@ war={
     Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"turn_context_month_hint_confidence_percent:80"'
     Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"turn_context_day_hint_confidence_percent:80"'
 
+    $invalidHintsSourceRoot = Join-Path $repoRoot "dist/autosave_archive_cli_source_invalid_hints"
+    Remove-Item -LiteralPath $invalidHintsSourceRoot -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $invalidHintsSourceRoot | Out-Null
+
+    $invalidHintsSaveFixtureDir = Join-Path $invalidHintsSourceRoot "_save_fixture"
+    $invalidHintsSaveFixtureZip = Join-Path $invalidHintsSourceRoot "_save_fixture.zip"
+    $invalidHintsSaveFixtureSav = Join-Path $invalidHintsSourceRoot "autosave_2230_invalid_hints.sav"
+    New-Item -ItemType Directory -Force -Path $invalidHintsSaveFixtureDir | Out-Null
+
+    @'
+version="v4.0.22"
+revision="abc"
+name="Invalid Hint Save"
+'@ | Set-Content -LiteralPath (Join-Path $invalidHintsSaveFixtureDir "meta") -Encoding ascii
+
+    @'
+date="22ab.07.01"
+player={
+    {
+        name="Tester"
+        country=0
+    }
+}
+country={
+    0={
+        name="Aeel Corp"
+        founder_species=7
+        capital=42
+        starting_system=9
+    }
+}
+species={
+    7={
+        name="Aeel"
+    }
+}
+planet={
+    42={
+        name="Aeel Prime"
+    }
+}
+galactic_object={
+    9={
+        name="Aeel System"
+    }
+}
+'@ | Set-Content -LiteralPath (Join-Path $invalidHintsSaveFixtureDir "gamestate") -Encoding ascii
+
+    Compress-Archive -Path (Join-Path $invalidHintsSaveFixtureDir "*") -DestinationPath $invalidHintsSaveFixtureZip -Force
+    Move-Item -LiteralPath $invalidHintsSaveFixtureZip -Destination $invalidHintsSaveFixtureSav -Force
+    Remove-Item -LiteralPath $invalidHintsSaveFixtureDir -Recurse -Force
+
+    $invalidHintsArchiveOutput = & $exePath `
+        --archive-stable-saves `
+        $invalidHintsSourceRoot `
+        $archiveRoot `
+        "session_cli_invalid_hints" `
+        0
+    $invalidHintsArchiveExitCode = $LASTEXITCODE
+    $invalidHintsArchiveText = $invalidHintsArchiveOutput -join "`n"
+
+    if ($invalidHintsArchiveExitCode -ne 0) {
+        throw "autosave archive invalid-hints setup failed. Actual output:`n$invalidHintsArchiveText"
+    }
+
+    Assert-Contains -Name "autosave archive invalid-hints setup" -Text $invalidHintsArchiveText -Expected "autosave_archive_success=true"
+
+    $invalidHintMinistryInputPath = Join-Path $archiveRoot "session_cli_invalid_hints_ministry_input.json"
+    $invalidHintInputOutput = & $exePath `
+        --build-ministry-input-from-archive `
+        (Join-Path $archiveRoot "session_cli_invalid_hints") `
+        "campaign_cli_invalid_hints" `
+        "empire_cli" `
+        "military" `
+        $invalidHintMinistryInputPath
+    $invalidHintInputExitCode = $LASTEXITCODE
+    $invalidHintInputText = $invalidHintInputOutput -join "`n"
+
+    if ($invalidHintInputExitCode -ne 0) {
+        throw "archive ministry input app (invalid hints) failed. Actual output:`n$invalidHintInputText"
+    }
+
+    Assert-Contains -Name "archive ministry input app (invalid hints)" -Text $invalidHintInputText -Expected "archive_ministry_input_success=true"
+    $invalidHintInputJson = Get-Content -Raw -LiteralPath $invalidHintMinistryInputPath
+    $null = $invalidHintInputJson | ConvertFrom-Json
+    Assert-Contains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Expected '"year": 0'
+    Assert-Contains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Expected '"is_at_war": false'
+    Assert-Contains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Expected '"strategic_pressure": 0.25'
+    Assert-Contains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Expected '"save_headline_date_invalid"'
+    Assert-Contains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Expected '"turn_context_war_hint_source:headline_active_war_count"'
+    Assert-Contains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Expected '"turn_context_pressure_war_hint_source:headline_active_war_count"'
+    Assert-NotContains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Unexpected '"turn_context_year_hint_source:save_date"'
+    Assert-NotContains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Unexpected '"turn_context_month_hint_source:save_date"'
+    Assert-NotContains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Unexpected '"turn_context_day_hint_source:save_date"'
+    Assert-NotContains -Name "archive ministry input json (invalid hints)" -Text $invalidHintInputJson -Unexpected '"turn_context_pressure_year_hint_source:save_date"'
+
+    $invalidHintArchivePipelineInputPath = Join-Path $archiveRoot "session_cli_invalid_hints_archive_pipeline_input.json"
+    $invalidHintArchivePipelineDecisionPath = Join-Path $archiveRoot "session_cli_invalid_hints_archive_pipeline_decision.json"
+    $invalidHintArchivePipelineAuditPath = Join-Path $archiveRoot "session_cli_invalid_hints_archive_pipeline_audit.json"
+    $invalidHintArchivePipelineOutput = & $exePath `
+        --v0-pipeline-from-archive `
+        (Join-Path $archiveRoot "session_cli_invalid_hints") `
+        "campaign_cli_invalid_hints" `
+        "empire_cli" `
+        "military" `
+        $invalidHintArchivePipelineInputPath `
+        $invalidHintArchivePipelineDecisionPath `
+        302 `
+        123456 `
+        30000 `
+        $invalidHintArchivePipelineAuditPath
+    $invalidHintArchivePipelineExitCode = $LASTEXITCODE
+    $invalidHintArchivePipelineText = $invalidHintArchivePipelineOutput -join "`n"
+
+    if ($invalidHintArchivePipelineExitCode -ne 0) {
+        throw "archive v0 pipeline app (invalid hints) failed. Actual output:`n$invalidHintArchivePipelineText"
+    }
+
+    Assert-Contains -Name "archive v0 pipeline app (invalid hints)" -Text $invalidHintArchivePipelineText -Expected "archive_v0_pipeline_success=true"
+    $invalidHintArchivePipelineDecisionJson = Get-Content -Raw -LiteralPath $invalidHintArchivePipelineDecisionPath
+    $null = $invalidHintArchivePipelineDecisionJson | ConvertFrom-Json
+    Assert-Contains -Name "archive v0 pipeline decision json (invalid hints)" -Text $invalidHintArchivePipelineDecisionJson -Expected '"military_posture": "defensive"'
+
+    $invalidHintArchivePipelineAuditJson = Get-Content -Raw -LiteralPath $invalidHintArchivePipelineAuditPath
+    $null = $invalidHintArchivePipelineAuditJson | ConvertFrom-Json
+    Assert-Contains -Name "archive v0 pipeline audit json (invalid hints)" -Text $invalidHintArchivePipelineAuditJson -Expected '"strategic_pressure": 0.25'
+    Assert-Contains -Name "archive v0 pipeline audit json (invalid hints)" -Text $invalidHintArchivePipelineAuditJson -Expected '"save_headline_date_invalid"'
+    Assert-Contains -Name "archive v0 pipeline audit json (invalid hints)" -Text $invalidHintArchivePipelineAuditJson -Expected '"turn_context_war_hint_source:headline_active_war_count"'
+    Assert-Contains -Name "archive v0 pipeline audit json (invalid hints)" -Text $invalidHintArchivePipelineAuditJson -Expected '"turn_context_pressure_war_hint_source:headline_active_war_count"'
+    Assert-NotContains -Name "archive v0 pipeline audit json (invalid hints)" -Text $invalidHintArchivePipelineAuditJson -Unexpected '"turn_context_year_hint_source:save_date"'
+    Assert-NotContains -Name "archive v0 pipeline audit json (invalid hints)" -Text $invalidHintArchivePipelineAuditJson -Unexpected '"turn_context_month_hint_source:save_date"'
+    Assert-NotContains -Name "archive v0 pipeline audit json (invalid hints)" -Text $invalidHintArchivePipelineAuditJson -Unexpected '"turn_context_day_hint_source:save_date"'
+    Assert-NotContains -Name "archive v0 pipeline audit json (invalid hints)" -Text $invalidHintArchivePipelineAuditJson -Unexpected '"turn_context_pressure_year_hint_source:save_date"'
+
     $ledgerPath = Join-Path $archiveRoot "session_cli_delta_ledger.json"
     $ledgerOutput = & $exePath `
         --build-season-delta-ledger `
