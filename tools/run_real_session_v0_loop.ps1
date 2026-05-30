@@ -792,6 +792,8 @@ if ($EmitTrendSummary) {
 }
 
 $sessionEvidence = [ordered]@{
+    evidence_schema_version = 1
+    generated_at_utc = [DateTime]::UtcNow.ToString("o")
     session_id = $SessionId
     session_archive_dir = $sessionArchiveDir
     archive_summary_path = $archiveSummaryPath
