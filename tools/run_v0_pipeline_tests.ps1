@@ -116,6 +116,14 @@ $processingQueueSourceFiles = @(
     (Join-Path $repoRoot "src/strategic_pipeline/EmpireProcessingQueue.cpp"),
     (Join-Path $repoRoot "src/strategic_pipeline/ProcessingPriorityScorer.cpp")
 )
+$ministryInputReaderExePath = Join-Path $repoRoot "dist/v0_ministry_input_reader_test.exe"
+$ministryInputReaderSourceFiles = @(
+    (Join-Path $repoRoot "tests/v0_ministry_input_reader_test.cpp"),
+    (Join-Path $repoRoot "src/strategic_pipeline/MinistryInputReader.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
 $generatedOverlayContractExePath = Join-Path $repoRoot "dist/generated_overlay_contract_test.exe"
 $generatedOverlayContractSourceFiles = @(
     (Join-Path $repoRoot "tests/generated_overlay_contract_test.cpp"),
@@ -227,6 +235,7 @@ try {
     Invoke-ClCompile -Name "v0_cabinet_contract_test" -SourceFiles $cabinetContractSourceFiles -OutputPath $cabinetContractExePath
     Invoke-ClCompile -Name "v0_priority_score_test" -SourceFiles $priorityScoreSourceFiles -OutputPath $priorityScoreExePath
     Invoke-ClCompile -Name "v0_processing_queue_test" -SourceFiles $processingQueueSourceFiles -OutputPath $processingQueueExePath
+    Invoke-ClCompile -Name "v0_ministry_input_reader_test" -SourceFiles $ministryInputReaderSourceFiles -OutputPath $ministryInputReaderExePath
     Invoke-ClCompile -Name "generated_overlay_contract_test" -SourceFiles $generatedOverlayContractSourceFiles -OutputPath $generatedOverlayContractExePath
     Invoke-ClCompile -Name "generated_overlay_verifier_test" -SourceFiles $generatedOverlayVerifierSourceFiles -OutputPath $generatedOverlayVerifierExePath
     Invoke-ClCompile -Name "generated_overlay_publisher_test" -SourceFiles $generatedOverlayPublisherSourceFiles -OutputPath $generatedOverlayPublisherExePath
@@ -1848,6 +1857,11 @@ if ($LASTEXITCODE -ne 0) {
 & $processingQueueExePath
 if ($LASTEXITCODE -ne 0) {
     throw "v0 processing queue tests failed."
+}
+
+& $ministryInputReaderExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "v0 ministry input reader tests failed."
 }
 
 & $generatedOverlayContractExePath
