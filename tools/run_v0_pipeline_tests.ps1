@@ -1901,6 +1901,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"manifest_hash_mismatch_warning_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence metadata" -Text $evidenceText -Expected '"run_id":'
     Assert-Contains -Name "real session loop mismatch forwarding evidence metadata" -Text $evidenceText -Expected 'real-session-v0-loop-'
+    if ($evidenceText -match [regex]::Escape("System.Object[]")) {
+        throw "real session loop mismatch forwarding evidence arrays contains serialized System.Object[] placeholder."
+    }
 
     Write-Host "[PASS] real_session_loop_mismatch_forwarding"
 }

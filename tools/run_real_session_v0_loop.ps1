@@ -105,6 +105,23 @@ function Get-VariableOrDefault {
     return [string]$var.Value
 }
 
+function Get-VariableArrayOrDefault {
+    param(
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+
+    $var = Get-Variable -Name $Name -ErrorAction SilentlyContinue
+    if ($null -eq $var -or $null -eq $var.Value) {
+        return @()
+    }
+
+    if ($var.Value -is [System.Array]) {
+        return @($var.Value | ForEach-Object { [string]$_ })
+    }
+
+    return @([string]$var.Value)
+}
+
 if ([string]::IsNullOrWhiteSpace($SessionId)) {
     $SessionId = "session_" + (Get-Date -Format "yyyyMMdd_HHmmss")
 }
@@ -910,7 +927,7 @@ $sessionEvidence = [ordered]@{
         recommendation = (Get-VariableOrDefault -Name "compareRecommendation")
         identity_risk_warning = (Get-VariableOrDefault -Name "compareIdentityRiskWarning")
         identity_risk_warning_reason = (Get-VariableOrDefault -Name "compareIdentityRiskWarningReason")
-        identity_risk_warning_codes = @((Get-VariableOrDefault -Name "compareIdentityRiskWarningCodes"))
+        identity_risk_warning_codes = @(Get-VariableArrayOrDefault -Name "compareIdentityRiskWarningCodes")
         observable_effect_signal = (Get-VariableOrDefault -Name "compareObservableEffectSignal")
         observable_effect_reason = (Get-VariableOrDefault -Name "compareObservableEffectReason")
         gameplay_acceptance_state_current = (Get-VariableOrDefault -Name "compareGameplayAcceptanceStateCurrent")
@@ -953,14 +970,14 @@ $sessionEvidence = [ordered]@{
             warning_count_current = (Get-VariableOrDefault -Name "compareMpWarningCountCurrent")
             warning_count_delta = (Get-VariableOrDefault -Name "compareMpWarningCountDelta")
             warning_codes_changed = (Get-VariableOrDefault -Name "compareMpWarningCodesChanged")
-            warning_codes_current = @((Get-VariableOrDefault -Name "compareMpWarningCodesCurrent"))
-            warning_codes_previous = @((Get-VariableOrDefault -Name "compareMpWarningCodesPrevious"))
+            warning_codes_current = @(Get-VariableArrayOrDefault -Name "compareMpWarningCodesCurrent")
+            warning_codes_previous = @(Get-VariableArrayOrDefault -Name "compareMpWarningCodesPrevious")
             identity_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningCurrent")
             identity_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningPrevious")
             identity_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningChanged")
             identity_mismatch_warning_codes_changed = (Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningCodesChanged")
-            identity_mismatch_warning_codes_current = @((Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningCodesCurrent"))
-            identity_mismatch_warning_codes_previous = @((Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningCodesPrevious"))
+            identity_mismatch_warning_codes_current = @(Get-VariableArrayOrDefault -Name "compareMpIdentityMismatchWarningCodesCurrent")
+            identity_mismatch_warning_codes_previous = @(Get-VariableArrayOrDefault -Name "compareMpIdentityMismatchWarningCodesPrevious")
             game_version_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningCurrent")
             game_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningPrevious")
             game_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningChanged")
@@ -979,7 +996,7 @@ $sessionEvidence = [ordered]@{
         recommendation = (Get-VariableOrDefault -Name "trendRecommendation")
         identity_risk_warning = (Get-VariableOrDefault -Name "trendIdentityRiskWarning")
         identity_risk_warning_reason = (Get-VariableOrDefault -Name "trendIdentityRiskWarningReason")
-        identity_risk_warning_codes = @((Get-VariableOrDefault -Name "trendIdentityRiskWarningCodes"))
+        identity_risk_warning_codes = @(Get-VariableArrayOrDefault -Name "trendIdentityRiskWarningCodes")
         observable_effect_signal = (Get-VariableOrDefault -Name "trendObservableEffectSignal")
         observable_effect_reason = (Get-VariableOrDefault -Name "trendObservableEffectReason")
         gameplay_acceptance_state_current = (Get-VariableOrDefault -Name "trendGameplayAcceptanceStateCurrent")
@@ -1024,14 +1041,14 @@ $sessionEvidence = [ordered]@{
             warning_count_current = (Get-VariableOrDefault -Name "trendMpWarningCountCurrent")
             warning_count_delta = (Get-VariableOrDefault -Name "trendMpWarningCountDelta")
             warning_codes_changed = (Get-VariableOrDefault -Name "trendMpWarningCodesChanged")
-            warning_codes_current = @((Get-VariableOrDefault -Name "trendMpWarningCodesCurrent"))
-            warning_codes_previous = @((Get-VariableOrDefault -Name "trendMpWarningCodesPrevious"))
+            warning_codes_current = @(Get-VariableArrayOrDefault -Name "trendMpWarningCodesCurrent")
+            warning_codes_previous = @(Get-VariableArrayOrDefault -Name "trendMpWarningCodesPrevious")
             identity_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningCurrent")
             identity_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningPrevious")
             identity_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningChanged")
             identity_mismatch_warning_codes_changed = (Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningCodesChanged")
-            identity_mismatch_warning_codes_current = @((Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningCodesCurrent"))
-            identity_mismatch_warning_codes_previous = @((Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningCodesPrevious"))
+            identity_mismatch_warning_codes_current = @(Get-VariableArrayOrDefault -Name "trendMpIdentityMismatchWarningCodesCurrent")
+            identity_mismatch_warning_codes_previous = @(Get-VariableArrayOrDefault -Name "trendMpIdentityMismatchWarningCodesPrevious")
             game_version_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningCurrent")
             game_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningPrevious")
             game_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningChanged")
