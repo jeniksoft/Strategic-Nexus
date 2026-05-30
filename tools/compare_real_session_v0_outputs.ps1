@@ -122,6 +122,8 @@ $previousMpClientNextStep = ""
 $currentMpClientNextStep = ""
 $previousMpIdentityMismatchWarning = ""
 $currentMpIdentityMismatchWarning = ""
+$previousMpWarningCodes = @()
+$currentMpWarningCodes = @()
 $previousMpIdentityMismatchWarningCodes = @()
 $currentMpIdentityMismatchWarningCodes = @()
 if (Test-Path -LiteralPath $previousStatusWithMpPath) {
@@ -134,6 +136,7 @@ if (Test-Path -LiteralPath $previousStatusWithMpPath) {
         $previousMpClientReadinessGate = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "client_readiness_gate"
         $previousMpHostNextStep = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "host_next_step"
         $previousMpClientNextStep = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "client_next_step"
+        $previousMpWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "warning_codes"
         $previousMpIdentityMismatchWarning = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
         $previousMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
     }
@@ -148,10 +151,15 @@ if (Test-Path -LiteralPath $currentStatusWithMpPath) {
         $currentMpClientReadinessGate = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "client_readiness_gate"
         $currentMpHostNextStep = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "host_next_step"
         $currentMpClientNextStep = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "client_next_step"
+        $currentMpWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "warning_codes"
         $currentMpIdentityMismatchWarning = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
         $currentMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
     }
 }
+$previousMpWarningCodes = @($previousMpWarningCodes | Sort-Object -Unique)
+$currentMpWarningCodes = @($currentMpWarningCodes | Sort-Object -Unique)
+$previousMpWarningCodesJoined = ($previousMpWarningCodes -join "|")
+$currentMpWarningCodesJoined = ($currentMpWarningCodes -join "|")
 $previousMpIdentityMismatchWarningCodes = @($previousMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $currentMpIdentityMismatchWarningCodes = @($currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $previousMpIdentityMismatchWarningCodesJoined = ($previousMpIdentityMismatchWarningCodes -join "|")
@@ -223,6 +231,11 @@ $result = [ordered]@{
         current_int = $currentMpWarningCountParsed
         delta_int = $mpWarningCountDelta
     }
+    mp_package_warning_codes = [ordered]@{
+        previous = $previousMpWarningCodes
+        current = $currentMpWarningCodes
+        changed = ($previousMpWarningCodesJoined -ne $currentMpWarningCodesJoined)
+    }
     mp_host_readiness = [ordered]@{
         previous = $previousMpHostReadiness
         current = $currentMpHostReadiness
@@ -284,6 +297,9 @@ Write-Host ("real_session_v0_compare_mp_client_next_step_current=" + $currentMpC
 Write-Host ("real_session_v0_compare_mp_warning_count_current=" + $currentMpWarningCount)
 if ($null -ne $mpWarningCountDelta) {
     Write-Host ("real_session_v0_compare_mp_warning_count_delta=" + $mpWarningCountDelta)
+}
+foreach ($warningCode in $currentMpWarningCodes) {
+    Write-Host ("real_session_v0_compare_mp_warning_code_current=" + $warningCode)
 }
 foreach ($warningCode in $currentMpIdentityMismatchWarningCodes) {
     Write-Host ("real_session_v0_compare_identity_risk_warning_code=" + $warningCode)

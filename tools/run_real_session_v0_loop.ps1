@@ -274,6 +274,7 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpClientNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_next_step_current"
     $compareMpWarningCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_count_current"
     $compareMpWarningCountDelta = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_count_delta"
+    $compareMpWarningCodesCurrent = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_mp_warning_code_current"
     $compareIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning_code"
     if ([string]::IsNullOrWhiteSpace($compareRecommendation)) {
         throw "Compare output is missing real_session_v0_compare_recommendation."
@@ -309,6 +310,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountDelta)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_warning_count_delta=" + $compareMpWarningCountDelta)
+    }
+    foreach ($warningCode in $compareMpWarningCodesCurrent) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_warning_code_current=" + $warningCode)
     }
     foreach ($warningCode in $compareIdentityRiskWarningCodes) {
         Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning_code=" + $warningCode)
@@ -357,6 +361,7 @@ if ($EmitTrendSummary) {
     $trendIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_reason"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
+    $trendMpWarningCodesCurrent = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_warning_code_current"
     $trendMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_readiness_current"
     $trendMpClientReadinessGateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_readiness_gate_current"
     $trendMpHostNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_next_step_current"
@@ -380,6 +385,9 @@ if ($EmitTrendSummary) {
     }
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountDelta)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_delta=" + $trendMpWarningCountDelta)
+    }
+    foreach ($warningCode in $trendMpWarningCodesCurrent) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_warning_code_current=" + $warningCode)
     }
     if (-not [string]::IsNullOrWhiteSpace($trendMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_host_readiness_current=" + $trendMpHostReadinessCurrent)
