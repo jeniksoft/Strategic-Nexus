@@ -1757,6 +1757,62 @@ function Invoke-RealSessionTrendIdentityRiskPriorityCase {
     Write-Host "[PASS] real_session_trend_identity_risk_priority"
 }
 
+function Invoke-RealSessionWarningCodeDriftSurfaceCase {
+    $fixtureRoot = Join-Path $repoRoot "dist/test_compare_identity_risk"
+    $prevDir = Join-Path $fixtureRoot "prev"
+    $currDir = Join-Path $fixtureRoot "curr"
+    $compareOutputPath = Join-Path $fixtureRoot "compare_warning_codes_surface.json"
+    $trendRoot = Join-Path $repoRoot "dist/test_trend_warning_code_surface"
+    $trendOutputPath = Join-Path $trendRoot "trend_warning_codes_surface.json"
+
+    Remove-Item -LiteralPath $trendRoot -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path (Join-Path $trendRoot "session_a/work") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $trendRoot "session_b/work") | Out-Null
+
+    Copy-Item -LiteralPath (Join-Path $prevDir "snc_status_snapshot.json") -Destination (Join-Path $trendRoot "session_a/snc_status_snapshot.json")
+    Copy-Item -LiteralPath (Join-Path $prevDir "snc_status_snapshot_with_mp.json") -Destination (Join-Path $trendRoot "session_a/snc_status_snapshot_with_mp.json")
+    Copy-Item -LiteralPath (Join-Path $prevDir "work/archive_summary.json") -Destination (Join-Path $trendRoot "session_a/work/archive_summary.json")
+
+    Copy-Item -LiteralPath (Join-Path $currDir "snc_status_snapshot.json") -Destination (Join-Path $trendRoot "session_b/snc_status_snapshot.json")
+    Copy-Item -LiteralPath (Join-Path $currDir "snc_status_snapshot_with_mp.json") -Destination (Join-Path $trendRoot "session_b/snc_status_snapshot_with_mp.json")
+    Copy-Item -LiteralPath (Join-Path $currDir "work/archive_summary.json") -Destination (Join-Path $trendRoot "session_b/work/archive_summary.json")
+
+    $sessionAStatusWithMpPath = Join-Path $trendRoot "session_a/snc_status_snapshot_with_mp.json"
+    $sessionBStatusWithMpPath = Join-Path $trendRoot "session_b/snc_status_snapshot_with_mp.json"
+    $sessionAStatusWithMp = Get-Content -Raw -LiteralPath $sessionAStatusWithMpPath | ConvertFrom-Json
+    $sessionBStatusWithMp = Get-Content -Raw -LiteralPath $sessionBStatusWithMpPath | ConvertFrom-Json
+    if ($null -eq $sessionAStatusWithMp.mp_overlay_package_status.PSObject.Properties["warning_codes"]) {
+        $sessionAStatusWithMp.mp_overlay_package_status | Add-Member -NotePropertyName "warning_codes" -NotePropertyValue @()
+    }
+    if ($null -eq $sessionBStatusWithMp.mp_overlay_package_status.PSObject.Properties["warning_codes"]) {
+        $sessionBStatusWithMp.mp_overlay_package_status | Add-Member -NotePropertyName "warning_codes" -NotePropertyValue @()
+    }
+    $sessionAStatusWithMp.mp_overlay_package_status.warning_codes = @("package_overlay_version_mismatch")
+    $sessionBStatusWithMp.mp_overlay_package_status.warning_codes = @("package_game_version_mismatch")
+    $sessionAStatusWithMp | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $sessionAStatusWithMpPath -Encoding UTF8
+    $sessionBStatusWithMp | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $sessionBStatusWithMpPath -Encoding UTF8
+
+    $compareOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "compare_real_session_v0_outputs.ps1") (Join-Path $trendRoot "session_a") (Join-Path $trendRoot "session_b") $compareOutputPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "real session warning-code drift compare failed (exit code $LASTEXITCODE)."
+    }
+    $compareText = $compareOutput -join "`n"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_warning_codes_changed=true"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_warning_code_previous=package_overlay_version_mismatch"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_warning_code_current=package_game_version_mismatch"
+
+    $trendOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1") $trendRoot $trendOutputPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "real session warning-code drift trend failed (exit code $LASTEXITCODE)."
+    }
+    $trendText = $trendOutput -join "`n"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_warning_codes_changed=true"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_warning_code_previous=package_overlay_version_mismatch"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_warning_code_current=package_game_version_mismatch"
+
+    Write-Host "[PASS] real_session_warning_code_drift_surface"
+}
+
 Invoke-V0PipelineCase `
     -Name "v0_defensive" `
     -InputFixture "resources/ministry_context_military_defensive.json" `
@@ -2060,6 +2116,7 @@ Invoke-SncStatusSnapshotCase
 Invoke-AutosaveArchiveCase
 Invoke-AutosaveArchiveVerifyMismatchCase
 Invoke-RealSessionTrendIdentityRiskPriorityCase
+Invoke-RealSessionWarningCodeDriftSurfaceCase
 
 & $autosaveArchiverExePath
 if ($LASTEXITCODE -ne 0) {

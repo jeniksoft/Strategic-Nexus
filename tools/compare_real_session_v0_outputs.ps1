@@ -179,6 +179,7 @@ $previousMpWarningCodes = @($previousMpWarningCodes | Sort-Object -Unique)
 $currentMpWarningCodes = @($currentMpWarningCodes | Sort-Object -Unique)
 $previousMpWarningCodesJoined = ($previousMpWarningCodes -join "|")
 $currentMpWarningCodesJoined = ($currentMpWarningCodes -join "|")
+$mpWarningCodesChanged = ($previousMpWarningCodesJoined -ne $currentMpWarningCodesJoined)
 $previousMpIdentityMismatchWarningCodes = @($previousMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $currentMpIdentityMismatchWarningCodes = @($currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $previousMpIdentityMismatchWarningCodesJoined = ($previousMpIdentityMismatchWarningCodes -join "|")
@@ -270,7 +271,7 @@ $result = [ordered]@{
     mp_package_warning_codes = [ordered]@{
         previous = $previousMpWarningCodes
         current = $currentMpWarningCodes
-        changed = ($previousMpWarningCodesJoined -ne $currentMpWarningCodesJoined)
+        changed = $mpWarningCodesChanged
     }
     mp_host_readiness = [ordered]@{
         previous = $previousMpHostReadiness
@@ -384,6 +385,10 @@ Write-Host ("real_session_v0_compare_mp_manifest_hash_changed=" + ((($previousMp
 Write-Host ("real_session_v0_compare_mp_warning_count_current=" + $currentMpWarningCount)
 if ($null -ne $mpWarningCountDelta) {
     Write-Host ("real_session_v0_compare_mp_warning_count_delta=" + $mpWarningCountDelta)
+}
+Write-Host ("real_session_v0_compare_mp_warning_codes_changed=" + ($mpWarningCodesChanged.ToString().ToLowerInvariant()))
+foreach ($warningCode in $previousMpWarningCodes) {
+    Write-Host ("real_session_v0_compare_mp_warning_code_previous=" + $warningCode)
 }
 foreach ($warningCode in $currentMpWarningCodes) {
     Write-Host ("real_session_v0_compare_mp_warning_code_current=" + $warningCode)
