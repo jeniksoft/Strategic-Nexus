@@ -1159,9 +1159,17 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_readiness=" << sanitizeCliValue(snapshot.mpOverlayPackage.readiness) << "\n";
             std::cout << "snc_mp_overlay_package_manifest_hash=" << sanitizeCliValue(snapshot.mpOverlayPackage.packageManifestHash) << "\n";
             std::cout << "snc_mp_overlay_package_status_text=" << sanitizeCliValue(snapshot.mpOverlayPackage.statusText) << "\n";
-            const auto mpWarningCode = readStatusTextField(snapshot.mpOverlayPackage.statusText, "warning_code");
-            if (!mpWarningCode.empty()) {
-                std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(mpWarningCode) << "\n";
+            if (!snapshot.mpOverlayPackage.warningCodes.empty()) {
+                std::cout << "snc_mp_overlay_package_warning_count=" << snapshot.mpOverlayPackage.warningCodes.size() << "\n";
+                for (const auto& warningCode : snapshot.mpOverlayPackage.warningCodes) {
+                    std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
+                }
+            } else {
+                const auto mpWarningCode = readStatusTextField(snapshot.mpOverlayPackage.statusText, "warning_code");
+                if (!mpWarningCode.empty()) {
+                    std::cout << "snc_mp_overlay_package_warning_count=1\n";
+                    std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(mpWarningCode) << "\n";
+                }
             }
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
