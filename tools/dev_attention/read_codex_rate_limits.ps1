@@ -10,6 +10,8 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 
+try {
+
 function Resolve-ProjectPath {
     param([string]$Path)
 
@@ -36,6 +38,11 @@ function Find-CodexExe {
 
     $cmd = Get-Command codex -ErrorAction SilentlyContinue
     if ($cmd -and $cmd.Source -and (Test-Path -LiteralPath $cmd.Source)) {
+        # Windows Store-installed binaries under WindowsApps are frequently non-startable directly
+        # (Access denied) outside the interactive app context. Prefer LocalAppData installs.
+        if ($cmd.Source -match "\\WindowsApps\\") {
+            throw "Found codex.exe under WindowsApps, but it may be non-startable. Install/ensure the LocalAppData Codex bin exists under %LOCALAPPDATA%\\OpenAI\\Codex\\bin, or pass -CodexExe explicitly."
+        }
         return $cmd.Source
     }
 
@@ -50,6 +57,7 @@ function Send-AppServerMessage {
 
     $json = $Message | ConvertTo-Json -Depth 20 -Compress
     $Process.StandardInput.WriteLine($json)
+    $Process.StandardInput.Flush()
 }
 
 function Convert-RateWindow {
@@ -89,6 +97,36 @@ function Read-CodexRateLimits {
     $psi.UseShellExecute = $false
 
     $process = [System.Diagnostics.Process]::Start($psi)
+
+    function Read-JsonRpcMessage {
+        param(
+            [System.Diagnostics.Process]$Process,
+            [int]$TimeoutMs
+        )
+
+        $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMs)
+        while ([DateTime]::UtcNow -lt $deadline -and -not $Process.HasExited) {
+            $remainingMs = [int][Math]::Max(1, ($deadline - [DateTime]::UtcNow).TotalMilliseconds)
+            $readTask = $Process.StandardOutput.ReadLineAsync()
+            if (-not $readTask.Wait($remainingMs)) {
+                return $null
+            }
+            $line = $readTask.Result
+            if ($null -eq $line) {
+                return $null
+            }
+            if (-not $line.Trim()) {
+                continue
+            }
+            try {
+                return ($line | ConvertFrom-Json)
+            } catch {
+                continue
+            }
+        }
+        return $null
+    }
+
     try {
         Send-AppServerMessage -Process $process -Message @{
             id = 1
@@ -106,19 +144,57 @@ function Read-CodexRateLimits {
             }
         }
 
-        Start-Sleep -Milliseconds 250
+        $initialized = $false
+        $initializeError = $null
+        $initDeadline = (Get-Date).AddSeconds(5)
+        while ((Get-Date) -lt $initDeadline -and -not $initialized -and -not $process.HasExited) {
+            $remainingMs = [int][Math]::Max(1, ($initDeadline - (Get-Date)).TotalMilliseconds)
+            $message = Read-JsonRpcMessage -Process $process -TimeoutMs $remainingMs
+            if ($null -eq $message) {
+                break
+            }
+            if ($message.id -eq 1 -and $message.result) {
+                $initialized = $true
+            }
+            if ($message.id -eq 1 -and $message.error) {
+                $initializeError = $message.error
+                break
+            }
+        }
+        if (-not $initialized) {
+            if ($initializeError -and $initializeError.message) {
+                throw "Codex app-server initialize failed: $($initializeError.message)"
+            }
+            throw "Codex app-server did not initialize before timeout"
+        }
+
         Send-AppServerMessage -Process $process -Message @{ method = "initialized" }
 
-        Start-Sleep -Milliseconds 600
         Send-AppServerMessage -Process $process -Message @{
             id = 2
             method = "account/rateLimits/read"
         }
 
-        Start-Sleep -Milliseconds 2500
-        $process.StandardInput.Close()
+        $response = $null
+        $errorResponse = $null
+        $rateLimitsDeadline = (Get-Date).AddSeconds(15)
+        while ((Get-Date) -lt $rateLimitsDeadline -and -not $response -and -not $errorResponse -and -not $process.HasExited) {
+            $remainingMs = [int][Math]::Max(1, ($rateLimitsDeadline - (Get-Date)).TotalMilliseconds)
+            $message = Read-JsonRpcMessage -Process $process -TimeoutMs $remainingMs
+            if ($null -eq $message) {
+                break
+            }
+            if ($message.id -eq 2 -and $message.result) {
+                $response = $message.result
+            }
+            if ($message.id -eq 2 -and $message.error) {
+                $errorResponse = $message.error
+            }
+        }
 
-        $stdout = $process.StandardOutput.ReadToEnd()
+        if (-not $process.HasExited) {
+            $process.StandardInput.Close()
+        }
         $stderr = $process.StandardError.ReadToEnd()
         $process.WaitForExit(10000) | Out-Null
     } finally {
@@ -127,30 +203,12 @@ function Read-CodexRateLimits {
         }
     }
 
-    $response = $null
-    $errorResponse = $null
-    foreach ($line in ($stdout -split "`r?`n")) {
-        if (-not $line.Trim()) {
-            continue
-        }
-        try {
-            $message = $line | ConvertFrom-Json
-        } catch {
-            continue
-        }
-        if ($message.id -eq 2 -and $message.result) {
-            $response = $message.result
-        }
-        if ($message.id -eq 2 -and $message.error) {
-            $errorResponse = $message.error
-        }
-    }
-
     if (-not $response) {
         if ($errorResponse -and $errorResponse.message) {
             throw "Codex app-server returned an error for account/rateLimits/read: $($errorResponse.message)"
         }
-        throw "Codex app-server did not return account/rateLimits/read. stderr: $stderr"
+        $exitCode = if ($null -ne $process.ExitCode) { $process.ExitCode } else { "unknown" }
+        throw "Codex app-server did not return account/rateLimits/read. exit=$exitCode stderr: $stderr"
     }
 
     $primary = Convert-RateWindow -Window $response.rateLimits.primary
@@ -303,3 +361,98 @@ Write-Host "primary_used_percent=$($snapshot.primary.used_percent)"
 Write-Host "primary_resets_at_local=$($snapshot.primary.resets_at_local)"
 Write-Host "secondary_used_percent=$($snapshot.secondary.used_percent)"
 Write-Host "secondary_resets_at_local=$($snapshot.secondary.resets_at_local)"
+
+exit 0
+
+} catch {
+    $msg = "read_codex_rate_limits_failed=" + $_.Exception.Message
+    $details = @($msg)
+    if ($_.ScriptStackTrace) {
+        $details += "stacktrace_begin"
+        $details += $_.ScriptStackTrace
+        $details += "stacktrace_end"
+    }
+
+    try {
+        $statePath = Resolve-ProjectPath $UsageBudgetStatePath
+        if (Test-Path -LiteralPath $statePath) {
+            $stateText = Get-Content -Raw -LiteralPath $statePath
+            $remainingMatch = [regex]::Match(
+                $stateText,
+                '(?ms)Latest declared remaining weekly usage:\s*```text\s*(\d+)%\s*```'
+            )
+            if ($remainingMatch.Success) {
+                $remaining = [int]$remainingMatch.Groups[1].Value
+                $usedMatch = [regex]::Match(
+                    $stateText,
+                    '(?ms)Latest declared used weekly usage:\s*```text\s*(\d+)%\s*```'
+                )
+                $used = if ($usedMatch.Success) { [int]$usedMatch.Groups[1].Value } else { [Math]::Max(0, 100 - $remaining) }
+                $declaredMatch = [regex]::Match(
+                    $stateText,
+                    '(?ms)Declared on:\s*```text\s*([^`]+?)\s*```'
+                )
+                $resetMatch = [regex]::Match(
+                    $stateText,
+                    '(?ms)Estimated next reset:\s*```text\s*([^`]+?)\s*```'
+                )
+                $fallbackWindow = [pscustomobject]@{
+                    used_percent = $used
+                    remaining_percent = $remaining
+                    window_duration_minutes = $null
+                    resets_at_unix = $null
+                    resets_at_utc = $null
+                    resets_at_local = if ($resetMatch.Success) { $resetMatch.Groups[1].Value.Trim() } else { $null }
+                }
+                $snapshot = [pscustomobject]@{
+                    schema_version = 1
+                    collected_at_local = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+                    collected_at_utc = (Get-Date).ToUniversalTime().ToString("o")
+                    source = "local usage_budget_state fallback"
+                    warning = $msg
+                    codex_exe = $null
+                    limit_id = "local-declared"
+                    limit_name = "Local declared weekly usage"
+                    plan_type = $null
+                    rate_limit_reached_type = $null
+                    primary = $null
+                    secondary = $fallbackWindow
+                    credits = $null
+                    raw_rate_limits_by_limit_id = $null
+                    declared_on = if ($declaredMatch.Success) { $declaredMatch.Groups[1].Value.Trim() } else { $null }
+                }
+
+                $outputResolvedPath = Resolve-ProjectPath $OutputPath
+                $outputDir = Split-Path -Parent $outputResolvedPath
+                if ($outputDir -and -not (Test-Path -LiteralPath $outputDir)) {
+                    New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+                }
+                $snapshot | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $outputResolvedPath -Encoding UTF8
+
+                Write-Host "codex_rate_limits_written=$outputResolvedPath"
+                Write-Host "rate_limits_source=local_usage_budget_state_fallback"
+                Write-Host "primary_used_percent="
+                Write-Host "primary_resets_at_local="
+                Write-Host "secondary_used_percent=$used"
+                Write-Host "secondary_resets_at_local=$($fallbackWindow.resets_at_local)"
+                exit 0
+            }
+        }
+    } catch {
+        $details += "fallback_failed=$($_.Exception.Message)"
+    }
+
+    try {
+        $errPath = "dist/private_reports/read_codex_rate_limits_error.txt"
+        $errDir = Split-Path -Parent $errPath
+        if ($errDir -and -not (Test-Path -LiteralPath $errDir)) {
+            New-Item -ItemType Directory -Force -Path $errDir | Out-Null
+        }
+        $details -join "`n" | Set-Content -LiteralPath $errPath -Encoding UTF8
+    } catch {
+        # Last-resort: still try to surface *something* to the caller.
+        "read_codex_rate_limits_failed_unable_to_write_error_file=$($_.Exception.Message)" | Write-Output
+    }
+    $details -join "`n" | Write-Output
+    exit 2
+}
