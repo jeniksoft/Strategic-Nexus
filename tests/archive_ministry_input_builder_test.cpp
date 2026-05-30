@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 namespace {
 
@@ -14,6 +15,11 @@ void requireCondition(const bool condition, const std::string& message)
         std::cerr << "[FAIL] " << message << "\n";
         std::exit(1);
     }
+}
+
+bool containsValue(const std::vector<std::string>& values, const std::string& target)
+{
+    return std::find(values.begin(), values.end(), target) != values.end();
 }
 
 } // namespace
@@ -46,14 +52,14 @@ int main()
     ledger.ok = true;
     ledger.campaignId = "campaign_ledger";
     ledger.deltaQuality = "metadata_plus_save_headline";
-    ledger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:1"};
+    ledger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:1", "save_date:2230.07.01"};
     ledger.uncertainties = {"empire_state_not_extracted_yet"};
 
     const auto ledgerInput = builder.build(ledger, "empire_ledger", "research");
     requireCondition(ledgerInput.campaignId == "campaign_ledger", "ledger build should preserve campaign id");
     requireCondition(ledgerInput.empireId == "empire_ledger", "ledger build should preserve empire id");
     requireCondition(ledgerInput.ministry == "research", "ledger build should preserve ministry");
-    requireCondition(ledgerInput.knownFacts.size() == 5, "ledger build should forward parsed facts and add war hints");
+    requireCondition(ledgerInput.knownFacts.size() == 8, "ledger build should forward parsed facts and add turn-context hints");
     requireCondition(
         ledgerInput.knownFacts[1] == "save_headline_parsed:true",
         "ledger build should forward parsed-headline marker");
@@ -61,14 +67,20 @@ int main()
         ledgerInput.turnContext.isAtWar,
         "headline-backed ledger should set is_at_war when active war count is non-zero");
     requireCondition(
-        ledgerInput.knownFacts.size() == 5,
-        "headline-backed ledger should append bounded turn-context hint facts");
+        ledgerInput.turnContext.year == 2230,
+        "headline-backed ledger should set turn-context year from save date");
     requireCondition(
-        ledgerInput.knownFacts[3] == "turn_context_war_hint_source:headline_active_war_count",
+        ledgerInput.knownFacts[4] == "turn_context_war_hint_source:headline_active_war_count",
         "headline-backed ledger should mark war hint source");
     requireCondition(
-        ledgerInput.knownFacts[4] == "turn_context_war_hint_confidence_percent:70",
+        ledgerInput.knownFacts[5] == "turn_context_war_hint_confidence_percent:70",
         "headline-backed ledger should include explicit war hint confidence");
+    requireCondition(
+        ledgerInput.knownFacts[6] == "turn_context_year_hint_source:save_date",
+        "headline-backed ledger should mark year hint source");
+    requireCondition(
+        ledgerInput.knownFacts[7] == "turn_context_year_hint_confidence_percent:80",
+        "headline-backed ledger should include explicit year hint confidence");
     requireCondition(
         ledgerInput.uncertainties.size() == 1,
         "headline-backed ledger should not force metadata-only uncertainty");
@@ -78,8 +90,16 @@ int main()
     const auto badWarInput = builder.build(badWarLedger, "empire_ledger", "research");
     requireCondition(!badWarInput.turnContext.isAtWar, "invalid war count should fail closed to not-at-war");
     requireCondition(
-        badWarInput.uncertainties.size() == 2 && badWarInput.uncertainties[1] == "headline_war_count_invalid",
+        containsValue(badWarInput.uncertainties, "headline_war_count_invalid"),
         "invalid war count should be surfaced as explicit uncertainty");
+
+    strategic_nexus::SeasonDeltaLedger badDateLedger = ledger;
+    badDateLedger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:0", "save_date:22ab.07.01"};
+    const auto badDateInput = builder.build(badDateLedger, "empire_ledger", "research");
+    requireCondition(badDateInput.turnContext.year == 0, "invalid save date should fail closed to default year");
+    requireCondition(
+        containsValue(badDateInput.uncertainties, "headline_save_date_invalid"),
+        "invalid save date should be surfaced as explicit uncertainty");
 
     std::cout << "archive ministry input builder tests passed.\n";
     return 0;

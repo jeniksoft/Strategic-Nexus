@@ -81,6 +81,40 @@ void applyParsedHeadlineWarHint(const SeasonDeltaLedger& ledger, strategic_pipel
     input.knownFacts.push_back(countFact("turn_context_war_hint_confidence_percent", 70));
 }
 
+void applyParsedHeadlineYearHint(const SeasonDeltaLedger& ledger, strategic_pipeline::MinistryInputContext& input)
+{
+    if (ledger.deltaQuality != "metadata_plus_save_headline") {
+        return;
+    }
+
+    std::string rawSaveDate;
+    for (const auto& fact : ledger.facts) {
+        if (parseFactValue(fact, "save_date", rawSaveDate)) {
+            break;
+        }
+    }
+
+    if (rawSaveDate.empty()) {
+        input.uncertainties.push_back("headline_save_date_missing");
+        return;
+    }
+
+    if (rawSaveDate.size() < 4) {
+        input.uncertainties.push_back("headline_save_date_invalid");
+        return;
+    }
+
+    std::size_t year = 0;
+    if (!parseNonNegativeInteger(rawSaveDate.substr(0, 4), year)) {
+        input.uncertainties.push_back("headline_save_date_invalid");
+        return;
+    }
+
+    input.turnContext.year = static_cast<int>(year);
+    input.knownFacts.push_back("turn_context_year_hint_source:save_date");
+    input.knownFacts.push_back(countFact("turn_context_year_hint_confidence_percent", 80));
+}
+
 } // namespace
 
 strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
@@ -133,6 +167,7 @@ strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
         input.uncertainties.push_back("archive_ledger_not_verified");
     }
     applyParsedHeadlineWarHint(ledger, input);
+    applyParsedHeadlineYearHint(ledger, input);
     if (ledger.deltaQuality != "metadata_plus_save_headline") {
         input.uncertainties.push_back("save_content_not_parsed_yet");
     }
