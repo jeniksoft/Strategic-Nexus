@@ -821,6 +821,7 @@ SNC CLI fallback now emits all unique `snc_mp_overlay_package_warning_code=*` va
 SNC CLI now also emits legacy-compatible `snc_mp_overlay_package_warning=*` lines alongside `snc_mp_overlay_package_warning_code=*`, so older release-companion parsers can consume MP warning keys without migration risk.
 Status Center summary text now always includes explicit `mp_warning_count` (including `0`) plus structured `mp_warning_code` lines, so owner-facing SNC/CLI surfaces can show MP warning state without reparsing free-form status text.
 SNC fallback MP package warning codes are now normalized to stable `snake_case` values (for example `mp_overlay_package_directory_missing`) even when the underlying failure reason text is human-readable, so release-companion parsers can rely on consistent code keys.
+SNC snapshot JSON and `--snc-status-snapshot` CLI output now expose structured `host_readiness` and `client_readiness_gate` fields for MP package state, so release-companion UX can consume host/client readiness without parsing free-form status text.
 
 Next worker-ready slice:
 

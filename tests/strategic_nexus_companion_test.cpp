@@ -157,6 +157,10 @@ int main()
     requireCondition(ready.mpOverlayPackage.strategicNexusModVersion == "strategic_nexus_v0", "mp overlay package should expose mod version");
     requireCondition(ready.mpOverlayPackage.handoffStatus == "degraded_previous_host_unavailable", "mp overlay package should expose handoff status");
     requireCondition(ready.mpOverlayPackage.readiness == "ready_for_mp", "mp overlay package should expose MP readiness");
+    requireCondition(ready.mpOverlayPackage.hostReadiness == "ready_for_mp", "mp overlay package should expose host readiness");
+    requireCondition(
+        ready.mpOverlayPackage.clientReadinessGate == "import_and_verify_before_join",
+        "mp overlay package should expose client readiness gate");
     requireCondition(!ready.mpOverlayPackage.packageManifestHash.empty(), "mp overlay package should expose package manifest hash");
     requireCondition(
         ready.mpOverlayPackage.verifyCommand.find("Strategic Nexus.exe --verify-mp-overlay-package ") == 0,
@@ -413,6 +417,10 @@ int main()
         json.find("\"handoff_status\": \"degraded_previous_host_unavailable\"") != std::string::npos,
         "JSON should include mp overlay package handoff status");
     requireCondition(json.find("\"readiness\": \"ready_for_mp\"") != std::string::npos, "JSON should include mp overlay package readiness");
+    requireCondition(json.find("\"host_readiness\": \"ready_for_mp\"") != std::string::npos, "JSON should include mp overlay package host readiness");
+    requireCondition(
+        json.find("\"client_readiness_gate\": \"import_and_verify_before_join\"") != std::string::npos,
+        "JSON should include mp overlay package client readiness gate");
     requireCondition(json.find("\"package_manifest_hash\": \"") != std::string::npos, "JSON should include mp overlay package manifest hash");
     requireCondition(
         json.find("\"verify_command\": \"Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,

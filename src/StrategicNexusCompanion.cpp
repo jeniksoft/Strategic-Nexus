@@ -134,6 +134,33 @@ std::vector<std::string> extractWarningCodesFromStatusText(const std::string& st
     return warnings;
 }
 
+std::string readStatusTextField(const std::string& statusText, const std::string& key)
+{
+    if (key.empty()) {
+        return std::string();
+    }
+    const std::string needle = key + ":";
+    std::istringstream stream(statusText);
+    std::string line;
+    while (std::getline(stream, line)) {
+        if (line.rfind(needle, 0) != 0) {
+            continue;
+        }
+        std::string value = line.substr(needle.size());
+        const auto first = value.find_first_not_of(" \t");
+        if (first == std::string::npos) {
+            return std::string();
+        }
+        value.erase(0, first);
+        const auto last = value.find_last_not_of(" \t\r");
+        if (last != std::string::npos) {
+            value.erase(last + 1);
+        }
+        return value;
+    }
+    return std::string();
+}
+
 std::string pathString(const std::filesystem::path& path)
 {
     return path.generic_string();
@@ -423,6 +450,8 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.strategicNexusModVersion = verification.strategicNexusModVersion;
     status.handoffStatus = verification.handoffStatus;
     status.readiness = verification.readiness;
+    status.hostReadiness = trimWhitespace(readStatusTextField(verification.statusText, "host_readiness"));
+    status.clientReadinessGate = trimWhitespace(readStatusTextField(verification.statusText, "client_readiness_gate"));
     status.packageManifestHash = verification.packageManifestHash;
     if (!status.campaignId.empty() && !status.overlayVersion.empty() && !status.gameVersion.empty() &&
         !status.strategicNexusModVersion.empty() && !status.packageManifestHash.empty()) {
@@ -737,6 +766,12 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.readiness.empty()) {
         text << "mp_readiness: " << mpOverlayPackage.readiness << "\n";
     }
+    if (!mpOverlayPackage.hostReadiness.empty()) {
+        text << "mp_host_readiness: " << mpOverlayPackage.hostReadiness << "\n";
+    }
+    if (!mpOverlayPackage.clientReadinessGate.empty()) {
+        text << "mp_client_readiness_gate: " << mpOverlayPackage.clientReadinessGate << "\n";
+    }
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
@@ -797,6 +832,8 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"strategic_nexus_mod_version\": " << jsonString(status.strategicNexusModVersion) << ",\n";
     output << indent << "  \"handoff_status\": " << jsonString(status.handoffStatus) << ",\n";
     output << indent << "  \"readiness\": " << jsonString(status.readiness) << ",\n";
+    output << indent << "  \"host_readiness\": " << jsonString(status.hostReadiness) << ",\n";
+    output << indent << "  \"client_readiness_gate\": " << jsonString(status.clientReadinessGate) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
     output << indent << "  \"verify_command\": " << jsonString(status.verifyCommand) << ",\n";
     output << indent << "  \"import_command\": " << jsonString(status.importCommand) << ",\n";

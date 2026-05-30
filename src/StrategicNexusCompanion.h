@@ -51,6 +51,8 @@ struct CompanionMpOverlayPackageStatus {
     std::string strategicNexusModVersion;
     std::string handoffStatus;
     std::string readiness;
+    std::string hostReadiness;
+    std::string clientReadinessGate;
     std::string packageManifestHash;
     std::string verifyCommand;
     std::string importCommand;

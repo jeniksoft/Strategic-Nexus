@@ -1227,6 +1227,10 @@ int Application::run(const RunConfig& config) const
                       << sanitizeCliValue(snapshot.mpOverlayPackage.strategicNexusModVersion) << "\n";
             std::cout << "snc_mp_overlay_package_handoff_status=" << sanitizeCliValue(snapshot.mpOverlayPackage.handoffStatus) << "\n";
             std::cout << "snc_mp_overlay_package_readiness=" << sanitizeCliValue(snapshot.mpOverlayPackage.readiness) << "\n";
+            std::cout << "snc_mp_overlay_package_host_readiness="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.hostReadiness) << "\n";
+            std::cout << "snc_mp_overlay_package_client_readiness_gate="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.clientReadinessGate) << "\n";
             std::cout << "snc_mp_overlay_package_manifest_hash=" << sanitizeCliValue(snapshot.mpOverlayPackage.packageManifestHash) << "\n";
             std::cout << "snc_mp_overlay_package_verify_command=" << sanitizeCliValue(snapshot.mpOverlayPackage.verifyCommand) << "\n";
             std::cout << "snc_mp_overlay_package_import_command=" << sanitizeCliValue(snapshot.mpOverlayPackage.importCommand) << "\n";
