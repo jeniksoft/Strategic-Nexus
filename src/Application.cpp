@@ -1235,21 +1235,14 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_strict_import_command="
                       << sanitizeCliValue(snapshot.mpOverlayPackage.strictImportCommand) << "\n";
             std::cout << "snc_mp_overlay_package_status_text=" << sanitizeCliValue(snapshot.mpOverlayPackage.statusText) << "\n";
-            if (!snapshot.mpOverlayPackage.warningCodes.empty()) {
-                std::cout << "snc_mp_overlay_package_warning_count=" << snapshot.mpOverlayPackage.warningCodes.size() << "\n";
-                for (const auto& warningCode : snapshot.mpOverlayPackage.warningCodes) {
-                    std::cout << "snc_mp_overlay_package_warning=" << sanitizeCliValue(warningCode) << "\n";
-                    std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
-                }
-            } else {
-                const auto mpWarningCodes = readStatusTextFields(snapshot.mpOverlayPackage.statusText, "warning_code");
-                if (!mpWarningCodes.empty()) {
-                    std::cout << "snc_mp_overlay_package_warning_count=" << mpWarningCodes.size() << "\n";
-                    for (const auto& warningCode : mpWarningCodes) {
-                        std::cout << "snc_mp_overlay_package_warning=" << sanitizeCliValue(warningCode) << "\n";
-                        std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
-                    }
-                }
+            std::vector<std::string> mpWarningCodes = snapshot.mpOverlayPackage.warningCodes;
+            if (mpWarningCodes.empty()) {
+                mpWarningCodes = readStatusTextFields(snapshot.mpOverlayPackage.statusText, "warning_code");
+            }
+            std::cout << "snc_mp_overlay_package_warning_count=" << mpWarningCodes.size() << "\n";
+            for (const auto& warningCode : mpWarningCodes) {
+                std::cout << "snc_mp_overlay_package_warning=" << sanitizeCliValue(warningCode) << "\n";
+                std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
             }
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
