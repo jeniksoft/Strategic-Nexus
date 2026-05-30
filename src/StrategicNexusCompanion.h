@@ -52,6 +52,8 @@ struct CompanionMpOverlayPackageStatus {
     std::string handoffStatus;
     std::string readiness;
     std::string packageManifestHash;
+    std::string verifyCommand;
+    std::string importCommand;
     std::string statusText;
     std::vector<std::string> warningCodes;
 };

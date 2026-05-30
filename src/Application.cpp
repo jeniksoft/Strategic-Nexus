@@ -1158,6 +1158,8 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_handoff_status=" << sanitizeCliValue(snapshot.mpOverlayPackage.handoffStatus) << "\n";
             std::cout << "snc_mp_overlay_package_readiness=" << sanitizeCliValue(snapshot.mpOverlayPackage.readiness) << "\n";
             std::cout << "snc_mp_overlay_package_manifest_hash=" << sanitizeCliValue(snapshot.mpOverlayPackage.packageManifestHash) << "\n";
+            std::cout << "snc_mp_overlay_package_verify_command=" << sanitizeCliValue(snapshot.mpOverlayPackage.verifyCommand) << "\n";
+            std::cout << "snc_mp_overlay_package_import_command=" << sanitizeCliValue(snapshot.mpOverlayPackage.importCommand) << "\n";
             std::cout << "snc_mp_overlay_package_status_text=" << sanitizeCliValue(snapshot.mpOverlayPackage.statusText) << "\n";
             if (!snapshot.mpOverlayPackage.warningCodes.empty()) {
                 std::cout << "snc_mp_overlay_package_warning_count=" << snapshot.mpOverlayPackage.warningCodes.size() << "\n";

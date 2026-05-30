@@ -72,6 +72,23 @@ std::string pathString(const std::filesystem::path& path)
     return path.generic_string();
 }
 
+std::string quoteCliPathArg(const std::filesystem::path& path)
+{
+    const std::string value = pathString(path);
+    if (value.empty()) {
+        return "\"\"";
+    }
+    std::string escaped;
+    escaped.reserve(value.size());
+    for (const char ch : value) {
+        if (ch == '"') {
+            escaped.push_back('\\');
+        }
+        escaped.push_back(ch);
+    }
+    return "\"" + escaped + "\"";
+}
+
 std::string formatLocalTimestamp(std::chrono::system_clock::time_point now)
 {
     const std::time_t timeValue = std::chrono::system_clock::to_time_t(now);
@@ -278,6 +295,10 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.warningCodes.push_back(status.reason);
         return status;
     }
+    status.verifyCommand = "Strategic Nexus.exe --verify-mp-overlay-package " + quoteCliPathArg(packageDirectory);
+    status.importCommand =
+        "Strategic Nexus.exe --import-mp-overlay-package " + quoteCliPathArg(packageDirectory) +
+        " <target_overlay_dir>";
 
     std::error_code error;
     const bool exists = std::filesystem::exists(packageDirectory, error);
@@ -626,6 +647,12 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
+    if (!mpOverlayPackage.verifyCommand.empty()) {
+        text << "mp_verify_command: " << mpOverlayPackage.verifyCommand << "\n";
+    }
+    if (!mpOverlayPackage.importCommand.empty()) {
+        text << "mp_import_command: " << mpOverlayPackage.importCommand << "\n";
+    }
     if (!mpOverlayPackage.statusText.empty()) {
         text << "mp_overlay_package_status_text: " << mpOverlayPackage.statusText << "\n";
     }
@@ -671,6 +698,8 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"handoff_status\": " << jsonString(status.handoffStatus) << ",\n";
     output << indent << "  \"readiness\": " << jsonString(status.readiness) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
+    output << indent << "  \"verify_command\": " << jsonString(status.verifyCommand) << ",\n";
+    output << indent << "  \"import_command\": " << jsonString(status.importCommand) << ",\n";
     output << indent << "  \"status_text\": " << jsonString(status.statusText) << ",\n";
     output << indent << "  \"warning_codes\": [";
     for (std::size_t index = 0; index < status.warningCodes.size(); ++index) {

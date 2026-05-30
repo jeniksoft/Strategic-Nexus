@@ -154,6 +154,12 @@ int main()
     requireCondition(ready.mpOverlayPackage.readiness == "ready_for_mp", "mp overlay package should expose MP readiness");
     requireCondition(!ready.mpOverlayPackage.packageManifestHash.empty(), "mp overlay package should expose package manifest hash");
     requireCondition(
+        ready.mpOverlayPackage.verifyCommand.find("Strategic Nexus.exe --verify-mp-overlay-package ") == 0,
+        "mp overlay package should expose verify command");
+    requireCondition(
+        ready.mpOverlayPackage.importCommand.find("Strategic Nexus.exe --import-mp-overlay-package ") == 0,
+        "mp overlay package should expose import command");
+    requireCondition(
         ready.mpOverlayPackage.statusText.find("campaign_id: campaign_mp_001") != std::string::npos,
         "mp overlay package should include copyable status text");
     requireCondition(
@@ -190,6 +196,12 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("package_manifest_hash: " + ready.mpOverlayPackage.packageManifestHash) != std::string::npos,
         "status center summary should include MP package manifest hash");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_verify_command: " + ready.mpOverlayPackage.verifyCommand) != std::string::npos,
+        "status center summary should include MP verify command");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_import_command: " + ready.mpOverlayPackage.importCommand) != std::string::npos,
+        "status center summary should include MP import command");
     requireCondition(
         ready.statusCenterSummaryText.find("mp_readiness: ready_for_mp") != std::string::npos,
         "status center summary should include MP readiness");
@@ -338,6 +350,12 @@ int main()
         "JSON should include mp overlay package handoff status");
     requireCondition(json.find("\"readiness\": \"ready_for_mp\"") != std::string::npos, "JSON should include mp overlay package readiness");
     requireCondition(json.find("\"package_manifest_hash\": \"") != std::string::npos, "JSON should include mp overlay package manifest hash");
+    requireCondition(
+        json.find("\"verify_command\": \"Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
+        "JSON should include mp overlay package verify command");
+    requireCondition(
+        json.find("\"import_command\": \"Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
+        "JSON should include mp overlay package import command");
     requireCondition(json.find("\"warning_codes\": []") != std::string::npos, "ready MP package JSON should include empty warning codes array");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
