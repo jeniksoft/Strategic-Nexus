@@ -46,6 +46,22 @@ function Assert-LastExitCodeOk {
     }
 }
 
+function Get-KeyValueLineValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Lines,
+        [Parameter(Mandatory = $true)]
+        [string]$Key
+    )
+
+    $prefix = $Key + "="
+    $line = $Lines | Where-Object { $_ -like "$prefix*" } | Select-Object -First 1
+    if ([string]::IsNullOrWhiteSpace($line)) {
+        return ""
+    }
+    return $line.Substring($prefix.Length)
+}
+
 if ([string]::IsNullOrWhiteSpace($SessionId)) {
     $SessionId = "session_" + (Get-Date -Format "yyyyMMdd_HHmmss")
 }
@@ -116,6 +132,11 @@ Write-Host "==> run offline spine"
 Assert-LastExitCodeOk -StepName "run offline spine"
 
 $mpExportReadiness = ""
+$mpExportManifestHash = ""
+$mpExportWarningCount = ""
+$mpExportIdentityMismatchWarning = ""
+$mpExportVerifyCommand = ""
+$mpExportImportCommand = ""
 $sncStatusWithMpReadiness = ""
 if ($ExportMpPackage) {
     if (Test-Path -LiteralPath $mpPackageOutputDirFull) {
@@ -128,15 +149,19 @@ if ($ExportMpPackage) {
         throw "MP package export returned no output."
     }
 
-    $mpExportReadinessLine = ($mpExportLines | Where-Object { $_ -match '^mp_overlay_package_export_readiness=' } | Select-Object -First 1)
-    if ([string]::IsNullOrWhiteSpace($mpExportReadinessLine)) {
+    $mpExportReadiness = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_readiness"
+    if ([string]::IsNullOrWhiteSpace($mpExportReadiness)) {
         throw "MP package export output is missing mp_overlay_package_export_readiness."
     }
 
-    $mpExportReadiness = $mpExportReadinessLine.Substring("mp_overlay_package_export_readiness=".Length)
     if ($mpExportReadiness -ne "ready_for_mp") {
         throw "MP package export readiness is '$mpExportReadiness' instead of ready_for_mp."
     }
+    $mpExportManifestHash = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_manifest_hash"
+    $mpExportWarningCount = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_warning_count"
+    $mpExportIdentityMismatchWarning = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_identity_mismatch_warning"
+    $mpExportVerifyCommand = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_verify_command"
+    $mpExportImportCommand = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_import_command"
 
     Write-Host "==> refresh snc status snapshot with mp package visibility"
     & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false
@@ -173,6 +198,11 @@ Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull
 if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_output_dir=" + $mpPackageOutputDirFull)
     Write-Host ("real_session_v0_loop_mp_package_readiness=" + $mpExportReadiness)
+    Write-Host ("real_session_v0_loop_mp_package_manifest_hash=" + $mpExportManifestHash)
+    Write-Host ("real_session_v0_loop_mp_package_warning_count=" + $mpExportWarningCount)
+    Write-Host ("real_session_v0_loop_mp_package_identity_mismatch_warning=" + $mpExportIdentityMismatchWarning)
+    Write-Host ("real_session_v0_loop_mp_package_verify_command=" + $mpExportVerifyCommand)
+    Write-Host ("real_session_v0_loop_mp_package_import_command=" + $mpExportImportCommand)
     Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpOutputJsonFull)
     Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
 }
