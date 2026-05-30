@@ -678,6 +678,8 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
     Assert-Contains -Name "mp_overlay_package_verify app readiness" -Text $mpVerifyText -Expected "mp_overlay_package_host_readiness=ready_for_mp"
     Assert-Contains -Name "mp_overlay_package_verify app readiness" -Text $mpVerifyText -Expected "mp_overlay_package_client_readiness_gate=import_and_verify_before_join"
+    Assert-Contains -Name "mp_overlay_package_verify app next_step" -Text $mpVerifyText -Expected "mp_overlay_package_host_next_step=share this package and package_manifest_hash with every joining player"
+    Assert-Contains -Name "mp_overlay_package_verify app next_step" -Text $mpVerifyText -Expected "mp_overlay_package_client_next_step=import package, verify package_manifest_hash, then join lobby"
     Assert-Contains -Name "mp_overlay_package_verify app identity warning" -Text $mpVerifyText -Expected "mp_overlay_package_identity_mismatch_warning=false"
     $mpManifestHash = [regex]::Match($mpVerifyText, "mp_overlay_package_manifest_hash=([^\r\n]+)").Groups[1].Value.Trim()
     if ([string]::IsNullOrWhiteSpace($mpManifestHash)) {
@@ -724,6 +726,8 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
     Assert-Contains -Name "mp_overlay_package_import app readiness" -Text $mpImportText -Expected "mp_overlay_package_import_host_readiness=ready_for_mp"
     Assert-Contains -Name "mp_overlay_package_import app readiness" -Text $mpImportText -Expected "mp_overlay_package_import_client_readiness_gate=import_and_verify_before_join"
+    Assert-Contains -Name "mp_overlay_package_import app next_step" -Text $mpImportText -Expected "mp_overlay_package_import_host_next_step=share this package and package_manifest_hash with every joining player"
+    Assert-Contains -Name "mp_overlay_package_import app next_step" -Text $mpImportText -Expected "mp_overlay_package_import_client_next_step=import package, verify package_manifest_hash, then join lobby"
     Assert-Contains -Name "mp_overlay_package_import app identity warning" -Text $mpImportText -Expected "mp_overlay_package_import_identity_mismatch_warning=false"
 
     $mpImportMismatchOutput = & $exePath `
