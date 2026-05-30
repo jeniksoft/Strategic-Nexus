@@ -818,6 +818,7 @@ MP package verifier failure status text now also includes strict verify/import c
 MP verify/import CLI now also emits structured `mp_overlay_package_warning_code=*` and `mp_overlay_package_import_warning_code=*` fields alongside legacy warning lines, so release-companion parsers can consume stable warning keys directly.
 SNC snapshot normalization now parses `warning_code:` lines from MP package status text into structured `warning_codes`, so Status Center/release-companion surfaces can rely on stable mismatch codes (for example `mp_overlay_package_files_mismatch_manifest`) instead of generic failure reasons.
 SNC CLI fallback now emits all unique `snc_mp_overlay_package_warning_code=*` values found in MP package `status_text` (not only the first), preserving structured warning visibility even when the snapshot warning-code array is empty.
+SNC CLI now also emits legacy-compatible `snc_mp_overlay_package_warning=*` lines alongside `snc_mp_overlay_package_warning_code=*`, so older release-companion parsers can consume MP warning keys without migration risk.
 
 Next worker-ready slice:
 
