@@ -262,9 +262,17 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     }
     $compareRecommendation = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_recommendation"
     $compareOutputJsonLine = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_output_json"
+    $compareIdentityRiskWarning = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning"
+    $compareIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning_reason"
+    $compareIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning_code"
     Write-Host "real_session_v0_loop_compare_auto_ok=true"
     Write-Host ("real_session_v0_loop_compare_auto_output_json=" + $compareOutputJsonLine)
     Write-Host ("real_session_v0_loop_compare_auto_recommendation=" + $compareRecommendation)
+    Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning=" + $compareIdentityRiskWarning)
+    Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning_reason=" + $compareIdentityRiskWarningReason)
+    foreach ($warningCode in $compareIdentityRiskWarningCodes) {
+        Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning_code=" + $warningCode)
+    }
 }
 if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_output_dir=" + $mpPackageOutputDirFull)

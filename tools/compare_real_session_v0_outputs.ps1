@@ -128,6 +128,22 @@ $previousMpIdentityMismatchWarningCodes = @($previousMpIdentityMismatchWarningCo
 $currentMpIdentityMismatchWarningCodes = @($currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $previousMpIdentityMismatchWarningCodesJoined = ($previousMpIdentityMismatchWarningCodes -join "|")
 $currentMpIdentityMismatchWarningCodesJoined = ($currentMpIdentityMismatchWarningCodes -join "|")
+$identityRiskWarning = $false
+$identityRiskWarningReason = "none"
+if ($currentMpIdentityMismatchWarning -eq "true") {
+    $identityRiskWarning = $true
+    $identityRiskWarningReason = "current_session_identity_or_version_mismatch"
+}
+elseif ($previousMpIdentityMismatchWarning -eq "true") {
+    $identityRiskWarning = $true
+    $identityRiskWarningReason = "previous_session_identity_or_version_mismatch"
+}
+elseif ($previousMpIdentityMismatchWarningCodesJoined -ne $currentMpIdentityMismatchWarningCodesJoined -and `
+        (-not [string]::IsNullOrWhiteSpace($previousMpIdentityMismatchWarningCodesJoined) -or `
+         -not [string]::IsNullOrWhiteSpace($currentMpIdentityMismatchWarningCodesJoined))) {
+    $identityRiskWarning = $true
+    $identityRiskWarningReason = "identity_mismatch_warning_codes_changed_between_sessions"
+}
 
 $recommendation = "review_observable_deltas"
 if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -and $previousGameplayStatus -eq $currentGameplayStatus -and $previousMpManifestHash -eq $currentMpManifestHash) {
@@ -180,6 +196,11 @@ $result = [ordered]@{
         current = $currentMpIdentityMismatchWarningCodes
         changed = ($previousMpIdentityMismatchWarningCodesJoined -ne $currentMpIdentityMismatchWarningCodesJoined)
     }
+    identity_risk_warning = [ordered]@{
+        active = $identityRiskWarning
+        reason = $identityRiskWarningReason
+        current_warning_codes = $currentMpIdentityMismatchWarningCodes
+    }
     next_step_recommendation = $recommendation
 }
 
@@ -193,4 +214,13 @@ $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $outputJsonFull -En
 Write-Host "real_session_v0_compare_ok=true"
 Write-Host ("real_session_v0_compare_output_json=" + $outputJsonFull)
 Write-Host ("real_session_v0_compare_recommendation=" + $recommendation)
+$identityRiskWarningText = "false"
+if ($identityRiskWarning) {
+    $identityRiskWarningText = "true"
+}
+Write-Host ("real_session_v0_compare_identity_risk_warning=" + $identityRiskWarningText)
+Write-Host ("real_session_v0_compare_identity_risk_warning_reason=" + $identityRiskWarningReason)
+foreach ($warningCode in $currentMpIdentityMismatchWarningCodes) {
+    Write-Host ("real_session_v0_compare_identity_risk_warning_code=" + $warningCode)
+}
 exit 0
