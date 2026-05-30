@@ -294,6 +294,8 @@ Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHos
 Write-Host ("real_session_v0_compare_mp_client_readiness_gate_current=" + $currentMpClientReadinessGate)
 Write-Host ("real_session_v0_compare_mp_host_next_step_current=" + $currentMpHostNextStep)
 Write-Host ("real_session_v0_compare_mp_client_next_step_current=" + $currentMpClientNextStep)
+Write-Host ("real_session_v0_compare_mp_manifest_hash_current=" + $currentMpManifestHash)
+Write-Host ("real_session_v0_compare_mp_manifest_hash_changed=" + ((($previousMpManifestHash -ne $currentMpManifestHash).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_warning_count_current=" + $currentMpWarningCount)
 if ($null -ne $mpWarningCountDelta) {
     Write-Host ("real_session_v0_compare_mp_warning_count_delta=" + $mpWarningCountDelta)
