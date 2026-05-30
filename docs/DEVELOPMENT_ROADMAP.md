@@ -866,6 +866,7 @@ Compare/trend/loop outputs now also expose explicit observable-effect signal fie
 Compare/trend/loop outputs now also expose explicit gameplay-acceptance drift fields (`*_gameplay_acceptance_state_{previous,current,changed}`), so first real-session evidence can show whether acceptance state itself changed without opening compare/trend JSON.
 Compare recommendation is now fail-safe for MP identity risk: when `identity_risk_warning` is active, compare emits `real_session_v0_compare_recommendation=review_identity_risk_warning` even if no other pipeline delta changed.
 Real-session loop auto compare/trend forwarding now fails closed on unsupported recommendation values, so release-companion flow cannot silently accept unknown compare/trend recommendation semantics.
+Compare/trend/loop outputs now also expose structured MP identity-mismatch drift fields (`*_mp_identity_mismatch_warning_{previous,current,changed}`, `*_mp_identity_mismatch_warning_code_{previous,current}`, `*_mp_identity_mismatch_warning_codes_changed`), so release-companion/status flows can read mismatch evolution directly from one command output without inferring from generic identity-risk signals.
 
 Next worker-ready slice:
 

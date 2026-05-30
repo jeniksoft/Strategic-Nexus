@@ -334,6 +334,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpStrictImportCommandCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_strict_import_command_current"
     $compareMpStrictImportCommandPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_strict_import_command_previous"
     $compareMpStrictImportCommandChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_strict_import_command_changed"
+    $compareMpIdentityMismatchWarningCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_current"
+    $compareMpIdentityMismatchWarningPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_previous"
+    $compareMpIdentityMismatchWarningChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_changed"
+    $compareMpIdentityMismatchWarningCodesChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_codes_changed"
+    $compareMpIdentityMismatchWarningCodesPrevious = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_code_previous"
+    $compareMpIdentityMismatchWarningCodesCurrent = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_code_current"
     $compareMpManifestHashCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_current"
     $compareMpManifestHashPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_previous"
     $compareMpManifestHashChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_changed"
@@ -475,11 +481,29 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCodesChanged)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_warning_codes_changed=" + $compareMpWarningCodesChanged)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_identity_mismatch_warning_current=" + $compareMpIdentityMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_identity_mismatch_warning_previous=" + $compareMpIdentityMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_identity_mismatch_warning_changed=" + $compareMpIdentityMismatchWarningChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningCodesChanged)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_identity_mismatch_warning_codes_changed=" + $compareMpIdentityMismatchWarningCodesChanged)
+    }
     foreach ($warningCode in $compareMpWarningCodesPrevious) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_warning_code_previous=" + $warningCode)
     }
     foreach ($warningCode in $compareMpWarningCodesCurrent) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_warning_code_current=" + $warningCode)
+    }
+    foreach ($warningCode in $compareMpIdentityMismatchWarningCodesPrevious) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_identity_mismatch_warning_code_previous=" + $warningCode)
+    }
+    foreach ($warningCode in $compareMpIdentityMismatchWarningCodesCurrent) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_identity_mismatch_warning_code_current=" + $warningCode)
     }
     foreach ($warningCode in $compareIdentityRiskWarningCodes) {
         Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning_code=" + $warningCode)
@@ -566,6 +590,12 @@ if ($EmitTrendSummary) {
     $trendMpStrictImportCommandCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_strict_import_command_current"
     $trendMpStrictImportCommandPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_strict_import_command_previous"
     $trendMpStrictImportCommandChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_strict_import_command_changed"
+    $trendMpIdentityMismatchWarningCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_current"
+    $trendMpIdentityMismatchWarningPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_previous"
+    $trendMpIdentityMismatchWarningChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_changed"
+    $trendMpIdentityMismatchWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_codes_changed"
+    $trendMpIdentityMismatchWarningCodesPrevious = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_code_previous"
+    $trendMpIdentityMismatchWarningCodesCurrent = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_code_current"
     $trendLatestCompareCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_latest_compare_command_hint"
     $trendNextSessionCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_session_command_hint"
     $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
@@ -704,6 +734,24 @@ if ($EmitTrendSummary) {
     }
     if (-not [string]::IsNullOrWhiteSpace($trendMpStrictImportCommandChanged)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_strict_import_command_changed=" + $trendMpStrictImportCommandChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpIdentityMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_identity_mismatch_warning_current=" + $trendMpIdentityMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpIdentityMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_identity_mismatch_warning_previous=" + $trendMpIdentityMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpIdentityMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_identity_mismatch_warning_changed=" + $trendMpIdentityMismatchWarningChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpIdentityMismatchWarningCodesChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_identity_mismatch_warning_codes_changed=" + $trendMpIdentityMismatchWarningCodesChanged)
+    }
+    foreach ($warningCode in $trendMpIdentityMismatchWarningCodesPrevious) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_identity_mismatch_warning_code_previous=" + $warningCode)
+    }
+    foreach ($warningCode in $trendMpIdentityMismatchWarningCodesCurrent) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_identity_mismatch_warning_code_current=" + $warningCode)
     }
     Write-Host ("real_session_v0_loop_trend_auto_latest_compare_command_hint=" + $trendLatestCompareCommandHint)
     Write-Host ("real_session_v0_loop_trend_auto_next_session_command_hint=" + $trendNextSessionCommandHint)

@@ -116,6 +116,12 @@ $latestMpVerifyCommandCurrent = ""
 $latestMpImportCommandCurrent = ""
 $latestMpStrictVerifyCommandCurrent = ""
 $latestMpStrictImportCommandCurrent = ""
+$latestMpIdentityMismatchWarningCurrent = ""
+$latestMpIdentityMismatchWarningPrevious = ""
+$latestMpIdentityMismatchWarningChanged = ""
+$latestMpIdentityMismatchWarningCodesChanged = ""
+$latestMpIdentityMismatchWarningCodesPrevious = @()
+$latestMpIdentityMismatchWarningCodesCurrent = @()
 if ($sessionCount -ge 1) {
     $latest = $sessions[$sessionCount - 1]
     $latestSessionId = $latest.session_id
@@ -202,6 +208,24 @@ if ($sessionCount -ge 2) {
     $compareMpStrictImportCommandCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_import_command_current=*" } | Select-Object -First 1
     $compareMpStrictImportCommandPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_import_command_previous=*" } | Select-Object -First 1
     $compareMpStrictImportCommandChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_import_command_changed=*" } | Select-Object -First 1
+    $compareMpIdentityMismatchWarningCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_identity_mismatch_warning_current=*" } | Select-Object -First 1
+    $compareMpIdentityMismatchWarningPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_identity_mismatch_warning_previous=*" } | Select-Object -First 1
+    $compareMpIdentityMismatchWarningChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_identity_mismatch_warning_changed=*" } | Select-Object -First 1
+    $compareMpIdentityMismatchWarningCodesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_identity_mismatch_warning_codes_changed=*" } | Select-Object -First 1
+    $latestMpIdentityMismatchWarningCodesPrevious = @(
+        $compareLines |
+            Where-Object { $_ -like "real_session_v0_compare_mp_identity_mismatch_warning_code_previous=*" } |
+            ForEach-Object { $_.Substring("real_session_v0_compare_mp_identity_mismatch_warning_code_previous=".Length) } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            Sort-Object -Unique
+    )
+    $latestMpIdentityMismatchWarningCodesCurrent = @(
+        $compareLines |
+            Where-Object { $_ -like "real_session_v0_compare_mp_identity_mismatch_warning_code_current=*" } |
+            ForEach-Object { $_.Substring("real_session_v0_compare_mp_identity_mismatch_warning_code_current=".Length) } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            Sort-Object -Unique
+    )
     $latestIdentityRiskWarningCodes = @(
         $compareLines |
             Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning_code=*" } |
@@ -329,6 +353,18 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpStrictImportCommandChangedLine)) {
         $latestMpStrictImportCommandChanged = $compareMpStrictImportCommandChangedLine.Substring("real_session_v0_compare_mp_strict_import_command_changed=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningCurrentLine)) {
+        $latestMpIdentityMismatchWarningCurrent = $compareMpIdentityMismatchWarningCurrentLine.Substring("real_session_v0_compare_mp_identity_mismatch_warning_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningPreviousLine)) {
+        $latestMpIdentityMismatchWarningPrevious = $compareMpIdentityMismatchWarningPreviousLine.Substring("real_session_v0_compare_mp_identity_mismatch_warning_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningChangedLine)) {
+        $latestMpIdentityMismatchWarningChanged = $compareMpIdentityMismatchWarningChangedLine.Substring("real_session_v0_compare_mp_identity_mismatch_warning_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningCodesChangedLine)) {
+        $latestMpIdentityMismatchWarningCodesChanged = $compareMpIdentityMismatchWarningCodesChangedLine.Substring("real_session_v0_compare_mp_identity_mismatch_warning_codes_changed=".Length)
+    }
 
     if ($latestIdentityRiskWarning -eq "true") {
         $latestTrendRecommendation = "review_identity_risk_warning"
@@ -423,6 +459,12 @@ $result = [ordered]@{
         strict_import_command_previous = $latestMpStrictImportCommandPrevious
         strict_import_command_current = $latestMpStrictImportCommandCurrent
         strict_import_command_changed = $latestMpStrictImportCommandChanged
+        identity_mismatch_warning_previous = $latestMpIdentityMismatchWarningPrevious
+        identity_mismatch_warning_current = $latestMpIdentityMismatchWarningCurrent
+        identity_mismatch_warning_changed = $latestMpIdentityMismatchWarningChanged
+        identity_mismatch_warning_codes_previous = $latestMpIdentityMismatchWarningCodesPrevious
+        identity_mismatch_warning_codes_current = $latestMpIdentityMismatchWarningCodesCurrent
+        identity_mismatch_warning_codes_changed = $latestMpIdentityMismatchWarningCodesChanged
     }
     next_session_command_hint = $nextSessionCommandHint
     next_step_recommendation = $latestTrendRecommendation
@@ -552,6 +594,24 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpStrictImportCommandPrevious)) {
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpStrictImportCommandChanged)) {
     Write-Host ("real_session_v0_trend_mp_strict_import_command_changed=" + $latestMpStrictImportCommandChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpIdentityMismatchWarningCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_identity_mismatch_warning_current=" + $latestMpIdentityMismatchWarningCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpIdentityMismatchWarningPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_identity_mismatch_warning_previous=" + $latestMpIdentityMismatchWarningPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpIdentityMismatchWarningChanged)) {
+    Write-Host ("real_session_v0_trend_mp_identity_mismatch_warning_changed=" + $latestMpIdentityMismatchWarningChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpIdentityMismatchWarningCodesChanged)) {
+    Write-Host ("real_session_v0_trend_mp_identity_mismatch_warning_codes_changed=" + $latestMpIdentityMismatchWarningCodesChanged)
+}
+foreach ($warningCode in $latestMpIdentityMismatchWarningCodesPrevious) {
+    Write-Host ("real_session_v0_trend_mp_identity_mismatch_warning_code_previous=" + $warningCode)
+}
+foreach ($warningCode in $latestMpIdentityMismatchWarningCodesCurrent) {
+    Write-Host ("real_session_v0_trend_mp_identity_mismatch_warning_code_current=" + $warningCode)
 }
 foreach ($warningCode in $latestIdentityRiskWarningCodes) {
     Write-Host ("real_session_v0_trend_identity_risk_warning_code=" + $warningCode)

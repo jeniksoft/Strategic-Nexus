@@ -194,6 +194,8 @@ $previousMpIdentityMismatchWarningCodes = @($previousMpIdentityMismatchWarningCo
 $currentMpIdentityMismatchWarningCodes = @($currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $previousMpIdentityMismatchWarningCodesJoined = ($previousMpIdentityMismatchWarningCodes -join "|")
 $currentMpIdentityMismatchWarningCodesJoined = ($currentMpIdentityMismatchWarningCodes -join "|")
+$mpIdentityMismatchWarningChanged = ($previousMpIdentityMismatchWarning -ne $currentMpIdentityMismatchWarning)
+$mpIdentityMismatchWarningCodesChanged = ($previousMpIdentityMismatchWarningCodesJoined -ne $currentMpIdentityMismatchWarningCodesJoined)
 $previousMpWarningCountParsed = Parse-OptionalInt -Value $previousMpWarningCount
 $currentMpWarningCountParsed = Parse-OptionalInt -Value $currentMpWarningCount
 $mpWarningCountDelta = $null
@@ -331,12 +333,12 @@ $result = [ordered]@{
     mp_identity_mismatch_warning = [ordered]@{
         previous = $previousMpIdentityMismatchWarning
         current = $currentMpIdentityMismatchWarning
-        changed = ($previousMpIdentityMismatchWarning -ne $currentMpIdentityMismatchWarning)
+        changed = $mpIdentityMismatchWarningChanged
     }
     mp_identity_mismatch_warning_codes = [ordered]@{
         previous = $previousMpIdentityMismatchWarningCodes
         current = $currentMpIdentityMismatchWarningCodes
-        changed = ($previousMpIdentityMismatchWarningCodesJoined -ne $currentMpIdentityMismatchWarningCodesJoined)
+        changed = $mpIdentityMismatchWarningCodesChanged
     }
     identity_risk_warning = [ordered]@{
         active = $identityRiskWarning
@@ -408,11 +410,21 @@ if ($null -ne $mpWarningCountDelta) {
     Write-Host ("real_session_v0_compare_mp_warning_count_delta=" + $mpWarningCountDelta)
 }
 Write-Host ("real_session_v0_compare_mp_warning_codes_changed=" + ($mpWarningCodesChanged.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_current=" + $currentMpIdentityMismatchWarning)
+Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_previous=" + $previousMpIdentityMismatchWarning)
+Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_changed=" + ($mpIdentityMismatchWarningChanged.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_codes_changed=" + ($mpIdentityMismatchWarningCodesChanged.ToString().ToLowerInvariant()))
 foreach ($warningCode in $previousMpWarningCodes) {
     Write-Host ("real_session_v0_compare_mp_warning_code_previous=" + $warningCode)
 }
 foreach ($warningCode in $currentMpWarningCodes) {
     Write-Host ("real_session_v0_compare_mp_warning_code_current=" + $warningCode)
+}
+foreach ($warningCode in $previousMpIdentityMismatchWarningCodes) {
+    Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_code_previous=" + $warningCode)
+}
+foreach ($warningCode in $currentMpIdentityMismatchWarningCodes) {
+    Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_code_current=" + $warningCode)
 }
 foreach ($warningCode in $currentMpIdentityMismatchWarningCodes) {
     Write-Host ("real_session_v0_compare_identity_risk_warning_code=" + $warningCode)
