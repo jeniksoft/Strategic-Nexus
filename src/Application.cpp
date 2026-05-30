@@ -1027,6 +1027,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "mp_overlay_package_warning_count=" << warnings.size() << "\n";
             for (const auto& warning : warnings) {
                 std::cout << "mp_overlay_package_warning=" << sanitizeCliValue(warning) << "\n";
+                std::cout << "mp_overlay_package_warning_code=" << sanitizeCliValue(warning) << "\n";
             }
             return result.ok ? 0 : 1;
         }
@@ -1107,6 +1108,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "mp_overlay_package_import_warning_count=" << warnings.size() << "\n";
             for (const auto& warning : warnings) {
                 std::cout << "mp_overlay_package_import_warning=" << sanitizeCliValue(warning) << "\n";
+                std::cout << "mp_overlay_package_import_warning_code=" << sanitizeCliValue(warning) << "\n";
             }
             return result.ok ? 0 : 1;
         }

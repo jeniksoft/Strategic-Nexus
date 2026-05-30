@@ -692,6 +692,7 @@ function Invoke-GeneratedOverlayCompileCase {
     }
     Assert-Contains -Name "mp_overlay_package_verify mismatch app" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_ok=true"
     Assert-Contains -Name "mp_overlay_package_verify mismatch app" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_warning=package_manifest_hash_mismatch"
+    Assert-Contains -Name "mp_overlay_package_verify mismatch app warning_code" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_warning_code=package_manifest_hash_mismatch"
 
     $mpImportOutput = & $exePath `
         --import-mp-overlay-package `
@@ -725,6 +726,7 @@ function Invoke-GeneratedOverlayCompileCase {
     }
     Assert-Contains -Name "mp_overlay_package_import mismatch app" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_ok=true"
     Assert-Contains -Name "mp_overlay_package_import mismatch app" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_warning=package_manifest_hash_mismatch"
+    Assert-Contains -Name "mp_overlay_package_import mismatch app warning_code" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_warning_code=package_manifest_hash_mismatch"
 
     $mpImportedVerifyOutput = & $exePath `
         --verify-generated-overlay `
