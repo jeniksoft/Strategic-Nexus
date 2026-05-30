@@ -162,6 +162,12 @@ int main()
     requireCondition(
         ready.mpOverlayPackage.statusText.find("readiness: ready_for_mp") != std::string::npos,
         "mp overlay package status text should include readiness");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("host_readiness: ready_for_mp") != std::string::npos,
+        "mp overlay package status text should include host readiness");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("client_readiness_gate: import_and_verify_before_join") != std::string::npos,
+        "mp overlay package status text should include client readiness gate");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
     requireCondition(
         ready.statusCenterSummaryText.find("stav: starting - waiting for archive to become ready") != std::string::npos,
@@ -187,6 +193,12 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_readiness: ready_for_mp") != std::string::npos,
         "status center summary should include MP readiness");
+    requireCondition(
+        ready.statusCenterSummaryText.find("host_readiness: ready_for_mp") != std::string::npos,
+        "status center summary should include host readiness text");
+    requireCondition(
+        ready.statusCenterSummaryText.find("client_readiness_gate: import_and_verify_before_join") != std::string::npos,
+        "status center summary should include client readiness gate text");
     requireCondition(
         ready.statusCenterSummaryText.find("gameplay_acceptance: starting - gameplay acceptance pending") != std::string::npos,
         "status center summary should include gameplay acceptance pending state");
