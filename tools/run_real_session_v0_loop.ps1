@@ -108,6 +108,7 @@ function Get-VariableOrDefault {
 if ([string]::IsNullOrWhiteSpace($SessionId)) {
     $SessionId = "session_" + (Get-Date -Format "yyyyMMdd_HHmmss")
 }
+$realSessionLoopRunId = "real-session-v0-loop-" + [DateTime]::UtcNow.ToString("yyyyMMddTHHmmssfffZ")
 
 $defaultRunRoot = Join-Path $repoRoot ("dist/real_session_v0_loop/" + $SessionId)
 if ([string]::IsNullOrWhiteSpace($WorkDir)) {
@@ -301,6 +302,7 @@ if ($EmitTrendSummary) {
 $nextSessionCommandHint += ' -PreviousSessionDirForCompare "' + $defaultRunRoot + '"'
 Write-Host ("real_session_v0_loop_next_session_compare_baseline_dir=" + $defaultRunRoot)
 Write-Host ("real_session_v0_loop_next_session_command_hint=" + $nextSessionCommandHint)
+Write-Host ("real_session_v0_loop_run_id=" + $realSessionLoopRunId)
 if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $previousSessionDirForCompareFull = [System.IO.Path]::GetFullPath($PreviousSessionDirForCompare)
     if (-not (Test-Path -LiteralPath $previousSessionDirForCompareFull)) {
@@ -866,6 +868,7 @@ if ($EmitTrendSummary) {
 $sessionEvidence = [ordered]@{
     evidence_schema_version = 1
     generated_at_utc = [DateTime]::UtcNow.ToString("o")
+    run_id = $realSessionLoopRunId
     session_id = $SessionId
     session_archive_dir = $sessionArchiveDir
     archive_summary_path = $archiveSummaryPath
