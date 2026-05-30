@@ -1170,8 +1170,16 @@ war={
     Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"year": 2230'
     Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"is_at_war": true'
     Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"strategic_pressure": 0.6'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_month_hint:7"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_day_hint:1"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_war_hint_confidence_percent:70"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_year_hint_confidence_percent:80"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_month_hint_confidence_percent:80"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_day_hint_confidence_percent:80"'
     Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_pressure_year_hint_source:save_date"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_pressure_year_hint_confidence_percent:60"'
     Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_pressure_war_hint_source:headline_active_war_count"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_pressure_war_hint_confidence_percent:70"'
 
     $invalidInputOutput = & $exePath `
         --build-ministry-input-from-archive `
@@ -1245,6 +1253,10 @@ war={
     Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"archive_session_summary_v0"'
     Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"strategic_pressure": 0.6'
     Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"turn_context_year_hint_source:save_date"'
+    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"turn_context_month_hint:7"'
+    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"turn_context_day_hint:1"'
+    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"turn_context_month_hint_confidence_percent:80"'
+    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"turn_context_day_hint_confidence_percent:80"'
 
     $ledgerPath = Join-Path $archiveRoot "session_cli_delta_ledger.json"
     $ledgerOutput = & $exePath `

@@ -91,12 +91,31 @@ std::string extractStringOrEmpty(const std::string& json, const char* key)
 
 std::vector<std::string> extractStringArray(const std::string& json, const char* key)
 {
+    const std::vector<std::string> extracted = common::extractJsonStringArray(json, key);
     std::vector<std::string> values;
-    for (const std::string& value : common::extractJsonStringArray(json, key)) {
+    values.reserve(std::min(extracted.size(), maxMinistryInputArrayItems));
+
+    // Keep the fixed bound but preserve turn-context hints first,
+    // because they directly affect deterministic v0 reasoning.
+    for (const std::string& value : extracted) {
         if (values.size() >= maxMinistryInputArrayItems) {
             break;
         }
-        values.push_back(sanitizeInputString(value));
+        const std::string sanitized = sanitizeInputString(value);
+        if (sanitized.rfind("turn_context_", 0) == 0) {
+            values.push_back(sanitized);
+        }
+    }
+
+    for (const std::string& value : extracted) {
+        if (values.size() >= maxMinistryInputArrayItems) {
+            break;
+        }
+        const std::string sanitized = sanitizeInputString(value);
+        if (sanitized.rfind("turn_context_", 0) == 0) {
+            continue;
+        }
+        values.push_back(sanitized);
     }
 
     return values;
