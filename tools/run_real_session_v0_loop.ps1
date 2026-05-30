@@ -166,6 +166,13 @@ $mpExportIdentityMismatchWarning = ""
 $mpExportIdentityMismatchWarningCodes = @()
 $mpExportVerifyCommand = ""
 $mpExportImportCommand = ""
+$mpExportStrictVerifyCommand = ""
+$mpExportStrictImportCommand = ""
+$mpExportHostReadiness = ""
+$mpExportClientReadinessGate = ""
+$mpExportHostNextStep = ""
+$mpExportClientNextStep = ""
+$mpExportWarningCodes = @()
 $sncStatusWithMpReadiness = ""
 if ($ExportMpPackage) {
     if (Test-Path -LiteralPath $mpPackageOutputDirFull) {
@@ -192,6 +199,13 @@ if ($ExportMpPackage) {
     $mpExportIdentityMismatchWarningCodes = Get-KeyValueLineValues -Lines $mpExportLines -Key "mp_overlay_package_export_identity_mismatch_warning_code"
     $mpExportVerifyCommand = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_verify_command"
     $mpExportImportCommand = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_import_command"
+    $mpExportStrictVerifyCommand = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_strict_verify_command"
+    $mpExportStrictImportCommand = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_strict_import_command"
+    $mpExportHostReadiness = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_host_readiness"
+    $mpExportClientReadinessGate = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_client_readiness_gate"
+    $mpExportHostNextStep = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_host_next_step"
+    $mpExportClientNextStep = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_client_next_step"
+    $mpExportWarningCodes = Get-KeyValueLineValues -Lines $mpExportLines -Key "mp_overlay_package_export_warning_code"
 
     Write-Host "==> refresh snc status snapshot with mp package visibility"
     & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false
@@ -263,6 +277,15 @@ if ($ExportMpPackage) {
     }
     Write-Host ("real_session_v0_loop_mp_package_verify_command=" + $mpExportVerifyCommand)
     Write-Host ("real_session_v0_loop_mp_package_import_command=" + $mpExportImportCommand)
+    Write-Host ("real_session_v0_loop_mp_package_strict_verify_command=" + $mpExportStrictVerifyCommand)
+    Write-Host ("real_session_v0_loop_mp_package_strict_import_command=" + $mpExportStrictImportCommand)
+    Write-Host ("real_session_v0_loop_mp_package_host_readiness=" + $mpExportHostReadiness)
+    Write-Host ("real_session_v0_loop_mp_package_client_readiness_gate=" + $mpExportClientReadinessGate)
+    Write-Host ("real_session_v0_loop_mp_package_host_next_step=" + $mpExportHostNextStep)
+    Write-Host ("real_session_v0_loop_mp_package_client_next_step=" + $mpExportClientNextStep)
+    foreach ($warningCode in $mpExportWarningCodes) {
+        Write-Host ("real_session_v0_loop_mp_package_warning_code=" + $warningCode)
+    }
     Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpOutputJsonFull)
     Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
 }
