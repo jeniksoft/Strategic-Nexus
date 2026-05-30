@@ -321,6 +321,9 @@ $statusJson = $statusText | ConvertFrom-Json
 $gameplayAcceptanceState = ""
 $gameplayAcceptanceReason = ""
 $gameplayAcceptancePath = ""
+$statusCenterState = ""
+$statusCenterReason = ""
+$statusCenterSummaryText = ""
 if ($null -ne $statusJson.gameplay_acceptance_status) {
     if ($null -ne $statusJson.gameplay_acceptance_status.state) {
         $gameplayAcceptanceState = [string]$statusJson.gameplay_acceptance_status.state
@@ -332,11 +335,28 @@ if ($null -ne $statusJson.gameplay_acceptance_status) {
         $gameplayAcceptancePath = [string]$statusJson.gameplay_acceptance_status.path
     }
 }
+if ($null -ne $statusJson.status_center) {
+    if ($null -ne $statusJson.status_center.state) {
+        $statusCenterState = [string]$statusJson.status_center.state
+    }
+    if ($null -ne $statusJson.status_center.reason) {
+        $statusCenterReason = [string]$statusJson.status_center.reason
+    }
+}
+if ($null -ne $statusJson.status_center_summary_text) {
+    $statusCenterSummaryText = [string]$statusJson.status_center_summary_text
+}
 if ([string]::IsNullOrWhiteSpace($gameplayAcceptanceState)) {
     throw "Offline spine status snapshot is missing gameplay_acceptance_status.state."
 }
 if ([string]::IsNullOrWhiteSpace($gameplayAcceptanceReason)) {
     throw "Offline spine status snapshot is missing gameplay_acceptance_status.reason."
+}
+if ([string]::IsNullOrWhiteSpace($statusCenterState)) {
+    throw "Offline spine status snapshot is missing status_center.state."
+}
+if ([string]::IsNullOrWhiteSpace($statusCenterReason)) {
+    throw "Offline spine status snapshot is missing status_center.reason."
 }
 
 Write-Host "real_session_v0_loop_ok=true"
@@ -351,6 +371,11 @@ Write-Host ("real_session_v0_loop_generated_overlay_dir=" + $overlayOutputDirFul
 Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull)
 Write-Host ("real_session_v0_loop_gameplay_acceptance_state=" + $gameplayAcceptanceState)
 Write-Host ("real_session_v0_loop_gameplay_acceptance_reason=" + $gameplayAcceptanceReason)
+Write-Host ("real_session_v0_loop_status_center_state=" + $statusCenterState)
+Write-Host ("real_session_v0_loop_status_center_reason=" + $statusCenterReason)
+if (-not [string]::IsNullOrWhiteSpace($statusCenterSummaryText)) {
+    Write-Host ("real_session_v0_loop_status_center_summary_present=true")
+}
 if (-not [string]::IsNullOrWhiteSpace($gameplayAcceptancePath)) {
     Write-Host ("real_session_v0_loop_gameplay_acceptance_path=" + $gameplayAcceptancePath)
 }
@@ -1029,6 +1054,11 @@ $sessionEvidence = [ordered]@{
         state = $gameplayAcceptanceState
         reason = $gameplayAcceptanceReason
         path = $gameplayAcceptancePath
+    }
+    status_center = [ordered]@{
+        state = $statusCenterState
+        reason = $statusCenterReason
+        summary_present = (-not [string]::IsNullOrWhiteSpace($statusCenterSummaryText))
     }
     command_hints = [ordered]@{
         compare = $compareCommandHint
