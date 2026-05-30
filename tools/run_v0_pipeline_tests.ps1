@@ -1907,6 +1907,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_campaign_id_mismatch_warning="
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_overlay_version_mismatch_warning="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_run_id=real-session-v0-loop-"
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_archive_copied_save_count="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_archive_last_archived_path="
     $runIdLine = ($output | Where-Object { $_ -like "real_session_v0_loop_run_id=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($runIdLine)) {
         throw "real session loop mismatch forwarding case missing run id line."
@@ -1940,6 +1942,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"compare"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"trend"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"next_session"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"archive"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"copied_save_count"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"last_archived_path"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"auto_compare"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"command_hint"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"auto_trend"'
@@ -1967,6 +1972,12 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     $generatedAtUtc = [datetimeoffset]::MinValue
     if (-not [datetimeoffset]::TryParse([string]$evidenceJson.generated_at_utc, [ref]$generatedAtUtc)) {
         throw "real session loop mismatch forwarding evidence json generated_at_utc is not a valid timestamp: '$($evidenceJson.generated_at_utc)'."
+    }
+    if ($null -eq $evidenceJson.archive) {
+        throw "real session loop mismatch forwarding evidence json missing archive object."
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$evidenceJson.archive.copied_save_count)) {
+        throw "real session loop mismatch forwarding evidence json missing archive.copied_save_count."
     }
 
     Write-Host "[PASS] real_session_loop_mismatch_forwarding"

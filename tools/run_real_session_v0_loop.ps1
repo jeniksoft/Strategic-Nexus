@@ -211,6 +211,22 @@ Assert-LastExitCodeOk -StepName "verify autosave archive"
 Write-Host "==> summarize autosave archive"
 & $exe --summarize-autosave-archive $sessionArchiveDir $archiveSummaryPath
 Assert-LastExitCodeOk -StepName "summarize autosave archive"
+if (-not (Test-Path -LiteralPath $archiveSummaryPath)) {
+    throw "Archive summary output is missing: $archiveSummaryPath"
+}
+$archiveSummaryText = Get-Content -Raw -LiteralPath $archiveSummaryPath
+$archiveSummaryJson = $archiveSummaryText | ConvertFrom-Json
+$archiveCopiedSaveCount = ""
+$archiveLastArchivedPath = ""
+if ($null -ne $archiveSummaryJson.copied_save_count) {
+    $archiveCopiedSaveCount = [string]$archiveSummaryJson.copied_save_count
+}
+if ($null -ne $archiveSummaryJson.last_archived_path) {
+    $archiveLastArchivedPath = [string]$archiveSummaryJson.last_archived_path
+}
+if ([string]::IsNullOrWhiteSpace($archiveCopiedSaveCount)) {
+    throw "Archive summary is missing copied_save_count."
+}
 
 Write-Host "==> run offline spine"
 & $exe --run-offline-spine $sessionArchiveDir $CampaignId $EmpireId $dslInputFull $workDirFull $overlayOutputDirFull $statusOutputJsonFull
@@ -327,6 +343,10 @@ Write-Host "real_session_v0_loop_ok=true"
 Write-Host ("real_session_v0_loop_session_id=" + $SessionId)
 Write-Host ("real_session_v0_loop_session_archive_dir=" + $sessionArchiveDir)
 Write-Host ("real_session_v0_loop_archive_summary_path=" + $archiveSummaryPath)
+Write-Host ("real_session_v0_loop_archive_copied_save_count=" + $archiveCopiedSaveCount)
+if (-not [string]::IsNullOrWhiteSpace($archiveLastArchivedPath)) {
+    Write-Host ("real_session_v0_loop_archive_last_archived_path=" + $archiveLastArchivedPath)
+}
 Write-Host ("real_session_v0_loop_generated_overlay_dir=" + $overlayOutputDirFull)
 Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull)
 Write-Host ("real_session_v0_loop_gameplay_acceptance_state=" + $gameplayAcceptanceState)
@@ -973,6 +993,10 @@ $sessionEvidence = [ordered]@{
     session_id = $SessionId
     session_archive_dir = $sessionArchiveDir
     archive_summary_path = $archiveSummaryPath
+    archive = [ordered]@{
+        copied_save_count = $archiveCopiedSaveCount
+        last_archived_path = $archiveLastArchivedPath
+    }
     generated_overlay_dir = $overlayOutputDirFull
     status_snapshot_path = $statusOutputJsonFull
     gameplay_acceptance = [ordered]@{
