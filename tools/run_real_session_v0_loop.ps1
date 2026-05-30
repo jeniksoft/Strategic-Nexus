@@ -211,7 +211,8 @@ $mpExportClientReadinessGate = ""
 $mpExportHostNextStep = ""
 $mpExportClientNextStep = ""
 $mpExportWarningCodes = @()
-$sncStatusWithMpReadiness = ""
+$sncStatusWithMpReadiness = "not_exported"
+$statusWithMpSnapshotPathForOutput = ""
 if ($ExportMpPackage) {
     if (Test-Path -LiteralPath $mpPackageOutputDirFull) {
         throw "MpPackageOutputDir must not already exist: $mpPackageOutputDirFull"
@@ -257,6 +258,7 @@ if ($ExportMpPackage) {
         throw "SNC MP status snapshot is missing mp overlay package readiness=ready_for_mp."
     }
     $sncStatusWithMpReadiness = "ready_for_mp"
+    $statusWithMpSnapshotPathForOutput = $statusWithMpOutputJsonFull
 }
 
 if (-not (Test-Path -LiteralPath $statusOutputJsonFull)) {
@@ -609,9 +611,9 @@ if ($ExportMpPackage) {
     foreach ($warningCode in $mpExportWarningCodes) {
         Write-Host ("real_session_v0_loop_mp_package_warning_code=" + $warningCode)
     }
-    Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpOutputJsonFull)
-    Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
 }
+Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpSnapshotPathForOutput)
+Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
 if ($EmitTrendSummary) {
     $trendScriptPath = Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1"
     if (-not (Test-Path -LiteralPath $trendScriptPath)) {
@@ -905,7 +907,7 @@ $sessionEvidence = [ordered]@{
     mp_export = [ordered]@{
         enabled = [bool]$ExportMpPackage
         output_dir = $mpPackageOutputDirFull
-        status_snapshot_with_mp_path = $statusWithMpOutputJsonFull
+        status_snapshot_with_mp_path = $statusWithMpSnapshotPathForOutput
         status_snapshot_with_mp_readiness = $sncStatusWithMpReadiness
         readiness = $mpExportReadiness
         manifest_hash = $mpExportManifestHash
