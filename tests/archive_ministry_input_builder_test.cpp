@@ -59,7 +59,7 @@ int main()
     requireCondition(ledgerInput.campaignId == "campaign_ledger", "ledger build should preserve campaign id");
     requireCondition(ledgerInput.empireId == "empire_ledger", "ledger build should preserve empire id");
     requireCondition(ledgerInput.ministry == "research", "ledger build should preserve ministry");
-    requireCondition(ledgerInput.knownFacts.size() == 8, "ledger build should forward parsed facts and add turn-context hints");
+    requireCondition(ledgerInput.knownFacts.size() == 11, "ledger build should forward parsed facts and add turn-context hints");
     requireCondition(
         ledgerInput.knownFacts[1] == "save_headline_parsed:true",
         "ledger build should forward parsed-headline marker");
@@ -82,6 +82,15 @@ int main()
         ledgerInput.knownFacts[7] == "turn_context_year_hint_confidence_percent:80",
         "headline-backed ledger should include explicit year hint confidence");
     requireCondition(
+        ledgerInput.knownFacts[8] == "turn_context_month_hint:7",
+        "headline-backed ledger should include month hint from save date");
+    requireCondition(
+        ledgerInput.knownFacts[9] == "turn_context_month_hint_source:save_date",
+        "headline-backed ledger should mark month hint source");
+    requireCondition(
+        ledgerInput.knownFacts[10] == "turn_context_month_hint_confidence_percent:80",
+        "headline-backed ledger should include explicit month hint confidence");
+    requireCondition(
         ledgerInput.uncertainties.size() == 1,
         "headline-backed ledger should not force metadata-only uncertainty");
 
@@ -100,6 +109,9 @@ int main()
     requireCondition(
         containsValue(badDateInput.uncertainties, "headline_save_date_invalid"),
         "invalid save date should be surfaced as explicit uncertainty");
+    requireCondition(
+        !containsValue(badDateInput.knownFacts, "turn_context_month_hint_source:save_date"),
+        "invalid save date should not emit month hint facts");
 
     strategic_nexus::SeasonDeltaLedger metadataOnlyLedger = ledger;
     metadataOnlyLedger.deltaQuality = "metadata_only";
