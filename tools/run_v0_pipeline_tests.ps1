@@ -672,6 +672,26 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_ok=true"
     Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_readiness=ready_for_mp"
     Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_manifest_hash="
+    $mpManifestHash = [regex]::Match($mpVerifyText, "mp_overlay_package_manifest_hash=([^\r\n]+)").Groups[1].Value.Trim()
+    if ([string]::IsNullOrWhiteSpace($mpManifestHash)) {
+        throw "mp_overlay_package_verify app did not provide manifest hash value."
+    }
+
+    $mpVerifyMismatchOutput = & $exePath `
+        --verify-mp-overlay-package `
+        $mpPackagePath `
+        "campaign_cli" `
+        "overlay_cli_v1" `
+        "stellaris_4.x" `
+        "strategic_nexus_v0" `
+        "wrong_manifest_hash"
+    $mpVerifyMismatchExitCode = $LASTEXITCODE
+    $mpVerifyMismatchText = $mpVerifyMismatchOutput -join "`n"
+    if ($mpVerifyMismatchExitCode -ne 0) {
+        throw "mp_overlay_package_verify mismatch app failed. Actual output:`n$mpVerifyMismatchText"
+    }
+    Assert-Contains -Name "mp_overlay_package_verify mismatch app" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_ok=true"
+    Assert-Contains -Name "mp_overlay_package_verify mismatch app" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_warning=package_manifest_hash_mismatch"
 
     $mpImportOutput = & $exePath `
         --import-mp-overlay-package `

@@ -109,6 +109,11 @@ struct RunConfig {
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;
     std::string mpOverlayStrategicNexusModVersion;
+    std::string mpOverlayExpectedCampaignId;
+    std::string mpOverlayExpectedOverlayVersion;
+    std::string mpOverlayExpectedGameVersion;
+    std::string mpOverlayExpectedStrategicNexusModVersion;
+    std::string mpOverlayExpectedManifestHash;
     std::string offlineSpineCampaignId;
     std::string offlineSpineEmpireId;
     bool mpOverlayPreviousHostAvailable = true;

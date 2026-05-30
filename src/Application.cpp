@@ -217,6 +217,21 @@ RunConfig parseRunConfig(int argc, char* argv[])
         if (argc > 2) {
             config.mpOverlayPackageDirectory = argv[2];
         }
+        if (argc > 3) {
+            config.mpOverlayExpectedCampaignId = argv[3];
+        }
+        if (argc > 4) {
+            config.mpOverlayExpectedOverlayVersion = argv[4];
+        }
+        if (argc > 5) {
+            config.mpOverlayExpectedGameVersion = argv[5];
+        }
+        if (argc > 6) {
+            config.mpOverlayExpectedStrategicNexusModVersion = argv[6];
+        }
+        if (argc > 7) {
+            config.mpOverlayExpectedManifestHash = argv[7];
+        }
         return config;
     }
 
@@ -900,6 +915,34 @@ int Application::run(const RunConfig& config) const
             if (!result.ok && result.readiness == "not_ready" && !result.statusText.empty()) {
                 warnings.push_back("package_identity_or_version_mismatch");
             }
+            const auto addMismatchWarning = [&warnings](
+                                                const std::string& expected,
+                                                const std::string& actual,
+                                                const char* warning) {
+                if (!expected.empty() && expected != actual) {
+                    warnings.push_back(warning);
+                }
+            };
+            addMismatchWarning(
+                config.mpOverlayExpectedCampaignId,
+                result.campaignId,
+                "package_campaign_id_mismatch");
+            addMismatchWarning(
+                config.mpOverlayExpectedOverlayVersion,
+                result.overlayVersion,
+                "package_overlay_version_mismatch");
+            addMismatchWarning(
+                config.mpOverlayExpectedGameVersion,
+                result.gameVersion,
+                "package_game_version_mismatch");
+            addMismatchWarning(
+                config.mpOverlayExpectedStrategicNexusModVersion,
+                result.strategicNexusModVersion,
+                "package_mod_version_mismatch");
+            addMismatchWarning(
+                config.mpOverlayExpectedManifestHash,
+                result.packageManifestHash,
+                "package_manifest_hash_mismatch");
 
             std::cout << "mp_overlay_package_ok=" << (result.ok ? "true" : "false") << "\n";
             std::cout << "mp_overlay_package_reason=" << sanitizeCliValue(result.reason) << "\n";
