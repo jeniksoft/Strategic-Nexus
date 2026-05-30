@@ -811,6 +811,7 @@ The CLI verifier output now also emits explicit `mp_overlay_package_warning` cod
 MP package copyable status text now includes explicit host/client readiness lines (`host_readiness`, `host_next_step`, `client_readiness_gate`, `client_next_step`) and handoff continuity hinting for host-rotation fallback.
 Strategic Nexus Companion snapshot/status-center tests now assert these host/client readiness lines are present in `mp_overlay_package_status_text` and in copyable Status Center summary output.
 SNC MP package snapshot now carries structured `warning_codes` (plus CLI `snc_mp_overlay_package_warning_count`/`snc_mp_overlay_package_warning_code` output), so release-companion and Status Center flows can surface non-ready package reasons without parsing free-form text.
+SNC snapshot/CLI now also carries explicit MP verify/import command fields, and MP package copyable status text now includes ready-to-run `verify_command`/`import_command` lines tied to the package directory.
 
 Next worker-ready slice:
 
