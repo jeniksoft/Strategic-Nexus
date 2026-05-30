@@ -97,6 +97,42 @@ Doporuceny dalsi krok:
 * Pushnout nejnovnejsi snapshot commit spolu s touto denikovou aktualizaci a potvrdit navazujici verejny `Windows Tests` signal i pro novy status snapshot.
 * Potom navazat explicitnim generated overlay export contractem a end-to-end overenim checksum-safe distribuce mezi host-authoritative pripravenou dalsi session a companion artefakty.
 
+## 2026-05-30
+
+Projekt dnes posunul hlavne offline analyzu autosave vstupu, navazani archivniho brief/ledger toku a dalsi tvrdsi validaci generated overlay cesty. Smer zustava stejny: nejde o novy runtime zasah do bezici session, ale o zpevnovani integration boundary mezi archivem, analyzou a pripravenym next-session artefaktem.
+
+Co pribylo v repozitari:
+
+* Pribyl uzce ohraniceny Stellaris save parser CLI a navazujici dokumentace save container formatu. Tato vrstva dava projektu prvni konkretni vstup pro runtime reverse engineering v bezpecnem, ctecim a auditovatelnem rozsahu.
+* Nasledne commity propojily parsovanou hlavicku savu a season delta ledger s `ArchiveMinistryInputBuilder`, vcetne threading `parsed_headline_war_hint` a `save_date` year hintu do archivniho brief toku.
+* Runtime spine byla zpevnena dalsi validaci archive identity a generated overlay DSL validation, aby scripted event/effect path zustal bounded a fail-closed i pri problematickych vstupech.
+* Posledni dnesni commit doplnil warning codes do verify CLI vystupu pro MP package cestu, tedy presnejsi diagnostiku na hranici mezi generated overlay packagingem, companion observability a dalsim export workflow.
+* Dokumentace roadmapy a offline analysis architektury byla prubezne upravena tak, aby nove interoperabilni kroky odpovidaly skutecne implementovanemu poradi.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt se posunul od ciste kontraktni pipeline k prvni prakticky pouzitelne ceste `save container -> parser -> archive ministry input -> season delta/brief -> generated overlay staging`.
+* Runtime interoperability research je ted konkretnejsi v oblasti cteni autosave struktury a mapovani metadat do host-authoritative offline modelu, aniz by se rozsiril zasah do aktivniho runtime.
+* Nove hinty z parsovaneho savu zmensuji mezeru mezi archivovanym stavem kampane a budoucim rozhodovacim/briefing tokem, ale stale zustavaji uvnitr kontrolovaneho integration boundary.
+* Presnejsi verify warnings pomahaji odlisit chyby packagingu od pouze degradovanych stavu pripravenosti, coz je dulezite pro pozdejsi checksum-safe distribuci.
+
+Testy a stav overeni:
+
+* Verejne GitHub Actions `Windows Tests` jsou pro posledni pushnute commity, ktere uz byly na `origin/master`, viditelne jako uspesne. Dostupny potvrzeny signal v tomto behu zahrnuje napriklad `Clarify roadmap after save parser slice`, dokonceny 30.5.2026 v 01:40:34 mistniho casu, s dobou behu 4 minuty 25 sekund.
+* Nejnovnejsi dnesni implementacni commity jsou v tuto chvili lokalne `ahead 6` oproti `origin/master`, takze pro ne jeste neexistuje verejny CI vysledek.
+* Tento denikovy beh nespoustel novy plny lokalni test run; zapis vychazi z commit historie a z dostupneho verejneho CI signalu.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe generated overlay packaging a distribucni workflow pro multiplayer ucastniky.
+* Save parser a archive ministry threading zmensuji nejistotu vstupnich dat, ale jeste neuzaviraji finalni export contract, campaign marker handshake ani empire identity resolver.
+* Cast dnesniho posunu je zamerne vyzkumna a interoperabilni. Rizikem zustava, ze bez navazujiciho end-to-end export overeni budou nove parser a hint vrstvy jen lepe pripravovat vstupy, nikoli jeste potvrzovat konecne doruceni artefaktu.
+
+Doporuceny dalsi krok:
+
+* Zverejnit dnesni lokalni sadu commitu spolu s timto denikovym zapisem a potvrdit navazujici verejny `Windows Tests` signal pro novy head.
+* Potom navazat formalnim generated overlay export contractem a prvnim end-to-end overenim checksum-safe distribuce, ktere propoji save parser, archive ministry input a MP package verify cestu.
+
 ## 2026-05-28
 
 Projekt dnes dostal prvni overeny vertikalni produktovy pruchod pro offline spine a soucasne presnejsi casove ukotveni companion status snapshotu.
