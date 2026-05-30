@@ -94,6 +94,9 @@ $latestIdentityRiskWarningReason = "need_more_real_sessions"
 $latestIdentityRiskWarningCodes = @()
 $latestObservableEffectSignal = "false"
 $latestObservableEffectReason = "need_more_real_sessions"
+$latestGameplayAcceptanceStateCurrent = ""
+$latestGameplayAcceptanceStatePrevious = ""
+$latestGameplayAcceptanceStateChanged = ""
 $latestMpWarningCountCurrent = ""
 $latestMpWarningCountDelta = ""
 $latestMpWarningCodesChanged = ""
@@ -149,6 +152,9 @@ if ($sessionCount -ge 2) {
     $compareIdentityRiskWarningReasonLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning_reason=*" } | Select-Object -First 1
     $compareObservableEffectSignalLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_observable_effect_signal=*" } | Select-Object -First 1
     $compareObservableEffectReasonLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_observable_effect_reason=*" } | Select-Object -First 1
+    $compareGameplayAcceptanceStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_gameplay_acceptance_state_current=*" } | Select-Object -First 1
+    $compareGameplayAcceptanceStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_gameplay_acceptance_state_previous=*" } | Select-Object -First 1
+    $compareGameplayAcceptanceStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_gameplay_acceptance_state_changed=*" } | Select-Object -First 1
     $compareMpWarningCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_current=*" } | Select-Object -First 1
     $compareMpWarningCountDeltaLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_delta=*" } | Select-Object -First 1
     $compareMpWarningCodesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_codes_changed=*" } | Select-Object -First 1
@@ -214,6 +220,15 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareObservableEffectReasonLine)) {
         $latestObservableEffectReason = $compareObservableEffectReasonLine.Substring("real_session_v0_compare_observable_effect_reason=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGameplayAcceptanceStateCurrentLine)) {
+        $latestGameplayAcceptanceStateCurrent = $compareGameplayAcceptanceStateCurrentLine.Substring("real_session_v0_compare_gameplay_acceptance_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGameplayAcceptanceStatePreviousLine)) {
+        $latestGameplayAcceptanceStatePrevious = $compareGameplayAcceptanceStatePreviousLine.Substring("real_session_v0_compare_gameplay_acceptance_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGameplayAcceptanceStateChangedLine)) {
+        $latestGameplayAcceptanceStateChanged = $compareGameplayAcceptanceStateChangedLine.Substring("real_session_v0_compare_gameplay_acceptance_state_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrentLine)) {
         $latestMpWarningCountCurrent = $compareMpWarningCountCurrentLine.Substring("real_session_v0_compare_mp_warning_count_current=".Length)
@@ -363,6 +378,11 @@ $result = [ordered]@{
         active = $latestObservableEffectSignal
         reason = $latestObservableEffectReason
     }
+    latest_gameplay_acceptance_state = [ordered]@{
+        current = $latestGameplayAcceptanceStateCurrent
+        previous = $latestGameplayAcceptanceStatePrevious
+        changed = $latestGameplayAcceptanceStateChanged
+    }
     latest_mp_warning_count = [ordered]@{
         current = $latestMpWarningCountCurrent
         delta = $latestMpWarningCountDelta
@@ -425,6 +445,9 @@ Write-Host ("real_session_v0_trend_identity_risk_warning=" + $latestIdentityRisk
 Write-Host ("real_session_v0_trend_identity_risk_warning_reason=" + $latestIdentityRiskWarningReason)
 Write-Host ("real_session_v0_trend_observable_effect_signal=" + $latestObservableEffectSignal)
 Write-Host ("real_session_v0_trend_observable_effect_reason=" + $latestObservableEffectReason)
+Write-Host ("real_session_v0_trend_gameplay_acceptance_state_current=" + $latestGameplayAcceptanceStateCurrent)
+Write-Host ("real_session_v0_trend_gameplay_acceptance_state_previous=" + $latestGameplayAcceptanceStatePrevious)
+Write-Host ("real_session_v0_trend_gameplay_acceptance_state_changed=" + $latestGameplayAcceptanceStateChanged)
 if (-not [string]::IsNullOrWhiteSpace($latestMpWarningCountCurrent)) {
     Write-Host ("real_session_v0_trend_mp_warning_count_current=" + $latestMpWarningCountCurrent)
 }
