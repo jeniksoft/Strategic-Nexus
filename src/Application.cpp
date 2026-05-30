@@ -1062,6 +1062,15 @@ int Application::run(const RunConfig& config) const
                 if (!strictImportCommand.empty()) {
                     std::cout << "mp_overlay_package_strict_import_command=" << sanitizeCliValue(strictImportCommand) << "\n";
                 }
+                const auto hostReadiness = readStatusTextField(result.statusText, "host_readiness");
+                if (!hostReadiness.empty()) {
+                    std::cout << "mp_overlay_package_host_readiness=" << sanitizeCliValue(hostReadiness) << "\n";
+                }
+                const auto clientReadinessGate = readStatusTextField(result.statusText, "client_readiness_gate");
+                if (!clientReadinessGate.empty()) {
+                    std::cout << "mp_overlay_package_client_readiness_gate="
+                              << sanitizeCliValue(clientReadinessGate) << "\n";
+                }
             }
             std::cout << "mp_overlay_package_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
@@ -1167,6 +1176,15 @@ int Application::run(const RunConfig& config) const
                 if (!strictImportCommand.empty()) {
                     std::cout << "mp_overlay_package_import_strict_import_command="
                               << sanitizeCliValue(strictImportCommand) << "\n";
+                }
+                const auto hostReadiness = readStatusTextField(result.statusText, "host_readiness");
+                if (!hostReadiness.empty()) {
+                    std::cout << "mp_overlay_package_import_host_readiness=" << sanitizeCliValue(hostReadiness) << "\n";
+                }
+                const auto clientReadinessGate = readStatusTextField(result.statusText, "client_readiness_gate");
+                if (!clientReadinessGate.empty()) {
+                    std::cout << "mp_overlay_package_import_client_readiness_gate="
+                              << sanitizeCliValue(clientReadinessGate) << "\n";
                 }
             }
             std::cout << "mp_overlay_package_imported_file_count=" << result.importedFiles.size() << "\n";

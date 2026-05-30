@@ -676,6 +676,8 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_import_command=Strategic Nexus.exe --import-mp-overlay-package "
     Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_strict_verify_command=Strategic Nexus.exe --verify-mp-overlay-package "
     Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_verify app readiness" -Text $mpVerifyText -Expected "mp_overlay_package_host_readiness=ready_for_mp"
+    Assert-Contains -Name "mp_overlay_package_verify app readiness" -Text $mpVerifyText -Expected "mp_overlay_package_client_readiness_gate=import_and_verify_before_join"
     $mpManifestHash = [regex]::Match($mpVerifyText, "mp_overlay_package_manifest_hash=([^\r\n]+)").Groups[1].Value.Trim()
     if ([string]::IsNullOrWhiteSpace($mpManifestHash)) {
         throw "mp_overlay_package_verify app did not provide manifest hash value."
@@ -717,6 +719,8 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_command=Strategic Nexus.exe --import-mp-overlay-package "
     Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_strict_verify_command=Strategic Nexus.exe --verify-mp-overlay-package "
     Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_import app readiness" -Text $mpImportText -Expected "mp_overlay_package_import_host_readiness=ready_for_mp"
+    Assert-Contains -Name "mp_overlay_package_import app readiness" -Text $mpImportText -Expected "mp_overlay_package_import_client_readiness_gate=import_and_verify_before_join"
 
     $mpImportMismatchOutput = & $exePath `
         --import-mp-overlay-package `
