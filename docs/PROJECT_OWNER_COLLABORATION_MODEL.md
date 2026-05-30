@@ -252,6 +252,10 @@ Before starting a Free Work chunk, Codex should:
 5. commit completed work
 6. update durable notes when the result affects future work
 
+When a Free Work run has an approved multi-chunk limit, each completed and verified chunk should be committed before the worker starts the next implementation chunk.
+Push may wait until the end of the run, but the local commit boundary should not wait.
+This keeps later chunks from inheriting an ambiguous dirty worktree and makes worker output reviewable without manual reconstruction.
+
 Before continuing to polish the same chunk, Codex should ask whether the slice is already done. If the agreed behavior works, relevant validation passes, unsafe inputs fail safely, and remaining ideas are optional, Codex should mark the slice implemented or verified, record follow-up polish as `Navrhy`, and move to the next roadmap item.
 
 If a background worker creates useful changes but cannot commit them, it must leave an owner-facing trace in the task board.

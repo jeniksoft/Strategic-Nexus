@@ -425,6 +425,10 @@ By default, one Free Work run means at most one bounded useful chunk.
 If the owner explicitly approves a throughput override for the worker, a single run may execute up to the configured number of sequential safe chunks.
 Those chunks must still be non-overlapping, roadmap-aligned, locally testable, reviewable, and stopped early when verification, safety, dirty-worktree, gaming quiet mode, or owner-decision boundaries require it.
 
+When a single Free Work run executes multiple chunks, it must commit after every completed and verified chunk before starting the next chunk.
+Push may wait until the end of the invocation unless a long run or loss-risk makes an earlier push useful.
+This keeps each new chunk based on a clean git baseline and prevents the worker from confusing its own earlier work with unrelated dirty files.
+
 ---
 
 # Daily Operating Plan Rule
@@ -497,6 +501,28 @@ Each chunk should preferably end with:
 
 This prevents long invisible work sessions from becoming hard to review.
 
+## Per-Chunk Commit Rule
+
+For scheduled, manual, or persistent Free Work with more than one approved sequential chunk, a finished chunk must be committed before the next chunk starts.
+
+Required sequence:
+
+1. implement one bounded chunk
+2. run targeted verification for that chunk
+3. inspect the worktree and stage only that chunk's files
+4. create a coherent local commit
+5. re-check the worktree baseline
+6. continue to the next chunk only if the remaining state is clean or safely disjoint
+
+Push policy:
+
+* push at the end of the invocation by default
+* push earlier for long runs, risky local state, or when preserving completed work matters more than CI noise
+* do not push a chunk that has not passed its required local verification
+
+If a chunk cannot be safely committed, the worker must not continue into another implementation chunk as if nothing happened.
+It should retry safe local commit recovery when appropriate, record the affected paths and reason, and stop or switch only to read/report work until the unresolved state is handled.
+
 ## Definition Of Done And Anti-Polish Rule
 
 Free Work must not keep improving the same slice forever.
@@ -544,7 +570,7 @@ Background Free Work must not:
 * overwrite foreground chat edits
 * stage unrelated dirty files
 * commit unrelated user/Codex changes
-* start a second implementation chunk while a previous background chunk is still unresolved
+* start a second implementation chunk while a previous background chunk is still unverified, uncommitted, or otherwise unresolved
 
 If all useful roadmap work overlaps dirty foreground files, the worker should stop and create or update one visible task-board blocker instead of silently failing.
 

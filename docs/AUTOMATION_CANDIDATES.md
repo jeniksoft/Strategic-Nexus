@@ -198,7 +198,8 @@ Expected output:
 * if foreground or unrelated dirty work overlaps the selected task write set, choose another task or stop
 * if no roadmap-aligned, architecture-compatible, bounded, locally testable, decision-free task exists, do nothing
 * otherwise choose a chunk size from remaining budget, burn-rate estimate, and task value
-* implement up to the currently approved sequential chunk limit, run targeted verification, commit coherent changes, and create a Czech task-board report only for important owner-facing results
+* implement up to the currently approved sequential chunk limit, run targeted verification, commit each completed and verified chunk locally before starting the next chunk, and create a Czech task-board report only for important owner-facing results
+* push may wait until the end of the invocation unless a long run or loss-risk makes an earlier push useful
 * if useful files are created or modified but cannot be committed, prefer retry-first handling: log the exact files, reason, and retry condition; create/update one Czech task-board Report/Suggestion only when the owner should know important uncommitted work exists; create `Ukoly pro me` only when owner action is genuinely required
 * write any owner-facing automation final message and inbox item title/summary in Czech; technical paths, commands, symbols, and commit identifiers may remain unchanged
 * do not create owner tasks for routine technical automation problems that Codex can retry or resolve later, such as transient git locks, delayed commits, tests still finishing, or local helper state
@@ -220,6 +221,7 @@ Important:
 This is not the same as a continuous runner.
 It is a gated bounded worker with permission to stop silently when work would be wasteful.
 By default it uses one chunk per run; if the owner explicitly approves a higher sequential chunk limit, the automation may use that configured limit while preserving dirty-worktree, safety, verification, gaming quiet mode, and owner-decision stops.
+In multi-chunk mode, each verified chunk must become a local commit before the worker starts another implementation chunk.
 
 Observability note:
 
