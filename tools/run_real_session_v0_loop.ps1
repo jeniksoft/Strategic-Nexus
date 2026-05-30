@@ -233,6 +233,27 @@ $statusText = Get-Content -Raw -LiteralPath $statusOutputJsonFull
 if ($statusText -notmatch '"generated_overlay_status"\s*:\s*\{\s*"state"\s*:\s*"ready"') {
     throw "Offline spine status snapshot is missing generated_overlay_status.state=ready."
 }
+$statusJson = $statusText | ConvertFrom-Json
+$gameplayAcceptanceState = ""
+$gameplayAcceptanceReason = ""
+$gameplayAcceptancePath = ""
+if ($null -ne $statusJson.gameplay_acceptance_status) {
+    if ($null -ne $statusJson.gameplay_acceptance_status.state) {
+        $gameplayAcceptanceState = [string]$statusJson.gameplay_acceptance_status.state
+    }
+    if ($null -ne $statusJson.gameplay_acceptance_status.reason) {
+        $gameplayAcceptanceReason = [string]$statusJson.gameplay_acceptance_status.reason
+    }
+    if ($null -ne $statusJson.gameplay_acceptance_status.path) {
+        $gameplayAcceptancePath = [string]$statusJson.gameplay_acceptance_status.path
+    }
+}
+if ([string]::IsNullOrWhiteSpace($gameplayAcceptanceState)) {
+    throw "Offline spine status snapshot is missing gameplay_acceptance_status.state."
+}
+if ([string]::IsNullOrWhiteSpace($gameplayAcceptanceReason)) {
+    throw "Offline spine status snapshot is missing gameplay_acceptance_status.reason."
+}
 
 Write-Host "real_session_v0_loop_ok=true"
 Write-Host ("real_session_v0_loop_session_id=" + $SessionId)
@@ -240,6 +261,11 @@ Write-Host ("real_session_v0_loop_session_archive_dir=" + $sessionArchiveDir)
 Write-Host ("real_session_v0_loop_archive_summary_path=" + $archiveSummaryPath)
 Write-Host ("real_session_v0_loop_generated_overlay_dir=" + $overlayOutputDirFull)
 Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull)
+Write-Host ("real_session_v0_loop_gameplay_acceptance_state=" + $gameplayAcceptanceState)
+Write-Host ("real_session_v0_loop_gameplay_acceptance_reason=" + $gameplayAcceptanceReason)
+if (-not [string]::IsNullOrWhiteSpace($gameplayAcceptancePath)) {
+    Write-Host ("real_session_v0_loop_gameplay_acceptance_path=" + $gameplayAcceptancePath)
+}
 Write-Host ("real_session_v0_loop_compare_previous_session_dir_hint=dist\\real_session_v0_loop\\<previous_session_id>")
 $compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "dist\real_session_v0_loop\<previous_session_id>" "' + $defaultRunRoot + '" "dist\private_reports\real_session_v0_compare_' + $SessionId + '.json"'
 Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
