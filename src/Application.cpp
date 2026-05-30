@@ -1266,6 +1266,12 @@ int Application::run(const RunConfig& config) const
                 std::cout << "snc_mp_overlay_package_warning=" << sanitizeCliValue(warningCode) << "\n";
                 std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
             }
+            std::cout << "snc_mp_overlay_package_identity_mismatch_warning="
+                      << (snapshot.mpOverlayPackage.identityMismatchWarning ? "true" : "false") << "\n";
+            for (const auto& warningCode : snapshot.mpOverlayPackage.identityMismatchWarningCodes) {
+                std::cout << "snc_mp_overlay_package_identity_mismatch_warning_code="
+                          << sanitizeCliValue(warningCode) << "\n";
+            }
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
             std::cout << "snc_gameplay_acceptance_path=" << sanitizeCliValue(stdoutPath(snapshot.gameplayAcceptance.path)) << "\n";

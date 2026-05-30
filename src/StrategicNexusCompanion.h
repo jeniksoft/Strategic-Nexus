@@ -60,6 +60,8 @@ struct CompanionMpOverlayPackageStatus {
     std::string strictImportCommand;
     std::string statusText;
     std::vector<std::string> warningCodes;
+    bool identityMismatchWarning = false;
+    std::vector<std::string> identityMismatchWarningCodes;
 };
 
 struct CompanionLifecycleStatus {

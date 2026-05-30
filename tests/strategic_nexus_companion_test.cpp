@@ -397,6 +397,21 @@ int main()
     requireCondition(
         tamperedMpPackage.statusCenterSummaryText.find("mp_warning_count: 1") != std::string::npos,
         "status center summary should include mismatch warning count");
+    requireCondition(
+        tamperedMpPackage.mpOverlayPackage.identityMismatchWarning,
+        "tampered mp package should expose identity mismatch warning");
+    requireCondition(
+        std::find(
+            tamperedMpPackage.mpOverlayPackage.identityMismatchWarningCodes.begin(),
+            tamperedMpPackage.mpOverlayPackage.identityMismatchWarningCodes.end(),
+            "mp_overlay_package_files_mismatch_manifest") != tamperedMpPackage.mpOverlayPackage.identityMismatchWarningCodes.end(),
+        "tampered mp package should expose file-hash mismatch identity code");
+    requireCondition(
+        tamperedMpPackage.statusCenterSummaryText.find("mp_identity_mismatch_warning: true") != std::string::npos,
+        "status center summary should include true identity mismatch warning");
+    requireCondition(
+        tamperedMpPackage.statusCenterSummaryText.find("mp_identity_mismatch_warning_code: mp_overlay_package_files_mismatch_manifest") != std::string::npos,
+        "status center summary should include identity mismatch warning code");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
@@ -435,11 +450,17 @@ int main()
         json.find("\"strict_import_command\": \"Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
         "JSON should include mp overlay package strict import command");
     requireCondition(json.find("\"warning_codes\": []") != std::string::npos, "ready MP package JSON should include empty warning codes array");
+    requireCondition(
+        json.find("\"identity_mismatch_warning\": false") != std::string::npos,
+        "ready MP package JSON should include false identity mismatch warning");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
     requireCondition(json.find("generated_at_local: ") != std::string::npos, "status center summary should include generated_at_local timestamp");
     requireCondition(json.find("mp_warning_count: 0") != std::string::npos, "ready status center summary should include zero MP warning count");
+    requireCondition(
+        json.find("mp_identity_mismatch_warning: false") != std::string::npos,
+        "ready status center summary should include false identity mismatch warning");
 
     const auto gameplayAcceptanceReport = root / "gameplay_acceptance_v0.json";
     {

@@ -134,6 +134,14 @@ std::vector<std::string> extractWarningCodesFromStatusText(const std::string& st
     return warnings;
 }
 
+bool isIdentityMismatchWarningCode(const std::string& warningCode)
+{
+    return warningCode == "package_campaign_id_mismatch" || warningCode == "package_overlay_version_mismatch" ||
+           warningCode == "package_game_version_mismatch" || warningCode == "package_mod_version_mismatch" ||
+           warningCode == "package_manifest_hash_mismatch" ||
+           warningCode == "mp_overlay_package_files_mismatch_manifest";
+}
+
 std::string readStatusTextField(const std::string& statusText, const std::string& key)
 {
     if (key.empty()) {
@@ -481,6 +489,13 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (!warningCodes.empty()) {
         status.warningCodes = warningCodes;
     }
+    for (const auto& warningCode : status.warningCodes) {
+        if (!isIdentityMismatchWarningCode(warningCode)) {
+            continue;
+        }
+        status.identityMismatchWarning = true;
+        status.identityMismatchWarningCodes.push_back(warningCode);
+    }
     return status;
 }
 
@@ -794,6 +809,10 @@ std::string buildStatusCenterSummaryText(
     for (const auto& warningCode : mpOverlayPackage.warningCodes) {
         text << "mp_warning_code: " << warningCode << "\n";
     }
+    text << "mp_identity_mismatch_warning: " << (mpOverlayPackage.identityMismatchWarning ? "true" : "false") << "\n";
+    for (const auto& warningCode : mpOverlayPackage.identityMismatchWarningCodes) {
+        text << "mp_identity_mismatch_warning_code: " << warningCode << "\n";
+    }
     text << "gameplay_acceptance: " << gameplayAcceptance.state << " - " << gameplayAcceptance.reason << "\n";
     if (!gameplayAcceptance.path.empty()) {
         text << "gameplay_acceptance_report_path: " << pathString(gameplayAcceptance.path) << "\n";
@@ -846,6 +865,16 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
             output << ", ";
         }
         output << jsonString(status.warningCodes[index]);
+    }
+    output << "],\n";
+    output << indent << "  \"identity_mismatch_warning\": "
+           << (status.identityMismatchWarning ? "true" : "false") << ",\n";
+    output << indent << "  \"identity_mismatch_warning_codes\": [";
+    for (std::size_t index = 0; index < status.identityMismatchWarningCodes.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << jsonString(status.identityMismatchWarningCodes[index]);
     }
     output << "]\n";
     output << indent << "}";
