@@ -116,6 +116,17 @@ int main()
     }
 
     const MpOverlayPackageVerifier verifier;
+    {
+        const auto missingDirectoryResult = verifier.verify(std::filesystem::path("dist/mp_overlay_package_missing_dir"));
+        if (missingDirectoryResult.ok || missingDirectoryResult.reason != "missing MP overlay package manifest") {
+            std::cerr << "missing-directory verification did not fail as expected\n";
+            return 1;
+        }
+        if (missingDirectoryResult.statusText.find("warning_code: mp_overlay_package_manifest_missing") == std::string::npos) {
+            std::cerr << "missing-directory warning code was not normalized\n";
+            return 1;
+        }
+    }
     const auto verifyResult = verifier.verify(packageRoot);
     if (!verifyResult.ok || verifyResult.reason != "accepted") {
         std::cerr << "verify failed: " << verifyResult.reason << "\n";
@@ -248,6 +259,36 @@ int main()
     if (unexpectedResult.ok || unexpectedResult.reason != "MP overlay package contains unexpected files") {
         std::cerr << "unexpected-file verification did not fail closed\n";
         return 1;
+    }
+
+    {
+        auto noFilesManifest = originalManifest;
+        const auto filesStart = noFilesManifest.find("\"files\": [");
+        if (filesStart == std::string::npos) {
+            std::cerr << "test could not locate files array in manifest\n";
+            return 1;
+        }
+        const auto filesEnd = noFilesManifest.find("]\n", filesStart);
+        if (filesEnd == std::string::npos) {
+            std::cerr << "test could not locate files array end in manifest\n";
+            return 1;
+        }
+        noFilesManifest.replace(filesStart, filesEnd - filesStart + 2, "\"files\": []\n");
+        writeTextFileAtomically(
+            packageRoot / "strategic_nexus_mp_overlay_package_manifest.json",
+            noFilesManifest);
+        const auto noFilesResult = verifier.verify(packageRoot);
+        if (noFilesResult.ok || noFilesResult.reason != "MP overlay package manifest contains no files") {
+            std::cerr << "no-files manifest did not fail closed\n";
+            return 1;
+        }
+        if (noFilesResult.statusText.find("warning_code: mp_overlay_package_manifest_files_missing") == std::string::npos) {
+            std::cerr << "no-files warning code was not normalized\n";
+            return 1;
+        }
+        writeTextFileAtomically(
+            packageRoot / "strategic_nexus_mp_overlay_package_manifest.json",
+            originalManifest);
     }
     if (unexpectedResult.readiness != "not_ready" ||
         unexpectedResult.statusText.find("warning_code: mp_overlay_package_unexpected_files") == std::string::npos ||

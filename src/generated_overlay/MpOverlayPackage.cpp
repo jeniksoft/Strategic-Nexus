@@ -433,7 +433,7 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     if (packageDirectory.empty()) {
         result.reason = "missing package directory";
         result.statusText = buildFailureStatusText(
-            "mp_overlay_package_missing_directory",
+            "mp_overlay_package_directory_missing",
             "provide an existing package directory and rerun verify",
             packageDirectory);
         return result;
@@ -443,7 +443,7 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     if (!std::filesystem::exists(manifestPath)) {
         result.reason = "missing MP overlay package manifest";
         result.statusText = buildFailureStatusText(
-            "mp_overlay_package_missing_manifest",
+            "mp_overlay_package_manifest_missing",
             "re-export package on host before import/verify",
             packageDirectory);
         return result;
@@ -521,7 +521,7 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     if (objects.empty()) {
         result.reason = "MP overlay package manifest contains no files";
         result.statusText = buildFailureStatusText(
-            "mp_overlay_package_manifest_no_files",
+            "mp_overlay_package_manifest_files_missing",
             "re-export package on host before import/verify",
             packageDirectory,
             identity);
