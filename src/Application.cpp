@@ -89,6 +89,33 @@ bool hasNonWhitespace(const std::string& value)
     return false;
 }
 
+std::string readStatusTextField(const std::string& statusText, const std::string& key)
+{
+    if (key.empty()) {
+        return std::string();
+    }
+    const std::string needle = key + ":";
+    std::istringstream stream(statusText);
+    std::string line;
+    while (std::getline(stream, line)) {
+        if (line.rfind(needle, 0) != 0) {
+            continue;
+        }
+        std::string value = line.substr(needle.size());
+        const auto first = value.find_first_not_of(" \t");
+        if (first == std::string::npos) {
+            return std::string();
+        }
+        value.erase(0, first);
+        const auto last = value.find_last_not_of(" \t\r");
+        if (last != std::string::npos) {
+            value.erase(last + 1);
+        }
+        return value;
+    }
+    return std::string();
+}
+
 bool parseLatestArchivedSaveHeadline(
     const AutosaveArchiveSummary& summary,
     SaveParserSummary& outSummary)
@@ -1132,6 +1159,10 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_readiness=" << sanitizeCliValue(snapshot.mpOverlayPackage.readiness) << "\n";
             std::cout << "snc_mp_overlay_package_manifest_hash=" << sanitizeCliValue(snapshot.mpOverlayPackage.packageManifestHash) << "\n";
             std::cout << "snc_mp_overlay_package_status_text=" << sanitizeCliValue(snapshot.mpOverlayPackage.statusText) << "\n";
+            const auto mpWarningCode = readStatusTextField(snapshot.mpOverlayPackage.statusText, "warning_code");
+            if (!mpWarningCode.empty()) {
+                std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(mpWarningCode) << "\n";
+            }
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
             std::cout << "snc_gameplay_acceptance_path=" << sanitizeCliValue(stdoutPath(snapshot.gameplayAcceptance.path)) << "\n";
