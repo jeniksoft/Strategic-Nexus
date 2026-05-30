@@ -1933,6 +1933,19 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     if ([string]$evidenceJson.run_id -ne $runIdValue) {
         throw "real session loop mismatch forwarding run_id mismatch. CLI='$runIdValue' evidence='$($evidenceJson.run_id)'."
     }
+    if ($null -eq $evidenceJson.evidence_schema_version) {
+        throw "real session loop mismatch forwarding evidence json missing evidence_schema_version."
+    }
+    if ([int]$evidenceJson.evidence_schema_version -ne 1) {
+        throw "real session loop mismatch forwarding evidence schema version mismatch. Expected 1 but got '$($evidenceJson.evidence_schema_version)'."
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$evidenceJson.generated_at_utc)) {
+        throw "real session loop mismatch forwarding evidence json missing generated_at_utc value."
+    }
+    $generatedAtUtc = [datetimeoffset]::MinValue
+    if (-not [datetimeoffset]::TryParse([string]$evidenceJson.generated_at_utc, [ref]$generatedAtUtc)) {
+        throw "real session loop mismatch forwarding evidence json generated_at_utc is not a valid timestamp: '$($evidenceJson.generated_at_utc)'."
+    }
 
     Write-Host "[PASS] real_session_loop_mismatch_forwarding"
 }
