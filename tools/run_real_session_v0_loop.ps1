@@ -285,6 +285,10 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpClientReadinessGateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_readiness_gate_current"
     $compareMpHostNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_next_step_current"
     $compareMpClientNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_next_step_current"
+    $compareMpVerifyCommandCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_verify_command_current"
+    $compareMpImportCommandCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_import_command_current"
+    $compareMpStrictVerifyCommandCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_strict_verify_command_current"
+    $compareMpStrictImportCommandCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_strict_import_command_current"
     $compareMpManifestHashCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_current"
     $compareMpManifestHashPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_previous"
     $compareMpManifestHashChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_changed"
@@ -331,6 +335,18 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpClientNextStepCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_client_next_step_current=" + $compareMpClientNextStepCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpVerifyCommandCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_verify_command_current=" + $compareMpVerifyCommandCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpImportCommandCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_import_command_current=" + $compareMpImportCommandCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpStrictVerifyCommandCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_strict_verify_command_current=" + $compareMpStrictVerifyCommandCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpStrictImportCommandCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_strict_import_command_current=" + $compareMpStrictImportCommandCurrent)
     }
     Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_previous=" + $compareMpManifestHashPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_current=" + $compareMpManifestHashCurrent)
@@ -401,6 +417,10 @@ if ($EmitTrendSummary) {
     $trendMpClientReadinessGateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_readiness_gate_current"
     $trendMpHostNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_next_step_current"
     $trendMpClientNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_next_step_current"
+    $trendMpVerifyCommandCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_verify_command_current"
+    $trendMpImportCommandCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_import_command_current"
+    $trendMpStrictVerifyCommandCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_strict_verify_command_current"
+    $trendMpStrictImportCommandCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_strict_import_command_current"
     $trendLatestCompareCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_latest_compare_command_hint"
     $trendNextSessionCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_session_command_hint"
     $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
@@ -450,6 +470,18 @@ if ($EmitTrendSummary) {
     }
     if (-not [string]::IsNullOrWhiteSpace($trendMpClientNextStepCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_client_next_step_current=" + $trendMpClientNextStepCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpVerifyCommandCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_verify_command_current=" + $trendMpVerifyCommandCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpImportCommandCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_import_command_current=" + $trendMpImportCommandCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpStrictVerifyCommandCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_strict_verify_command_current=" + $trendMpStrictVerifyCommandCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpStrictImportCommandCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_strict_import_command_current=" + $trendMpStrictImportCommandCurrent)
     }
     if (-not [string]::IsNullOrWhiteSpace($trendLatestCompareCommandHint)) {
         Write-Host ("real_session_v0_loop_trend_auto_latest_compare_command_hint=" + $trendLatestCompareCommandHint)

@@ -123,6 +123,14 @@ $previousMpHostNextStep = ""
 $currentMpHostNextStep = ""
 $previousMpClientNextStep = ""
 $currentMpClientNextStep = ""
+$previousMpVerifyCommand = ""
+$currentMpVerifyCommand = ""
+$previousMpImportCommand = ""
+$currentMpImportCommand = ""
+$previousMpStrictVerifyCommand = ""
+$currentMpStrictVerifyCommand = ""
+$previousMpStrictImportCommand = ""
+$currentMpStrictImportCommand = ""
 $previousMpIdentityMismatchWarning = ""
 $currentMpIdentityMismatchWarning = ""
 $previousMpWarningCodes = @()
@@ -139,6 +147,10 @@ if (Test-Path -LiteralPath $previousStatusWithMpPath) {
         $previousMpClientReadinessGate = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "client_readiness_gate"
         $previousMpHostNextStep = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "host_next_step"
         $previousMpClientNextStep = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "client_next_step"
+        $previousMpVerifyCommand = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "verify_command"
+        $previousMpImportCommand = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "import_command"
+        $previousMpStrictVerifyCommand = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "strict_verify_command"
+        $previousMpStrictImportCommand = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "strict_import_command"
         $previousMpWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "warning_codes"
         $previousMpIdentityMismatchWarning = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
         $previousMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
@@ -154,6 +166,10 @@ if (Test-Path -LiteralPath $currentStatusWithMpPath) {
         $currentMpClientReadinessGate = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "client_readiness_gate"
         $currentMpHostNextStep = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "host_next_step"
         $currentMpClientNextStep = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "client_next_step"
+        $currentMpVerifyCommand = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "verify_command"
+        $currentMpImportCommand = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "import_command"
+        $currentMpStrictVerifyCommand = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "strict_verify_command"
+        $currentMpStrictImportCommand = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "strict_import_command"
         $currentMpWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "warning_codes"
         $currentMpIdentityMismatchWarning = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
         $currentMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
@@ -273,6 +289,26 @@ $result = [ordered]@{
         current = $currentMpClientNextStep
         changed = ($previousMpClientNextStep -ne $currentMpClientNextStep)
     }
+    mp_verify_command = [ordered]@{
+        previous = $previousMpVerifyCommand
+        current = $currentMpVerifyCommand
+        changed = ($previousMpVerifyCommand -ne $currentMpVerifyCommand)
+    }
+    mp_import_command = [ordered]@{
+        previous = $previousMpImportCommand
+        current = $currentMpImportCommand
+        changed = ($previousMpImportCommand -ne $currentMpImportCommand)
+    }
+    mp_strict_verify_command = [ordered]@{
+        previous = $previousMpStrictVerifyCommand
+        current = $currentMpStrictVerifyCommand
+        changed = ($previousMpStrictVerifyCommand -ne $currentMpStrictVerifyCommand)
+    }
+    mp_strict_import_command = [ordered]@{
+        previous = $previousMpStrictImportCommand
+        current = $currentMpStrictImportCommand
+        changed = ($previousMpStrictImportCommand -ne $currentMpStrictImportCommand)
+    }
     mp_identity_mismatch_warning = [ordered]@{
         previous = $previousMpIdentityMismatchWarning
         current = $currentMpIdentityMismatchWarning
@@ -319,6 +355,10 @@ Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHos
 Write-Host ("real_session_v0_compare_mp_client_readiness_gate_current=" + $currentMpClientReadinessGate)
 Write-Host ("real_session_v0_compare_mp_host_next_step_current=" + $currentMpHostNextStep)
 Write-Host ("real_session_v0_compare_mp_client_next_step_current=" + $currentMpClientNextStep)
+Write-Host ("real_session_v0_compare_mp_verify_command_current=" + $currentMpVerifyCommand)
+Write-Host ("real_session_v0_compare_mp_import_command_current=" + $currentMpImportCommand)
+Write-Host ("real_session_v0_compare_mp_strict_verify_command_current=" + $currentMpStrictVerifyCommand)
+Write-Host ("real_session_v0_compare_mp_strict_import_command_current=" + $currentMpStrictImportCommand)
 Write-Host ("real_session_v0_compare_mp_manifest_hash_current=" + $currentMpManifestHash)
 Write-Host ("real_session_v0_compare_mp_manifest_hash_previous=" + $previousMpManifestHash)
 Write-Host ("real_session_v0_compare_mp_manifest_hash_changed=" + ((($previousMpManifestHash -ne $currentMpManifestHash).ToString().ToLowerInvariant())))
