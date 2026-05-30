@@ -705,6 +705,26 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_ok=true"
     Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_reason=accepted"
     Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_readiness=ready_for_mp"
+    Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_campaign_id=campaign_cli"
+    Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_overlay_version=overlay_cli_v1"
+    Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_warning_count=0"
+
+    $mpImportMismatchOutput = & $exePath `
+        --import-mp-overlay-package `
+        $mpPackagePath `
+        $mpImportedOverlayPath `
+        "campaign_cli" `
+        "overlay_cli_v1" `
+        "stellaris_4.x" `
+        "strategic_nexus_v0" `
+        "wrong_manifest_hash"
+    $mpImportMismatchExitCode = $LASTEXITCODE
+    $mpImportMismatchText = $mpImportMismatchOutput -join "`n"
+    if ($mpImportMismatchExitCode -ne 0) {
+        throw "mp_overlay_package_import mismatch app failed. Actual output:`n$mpImportMismatchText"
+    }
+    Assert-Contains -Name "mp_overlay_package_import mismatch app" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_ok=true"
+    Assert-Contains -Name "mp_overlay_package_import mismatch app" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_warning=package_manifest_hash_mismatch"
 
     $mpImportedVerifyOutput = & $exePath `
         --verify-generated-overlay `

@@ -164,6 +164,14 @@ int main()
             std::cerr << "import did not preserve package identity/readiness metadata\n";
             return 1;
         }
+        if (importResult.campaignId != verifyResult.campaignId ||
+            importResult.overlayVersion != verifyResult.overlayVersion ||
+            importResult.gameVersion != verifyResult.gameVersion ||
+            importResult.strategicNexusModVersion != verifyResult.strategicNexusModVersion ||
+            importResult.handoffStatus != verifyResult.handoffStatus) {
+            std::cerr << "import did not preserve package metadata fields\n";
+            return 1;
+        }
 
         const strategic_nexus::generated_overlay::ManifestVerifier importedOverlayVerifier;
         const auto importedOverlayVerification = importedOverlayVerifier.verify(importedOverlayRoot);

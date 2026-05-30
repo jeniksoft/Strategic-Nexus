@@ -45,6 +45,11 @@ struct MpOverlayPackageExportResult {
 struct MpOverlayPackageImportResult {
     bool ok = false;
     std::string reason;
+    std::string campaignId;
+    std::string overlayVersion;
+    std::string gameVersion;
+    std::string strategicNexusModVersion;
+    std::string handoffStatus;
     std::string packageManifestHash;
     std::string readiness;
     std::string statusText;

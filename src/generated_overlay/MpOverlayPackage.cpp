@@ -516,6 +516,11 @@ MpOverlayPackageImportResult MpOverlayPackageImporter::importPackage(
 
     const MpOverlayPackageVerifier packageVerifier;
     const auto packageVerification = packageVerifier.verify(packageDirectory);
+    result.campaignId = packageVerification.campaignId;
+    result.overlayVersion = packageVerification.overlayVersion;
+    result.gameVersion = packageVerification.gameVersion;
+    result.strategicNexusModVersion = packageVerification.strategicNexusModVersion;
+    result.handoffStatus = packageVerification.handoffStatus;
     result.packageManifestHash = packageVerification.packageManifestHash;
     result.readiness = packageVerification.readiness;
     result.statusText = packageVerification.statusText;

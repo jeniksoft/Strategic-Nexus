@@ -244,6 +244,21 @@ RunConfig parseRunConfig(int argc, char* argv[])
         if (argc > 3) {
             config.mpOverlayImportTargetDirectory = argv[3];
         }
+        if (argc > 4) {
+            config.mpOverlayExpectedCampaignId = argv[4];
+        }
+        if (argc > 5) {
+            config.mpOverlayExpectedOverlayVersion = argv[5];
+        }
+        if (argc > 6) {
+            config.mpOverlayExpectedGameVersion = argv[6];
+        }
+        if (argc > 7) {
+            config.mpOverlayExpectedStrategicNexusModVersion = argv[7];
+        }
+        if (argc > 8) {
+            config.mpOverlayExpectedManifestHash = argv[8];
+        }
         return config;
     }
 
@@ -994,9 +1009,58 @@ int Application::run(const RunConfig& config) const
             const auto result = importer.importPackage(
                 config.mpOverlayPackageDirectory,
                 config.mpOverlayImportTargetDirectory);
+            std::vector<std::string> warnings;
+            const auto addMismatchWarning = [&warnings](
+                                                const std::string& expected,
+                                                const std::string& actual,
+                                                const char* warning) {
+                if (!expected.empty() && expected != actual) {
+                    warnings.push_back(warning);
+                }
+            };
+            addMismatchWarning(
+                config.mpOverlayExpectedCampaignId,
+                result.campaignId,
+                "package_campaign_id_mismatch");
+            addMismatchWarning(
+                config.mpOverlayExpectedOverlayVersion,
+                result.overlayVersion,
+                "package_overlay_version_mismatch");
+            addMismatchWarning(
+                config.mpOverlayExpectedGameVersion,
+                result.gameVersion,
+                "package_game_version_mismatch");
+            addMismatchWarning(
+                config.mpOverlayExpectedStrategicNexusModVersion,
+                result.strategicNexusModVersion,
+                "package_mod_version_mismatch");
+            addMismatchWarning(
+                config.mpOverlayExpectedManifestHash,
+                result.packageManifestHash,
+                "package_manifest_hash_mismatch");
 
             std::cout << "mp_overlay_package_import_ok=" << (result.ok ? "true" : "false") << "\n";
             std::cout << "mp_overlay_package_import_reason=" << sanitizeCliValue(result.reason) << "\n";
+            if (!result.campaignId.empty()) {
+                std::cout << "mp_overlay_package_import_campaign_id="
+                          << sanitizeCliValue(result.campaignId) << "\n";
+            }
+            if (!result.overlayVersion.empty()) {
+                std::cout << "mp_overlay_package_import_overlay_version="
+                          << sanitizeCliValue(result.overlayVersion) << "\n";
+            }
+            if (!result.gameVersion.empty()) {
+                std::cout << "mp_overlay_package_import_game_version="
+                          << sanitizeCliValue(result.gameVersion) << "\n";
+            }
+            if (!result.strategicNexusModVersion.empty()) {
+                std::cout << "mp_overlay_package_import_strategic_nexus_mod_version="
+                          << sanitizeCliValue(result.strategicNexusModVersion) << "\n";
+            }
+            if (!result.handoffStatus.empty()) {
+                std::cout << "mp_overlay_package_import_handoff_status="
+                          << sanitizeCliValue(result.handoffStatus) << "\n";
+            }
             if (!result.packageManifestHash.empty()) {
                 std::cout << "mp_overlay_package_import_manifest_hash="
                           << sanitizeCliValue(result.packageManifestHash) << "\n";
@@ -1012,6 +1076,10 @@ int Application::run(const RunConfig& config) const
             std::cout << "mp_overlay_package_imported_file_count=" << result.importedFiles.size() << "\n";
             for (const auto& file : result.importedFiles) {
                 std::cout << "mp_overlay_package_imported_file=" << sanitizeCliValue(file.path) << "\n";
+            }
+            std::cout << "mp_overlay_package_import_warning_count=" << warnings.size() << "\n";
+            for (const auto& warning : warnings) {
+                std::cout << "mp_overlay_package_import_warning=" << sanitizeCliValue(warning) << "\n";
             }
             return result.ok ? 0 : 1;
         }
