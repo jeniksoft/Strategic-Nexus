@@ -629,6 +629,64 @@ function Invoke-GeneratedOverlayCompileCase {
         throw "generated_overlay_publish should replace stale active overlay files."
     }
 
+    $mpPackagePath = Join-Path $repoRoot "dist/generated_overlay_mp_package_cli"
+    $mpImportedOverlayPath = Join-Path $repoRoot "dist/generated_overlay_mp_package_imported"
+    Remove-Item -LiteralPath $mpPackagePath -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $mpImportedOverlayPath -Recurse -Force -ErrorAction SilentlyContinue
+
+    $mpExportOutput = & $exePath `
+        --export-mp-overlay-package `
+        $overlayOutputPath `
+        "campaign_cli" `
+        "overlay_cli_v1" `
+        "stellaris_4.x" `
+        "strategic_nexus_v0" `
+        $mpPackagePath `
+        false
+    $mpExportExitCode = $LASTEXITCODE
+    $mpExportText = $mpExportOutput -join "`n"
+    if ($mpExportExitCode -ne 0) {
+        throw "mp_overlay_package_export app failed. Actual output:`n$mpExportText"
+    }
+    Assert-Contains -Name "mp_overlay_package_export app" -Text $mpExportText -Expected "mp_overlay_package_export_ok=true"
+    Assert-Contains -Name "mp_overlay_package_export app" -Text $mpExportText -Expected "mp_overlay_package_export_reason=accepted_degraded_previous_host_unavailable"
+
+    $mpVerifyOutput = & $exePath `
+        --verify-mp-overlay-package `
+        $mpPackagePath
+    $mpVerifyExitCode = $LASTEXITCODE
+    $mpVerifyText = $mpVerifyOutput -join "`n"
+    if ($mpVerifyExitCode -ne 0) {
+        throw "mp_overlay_package_verify app failed. Actual output:`n$mpVerifyText"
+    }
+    Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_ok=true"
+    Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_readiness=ready_for_mp"
+    Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_manifest_hash="
+
+    $mpImportOutput = & $exePath `
+        --import-mp-overlay-package `
+        $mpPackagePath `
+        $mpImportedOverlayPath
+    $mpImportExitCode = $LASTEXITCODE
+    $mpImportText = $mpImportOutput -join "`n"
+    if ($mpImportExitCode -ne 0) {
+        throw "mp_overlay_package_import app failed. Actual output:`n$mpImportText"
+    }
+    Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_ok=true"
+    Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_reason=accepted"
+    Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_readiness=ready_for_mp"
+
+    $mpImportedVerifyOutput = & $exePath `
+        --verify-generated-overlay `
+        $mpImportedOverlayPath
+    $mpImportedVerifyExitCode = $LASTEXITCODE
+    $mpImportedVerifyText = $mpImportedVerifyOutput -join "`n"
+    if ($mpImportedVerifyExitCode -ne 0) {
+        throw "mp imported generated_overlay_verify app failed. Actual output:`n$mpImportedVerifyText"
+    }
+    Assert-Contains -Name "mp imported generated_overlay_verify app" -Text $mpImportedVerifyText -Expected "generated_overlay_manifest_ok=true"
+    Assert-Contains -Name "mp imported generated_overlay_verify app" -Text $mpImportedVerifyText -Expected "generated_overlay_manifest_reason=accepted"
+
     Write-Host "[PASS] generated_overlay_compile"
 }
 
@@ -977,7 +1035,60 @@ function Invoke-AutosaveArchiveCase {
     Remove-Item -LiteralPath $archiveRoot -Recurse -Force -ErrorAction SilentlyContinue
 
     New-Item -ItemType Directory -Force -Path $sourceRoot | Out-Null
-    Set-Content -LiteralPath (Join-Path $sourceRoot "autosave_2230.sav") -Value "fixture" -Encoding UTF8
+
+    $saveFixtureDir = Join-Path $sourceRoot "_save_fixture"
+    $saveFixtureZip = Join-Path $sourceRoot "_save_fixture.zip"
+    $saveFixtureSav = Join-Path $sourceRoot "autosave_2230.sav"
+    New-Item -ItemType Directory -Force -Path $saveFixtureDir | Out-Null
+
+    @'
+version="v4.0.22"
+revision="abc"
+name="Synthetic Save"
+'@ | Set-Content -LiteralPath (Join-Path $saveFixtureDir "meta") -Encoding ascii
+
+    @'
+date="2230.07.01"
+player={
+    {
+        name="Tester"
+        country=0
+    }
+}
+country={
+    0={
+        name="Aeel Corp"
+        founder_species=7
+        capital=42
+        starting_system=9
+    }
+}
+species={
+    7={
+        name="Aeel"
+    }
+}
+planet={
+    42={
+        name="Aeel Prime"
+    }
+}
+galactic_object={
+    9={
+        name="Aeel System"
+    }
+}
+war={
+    3={
+        name="Synthetic War"
+    }
+}
+'@ | Set-Content -LiteralPath (Join-Path $saveFixtureDir "gamestate") -Encoding ascii
+
+    Compress-Archive -Path (Join-Path $saveFixtureDir "*") -DestinationPath $saveFixtureZip -Force
+    Move-Item -LiteralPath $saveFixtureZip -Destination $saveFixtureSav -Force
+    Remove-Item -LiteralPath $saveFixtureDir -Recurse -Force
+
     Set-Content -LiteralPath (Join-Path $sourceRoot "ignored.txt") -Value "ignored" -Encoding UTF8
 
     $archiveOutput = & $exePath `
@@ -1056,7 +1167,11 @@ function Invoke-AutosaveArchiveCase {
     $inputJson = Get-Content -Raw -LiteralPath $ministryInputPath
     $null = $inputJson | ConvertFrom-Json
     Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"campaign_id": "campaign_cli"'
-    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"save_content_not_parsed_yet"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"year": 2230'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"is_at_war": true'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"strategic_pressure": 0.6'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_pressure_year_hint_source:save_date"'
+    Assert-Contains -Name "archive ministry input json" -Text $inputJson -Expected '"turn_context_pressure_war_hint_source:headline_active_war_count"'
 
     $invalidInputOutput = & $exePath `
         --build-ministry-input-from-archive `
@@ -1128,7 +1243,8 @@ function Invoke-AutosaveArchiveCase {
     $archivePipelineAuditJson = Get-Content -Raw -LiteralPath $archivePipelineAuditPath
     $null = $archivePipelineAuditJson | ConvertFrom-Json
     Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"archive_session_summary_v0"'
-    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"save_content_not_parsed_yet"'
+    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"strategic_pressure": 0.6'
+    Assert-Contains -Name "archive v0 pipeline audit json" -Text $archivePipelineAuditJson -Expected '"turn_context_year_hint_source:save_date"'
 
     $ledgerPath = Join-Path $archiveRoot "session_cli_delta_ledger.json"
     $ledgerOutput = & $exePath `
@@ -1162,7 +1278,7 @@ function Invoke-AutosaveArchiveCase {
     $ledgerJson = Get-Content -Raw -LiteralPath $ledgerPath
     $null = $ledgerJson | ConvertFrom-Json
     Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"campaign_id": "campaign_cli"'
-    Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"delta_quality": "metadata_only"'
+    Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"delta_quality": "metadata_plus_save_headline"'
     Assert-Contains -Name "season delta ledger json" -Text $ledgerJson -Expected '"archive_verified:true"'
 
     $badArchiveDir = Join-Path $archiveRoot "session_cli_bad_archive"
@@ -1224,7 +1340,7 @@ function Invoke-AutosaveArchiveCase {
     $briefJson = Get-Content -Raw -LiteralPath $briefPath
     $null = $briefJson | ConvertFrom-Json
     Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"empire_id": "empire_cli"'
-    Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"source_ledger_quality": "metadata_only"'
+    Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"source_ledger_quality": "metadata_plus_save_headline"'
     Assert-Contains -Name "archive empire brief json" -Text $briefJson -Expected '"empire_identity_resolver_not_implemented_yet"'
 
     $badBriefPath = Join-Path $archiveRoot "session_cli_bad_empire_brief.json"
@@ -1296,7 +1412,7 @@ function Invoke-AutosaveArchiveCase {
     $offlineBriefJson = Get-Content -Raw -LiteralPath (Join-Path $offlineSpineWorkDir "empire_brief.json")
     $null = $offlineBriefJson | ConvertFrom-Json
     Assert-Contains -Name "offline spine brief json" -Text $offlineBriefJson -Expected '"empire_id": "empire_cli"'
-    Assert-Contains -Name "offline spine brief json" -Text $offlineBriefJson -Expected '"source_ledger_quality": "metadata_only"'
+    Assert-Contains -Name "offline spine brief json" -Text $offlineBriefJson -Expected '"source_ledger_quality": "metadata_plus_save_headline"'
 
     $offlineManifestJson = Get-Content -Raw -LiteralPath (Join-Path $offlineSpineOverlayDir "strategic_nexus_generated_manifest.json")
     $null = $offlineManifestJson | ConvertFrom-Json

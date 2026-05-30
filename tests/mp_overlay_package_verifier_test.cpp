@@ -4,6 +4,7 @@
 #include "common/FileUtil.h"
 #include "generated_overlay/DslParser.h"
 #include "generated_overlay/DslValidator.h"
+#include "generated_overlay/ManifestVerifier.h"
 #include "generated_overlay/MpOverlayPackage.h"
 #include "generated_overlay/OverlayCompiler.h"
 
@@ -142,6 +143,34 @@ int main()
             std::string::npos) {
         std::cerr << "verify did not expose MP readiness in copyable status text\n";
         return 1;
+    }
+
+    {
+        const auto importedOverlayRoot = std::filesystem::path("dist/mp_overlay_package_imported_overlay");
+        std::filesystem::remove_all(importedOverlayRoot);
+        const strategic_nexus::generated_overlay::MpOverlayPackageImporter importer;
+        const auto importResult = importer.importPackage(packageRoot, importedOverlayRoot);
+        if (!importResult.ok || importResult.reason != "accepted") {
+            std::cerr << "import failed: " << importResult.reason << "\n";
+            return 1;
+        }
+        if (importResult.importedFiles.size() != verifyResult.files.size()) {
+            std::cerr << "imported file count mismatch\n";
+            return 1;
+        }
+        if (importResult.packageManifestHash != verifyResult.packageManifestHash ||
+            importResult.readiness != "ready_for_mp" ||
+            importResult.statusText.find("package_manifest_hash: " + importResult.packageManifestHash) == std::string::npos) {
+            std::cerr << "import did not preserve package identity/readiness metadata\n";
+            return 1;
+        }
+
+        const strategic_nexus::generated_overlay::ManifestVerifier importedOverlayVerifier;
+        const auto importedOverlayVerification = importedOverlayVerifier.verify(importedOverlayRoot);
+        if (!importedOverlayVerification.ok || importedOverlayVerification.reason != "accepted") {
+            std::cerr << "imported overlay did not verify: " << importedOverlayVerification.reason << "\n";
+            return 1;
+        }
     }
 
     {

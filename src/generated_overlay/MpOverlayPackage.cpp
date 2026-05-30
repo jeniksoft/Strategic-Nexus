@@ -504,4 +504,60 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     return result;
 }
 
+MpOverlayPackageImportResult MpOverlayPackageImporter::importPackage(
+    const std::filesystem::path& packageDirectory,
+    const std::filesystem::path& targetOverlayDirectory) const
+{
+    MpOverlayPackageImportResult result;
+    if (packageDirectory.empty() || targetOverlayDirectory.empty()) {
+        result.reason = "missing package import input";
+        return result;
+    }
+
+    const MpOverlayPackageVerifier packageVerifier;
+    const auto packageVerification = packageVerifier.verify(packageDirectory);
+    result.packageManifestHash = packageVerification.packageManifestHash;
+    result.readiness = packageVerification.readiness;
+    result.statusText = packageVerification.statusText;
+    if (!packageVerification.ok) {
+        result.reason = "package verification failed: " + packageVerification.reason;
+        return result;
+    }
+
+    if (!removeDirectoryIfExists(targetOverlayDirectory)) {
+        result.reason = "failed to clean target overlay directory";
+        return result;
+    }
+
+    for (const auto& file : packageVerification.files) {
+        const auto sourcePath = packageDirectory / std::filesystem::path(file.path);
+        const auto destinationPath = targetOverlayDirectory / std::filesystem::path(file.path);
+        std::string text;
+        if (!common::tryReadTextFile(sourcePath, text)) {
+            removeDirectoryIfExists(targetOverlayDirectory);
+            result.reason = "failed to read package source file";
+            return result;
+        }
+        if (!common::writeTextFileAtomically(destinationPath, text)) {
+            removeDirectoryIfExists(targetOverlayDirectory);
+            result.reason = "failed to write imported overlay file";
+            return result;
+        }
+        result.importedFiles.push_back(file);
+    }
+
+    const ManifestVerifier importedOverlayVerifier;
+    const auto importedOverlayVerification = importedOverlayVerifier.verify(targetOverlayDirectory);
+    if (!importedOverlayVerification.ok) {
+        removeDirectoryIfExists(targetOverlayDirectory);
+        result.reason = "imported overlay verification failed: " + importedOverlayVerification.reason;
+        result.importedFiles.clear();
+        return result;
+    }
+
+    result.ok = true;
+    result.reason = "accepted";
+    return result;
+}
+
 } // namespace strategic_nexus::generated_overlay

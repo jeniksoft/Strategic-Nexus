@@ -3,6 +3,7 @@
 
 #include "ArchiveMinistryInputBuilder.h"
 
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -20,6 +21,11 @@ void requireCondition(const bool condition, const std::string& message)
 bool containsValue(const std::vector<std::string>& values, const std::string& target)
 {
     return std::find(values.begin(), values.end(), target) != values.end();
+}
+
+bool approximatelyEqual(const double left, const double right, const double epsilon = 1e-9)
+{
+    return std::fabs(left - right) <= epsilon;
 }
 
 } // namespace
@@ -59,7 +65,7 @@ int main()
     requireCondition(ledgerInput.campaignId == "campaign_ledger", "ledger build should preserve campaign id");
     requireCondition(ledgerInput.empireId == "empire_ledger", "ledger build should preserve empire id");
     requireCondition(ledgerInput.ministry == "research", "ledger build should preserve ministry");
-    requireCondition(ledgerInput.knownFacts.size() == 14, "ledger build should forward parsed facts and add turn-context hints");
+    requireCondition(ledgerInput.knownFacts.size() == 18, "ledger build should forward parsed facts and add turn-context hints");
     requireCondition(
         ledgerInput.knownFacts[1] == "save_headline_parsed:true",
         "ledger build should forward parsed-headline marker");
@@ -69,6 +75,9 @@ int main()
     requireCondition(
         ledgerInput.turnContext.year == 2230,
         "headline-backed ledger should set turn-context year from save date");
+    requireCondition(
+        approximatelyEqual(ledgerInput.turnContext.strategicPressure, 0.60),
+        "headline-backed ledger should set conservative strategic pressure from war/date hints");
     requireCondition(
         ledgerInput.knownFacts[4] == "turn_context_war_hint_source:headline_active_war_count",
         "headline-backed ledger should mark war hint source");
@@ -100,6 +109,18 @@ int main()
         ledgerInput.knownFacts[13] == "turn_context_day_hint_confidence_percent:80",
         "headline-backed ledger should include explicit day hint confidence");
     requireCondition(
+        ledgerInput.knownFacts[14] == "turn_context_pressure_year_hint_source:save_date",
+        "headline-backed ledger should mark pressure year hint source");
+    requireCondition(
+        ledgerInput.knownFacts[15] == "turn_context_pressure_year_hint_confidence_percent:60",
+        "headline-backed ledger should include pressure year hint confidence");
+    requireCondition(
+        ledgerInput.knownFacts[16] == "turn_context_pressure_war_hint_source:headline_active_war_count",
+        "headline-backed ledger should mark pressure war hint source");
+    requireCondition(
+        ledgerInput.knownFacts[17] == "turn_context_pressure_war_hint_confidence_percent:70",
+        "headline-backed ledger should include pressure war hint confidence");
+    requireCondition(
         ledgerInput.uncertainties.size() == 1,
         "headline-backed ledger should not force metadata-only uncertainty");
 
@@ -107,6 +128,9 @@ int main()
     badWarLedger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:abc"};
     const auto badWarInput = builder.build(badWarLedger, "empire_ledger", "research");
     requireCondition(!badWarInput.turnContext.isAtWar, "invalid war count should fail closed to not-at-war");
+    requireCondition(
+        approximatelyEqual(badWarInput.turnContext.strategicPressure, 0.25),
+        "invalid war count should keep default pressure");
     requireCondition(
         containsValue(badWarInput.uncertainties, "headline_war_count_invalid"),
         "invalid war count should be surfaced as explicit uncertainty");
@@ -116,6 +140,9 @@ int main()
     const auto overflowWarInput = builder.build(overflowWarLedger, "empire_ledger", "research");
     requireCondition(!overflowWarInput.turnContext.isAtWar, "overflow war count should fail closed to not-at-war");
     requireCondition(
+        approximatelyEqual(overflowWarInput.turnContext.strategicPressure, 0.25),
+        "overflow war count should keep default pressure");
+    requireCondition(
         containsValue(overflowWarInput.uncertainties, "headline_war_count_invalid"),
         "overflow war count should be surfaced as explicit uncertainty");
 
@@ -123,6 +150,9 @@ int main()
     badDateLedger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:0", "save_date:22ab.07.01"};
     const auto badDateInput = builder.build(badDateLedger, "empire_ledger", "research");
     requireCondition(badDateInput.turnContext.year == 0, "invalid save date should fail closed to default year");
+    requireCondition(
+        approximatelyEqual(badDateInput.turnContext.strategicPressure, 0.25),
+        "invalid save date should keep default pressure");
     requireCondition(
         containsValue(badDateInput.uncertainties, "headline_save_date_invalid"),
         "invalid save date should be surfaced as explicit uncertainty");
@@ -161,6 +191,9 @@ int main()
     metadataOnlyLedger.facts = {"archive_verified:true"};
     metadataOnlyLedger.uncertainties = {"save_content_not_parsed_yet"};
     const auto dedupInput = builder.build(metadataOnlyLedger, "empire_ledger", "research");
+    requireCondition(
+        approximatelyEqual(dedupInput.turnContext.strategicPressure, 0.25),
+        "metadata-only ledger should keep default pressure");
     requireCondition(
         std::count(
             dedupInput.uncertainties.begin(),

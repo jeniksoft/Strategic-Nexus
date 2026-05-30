@@ -220,6 +220,18 @@ RunConfig parseRunConfig(int argc, char* argv[])
         return config;
     }
 
+    if (argc > 1 && std::string(argv[1]) == "--import-mp-overlay-package") {
+        config.importMpOverlayPackageMode = true;
+
+        if (argc > 2) {
+            config.mpOverlayPackageDirectory = argv[2];
+        }
+        if (argc > 3) {
+            config.mpOverlayImportTargetDirectory = argv[3];
+        }
+        return config;
+    }
+
     if (argc > 1 && std::string(argv[1]) == "--snc-status-snapshot") {
         config.sncStatusSnapshotMode = true;
 
@@ -930,6 +942,33 @@ int Application::run(const RunConfig& config) const
             std::cout << "mp_overlay_package_warning_count=" << warnings.size() << "\n";
             for (const auto& warning : warnings) {
                 std::cout << "mp_overlay_package_warning=" << sanitizeCliValue(warning) << "\n";
+            }
+            return result.ok ? 0 : 1;
+        }
+
+        if (config.importMpOverlayPackageMode) {
+            generated_overlay::MpOverlayPackageImporter importer;
+            const auto result = importer.importPackage(
+                config.mpOverlayPackageDirectory,
+                config.mpOverlayImportTargetDirectory);
+
+            std::cout << "mp_overlay_package_import_ok=" << (result.ok ? "true" : "false") << "\n";
+            std::cout << "mp_overlay_package_import_reason=" << sanitizeCliValue(result.reason) << "\n";
+            if (!result.packageManifestHash.empty()) {
+                std::cout << "mp_overlay_package_import_manifest_hash="
+                          << sanitizeCliValue(result.packageManifestHash) << "\n";
+            }
+            if (!result.readiness.empty()) {
+                std::cout << "mp_overlay_package_import_readiness="
+                          << sanitizeCliValue(result.readiness) << "\n";
+            }
+            if (!result.statusText.empty()) {
+                std::cout << "mp_overlay_package_import_status_text="
+                          << sanitizeCliValue(result.statusText) << "\n";
+            }
+            std::cout << "mp_overlay_package_imported_file_count=" << result.importedFiles.size() << "\n";
+            for (const auto& file : result.importedFiles) {
+                std::cout << "mp_overlay_package_imported_file=" << sanitizeCliValue(file.path) << "\n";
             }
             return result.ok ? 0 : 1;
         }

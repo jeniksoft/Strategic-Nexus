@@ -42,6 +42,15 @@ struct MpOverlayPackageExportResult {
     std::vector<MpOverlayPackageFileVerification> files;
 };
 
+struct MpOverlayPackageImportResult {
+    bool ok = false;
+    std::string reason;
+    std::string packageManifestHash;
+    std::string readiness;
+    std::string statusText;
+    std::vector<MpOverlayPackageFileVerification> importedFiles;
+};
+
 class MpOverlayPackageExporter {
 public:
     MpOverlayPackageExportResult exportPackage(
@@ -57,6 +66,13 @@ public:
 class MpOverlayPackageVerifier {
 public:
     MpOverlayPackageVerificationResult verify(const std::filesystem::path& packageDirectory) const;
+};
+
+class MpOverlayPackageImporter {
+public:
+    MpOverlayPackageImportResult importPackage(
+        const std::filesystem::path& packageDirectory,
+        const std::filesystem::path& targetOverlayDirectory) const;
 };
 
 } // namespace strategic_nexus::generated_overlay

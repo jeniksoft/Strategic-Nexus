@@ -213,6 +213,67 @@ void applyParsedHeadlineDayHint(const SeasonDeltaLedger& ledger, strategic_pipel
     input.knownFacts.push_back(countFact("turn_context_day_hint_confidence_percent", 80));
 }
 
+void applyParsedHeadlinePressureHints(const SeasonDeltaLedger& ledger, strategic_pipeline::MinistryInputContext& input)
+{
+    if (ledger.deltaQuality != "metadata_plus_save_headline") {
+        return;
+    }
+
+    double hintedPressure = input.turnContext.strategicPressure;
+
+    std::string rawSaveDate;
+    for (const auto& fact : ledger.facts) {
+        if (parseFactValue(fact, "save_date", rawSaveDate)) {
+            break;
+        }
+    }
+
+    if (rawSaveDate.empty()) {
+        appendUncertaintyIfMissing(input, "headline_save_date_missing");
+    } else {
+        std::size_t year = 0;
+        std::size_t month = 0;
+        std::size_t day = 0;
+        if (!parseSaveDate(rawSaveDate, year, month, day)) {
+            appendUncertaintyIfMissing(input, "headline_save_date_invalid");
+        } else {
+            if (year >= 2300 && hintedPressure < 0.45) {
+                hintedPressure = 0.45;
+            } else if (year >= 2250 && hintedPressure < 0.35) {
+                hintedPressure = 0.35;
+            } else if (hintedPressure < 0.30) {
+                hintedPressure = 0.30;
+            }
+            input.knownFacts.push_back("turn_context_pressure_year_hint_source:save_date");
+            input.knownFacts.push_back(countFact("turn_context_pressure_year_hint_confidence_percent", 60));
+        }
+    }
+
+    std::string rawWarCount;
+    for (const auto& fact : ledger.facts) {
+        if (parseFactValue(fact, "headline_active_war_count", rawWarCount)) {
+            break;
+        }
+    }
+
+    if (rawWarCount.empty()) {
+        appendUncertaintyIfMissing(input, "headline_war_count_missing");
+    } else {
+        std::size_t warCount = 0;
+        if (!parseNonNegativeInteger(rawWarCount, warCount)) {
+            appendUncertaintyIfMissing(input, "headline_war_count_invalid");
+        } else {
+            if (warCount > 0 && hintedPressure < 0.60) {
+                hintedPressure = 0.60;
+            }
+            input.knownFacts.push_back("turn_context_pressure_war_hint_source:headline_active_war_count");
+            input.knownFacts.push_back(countFact("turn_context_pressure_war_hint_confidence_percent", 70));
+        }
+    }
+
+    input.turnContext.strategicPressure = hintedPressure;
+}
+
 } // namespace
 
 strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
@@ -268,6 +329,7 @@ strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
     applyParsedHeadlineYearHint(ledger, input);
     applyParsedHeadlineMonthHint(ledger, input);
     applyParsedHeadlineDayHint(ledger, input);
+    applyParsedHeadlinePressureHints(ledger, input);
     if (ledger.deltaQuality != "metadata_plus_save_headline") {
         appendUncertaintyIfMissing(input, "save_content_not_parsed_yet");
     }

@@ -35,6 +35,7 @@ struct RunConfig {
     bool detectStellarisRunningMode = false;
     bool exportMpOverlayPackageMode = false;
     bool verifyMpOverlayPackageMode = false;
+    bool importMpOverlayPackageMode = false;
     bool sncStatusSnapshotMode = false;
     bool offlineSpineMode = false;
     bool parseStellarisSaveMode = false;
@@ -93,6 +94,7 @@ struct RunConfig {
     std::filesystem::path stellarisRunningOutputPath;
     std::filesystem::path mpOverlaySourceDirectory;
     std::filesystem::path mpOverlayPackageDirectory;
+    std::filesystem::path mpOverlayImportTargetDirectory;
     std::filesystem::path sncArchiveRoot;
     std::filesystem::path sncGeneratedOverlayDirectory;
     std::filesystem::path sncStatusOutputPath;
