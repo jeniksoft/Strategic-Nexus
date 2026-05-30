@@ -195,6 +195,9 @@ Write-Host ("real_session_v0_loop_session_archive_dir=" + $sessionArchiveDir)
 Write-Host ("real_session_v0_loop_archive_summary_path=" + $archiveSummaryPath)
 Write-Host ("real_session_v0_loop_generated_overlay_dir=" + $overlayOutputDirFull)
 Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull)
+Write-Host ("real_session_v0_loop_compare_previous_session_dir_hint=dist\\real_session_v0_loop\\<previous_session_id>")
+$compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "dist\real_session_v0_loop\<previous_session_id>" "' + $defaultRunRoot + '" "dist\private_reports\real_session_v0_compare_' + $SessionId + '.json"'
+Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
 if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_output_dir=" + $mpPackageOutputDirFull)
     Write-Host ("real_session_v0_loop_mp_package_readiness=" + $mpExportReadiness)
