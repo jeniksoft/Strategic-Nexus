@@ -571,10 +571,26 @@ Background Free Work must not:
 * stage unrelated dirty files
 * commit unrelated user/Codex changes
 * start a second implementation chunk while a previous background chunk is still unverified, uncommitted, or otherwise unresolved
+* leave foreground-created supervisor locks, child tokens, stop flags, or stale helper processes in place after a temporary acceleration experiment ends
 
 If all useful roadmap work overlaps dirty foreground files, the worker should stop and create or update one visible task-board blocker instead of silently failing.
 
 If future automation supports isolated worktrees reliably, background implementation may use an isolated worktree or branch, but it must still reconcile through reviewed commits and must not hide conflicts.
+
+Foreground-to-background handoff cleanup:
+
+After a foreground chat changes automation cadence, starts a local supervisor, stops workers, or runs manual Free Work helpers, Codex must clean up its own coordination artifacts before the final owner-facing response.
+
+Required checks:
+
+* no temporary supervisor lock remains
+* no child token remains
+* no stop flag remains
+* no stale local app-server or supervisor helper remains from that operation
+* the Free Work automation prompt no longer contains temporary lock gating unless such gating is still intentionally active
+* any remaining dirty file that could affect worker task selection is named explicitly
+
+If any of these checks fails, Codex should keep working on cleanup or clearly report the blocker instead of leaving automation reliability ambiguous.
 
 ---
 

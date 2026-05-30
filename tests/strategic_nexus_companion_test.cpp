@@ -32,6 +32,7 @@ int main()
     const auto overlayEmptyRoot = root / "overlay_empty";
     const auto overlayNoManifestNonEmptyRoot = root / "overlay_no_manifest_non_empty";
     const auto mpPackageRoot = root / "mp_overlay_package";
+    const auto missingGameplayAcceptanceReport = root / "missing_gameplay_acceptance_v0.json";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
     std::filesystem::create_directories(overlayRoot);
@@ -126,7 +127,8 @@ int main()
         mpPackageRoot,
         true,
         false,
-        false
+        false,
+        missingGameplayAcceptanceReport
     });
 
     requireCondition(ready.appName == "Strategic Nexus Companion", "SNC app name should be stable");
@@ -195,7 +197,8 @@ int main()
         std::filesystem::path(),
         false,
         false,
-        false
+        false,
+        missingGameplayAcceptanceReport
     });
     requireCondition(emptyOverlay.generatedOverlay.state == "starting", "empty overlay should be starting");
     requireCondition(emptyOverlay.generatedOverlayPublishGate.state == "starting", "publish gate should wait for generated overlay");
@@ -209,7 +212,8 @@ int main()
         std::filesystem::path(),
         false,
         false,
-        false
+        false,
+        missingGameplayAcceptanceReport
     });
     requireCondition(missingOverlay.generatedOverlay.state == "needs_attention", "missing overlay should need attention");
     requireCondition(missingOverlay.statusCenter.state == "attention_required", "status center should surface attention");
@@ -222,7 +226,8 @@ int main()
         std::filesystem::path(),
         false,
         false,
-        false
+        false,
+        missingGameplayAcceptanceReport
     });
     requireCondition(noManifestNonEmptyOverlay.generatedOverlay.state == "needs_attention", "non-empty overlay without manifest should need attention");
     requireCondition(noManifestNonEmptyOverlay.statusCenter.state == "attention_required", "status center should surface overlay attention");
@@ -245,7 +250,8 @@ int main()
         std::filesystem::path(),
         true,
         false,
-        false
+        false,
+        missingGameplayAcceptanceReport
     });
     requireCondition(directArchiveSession.archive.state == "ready", "archive session root with manifest should be ready");
     requireCondition(directArchiveSession.statusCenter.state == "ready", "status center should be ready when archive session and overlay are ready");
@@ -256,7 +262,8 @@ int main()
         std::filesystem::path(),
         true,
         false,
-        true
+        true,
+        missingGameplayAcceptanceReport
     });
     requireCondition(blockedPublishGate.generatedOverlayPublishGate.state == "blocked", "publish gate should block while Stellaris is running");
     requireCondition(
@@ -273,7 +280,8 @@ int main()
         root / "missing_mp_overlay_package",
         true,
         false,
-        false
+        false,
+        missingGameplayAcceptanceReport
     });
     requireCondition(missingMpPackage.archive.state == "ready", "archive should remain ready when mp package missing");
     requireCondition(missingMpPackage.generatedOverlay.state == "ready", "overlay should remain ready when mp package missing");

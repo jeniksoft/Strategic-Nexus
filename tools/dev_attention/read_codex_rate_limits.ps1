@@ -85,8 +85,89 @@ function Convert-RateWindow {
     }
 }
 
+function New-RateLimitSnapshot {
+    param(
+        [object]$Response,
+        [string]$CodexExePath
+    )
+
+    $primary = Convert-RateWindow -Window $Response.rateLimits.primary
+    $secondary = Convert-RateWindow -Window $Response.rateLimits.secondary
+
+    return [pscustomobject]@{
+        schema_version = 1
+        collected_at_local = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+        collected_at_utc = (Get-Date).ToUniversalTime().ToString("o")
+        source = "codex app-server account/rateLimits/read"
+        codex_exe = $CodexExePath
+        limit_id = $Response.rateLimits.limitId
+        limit_name = $Response.rateLimits.limitName
+        plan_type = $Response.rateLimits.planType
+        rate_limit_reached_type = $Response.rateLimits.rateLimitReachedType
+        primary = $primary
+        secondary = $secondary
+        credits = $Response.rateLimits.credits
+        raw_rate_limits_by_limit_id = $Response.rateLimitsByLimitId
+    }
+}
+
+function Read-CodexRateLimitsWithNode {
+    param([string]$CodexExePath)
+
+    $nodeCandidates = @(
+        (Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe")
+    )
+    $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+    if ($nodeCommand -and $nodeCommand.Source) {
+        $nodeCandidates += $nodeCommand.Source
+    }
+
+    $nodeExe = $nodeCandidates |
+        Where-Object { $_ -and (Test-Path -LiteralPath $_) -and ($_ -notmatch "\\WindowsApps\\") } |
+        Select-Object -First 1
+    if (-not $nodeExe) {
+        return $null
+    }
+
+    $helper = Join-Path $PSScriptRoot "read_codex_rate_limits_appserver.js"
+    if (-not (Test-Path -LiteralPath $helper)) {
+        return $null
+    }
+
+    $psi = [System.Diagnostics.ProcessStartInfo]::new()
+    $psi.FileName = $nodeExe
+    $psi.Arguments = '"' + $helper + '" "' + $CodexExePath + '"'
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+
+    $process = [System.Diagnostics.Process]::Start($psi)
+    if (-not $process.WaitForExit(50000)) {
+        try { $process.Kill() } catch {}
+        return $null
+    }
+
+    $stdout = $process.StandardOutput.ReadToEnd()
+    $stderr = $process.StandardError.ReadToEnd()
+    if ($process.ExitCode -ne 0 -or -not $stdout.Trim()) {
+        return $null
+    }
+
+    try {
+        return ($stdout | ConvertFrom-Json)
+    } catch {
+        return $null
+    }
+}
+
 function Read-CodexRateLimits {
     $exe = Find-CodexExe
+
+    $nodeResponse = Read-CodexRateLimitsWithNode -CodexExePath $exe
+    if ($nodeResponse) {
+        return New-RateLimitSnapshot -Response $nodeResponse -CodexExePath $exe
+    }
 
     $psi = [System.Diagnostics.ProcessStartInfo]::new()
     $psi.FileName = $exe
@@ -95,6 +176,10 @@ function Read-CodexRateLimits {
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     $psi.UseShellExecute = $false
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+    try { $psi.StandardInputEncoding = $utf8NoBom } catch {}
+    try { $psi.StandardOutputEncoding = $utf8NoBom } catch {}
+    try { $psi.StandardErrorEncoding = $utf8NoBom } catch {}
 
     $process = [System.Diagnostics.Process]::Start($psi)
 
@@ -111,19 +196,20 @@ function Read-CodexRateLimits {
             if (-not $readTask.Wait($remainingMs)) {
                 return $null
             }
-            $line = $readTask.Result
-            if ($null -eq $line) {
+            $jsonText = $readTask.Result
+            if ($null -eq $jsonText) {
                 return $null
             }
-            if (-not $line.Trim()) {
+            if (-not $jsonText.Trim()) {
                 continue
             }
             try {
-                return ($line | ConvertFrom-Json)
+                return ($jsonText | ConvertFrom-Json)
             } catch {
                 continue
             }
         }
+
         return $null
     }
 
@@ -146,7 +232,7 @@ function Read-CodexRateLimits {
 
         $initialized = $false
         $initializeError = $null
-        $initDeadline = (Get-Date).AddSeconds(5)
+        $initDeadline = (Get-Date).AddSeconds(20)
         while ((Get-Date) -lt $initDeadline -and -not $initialized -and -not $process.HasExited) {
             $remainingMs = [int][Math]::Max(1, ($initDeadline - (Get-Date)).TotalMilliseconds)
             $message = Read-JsonRpcMessage -Process $process -TimeoutMs $remainingMs
@@ -177,7 +263,7 @@ function Read-CodexRateLimits {
 
         $response = $null
         $errorResponse = $null
-        $rateLimitsDeadline = (Get-Date).AddSeconds(15)
+        $rateLimitsDeadline = (Get-Date).AddSeconds(30)
         while ((Get-Date) -lt $rateLimitsDeadline -and -not $response -and -not $errorResponse -and -not $process.HasExited) {
             $remainingMs = [int][Math]::Max(1, ($rateLimitsDeadline - (Get-Date)).TotalMilliseconds)
             $message = Read-JsonRpcMessage -Process $process -TimeoutMs $remainingMs
@@ -211,24 +297,7 @@ function Read-CodexRateLimits {
         throw "Codex app-server did not return account/rateLimits/read. exit=$exitCode stderr: $stderr"
     }
 
-    $primary = Convert-RateWindow -Window $response.rateLimits.primary
-    $secondary = Convert-RateWindow -Window $response.rateLimits.secondary
-
-    return [pscustomobject]@{
-        schema_version = 1
-        collected_at_local = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
-        collected_at_utc = (Get-Date).ToUniversalTime().ToString("o")
-        source = "codex app-server account/rateLimits/read"
-        codex_exe = $exe
-        limit_id = $response.rateLimits.limitId
-        limit_name = $response.rateLimits.limitName
-        plan_type = $response.rateLimits.planType
-        rate_limit_reached_type = $response.rateLimits.rateLimitReachedType
-        primary = $primary
-        secondary = $secondary
-        credits = $response.rateLimits.credits
-        raw_rate_limits_by_limit_id = $response.rateLimitsByLimitId
-    }
+    return New-RateLimitSnapshot -Response $response -CodexExePath $exe
 }
 
 function Set-UsageBudgetStateFromRateLimits {

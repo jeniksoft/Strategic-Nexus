@@ -275,6 +275,18 @@ Use this escalation model:
 
 The project owner should not become the administrator of automation plumbing.
 
+Foreground cleanup is part of Codex responsibility.
+
+Before ending an interactive foreground turn that starts, stops, repairs, migrates, or temporarily supervises automations, Codex must:
+
+1. remove temporary lock, token, and stop-flag files it created
+2. stop helper/supervisor processes that are no longer needed
+3. verify that the relevant automation is still visible and active in the Codex automation registry
+4. verify that no known local guard file will cause the next manual or scheduled Free Work run to skip
+5. report any remaining dirty files or active helpers that could affect worker selection
+
+Foreground convenience experiments must not leave the owner to discover silent scheduler failure through missing Task Board reports.
+
 When Codex is uncertain, it should ask a precise question.
 
 Questions should be specific enough that the owner can answer architecture intent, not debug implementation details.
