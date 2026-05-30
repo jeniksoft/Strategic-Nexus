@@ -3,6 +3,7 @@
 
 #include "ArchiveMinistryInputBuilder.h"
 
+#include <cctype>
 #include <sstream>
 
 namespace strategic_nexus {
@@ -20,6 +21,64 @@ std::string byteFact(const char* name, const std::uintmax_t value)
     std::ostringstream text;
     text << name << ":" << value;
     return text.str();
+}
+
+bool parseNonNegativeInteger(const std::string& value, std::size_t& outValue)
+{
+    if (value.empty()) {
+        return false;
+    }
+
+    std::size_t parsed = 0;
+    for (const char ch : value) {
+        if (!std::isdigit(static_cast<unsigned char>(ch))) {
+            return false;
+        }
+        parsed = (parsed * 10) + static_cast<std::size_t>(ch - '0');
+    }
+
+    outValue = parsed;
+    return true;
+}
+
+bool parseFactValue(const std::string& fact, const char* key, std::string& outValue)
+{
+    const std::string prefix = std::string(key) + ":";
+    if (fact.rfind(prefix, 0) != 0) {
+        return false;
+    }
+
+    outValue = fact.substr(prefix.size());
+    return true;
+}
+
+void applyParsedHeadlineWarHint(const SeasonDeltaLedger& ledger, strategic_pipeline::MinistryInputContext& input)
+{
+    if (ledger.deltaQuality != "metadata_plus_save_headline") {
+        return;
+    }
+
+    std::string rawWarCount;
+    for (const auto& fact : ledger.facts) {
+        if (parseFactValue(fact, "headline_active_war_count", rawWarCount)) {
+            break;
+        }
+    }
+
+    if (rawWarCount.empty()) {
+        input.uncertainties.push_back("headline_war_count_missing");
+        return;
+    }
+
+    std::size_t warCount = 0;
+    if (!parseNonNegativeInteger(rawWarCount, warCount)) {
+        input.uncertainties.push_back("headline_war_count_invalid");
+        return;
+    }
+
+    input.turnContext.isAtWar = warCount > 0;
+    input.knownFacts.push_back("turn_context_war_hint_source:headline_active_war_count");
+    input.knownFacts.push_back(countFact("turn_context_war_hint_confidence_percent", 70));
 }
 
 } // namespace
@@ -73,6 +132,7 @@ strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
     if (!ledger.ok) {
         input.uncertainties.push_back("archive_ledger_not_verified");
     }
+    applyParsedHeadlineWarHint(ledger, input);
     if (ledger.deltaQuality != "metadata_plus_save_headline") {
         input.uncertainties.push_back("save_content_not_parsed_yet");
     }

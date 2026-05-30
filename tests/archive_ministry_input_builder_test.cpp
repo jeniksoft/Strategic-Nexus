@@ -53,13 +53,33 @@ int main()
     requireCondition(ledgerInput.campaignId == "campaign_ledger", "ledger build should preserve campaign id");
     requireCondition(ledgerInput.empireId == "empire_ledger", "ledger build should preserve empire id");
     requireCondition(ledgerInput.ministry == "research", "ledger build should preserve ministry");
-    requireCondition(ledgerInput.knownFacts.size() == 3, "ledger build should forward parsed facts");
+    requireCondition(ledgerInput.knownFacts.size() == 5, "ledger build should forward parsed facts and add war hints");
     requireCondition(
         ledgerInput.knownFacts[1] == "save_headline_parsed:true",
         "ledger build should forward parsed-headline marker");
     requireCondition(
+        ledgerInput.turnContext.isAtWar,
+        "headline-backed ledger should set is_at_war when active war count is non-zero");
+    requireCondition(
+        ledgerInput.knownFacts.size() == 5,
+        "headline-backed ledger should append bounded turn-context hint facts");
+    requireCondition(
+        ledgerInput.knownFacts[3] == "turn_context_war_hint_source:headline_active_war_count",
+        "headline-backed ledger should mark war hint source");
+    requireCondition(
+        ledgerInput.knownFacts[4] == "turn_context_war_hint_confidence_percent:70",
+        "headline-backed ledger should include explicit war hint confidence");
+    requireCondition(
         ledgerInput.uncertainties.size() == 1,
         "headline-backed ledger should not force metadata-only uncertainty");
+
+    strategic_nexus::SeasonDeltaLedger badWarLedger = ledger;
+    badWarLedger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:abc"};
+    const auto badWarInput = builder.build(badWarLedger, "empire_ledger", "research");
+    requireCondition(!badWarInput.turnContext.isAtWar, "invalid war count should fail closed to not-at-war");
+    requireCondition(
+        badWarInput.uncertainties.size() == 2 && badWarInput.uncertainties[1] == "headline_war_count_invalid",
+        "invalid war count should be surfaced as explicit uncertainty");
 
     std::cout << "archive ministry input builder tests passed.\n";
     return 0;
