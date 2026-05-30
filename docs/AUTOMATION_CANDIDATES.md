@@ -196,6 +196,7 @@ Expected output:
 * if remaining budget is below 40%, do not implement unless the owner explicitly requested the exact task
 * if 40%+ remains, reset is within 12 hours, and 30%+ is spendable above the reserve target, usage-budget cadence tuning may set Free Work to 15-minute rapid bounded execution
 * if 20%+ remains spendable above reserve inside the final 3 hours before reset, usage-budget cadence tuning may set Free Work to 10-minute final-window bounded execution
+* if 50%+ remains, 40%+ remains spendable above reserve, and reset is within 8 hours, usage-budget cadence tuning may set Free Work to 5-minute urgent bounded execution
 * if gaming quiet mode is active, do not compile, run full tests, run v0 pipeline tests, or perform heavy disk/package/build work
 * if foreground or unrelated dirty work overlaps the selected task write set, choose another task or stop
 * if no roadmap-aligned, architecture-compatible, bounded, locally testable, decision-free task exists, do nothing

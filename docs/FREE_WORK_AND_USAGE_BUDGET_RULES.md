@@ -419,6 +419,7 @@ no useful roadmap work: every 24 hours or manual-only
 high spendable budget near reset: hourly bounded chunks when needed to approach the reserve target
 owner-approved rapid near-reset mode: every 15 minutes when 40%+ remains, 30%+ is spendable above reserve, and reset is within 12 hours
 owner-approved final-window mode: every 10 minutes when 20%+ is spendable above reserve and reset is within 3 hours
+owner-approved urgent near-reset mode: every 5 minutes when 50%+ remains, 40%+ is spendable above reserve, and reset is within 8 hours
 ```
 
 The cadence tuner may recommend a more frequent gate near reset.

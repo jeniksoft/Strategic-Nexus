@@ -341,6 +341,12 @@ if (
         $chunkMode = "very-rapid-near-reset-bounded"
         $reason = "owner-approved final-window cadence: high spendable budget remains with less than 3 hours to reset"
     }
+
+    if ($hoursToReset -le 8 -and $spendableToReserve -ge 40 -and $remainingPercent -ge 50) {
+        $intervalMinutes = 5
+        $chunkMode = "urgent-near-reset-bounded"
+        $reason = "owner-approved urgent near-reset cadence: large spendable budget remains with less than 8 hours to reset"
+    }
 }
 
 $recommendedRRule = Get-RRuleForMinutes -Minutes $intervalMinutes
