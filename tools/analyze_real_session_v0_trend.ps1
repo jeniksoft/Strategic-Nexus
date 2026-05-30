@@ -157,13 +157,29 @@ if ($sessionCount -ge 2) {
             Sort-Object -Unique
     )
     $compareMpHostReadinessCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_host_readiness_current=*" } | Select-Object -First 1
+    $compareMpHostReadinessPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_host_readiness_previous=*" } | Select-Object -First 1
+    $compareMpHostReadinessChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_host_readiness_changed=*" } | Select-Object -First 1
     $compareMpClientReadinessGateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_readiness_gate_current=*" } | Select-Object -First 1
+    $compareMpClientReadinessGatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_readiness_gate_previous=*" } | Select-Object -First 1
+    $compareMpClientReadinessGateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_readiness_gate_changed=*" } | Select-Object -First 1
     $compareMpHostNextStepCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_host_next_step_current=*" } | Select-Object -First 1
+    $compareMpHostNextStepPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_host_next_step_previous=*" } | Select-Object -First 1
+    $compareMpHostNextStepChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_host_next_step_changed=*" } | Select-Object -First 1
     $compareMpClientNextStepCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_next_step_current=*" } | Select-Object -First 1
+    $compareMpClientNextStepPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_next_step_previous=*" } | Select-Object -First 1
+    $compareMpClientNextStepChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_next_step_changed=*" } | Select-Object -First 1
     $compareMpVerifyCommandCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_current=*" } | Select-Object -First 1
+    $compareMpVerifyCommandPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_previous=*" } | Select-Object -First 1
+    $compareMpVerifyCommandChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_changed=*" } | Select-Object -First 1
     $compareMpImportCommandCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_import_command_current=*" } | Select-Object -First 1
+    $compareMpImportCommandPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_import_command_previous=*" } | Select-Object -First 1
+    $compareMpImportCommandChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_import_command_changed=*" } | Select-Object -First 1
     $compareMpStrictVerifyCommandCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_verify_command_current=*" } | Select-Object -First 1
+    $compareMpStrictVerifyCommandPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_verify_command_previous=*" } | Select-Object -First 1
+    $compareMpStrictVerifyCommandChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_verify_command_changed=*" } | Select-Object -First 1
     $compareMpStrictImportCommandCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_import_command_current=*" } | Select-Object -First 1
+    $compareMpStrictImportCommandPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_import_command_previous=*" } | Select-Object -First 1
+    $compareMpStrictImportCommandChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_strict_import_command_changed=*" } | Select-Object -First 1
     $latestIdentityRiskWarningCodes = @(
         $compareLines |
             Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning_code=*" } |
@@ -201,26 +217,74 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrentLine)) {
         $latestMpHostReadinessCurrent = $compareMpHostReadinessCurrentLine.Substring("real_session_v0_compare_mp_host_readiness_current=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessPreviousLine)) {
+        $latestMpHostReadinessPrevious = $compareMpHostReadinessPreviousLine.Substring("real_session_v0_compare_mp_host_readiness_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessChangedLine)) {
+        $latestMpHostReadinessChanged = $compareMpHostReadinessChangedLine.Substring("real_session_v0_compare_mp_host_readiness_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpClientReadinessGateCurrentLine)) {
         $latestMpClientReadinessGateCurrent = $compareMpClientReadinessGateCurrentLine.Substring("real_session_v0_compare_mp_client_readiness_gate_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpClientReadinessGatePreviousLine)) {
+        $latestMpClientReadinessGatePrevious = $compareMpClientReadinessGatePreviousLine.Substring("real_session_v0_compare_mp_client_readiness_gate_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpClientReadinessGateChangedLine)) {
+        $latestMpClientReadinessGateChanged = $compareMpClientReadinessGateChangedLine.Substring("real_session_v0_compare_mp_client_readiness_gate_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostNextStepCurrentLine)) {
         $latestMpHostNextStepCurrent = $compareMpHostNextStepCurrentLine.Substring("real_session_v0_compare_mp_host_next_step_current=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHostNextStepPreviousLine)) {
+        $latestMpHostNextStepPrevious = $compareMpHostNextStepPreviousLine.Substring("real_session_v0_compare_mp_host_next_step_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHostNextStepChangedLine)) {
+        $latestMpHostNextStepChanged = $compareMpHostNextStepChangedLine.Substring("real_session_v0_compare_mp_host_next_step_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpClientNextStepCurrentLine)) {
         $latestMpClientNextStepCurrent = $compareMpClientNextStepCurrentLine.Substring("real_session_v0_compare_mp_client_next_step_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpClientNextStepPreviousLine)) {
+        $latestMpClientNextStepPrevious = $compareMpClientNextStepPreviousLine.Substring("real_session_v0_compare_mp_client_next_step_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpClientNextStepChangedLine)) {
+        $latestMpClientNextStepChanged = $compareMpClientNextStepChangedLine.Substring("real_session_v0_compare_mp_client_next_step_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpVerifyCommandCurrentLine)) {
         $latestMpVerifyCommandCurrent = $compareMpVerifyCommandCurrentLine.Substring("real_session_v0_compare_mp_verify_command_current=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpVerifyCommandPreviousLine)) {
+        $latestMpVerifyCommandPrevious = $compareMpVerifyCommandPreviousLine.Substring("real_session_v0_compare_mp_verify_command_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpVerifyCommandChangedLine)) {
+        $latestMpVerifyCommandChanged = $compareMpVerifyCommandChangedLine.Substring("real_session_v0_compare_mp_verify_command_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpImportCommandCurrentLine)) {
         $latestMpImportCommandCurrent = $compareMpImportCommandCurrentLine.Substring("real_session_v0_compare_mp_import_command_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpImportCommandPreviousLine)) {
+        $latestMpImportCommandPrevious = $compareMpImportCommandPreviousLine.Substring("real_session_v0_compare_mp_import_command_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpImportCommandChangedLine)) {
+        $latestMpImportCommandChanged = $compareMpImportCommandChangedLine.Substring("real_session_v0_compare_mp_import_command_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpStrictVerifyCommandCurrentLine)) {
         $latestMpStrictVerifyCommandCurrent = $compareMpStrictVerifyCommandCurrentLine.Substring("real_session_v0_compare_mp_strict_verify_command_current=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpStrictVerifyCommandPreviousLine)) {
+        $latestMpStrictVerifyCommandPrevious = $compareMpStrictVerifyCommandPreviousLine.Substring("real_session_v0_compare_mp_strict_verify_command_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpStrictVerifyCommandChangedLine)) {
+        $latestMpStrictVerifyCommandChanged = $compareMpStrictVerifyCommandChangedLine.Substring("real_session_v0_compare_mp_strict_verify_command_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpStrictImportCommandCurrentLine)) {
         $latestMpStrictImportCommandCurrent = $compareMpStrictImportCommandCurrentLine.Substring("real_session_v0_compare_mp_strict_import_command_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpStrictImportCommandPreviousLine)) {
+        $latestMpStrictImportCommandPrevious = $compareMpStrictImportCommandPreviousLine.Substring("real_session_v0_compare_mp_strict_import_command_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpStrictImportCommandChangedLine)) {
+        $latestMpStrictImportCommandChanged = $compareMpStrictImportCommandChangedLine.Substring("real_session_v0_compare_mp_strict_import_command_changed=".Length)
     }
 
     if (($latestDeltaOverlayChanged -eq "true") -or ([int]$latestDeltaArchiveSaveCountDelta -ne 0) -or ($latestDeltaGameplayChanged -eq "true")) {
@@ -282,14 +346,30 @@ $result = [ordered]@{
         hash_changed = $latestMpManifestHashChanged
     }
     latest_mp_readiness = [ordered]@{
+        host_readiness_previous = $latestMpHostReadinessPrevious
         host_readiness_current = $latestMpHostReadinessCurrent
+        host_readiness_changed = $latestMpHostReadinessChanged
+        client_readiness_gate_previous = $latestMpClientReadinessGatePrevious
         client_readiness_gate_current = $latestMpClientReadinessGateCurrent
+        client_readiness_gate_changed = $latestMpClientReadinessGateChanged
+        host_next_step_previous = $latestMpHostNextStepPrevious
         host_next_step_current = $latestMpHostNextStepCurrent
+        host_next_step_changed = $latestMpHostNextStepChanged
+        client_next_step_previous = $latestMpClientNextStepPrevious
         client_next_step_current = $latestMpClientNextStepCurrent
+        client_next_step_changed = $latestMpClientNextStepChanged
+        verify_command_previous = $latestMpVerifyCommandPrevious
         verify_command_current = $latestMpVerifyCommandCurrent
+        verify_command_changed = $latestMpVerifyCommandChanged
+        import_command_previous = $latestMpImportCommandPrevious
         import_command_current = $latestMpImportCommandCurrent
+        import_command_changed = $latestMpImportCommandChanged
+        strict_verify_command_previous = $latestMpStrictVerifyCommandPrevious
         strict_verify_command_current = $latestMpStrictVerifyCommandCurrent
+        strict_verify_command_changed = $latestMpStrictVerifyCommandChanged
+        strict_import_command_previous = $latestMpStrictImportCommandPrevious
         strict_import_command_current = $latestMpStrictImportCommandCurrent
+        strict_import_command_changed = $latestMpStrictImportCommandChanged
     }
     next_session_command_hint = $nextSessionCommandHint
     next_step_recommendation = $latestTrendRecommendation
@@ -333,26 +413,74 @@ foreach ($warningCode in $latestMpWarningCodesCurrent) {
 if (-not [string]::IsNullOrWhiteSpace($latestMpHostReadinessCurrent)) {
     Write-Host ("real_session_v0_trend_mp_host_readiness_current=" + $latestMpHostReadinessCurrent)
 }
+if (-not [string]::IsNullOrWhiteSpace($latestMpHostReadinessPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_host_readiness_previous=" + $latestMpHostReadinessPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpHostReadinessChanged)) {
+    Write-Host ("real_session_v0_trend_mp_host_readiness_changed=" + $latestMpHostReadinessChanged)
+}
 if (-not [string]::IsNullOrWhiteSpace($latestMpClientReadinessGateCurrent)) {
     Write-Host ("real_session_v0_trend_mp_client_readiness_gate_current=" + $latestMpClientReadinessGateCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpClientReadinessGatePrevious)) {
+    Write-Host ("real_session_v0_trend_mp_client_readiness_gate_previous=" + $latestMpClientReadinessGatePrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpClientReadinessGateChanged)) {
+    Write-Host ("real_session_v0_trend_mp_client_readiness_gate_changed=" + $latestMpClientReadinessGateChanged)
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpHostNextStepCurrent)) {
     Write-Host ("real_session_v0_trend_mp_host_next_step_current=" + $latestMpHostNextStepCurrent)
 }
+if (-not [string]::IsNullOrWhiteSpace($latestMpHostNextStepPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_host_next_step_previous=" + $latestMpHostNextStepPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpHostNextStepChanged)) {
+    Write-Host ("real_session_v0_trend_mp_host_next_step_changed=" + $latestMpHostNextStepChanged)
+}
 if (-not [string]::IsNullOrWhiteSpace($latestMpClientNextStepCurrent)) {
     Write-Host ("real_session_v0_trend_mp_client_next_step_current=" + $latestMpClientNextStepCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpClientNextStepPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_client_next_step_previous=" + $latestMpClientNextStepPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpClientNextStepChanged)) {
+    Write-Host ("real_session_v0_trend_mp_client_next_step_changed=" + $latestMpClientNextStepChanged)
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpVerifyCommandCurrent)) {
     Write-Host ("real_session_v0_trend_mp_verify_command_current=" + $latestMpVerifyCommandCurrent)
 }
+if (-not [string]::IsNullOrWhiteSpace($latestMpVerifyCommandPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_verify_command_previous=" + $latestMpVerifyCommandPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpVerifyCommandChanged)) {
+    Write-Host ("real_session_v0_trend_mp_verify_command_changed=" + $latestMpVerifyCommandChanged)
+}
 if (-not [string]::IsNullOrWhiteSpace($latestMpImportCommandCurrent)) {
     Write-Host ("real_session_v0_trend_mp_import_command_current=" + $latestMpImportCommandCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpImportCommandPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_import_command_previous=" + $latestMpImportCommandPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpImportCommandChanged)) {
+    Write-Host ("real_session_v0_trend_mp_import_command_changed=" + $latestMpImportCommandChanged)
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpStrictVerifyCommandCurrent)) {
     Write-Host ("real_session_v0_trend_mp_strict_verify_command_current=" + $latestMpStrictVerifyCommandCurrent)
 }
+if (-not [string]::IsNullOrWhiteSpace($latestMpStrictVerifyCommandPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_strict_verify_command_previous=" + $latestMpStrictVerifyCommandPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpStrictVerifyCommandChanged)) {
+    Write-Host ("real_session_v0_trend_mp_strict_verify_command_changed=" + $latestMpStrictVerifyCommandChanged)
+}
 if (-not [string]::IsNullOrWhiteSpace($latestMpStrictImportCommandCurrent)) {
     Write-Host ("real_session_v0_trend_mp_strict_import_command_current=" + $latestMpStrictImportCommandCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpStrictImportCommandPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_strict_import_command_previous=" + $latestMpStrictImportCommandPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpStrictImportCommandChanged)) {
+    Write-Host ("real_session_v0_trend_mp_strict_import_command_changed=" + $latestMpStrictImportCommandChanged)
 }
 foreach ($warningCode in $latestIdentityRiskWarningCodes) {
     Write-Host ("real_session_v0_trend_identity_risk_warning_code=" + $warningCode)
