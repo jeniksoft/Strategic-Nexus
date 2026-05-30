@@ -345,6 +345,12 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.readiness = verification.readiness;
     status.packageManifestHash = verification.packageManifestHash;
     if (verification.ok) {
+        status.strictVerifyCommand =
+            status.verifyCommand + " " + status.campaignId + " " + status.overlayVersion + " " + status.gameVersion + " " +
+            status.strategicNexusModVersion + " " + status.packageManifestHash;
+        status.strictImportCommand =
+            status.importCommand + " " + status.campaignId + " " + status.overlayVersion + " " + status.gameVersion + " " +
+            status.strategicNexusModVersion + " " + status.packageManifestHash;
         status.state = "ready";
         status.reason = "mp overlay package verified";
         status.statusText = verification.statusText;
@@ -653,6 +659,12 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.importCommand.empty()) {
         text << "mp_import_command: " << mpOverlayPackage.importCommand << "\n";
     }
+    if (!mpOverlayPackage.strictVerifyCommand.empty()) {
+        text << "mp_strict_verify_command: " << mpOverlayPackage.strictVerifyCommand << "\n";
+    }
+    if (!mpOverlayPackage.strictImportCommand.empty()) {
+        text << "mp_strict_import_command: " << mpOverlayPackage.strictImportCommand << "\n";
+    }
     if (!mpOverlayPackage.statusText.empty()) {
         text << "mp_overlay_package_status_text: " << mpOverlayPackage.statusText << "\n";
     }
@@ -700,6 +712,8 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
     output << indent << "  \"verify_command\": " << jsonString(status.verifyCommand) << ",\n";
     output << indent << "  \"import_command\": " << jsonString(status.importCommand) << ",\n";
+    output << indent << "  \"strict_verify_command\": " << jsonString(status.strictVerifyCommand) << ",\n";
+    output << indent << "  \"strict_import_command\": " << jsonString(status.strictImportCommand) << ",\n";
     output << indent << "  \"status_text\": " << jsonString(status.statusText) << ",\n";
     output << indent << "  \"warning_codes\": [";
     for (std::size_t index = 0; index < status.warningCodes.size(); ++index) {
