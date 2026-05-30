@@ -823,6 +823,7 @@ Status Center summary text now always includes explicit `mp_warning_count` (incl
 SNC fallback MP package warning codes are now normalized to stable `snake_case` values (for example `mp_overlay_package_directory_missing`) even when the underlying failure reason text is human-readable, so release-companion parsers can rely on consistent code keys.
 SNC snapshot JSON and `--snc-status-snapshot` CLI output now expose structured `host_readiness` and `client_readiness_gate` fields for MP package state, so release-companion UX can consume host/client readiness without parsing free-form status text.
 `--verify-mp-overlay-package` and `--import-mp-overlay-package` CLI outputs now also expose structured host/client readiness fields (`*_host_readiness`, `*_client_readiness_gate`) parsed from package status text, so release-companion import/verify UX can read readiness gates from stable CLI keys.
+SNC snapshot JSON, Status Center summary text, and `--snc-status-snapshot` CLI output now expose explicit identity-mismatch signal fields (`identity_mismatch_warning`, `identity_mismatch_warning_codes`) so release-companion flows can surface campaign/version/hash mismatch risk without reparsing generic failure reasons.
 
 Next worker-ready slice:
 
