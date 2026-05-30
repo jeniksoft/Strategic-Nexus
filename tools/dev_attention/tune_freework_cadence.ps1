@@ -202,6 +202,16 @@ function Get-RRuleForHours {
     return "FREQ=HOURLY;INTERVAL=$Hours"
 }
 
+function Get-RRuleForMinutes {
+    param([int]$Minutes)
+
+    if ($Minutes -lt 60) {
+        return "FREQ=MINUTELY;INTERVAL=$Minutes"
+    }
+    $hours = [Math]::Max(1, [int][Math]::Round($Minutes / 60.0))
+    return Get-RRuleForHours -Hours $hours
+}
+
 $usagePath = Resolve-ProjectPath $UsageBudgetStatePath
 $usageLogPath = Resolve-ProjectPath $UsageBudgetLogPath
 $budgetRulesResolvedPath = Resolve-ProjectPath $BudgetRulesPath
@@ -314,7 +324,26 @@ if ($hasUsefulProjectWork -and $null -ne $hoursToReset) {
     }
 }
 
-$recommendedRRule = Get-RRuleForHours -Hours $intervalHours
+$intervalMinutes = $intervalHours * 60
+if (
+    $hasUsefulProjectWork -and
+    $null -ne $hoursToReset -and
+    $hoursToReset -le 12 -and
+    $spendableToReserve -ge 30 -and
+    $remainingPercent -ge 40
+) {
+    $intervalMinutes = 15
+    $chunkMode = "rapid-near-reset-bounded"
+    $reason = "owner-approved rapid near-reset cadence: high spendable budget remains with less than 12 hours to reset"
+
+    if ($hoursToReset -le 3 -and $spendableToReserve -ge 20) {
+        $intervalMinutes = 10
+        $chunkMode = "very-rapid-near-reset-bounded"
+        $reason = "owner-approved final-window cadence: high spendable budget remains with less than 3 hours to reset"
+    }
+}
+
+$recommendedRRule = Get-RRuleForMinutes -Minutes $intervalMinutes
 $currentRRule = Get-CurrentFreeworkRRule -Path $FreeworkAutomationPath
 $shouldUpdateAutomation = $currentRRule -and ($currentRRule -ne $recommendedRRule)
 
@@ -343,12 +372,13 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
     remaining_project_complexity_points = $remainingPoints
     has_useful_project_work = $hasUsefulProjectWork
     recommended_freework_rrule = $recommendedRRule
-    recommended_interval_hours = $intervalHours
+    recommended_interval_hours = [Math]::Round($intervalMinutes / 60.0, 2)
+    recommended_interval_minutes = $intervalMinutes
     recommended_chunk_mode = $chunkMode
     current_freework_rrule = $currentRRule
     should_update_freework_automation = [bool]$shouldUpdateAutomation
     reason = $reason
-    safety_note = "Increase cadence instead of overlapping multiple implementation chunks; keep one bounded chunk per run unless explicitly approved."
+    safety_note = "Rapid cadence must not overlap heavy implementation in the same worktree. Parallel heavy runs are allowed only with isolated worktrees/branches or a durable claim system for disjoint work lanes."
 } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $outputResolvedPath -Encoding UTF8
 
 Write-Host "freework_cadence_recommendation_written=$outputResolvedPath"

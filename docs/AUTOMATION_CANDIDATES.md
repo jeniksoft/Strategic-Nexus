@@ -194,9 +194,12 @@ Expected output:
 * if remaining budget is 60-80%, keep execution focused and shorter
 * if remaining budget is 40-60%, implement only important narrow chunks
 * if remaining budget is below 40%, do not implement unless the owner explicitly requested the exact task
+* if 40%+ remains, reset is within 12 hours, and 30%+ is spendable above the reserve target, usage-budget cadence tuning may set Free Work to 15-minute rapid bounded execution
+* if 20%+ remains spendable above reserve inside the final 3 hours before reset, usage-budget cadence tuning may set Free Work to 10-minute final-window bounded execution
 * if gaming quiet mode is active, do not compile, run full tests, run v0 pipeline tests, or perform heavy disk/package/build work
 * if foreground or unrelated dirty work overlaps the selected task write set, choose another task or stop
 * if no roadmap-aligned, architecture-compatible, bounded, locally testable, decision-free task exists, do nothing
+* allow overlapping heavy implementation only through explicit isolated lanes: separate worktrees/branches or a durable claim system for roadmap slices, file sets, generated artifact paths, Task Board write targets, tests, and commit ownership
 * otherwise choose a chunk size from remaining budget, burn-rate estimate, and task value
 * implement up to the currently approved sequential chunk limit, run targeted verification, commit each completed and verified chunk locally before starting the next chunk, and create a Czech task-board report only for important owner-facing results
 * push may wait until the end of the invocation unless a long run or loss-risk makes an earlier push useful

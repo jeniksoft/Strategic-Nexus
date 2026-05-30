@@ -417,13 +417,28 @@ target reserve when reset is known: about 5% remaining at reset
 <40% remaining budget: every 12 hours, critical-only
 no useful roadmap work: every 24 hours or manual-only
 high spendable budget near reset: hourly bounded chunks when needed to approach the reserve target
+owner-approved rapid near-reset mode: every 15 minutes when 40%+ remains, 30%+ is spendable above reserve, and reset is within 12 hours
+owner-approved final-window mode: every 10 minutes when 20%+ is spendable above reserve and reset is within 3 hours
 ```
 
-The cadence tuner may recommend a more frequent gate near reset, but it must not recommend overlapping implementation chunks.
+The cadence tuner may recommend a more frequent gate near reset.
+It must not recommend overlapping implementation chunks in the same shared worktree.
 
 By default, one Free Work run means at most one bounded useful chunk.
 If the owner explicitly approves a throughput override for the worker, a single run may execute up to the configured number of sequential safe chunks.
 Those chunks must still be non-overlapping, roadmap-aligned, locally testable, reviewable, and stopped early when verification, safety, dirty-worktree, gaming quiet mode, or owner-decision boundaries require it.
+
+When cadence is faster than hourly, overlap protection becomes mandatory.
+
+In the current single-worktree automation setup, a new Free Work run should do only lightweight read/report work and exit if the previous Free Work run appears active, unfinalized, uncommitted, or still running tests.
+
+Parallel heavy Free Work is allowed only after explicit lane isolation exists.
+Acceptable lane isolation means every parallel run has either:
+
+* its own git worktree and branch, with no shared generated output directories
+* or a durable claim/lease system that reserves disjoint roadmap slices, file sets, generated artifact paths, test output paths, Task Board write targets, and commit ownership before edits start
+
+Without one of those isolation mechanisms, "different work" is not reliable enough, because hidden shared outputs such as `.git/index`, `dist/test_bin`, Task Board JSON, run logs, package staging, and generated reports can still collide.
 
 When a single Free Work run executes multiple chunks, it must commit after every completed and verified chunk before starting the next chunk.
 Push may wait until the end of the invocation unless a long run or loss-risk makes an earlier push useful.
