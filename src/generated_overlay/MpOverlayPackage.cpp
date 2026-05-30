@@ -166,6 +166,22 @@ std::string buildCopyableStatusText(
     return text.str();
 }
 
+bool isSafePackageMetadataValue(const std::string& value)
+{
+    if (value.empty() || value.size() > 96) {
+        return false;
+    }
+
+    for (const unsigned char ch : value) {
+        if (std::isalnum(ch) || ch == '_' || ch == '-' || ch == '.') {
+            continue;
+        }
+        return false;
+    }
+
+    return true;
+}
+
 bool isSafePackageRelativePath(const std::string& relativePath)
 {
     if (relativePath.empty() || relativePath.find('\\') != std::string::npos) {
@@ -268,6 +284,11 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
     if (sourceOverlayDirectory.empty() || outputPackageDirectory.empty() || campaignId.empty() || overlayVersion.empty() ||
         gameVersion.empty() || strategicNexusModVersion.empty()) {
         result.reason = "missing package export input";
+        return result;
+    }
+    if (!isSafePackageMetadataValue(campaignId) || !isSafePackageMetadataValue(overlayVersion) ||
+        !isSafePackageMetadataValue(gameVersion) || !isSafePackageMetadataValue(strategicNexusModVersion)) {
+        result.reason = "invalid package export input";
         return result;
     }
 
@@ -384,6 +405,11 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     }
     if (campaignId->empty() || overlayVersion->empty() || gameVersion->empty() || strategicNexusModVersion->empty() ||
         handoffStatus->empty()) {
+        result.reason = "malformed MP overlay package manifest";
+        return result;
+    }
+    if (!isSafePackageMetadataValue(*campaignId) || !isSafePackageMetadataValue(*overlayVersion) ||
+        !isSafePackageMetadataValue(*gameVersion) || !isSafePackageMetadataValue(*strategicNexusModVersion)) {
         result.reason = "malformed MP overlay package manifest";
         return result;
     }

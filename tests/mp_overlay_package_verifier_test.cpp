@@ -167,6 +167,29 @@ int main()
             originalManifest);
     }
 
+    {
+        auto invalidOverlayVersionManifest = originalManifest;
+        const auto needle = std::string("\"overlay_version\": \"overlay_v1\"");
+        const auto replacement = std::string("\"overlay_version\": \"overlay v1\"");
+        const auto pos = invalidOverlayVersionManifest.find(needle);
+        if (pos == std::string::npos) {
+            std::cerr << "test could not locate overlay_version field in manifest\n";
+            return 1;
+        }
+        invalidOverlayVersionManifest.replace(pos, needle.size(), replacement);
+        writeTextFileAtomically(
+            packageRoot / "strategic_nexus_mp_overlay_package_manifest.json",
+            invalidOverlayVersionManifest);
+        const auto invalidFieldResult = verifier.verify(packageRoot);
+        if (invalidFieldResult.ok || invalidFieldResult.reason != "malformed MP overlay package manifest") {
+            std::cerr << "invalid overlay_version did not fail closed\n";
+            return 1;
+        }
+        writeTextFileAtomically(
+            packageRoot / "strategic_nexus_mp_overlay_package_manifest.json",
+            originalManifest);
+    }
+
     writeTextFileAtomically(packageRoot / "local_debug.txt", "not part of package\n");
     const auto unexpectedResult = verifier.verify(packageRoot);
     if (unexpectedResult.ok || unexpectedResult.reason != "MP overlay package contains unexpected files") {

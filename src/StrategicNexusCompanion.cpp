@@ -492,10 +492,25 @@ std::string buildStatusCenterSummaryText(
     }
     text << "stav: " << statusCenter.state << " - " << statusCenter.reason << "\n";
     text << "nalezeni_uloziste: " << saveDiscovery.state << " - " << saveDiscovery.reason << "\n";
+    if (!saveDiscovery.path.empty()) {
+        text << "nalezeni_uloziste_cesta: " << pathString(saveDiscovery.path) << "\n";
+    }
     text << "archiv: " << archive.state << " - " << archive.reason << "\n";
+    if (!archive.path.empty()) {
+        text << "archiv_cesta: " << pathString(archive.path) << "\n";
+    }
     text << "generovany_overlay: " << generatedOverlay.state << " - " << generatedOverlay.reason << "\n";
+    if (!generatedOverlay.path.empty()) {
+        text << "generovany_overlay_cesta: " << pathString(generatedOverlay.path) << "\n";
+    }
     text << "publish_gate: " << generatedOverlayPublishGate.state << " - " << generatedOverlayPublishGate.reason << "\n";
+    if (!generatedOverlayPublishGate.path.empty()) {
+        text << "publish_gate_cesta: " << pathString(generatedOverlayPublishGate.path) << "\n";
+    }
     text << "mp_overlay_balicek: " << mpOverlayPackage.state << " - " << mpOverlayPackage.reason << "\n";
+    if (!mpOverlayPackage.path.empty()) {
+        text << "mp_overlay_balicek_cesta: " << pathString(mpOverlayPackage.path) << "\n";
+    }
 
     if (!generatedOverlay.manifestHash.empty()) {
         text << "generated_overlay_manifest_hash: " << generatedOverlay.manifestHash << "\n";
@@ -520,6 +535,9 @@ std::string buildStatusCenterSummaryText(
     }
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
+    }
+    if (!mpOverlayPackage.statusText.empty()) {
+        text << "mp_overlay_package_status_text: " << mpOverlayPackage.statusText << "\n";
     }
     return text.str();
 }
