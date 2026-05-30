@@ -858,6 +858,36 @@ int Application::run(const RunConfig& config) const
         if (config.verifyMpOverlayPackageMode) {
             const generated_overlay::MpOverlayPackageVerifier verifier;
             const auto result = verifier.verify(config.mpOverlayPackageDirectory);
+            std::vector<std::string> warnings;
+            bool hasFileHashMismatch = false;
+            bool hasFileByteCountMismatch = false;
+            bool hasMissingExpectedFiles = false;
+            for (const auto& file : result.files) {
+                if (!file.exists) {
+                    hasMissingExpectedFiles = true;
+                }
+                if (!file.hashMatches) {
+                    hasFileHashMismatch = true;
+                }
+                if (!file.byteCountMatches) {
+                    hasFileByteCountMismatch = true;
+                }
+            }
+            if (hasMissingExpectedFiles) {
+                warnings.push_back("missing_expected_files");
+            }
+            if (hasFileHashMismatch) {
+                warnings.push_back("generated_file_hash_mismatch");
+            }
+            if (hasFileByteCountMismatch) {
+                warnings.push_back("generated_file_byte_count_mismatch");
+            }
+            if (!result.unexpectedFiles.empty()) {
+                warnings.push_back("unexpected_files_present");
+            }
+            if (!result.ok && result.readiness == "not_ready" && !result.statusText.empty()) {
+                warnings.push_back("package_identity_or_version_mismatch");
+            }
 
             std::cout << "mp_overlay_package_ok=" << (result.ok ? "true" : "false") << "\n";
             std::cout << "mp_overlay_package_reason=" << sanitizeCliValue(result.reason) << "\n";
@@ -896,6 +926,10 @@ int Application::run(const RunConfig& config) const
             }
             for (const auto& file : result.unexpectedFiles) {
                 std::cout << "mp_overlay_package_unexpected_file=" << sanitizeCliValue(file) << "\n";
+            }
+            std::cout << "mp_overlay_package_warning_count=" << warnings.size() << "\n";
+            for (const auto& warning : warnings) {
+                std::cout << "mp_overlay_package_warning=" << sanitizeCliValue(warning) << "\n";
             }
             return result.ok ? 0 : 1;
         }
