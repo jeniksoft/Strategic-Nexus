@@ -343,6 +343,14 @@ If a joining player lacks the package or has a different generated overlay, the 
 
 Strategic Nexus should still provide pre-join warnings and easy package sharing where detectable, but it must not pretend it can hot-patch a player after join.
 
+CLI support for explicit pre-join mismatch warnings:
+
+```text
+Strategic Nexus.exe --verify-mp-overlay-package <package_dir> [expected_campaign_id] [expected_overlay_version] [expected_game_version] [expected_mod_version] [expected_manifest_hash]
+```
+
+If optional expected values are supplied, the verifier keeps normal structural/hash validation and also emits explicit mismatch warnings when package identity or manifest hash differs from the expected host/session values.
+
 ---
 
 # Generated MP Package

@@ -806,6 +806,7 @@ The local harness now has a minimal MP generated-overlay package exporter/verifi
 It writes a package manifest with campaign id, overlay version, game version, Strategic Nexus mod version, checksum-sensitive generated gameplay files, a local-only diagnostic manifest entry, and degraded handoff status when the previous host is unavailable.
 The verifier fails closed on file drift and unexpected package files.
 The CLI verifier output now also emits explicit `mp_overlay_package_warning` codes (missing expected files, hash mismatch, byte-count mismatch, unexpected files, identity/version mismatch) to support release-companion import/verify UX and Status Center wiring.
+`Strategic Nexus.exe --verify-mp-overlay-package <package_dir> [expected_campaign_id] [expected_overlay_version] [expected_game_version] [expected_mod_version] [expected_manifest_hash]` now emits explicit mismatch warnings (`package_campaign_id_mismatch`, `package_overlay_version_mismatch`, `package_game_version_mismatch`, `package_mod_version_mismatch`, `package_manifest_hash_mismatch`) when a package differs from expected host/session identity.
 
 Next worker-ready slice:
 
