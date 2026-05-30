@@ -460,6 +460,8 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.readiness = verification.readiness;
     status.hostReadiness = trimWhitespace(readStatusTextField(verification.statusText, "host_readiness"));
     status.clientReadinessGate = trimWhitespace(readStatusTextField(verification.statusText, "client_readiness_gate"));
+    status.hostNextStep = trimWhitespace(readStatusTextField(verification.statusText, "host_next_step"));
+    status.clientNextStep = trimWhitespace(readStatusTextField(verification.statusText, "client_next_step"));
     status.packageManifestHash = verification.packageManifestHash;
     if (!status.campaignId.empty() && !status.overlayVersion.empty() && !status.gameVersion.empty() &&
         !status.strategicNexusModVersion.empty() && !status.packageManifestHash.empty()) {
@@ -787,6 +789,12 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.clientReadinessGate.empty()) {
         text << "mp_client_readiness_gate: " << mpOverlayPackage.clientReadinessGate << "\n";
     }
+    if (!mpOverlayPackage.hostNextStep.empty()) {
+        text << "mp_host_next_step: " << mpOverlayPackage.hostNextStep << "\n";
+    }
+    if (!mpOverlayPackage.clientNextStep.empty()) {
+        text << "mp_client_next_step: " << mpOverlayPackage.clientNextStep << "\n";
+    }
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
@@ -853,6 +861,8 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"readiness\": " << jsonString(status.readiness) << ",\n";
     output << indent << "  \"host_readiness\": " << jsonString(status.hostReadiness) << ",\n";
     output << indent << "  \"client_readiness_gate\": " << jsonString(status.clientReadinessGate) << ",\n";
+    output << indent << "  \"host_next_step\": " << jsonString(status.hostNextStep) << ",\n";
+    output << indent << "  \"client_next_step\": " << jsonString(status.clientNextStep) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
     output << indent << "  \"verify_command\": " << jsonString(status.verifyCommand) << ",\n";
     output << indent << "  \"import_command\": " << jsonString(status.importCommand) << ",\n";

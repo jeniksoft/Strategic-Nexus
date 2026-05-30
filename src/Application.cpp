@@ -1081,6 +1081,14 @@ int Application::run(const RunConfig& config) const
                     std::cout << "mp_overlay_package_client_readiness_gate="
                               << sanitizeCliValue(clientReadinessGate) << "\n";
                 }
+                const auto hostNextStep = readStatusTextField(result.statusText, "host_next_step");
+                if (!hostNextStep.empty()) {
+                    std::cout << "mp_overlay_package_host_next_step=" << sanitizeCliValue(hostNextStep) << "\n";
+                }
+                const auto clientNextStep = readStatusTextField(result.statusText, "client_next_step");
+                if (!clientNextStep.empty()) {
+                    std::cout << "mp_overlay_package_client_next_step=" << sanitizeCliValue(clientNextStep) << "\n";
+                }
             }
             std::cout << "mp_overlay_package_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
@@ -1208,6 +1216,14 @@ int Application::run(const RunConfig& config) const
                     std::cout << "mp_overlay_package_import_client_readiness_gate="
                               << sanitizeCliValue(clientReadinessGate) << "\n";
                 }
+                const auto hostNextStep = readStatusTextField(result.statusText, "host_next_step");
+                if (!hostNextStep.empty()) {
+                    std::cout << "mp_overlay_package_import_host_next_step=" << sanitizeCliValue(hostNextStep) << "\n";
+                }
+                const auto clientNextStep = readStatusTextField(result.statusText, "client_next_step");
+                if (!clientNextStep.empty()) {
+                    std::cout << "mp_overlay_package_import_client_next_step=" << sanitizeCliValue(clientNextStep) << "\n";
+                }
             }
             std::cout << "mp_overlay_package_imported_file_count=" << result.importedFiles.size() << "\n";
             for (const auto& file : result.importedFiles) {
@@ -1283,6 +1299,10 @@ int Application::run(const RunConfig& config) const
                       << sanitizeCliValue(snapshot.mpOverlayPackage.hostReadiness) << "\n";
             std::cout << "snc_mp_overlay_package_client_readiness_gate="
                       << sanitizeCliValue(snapshot.mpOverlayPackage.clientReadinessGate) << "\n";
+            std::cout << "snc_mp_overlay_package_host_next_step="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.hostNextStep) << "\n";
+            std::cout << "snc_mp_overlay_package_client_next_step="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.clientNextStep) << "\n";
             std::cout << "snc_mp_overlay_package_manifest_hash=" << sanitizeCliValue(snapshot.mpOverlayPackage.packageManifestHash) << "\n";
             std::cout << "snc_mp_overlay_package_verify_command=" << sanitizeCliValue(snapshot.mpOverlayPackage.verifyCommand) << "\n";
             std::cout << "snc_mp_overlay_package_import_command=" << sanitizeCliValue(snapshot.mpOverlayPackage.importCommand) << "\n";

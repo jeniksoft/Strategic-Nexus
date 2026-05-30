@@ -53,6 +53,8 @@ struct CompanionMpOverlayPackageStatus {
     std::string readiness;
     std::string hostReadiness;
     std::string clientReadinessGate;
+    std::string hostNextStep;
+    std::string clientNextStep;
     std::string packageManifestHash;
     std::string verifyCommand;
     std::string importCommand;

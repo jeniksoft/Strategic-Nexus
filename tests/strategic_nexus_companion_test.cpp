@@ -161,6 +161,12 @@ int main()
     requireCondition(
         ready.mpOverlayPackage.clientReadinessGate == "import_and_verify_before_join",
         "mp overlay package should expose client readiness gate");
+    requireCondition(
+        ready.mpOverlayPackage.hostNextStep == "share this package and package_manifest_hash with every joining player",
+        "mp overlay package should expose host next step");
+    requireCondition(
+        ready.mpOverlayPackage.clientNextStep == "import package, verify package_manifest_hash, then join lobby",
+        "mp overlay package should expose client next step");
     requireCondition(!ready.mpOverlayPackage.packageManifestHash.empty(), "mp overlay package should expose package manifest hash");
     requireCondition(
         ready.mpOverlayPackage.verifyCommand.find("Strategic Nexus.exe --verify-mp-overlay-package ") == 0,
@@ -238,6 +244,12 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("client_readiness_gate: import_and_verify_before_join") != std::string::npos,
         "status center summary should include client readiness gate text");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_host_next_step: share this package and package_manifest_hash with every joining player") != std::string::npos,
+        "status center summary should include host next step");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_client_next_step: import package, verify package_manifest_hash, then join lobby") != std::string::npos,
+        "status center summary should include client next step");
     requireCondition(
         ready.statusCenterSummaryText.find("strict_verify_command: Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
         "status center summary should include strict verify command text");
@@ -436,6 +448,12 @@ int main()
     requireCondition(
         json.find("\"client_readiness_gate\": \"import_and_verify_before_join\"") != std::string::npos,
         "JSON should include mp overlay package client readiness gate");
+    requireCondition(
+        json.find("\"host_next_step\": \"share this package and package_manifest_hash with every joining player\"") != std::string::npos,
+        "JSON should include mp overlay package host next step");
+    requireCondition(
+        json.find("\"client_next_step\": \"import package, verify package_manifest_hash, then join lobby\"") != std::string::npos,
+        "JSON should include mp overlay package client next step");
     requireCondition(json.find("\"package_manifest_hash\": \"") != std::string::npos, "JSON should include mp overlay package manifest hash");
     requireCondition(
         json.find("\"verify_command\": \"Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
