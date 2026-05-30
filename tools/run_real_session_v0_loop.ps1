@@ -102,6 +102,50 @@ function Contains-Value {
     return $false
 }
 
+function Get-MpPackageMismatchSummary {
+    param(
+        [string]$IdentityMismatchWarning,
+        [string]$CampaignIdMismatchWarning,
+        [string]$OverlayVersionMismatchWarning,
+        [string]$GameVersionMismatchWarning,
+        [string]$ModVersionMismatchWarning,
+        [string]$ManifestHashMismatchWarning
+    )
+
+    $codes = @()
+    if ($IdentityMismatchWarning -eq "true") {
+        $codes += "identity_mismatch"
+    }
+    if ($CampaignIdMismatchWarning -eq "true") {
+        $codes += "campaign_id_mismatch"
+    }
+    if ($OverlayVersionMismatchWarning -eq "true") {
+        $codes += "overlay_version_mismatch"
+    }
+    if ($GameVersionMismatchWarning -eq "true") {
+        $codes += "game_version_mismatch"
+    }
+    if ($ModVersionMismatchWarning -eq "true") {
+        $codes += "mod_version_mismatch"
+    }
+    if ($ManifestHashMismatchWarning -eq "true") {
+        $codes += "manifest_hash_mismatch"
+    }
+
+    $state = "clear"
+    $reason = "none"
+    if ($codes.Count -gt 0) {
+        $state = "warning"
+        $reason = [string]::Join("|", $codes)
+    }
+
+    return [ordered]@{
+        state = $state
+        reason = $reason
+        codes = @($codes)
+    }
+}
+
 function Get-SafeFileToken {
     param([Parameter(Mandatory = $true)][string]$Value)
     $safe = $Value -replace '[^A-Za-z0-9._-]', "_"
@@ -251,6 +295,9 @@ $mpExportOverlayVersionMismatchWarning = "false"
 $mpExportGameVersionMismatchWarning = "false"
 $mpExportModVersionMismatchWarning = "false"
 $mpExportManifestHashMismatchWarning = "false"
+$mpPackageMismatchWarningState = "not_exported"
+$mpPackageMismatchWarningReason = "mp_export_not_requested"
+$mpPackageMismatchWarningCodes = @()
 $sncStatusWithMpReadiness = "not_exported"
 $statusWithMpSnapshotPathForOutput = ""
 if ($ExportMpPackage) {
@@ -290,6 +337,16 @@ if ($ExportMpPackage) {
     $mpExportGameVersionMismatchWarning = (Contains-Value -Values $mpExportWarningCodes -Needle "package_game_version_mismatch").ToString().ToLowerInvariant()
     $mpExportModVersionMismatchWarning = (Contains-Value -Values $mpExportWarningCodes -Needle "package_mod_version_mismatch").ToString().ToLowerInvariant()
     $mpExportManifestHashMismatchWarning = (Contains-Value -Values $mpExportWarningCodes -Needle "package_manifest_hash_mismatch").ToString().ToLowerInvariant()
+    $mpPackageMismatchSummary = Get-MpPackageMismatchSummary `
+        -IdentityMismatchWarning $mpExportIdentityMismatchWarning `
+        -CampaignIdMismatchWarning $mpExportCampaignIdMismatchWarning `
+        -OverlayVersionMismatchWarning $mpExportOverlayVersionMismatchWarning `
+        -GameVersionMismatchWarning $mpExportGameVersionMismatchWarning `
+        -ModVersionMismatchWarning $mpExportModVersionMismatchWarning `
+        -ManifestHashMismatchWarning $mpExportManifestHashMismatchWarning
+    $mpPackageMismatchWarningState = [string]$mpPackageMismatchSummary.state
+    $mpPackageMismatchWarningReason = [string]$mpPackageMismatchSummary.reason
+    $mpPackageMismatchWarningCodes = @($mpPackageMismatchSummary.codes)
 
     Write-Host "==> refresh snc status snapshot with mp package visibility"
     & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false
@@ -737,9 +794,17 @@ if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_game_version_mismatch_warning=" + $mpExportGameVersionMismatchWarning)
     Write-Host ("real_session_v0_loop_mp_package_mod_version_mismatch_warning=" + $mpExportModVersionMismatchWarning)
     Write-Host ("real_session_v0_loop_mp_package_manifest_hash_mismatch_warning=" + $mpExportManifestHashMismatchWarning)
+    Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_state=" + $mpPackageMismatchWarningState)
+    Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_reason=" + $mpPackageMismatchWarningReason)
+    foreach ($warningCode in $mpPackageMismatchWarningCodes) {
+        Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_code=" + $warningCode)
+    }
     foreach ($warningCode in $mpExportWarningCodes) {
         Write-Host ("real_session_v0_loop_mp_package_warning_code=" + $warningCode)
     }
+} else {
+    Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_state=" + $mpPackageMismatchWarningState)
+    Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_reason=" + $mpPackageMismatchWarningReason)
 }
 Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpSnapshotPathForOutput)
 Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
@@ -1090,6 +1155,9 @@ $sessionEvidence = [ordered]@{
         game_version_mismatch_warning = $mpExportGameVersionMismatchWarning
         mod_version_mismatch_warning = $mpExportModVersionMismatchWarning
         manifest_hash_mismatch_warning = $mpExportManifestHashMismatchWarning
+        mismatch_warning_state = $mpPackageMismatchWarningState
+        mismatch_warning_reason = $mpPackageMismatchWarningReason
+        mismatch_warning_codes = @($mpPackageMismatchWarningCodes)
     }
     auto_compare = [ordered]@{
         enabled = -not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)

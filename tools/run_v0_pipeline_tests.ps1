@@ -1916,6 +1916,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_manifest_hash_mismatch_warning="
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_campaign_id_mismatch_warning="
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_overlay_version_mismatch_warning="
+    Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_mismatch_warning_state="
+    Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_mismatch_warning_reason="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_run_id=real-session-v0-loop-"
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_archive_copied_save_count="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_archive_last_archived_path="
@@ -1949,6 +1951,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"manifest_hash_mismatch_warning"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"campaign_id_mismatch_warning"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"overlay_version_mismatch_warning"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"mismatch_warning_state"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"mismatch_warning_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence mp snapshot" -Text $evidenceText -Expected '"status_snapshot_with_mp_path"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence mp snapshot" -Text $evidenceText -Expected '"status_snapshot_with_mp_readiness"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence metadata" -Text $evidenceText -Expected '"run_id":'
@@ -2026,6 +2030,8 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_status_snapshot_with_mp_readiness=not_exported"
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_status_center_state="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_status_center_reason="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_mp_package_mismatch_warning_state=not_exported"
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_mp_package_mismatch_warning_reason=mp_export_not_requested"
 
     $evidencePathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_evidence_json=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($evidencePathLine)) {
@@ -2041,6 +2047,8 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected 'not_exported'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"status_center":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"summary_present":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"mismatch_warning_state":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"mismatch_warning_reason":'
 
     Write-Host "[PASS] real_session_loop_mp_snapshot_contract"
 }
