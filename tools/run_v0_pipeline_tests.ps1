@@ -672,6 +672,10 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_ok=true"
     Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_readiness=ready_for_mp"
     Assert-Contains -Name "mp_overlay_package_verify app" -Text $mpVerifyText -Expected "mp_overlay_package_manifest_hash="
+    Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_verify_command=Strategic Nexus.exe --verify-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_import_command=Strategic Nexus.exe --import-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_strict_verify_command=Strategic Nexus.exe --verify-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
     $mpManifestHash = [regex]::Match($mpVerifyText, "mp_overlay_package_manifest_hash=([^\r\n]+)").Groups[1].Value.Trim()
     if ([string]::IsNullOrWhiteSpace($mpManifestHash)) {
         throw "mp_overlay_package_verify app did not provide manifest hash value."
@@ -709,6 +713,10 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_campaign_id=campaign_cli"
     Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_overlay_version=overlay_cli_v1"
     Assert-Contains -Name "mp_overlay_package_import app" -Text $mpImportText -Expected "mp_overlay_package_import_warning_count=0"
+    Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_verify_command=Strategic Nexus.exe --verify-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_command=Strategic Nexus.exe --import-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_strict_verify_command=Strategic Nexus.exe --verify-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
 
     $mpImportMismatchOutput = & $exePath `
         --import-mp-overlay-package `

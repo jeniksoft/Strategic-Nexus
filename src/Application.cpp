@@ -1046,6 +1046,22 @@ int Application::run(const RunConfig& config) const
             }
             if (!result.statusText.empty()) {
                 std::cout << "mp_overlay_package_status_text=" << sanitizeCliValue(result.statusText) << "\n";
+                const auto verifyCommand = readStatusTextField(result.statusText, "verify_command");
+                if (!verifyCommand.empty()) {
+                    std::cout << "mp_overlay_package_verify_command=" << sanitizeCliValue(verifyCommand) << "\n";
+                }
+                const auto importCommand = readStatusTextField(result.statusText, "import_command");
+                if (!importCommand.empty()) {
+                    std::cout << "mp_overlay_package_import_command=" << sanitizeCliValue(importCommand) << "\n";
+                }
+                const auto strictVerifyCommand = readStatusTextField(result.statusText, "strict_verify_command");
+                if (!strictVerifyCommand.empty()) {
+                    std::cout << "mp_overlay_package_strict_verify_command=" << sanitizeCliValue(strictVerifyCommand) << "\n";
+                }
+                const auto strictImportCommand = readStatusTextField(result.statusText, "strict_import_command");
+                if (!strictImportCommand.empty()) {
+                    std::cout << "mp_overlay_package_strict_import_command=" << sanitizeCliValue(strictImportCommand) << "\n";
+                }
             }
             std::cout << "mp_overlay_package_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
@@ -1134,6 +1150,24 @@ int Application::run(const RunConfig& config) const
             if (!result.statusText.empty()) {
                 std::cout << "mp_overlay_package_import_status_text="
                           << sanitizeCliValue(result.statusText) << "\n";
+                const auto verifyCommand = readStatusTextField(result.statusText, "verify_command");
+                if (!verifyCommand.empty()) {
+                    std::cout << "mp_overlay_package_import_verify_command=" << sanitizeCliValue(verifyCommand) << "\n";
+                }
+                const auto importCommand = readStatusTextField(result.statusText, "import_command");
+                if (!importCommand.empty()) {
+                    std::cout << "mp_overlay_package_import_command=" << sanitizeCliValue(importCommand) << "\n";
+                }
+                const auto strictVerifyCommand = readStatusTextField(result.statusText, "strict_verify_command");
+                if (!strictVerifyCommand.empty()) {
+                    std::cout << "mp_overlay_package_import_strict_verify_command="
+                              << sanitizeCliValue(strictVerifyCommand) << "\n";
+                }
+                const auto strictImportCommand = readStatusTextField(result.statusText, "strict_import_command");
+                if (!strictImportCommand.empty()) {
+                    std::cout << "mp_overlay_package_import_strict_import_command="
+                              << sanitizeCliValue(strictImportCommand) << "\n";
+                }
             }
             std::cout << "mp_overlay_package_imported_file_count=" << result.importedFiles.size() << "\n";
             for (const auto& file : result.importedFiles) {
