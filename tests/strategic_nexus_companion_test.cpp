@@ -298,9 +298,18 @@ int main()
     requireCondition(missingMpPackage.archive.state == "ready", "archive should remain ready when mp package missing");
     requireCondition(missingMpPackage.generatedOverlay.state == "ready", "overlay should remain ready when mp package missing");
     requireCondition(missingMpPackage.mpOverlayPackage.state == "needs_attention", "missing mp overlay package should need attention");
+    requireCondition(
+        missingMpPackage.mpOverlayPackage.statusText.find("readiness: not_ready") != std::string::npos,
+        "missing mp overlay package should expose not_ready status text");
+    requireCondition(
+        missingMpPackage.mpOverlayPackage.statusText.find("warning_code: mp overlay package directory missing") != std::string::npos,
+        "missing mp overlay package should expose warning code in status text");
     requireCondition(missingMpPackage.statusCenter.state == "attention_required", "status center should surface mp overlay package attention");
     requireCondition(missingMpPackage.statusCenter.reason == "mp overlay package needs attention", "status center reason should name mp overlay package attention");
     requireCondition(missingMpPackage.statusCenter.path == (root / "missing_mp_overlay_package"), "status center path should point to the mp overlay package needing attention");
+    requireCondition(
+        missingMpPackage.statusCenterSummaryText.find("warning_code: mp overlay package directory missing") != std::string::npos,
+        "status center summary should include MP package warning code");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");

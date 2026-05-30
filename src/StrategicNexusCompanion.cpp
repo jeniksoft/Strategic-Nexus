@@ -263,6 +263,13 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
 {
     CompanionMpOverlayPackageStatus status;
     status.path = packageDirectory;
+    const auto setFailureStatusText = [&status]() {
+        std::ostringstream text;
+        text << "readiness: not_ready\n";
+        text << "warning_code: " << status.reason << "\n";
+        text << "next_step: re-export package on host and import+verify before multiplayer join\n";
+        status.statusText = text.str();
+    };
 
     if (packageDirectory.empty()) {
         status.state = "disabled";
@@ -275,12 +282,14 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (error) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory inaccessible";
+        setFailureStatusText();
         return status;
     }
 
     if (!exists) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory missing";
+        setFailureStatusText();
         return status;
     }
 
@@ -288,12 +297,14 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (error) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory inaccessible";
+        setFailureStatusText();
         return status;
     }
 
     if (!isDirectory) {
         status.state = "needs_attention";
         status.reason = "mp overlay package path is not a directory";
+        setFailureStatusText();
         return status;
     }
 
@@ -315,7 +326,11 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
 
     status.state = "needs_attention";
     status.reason = verification.reason.empty() ? "mp overlay package verification failed" : verification.reason;
-    status.statusText = verification.statusText;
+    if (!verification.statusText.empty()) {
+        status.statusText = verification.statusText;
+    } else {
+        setFailureStatusText();
+    }
     return status;
 }
 
