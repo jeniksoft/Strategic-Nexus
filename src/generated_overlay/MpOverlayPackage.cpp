@@ -150,7 +150,8 @@ std::string buildCopyableStatusText(
     const std::string& handoffStatus,
     const std::string& readiness,
     const std::string& packageManifestHash,
-    bool previousHostAvailable)
+    bool previousHostAvailable,
+    const std::filesystem::path& packageDirectory)
 {
     const bool handoffComplete = handoffStatus == "complete" && previousHostAvailable;
     const bool handoffDegraded = handoffStatus == "degraded_previous_host_unavailable" && !previousHostAvailable;
@@ -169,6 +170,9 @@ std::string buildCopyableStatusText(
     text << "host_next_step: share this package and package_manifest_hash with every joining player\n";
     text << "client_readiness_gate: import_and_verify_before_join\n";
     text << "client_next_step: import package, verify package_manifest_hash, then join lobby\n";
+    text << "verify_command: Strategic Nexus.exe --verify-mp-overlay-package \"" << packageDirectory.generic_string() << "\"\n";
+    text << "import_command: Strategic Nexus.exe --import-mp-overlay-package \"" << packageDirectory.generic_string()
+         << "\" <target_overlay_dir>\n";
     if (handoffComplete) {
         text << "host_handoff_state: previous host package continuity available\n";
     } else if (handoffDegraded) {
@@ -506,7 +510,8 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
             result.handoffStatus,
             result.readiness,
             result.packageManifestHash,
-            *previousHostAvailable);
+            *previousHostAvailable,
+            packageDirectory);
         result.reason = "accepted";
     } else if (unexpected) {
         result.readiness = "not_ready";

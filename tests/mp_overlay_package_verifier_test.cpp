@@ -141,6 +141,10 @@ int main()
         verifyResult.statusText.find("readiness: ready_for_mp") == std::string::npos ||
         verifyResult.statusText.find("host_readiness: ready_for_mp") == std::string::npos ||
         verifyResult.statusText.find("client_readiness_gate: import_and_verify_before_join") == std::string::npos ||
+        verifyResult.statusText.find("verify_command: Strategic Nexus.exe --verify-mp-overlay-package \"dist/mp_overlay_package_test_package\"") ==
+            std::string::npos ||
+        verifyResult.statusText.find("import_command: Strategic Nexus.exe --import-mp-overlay-package \"dist/mp_overlay_package_test_package\" <target_overlay_dir>") ==
+            std::string::npos ||
         verifyResult.statusText.find("host_next_step: share this package and package_manifest_hash with every joining player") ==
             std::string::npos ||
         verifyResult.statusText.find("client_next_step: import package, verify package_manifest_hash, then join lobby") ==
