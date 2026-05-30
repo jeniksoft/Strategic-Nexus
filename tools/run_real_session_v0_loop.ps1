@@ -343,6 +343,10 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if ([string]::IsNullOrWhiteSpace($compareCommandHintLine)) {
         throw "Compare output is missing real_session_v0_compare_command_hint."
     }
+    $allowedCompareRecommendations = @("review_observable_deltas", "no_pipeline_delta_detected", "review_identity_risk_warning")
+    if ($allowedCompareRecommendations -notcontains $compareRecommendation) {
+        throw "Compare output has unsupported recommendation '$compareRecommendation'."
+    }
     Write-Host "real_session_v0_loop_compare_auto_ok=true"
     Write-Host ("real_session_v0_loop_compare_auto_output_json=" + $compareOutputJsonLine)
     Write-Host ("real_session_v0_loop_compare_auto_command_hint=" + $compareCommandHintLine)
@@ -461,6 +465,10 @@ if ($EmitTrendSummary) {
         [string]::IsNullOrWhiteSpace($trendLatestCompareCommandHint) -or
         [string]::IsNullOrWhiteSpace($trendNextSessionCommandHint)) {
         throw "Trend output is missing required fields."
+    }
+    $allowedTrendRecommendations = @("review_observable_deltas", "review_identity_risk_warning", "no_pipeline_delta_detected", "need_more_real_sessions")
+    if ($allowedTrendRecommendations -notcontains $trendRecommendation) {
+        throw "Trend output has unsupported recommendation '$trendRecommendation'."
     }
     Write-Host "real_session_v0_loop_trend_auto_ok=true"
     Write-Host ("real_session_v0_loop_trend_auto_output_json=" + $trendOutputJsonLine)

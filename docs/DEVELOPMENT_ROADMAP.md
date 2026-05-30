@@ -859,6 +859,7 @@ Status Center summary now also emits explicit `mp_identity_mismatch_alert` text 
 `tools/compare_real_session_v0_outputs.ps1` now also emits previous+current MP manifest-hash compare fields (`real_session_v0_compare_mp_manifest_hash_previous/current/changed`), and trend/loop auto forwarding now surfaces the same pair (`real_session_v0_trend_mp_manifest_hash_previous/current/changed`, `real_session_v0_loop_trend_auto_mp_manifest_hash_previous/current/changed`, `real_session_v0_loop_compare_auto_mp_manifest_hash_previous/current/changed`) for direct hash-drift inspection from one run output.
 Compare/trend/loop outputs now also expose explicit observable-effect signal fields (`real_session_v0_compare_observable_effect_signal/reason`, `real_session_v0_trend_observable_effect_signal/reason`, and forwarded `real_session_v0_loop_*_observable_effect_*`) so owner/release-companion flow can quickly decide whether the latest session pair shows any measurable v0 pipeline delta worth in-game follow-up.
 Compare recommendation is now fail-safe for MP identity risk: when `identity_risk_warning` is active, compare emits `real_session_v0_compare_recommendation=review_identity_risk_warning` even if no other pipeline delta changed.
+Real-session loop auto compare/trend forwarding now fails closed on unsupported recommendation values, so release-companion flow cannot silently accept unknown compare/trend recommendation semantics.
 
 Next worker-ready slice:
 
