@@ -67,6 +67,22 @@ function Parse-OptionalInt {
     return $null
 }
 
+function Contains-Value {
+    param(
+        [string[]]$Values,
+        [string]$Needle
+    )
+    if ([string]::IsNullOrWhiteSpace($Needle)) {
+        return $false
+    }
+    foreach ($value in $Values) {
+        if ($value -eq $Needle) {
+            return $true
+        }
+    }
+    return $false
+}
+
 $previousSessionDirFull = [System.IO.Path]::GetFullPath($PreviousSessionDir)
 $currentSessionDirFull = [System.IO.Path]::GetFullPath($CurrentSessionDir)
 $previousSessionId = Get-SessionIdFromDir -SessionDir $previousSessionDirFull
@@ -200,10 +216,18 @@ $currentMpWarningCodesJoined = ($currentMpWarningCodes -join "|")
 $mpWarningCodesChanged = ($previousMpWarningCodesJoined -ne $currentMpWarningCodesJoined)
 $previousMpIdentityMismatchWarningCodes = @($previousMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $currentMpIdentityMismatchWarningCodes = @($currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
+$previousMpAllMismatchCodes = @($previousMpWarningCodes + $previousMpIdentityMismatchWarningCodes | Sort-Object -Unique)
+$currentMpAllMismatchCodes = @($currentMpWarningCodes + $currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $previousMpIdentityMismatchWarningCodesJoined = ($previousMpIdentityMismatchWarningCodes -join "|")
 $currentMpIdentityMismatchWarningCodesJoined = ($currentMpIdentityMismatchWarningCodes -join "|")
 $mpIdentityMismatchWarningChanged = ($previousMpIdentityMismatchWarning -ne $currentMpIdentityMismatchWarning)
 $mpIdentityMismatchWarningCodesChanged = ($previousMpIdentityMismatchWarningCodesJoined -ne $currentMpIdentityMismatchWarningCodesJoined)
+$previousMpVersionMismatchWarning = (Contains-Value -Values $previousMpAllMismatchCodes -Needle "package_game_version_mismatch")
+$currentMpVersionMismatchWarning = (Contains-Value -Values $currentMpAllMismatchCodes -Needle "package_game_version_mismatch")
+$previousMpModVersionMismatchWarning = (Contains-Value -Values $previousMpAllMismatchCodes -Needle "package_mod_version_mismatch")
+$currentMpModVersionMismatchWarning = (Contains-Value -Values $currentMpAllMismatchCodes -Needle "package_mod_version_mismatch")
+$previousMpManifestHashMismatchWarning = (Contains-Value -Values $previousMpAllMismatchCodes -Needle "package_manifest_hash_mismatch")
+$currentMpManifestHashMismatchWarning = (Contains-Value -Values $currentMpAllMismatchCodes -Needle "package_manifest_hash_mismatch")
 $previousMpWarningCountParsed = Parse-OptionalInt -Value $previousMpWarningCount
 $currentMpWarningCountParsed = Parse-OptionalInt -Value $currentMpWarningCount
 $mpWarningCountDelta = $null
@@ -357,6 +381,21 @@ $result = [ordered]@{
         current = $currentMpIdentityMismatchWarningCodes
         changed = $mpIdentityMismatchWarningCodesChanged
     }
+    mp_version_mismatch_warning = [ordered]@{
+        previous = $previousMpVersionMismatchWarning
+        current = $currentMpVersionMismatchWarning
+        changed = ($previousMpVersionMismatchWarning -ne $currentMpVersionMismatchWarning)
+    }
+    mp_mod_version_mismatch_warning = [ordered]@{
+        previous = $previousMpModVersionMismatchWarning
+        current = $currentMpModVersionMismatchWarning
+        changed = ($previousMpModVersionMismatchWarning -ne $currentMpModVersionMismatchWarning)
+    }
+    mp_manifest_hash_mismatch_warning = [ordered]@{
+        previous = $previousMpManifestHashMismatchWarning
+        current = $currentMpManifestHashMismatchWarning
+        changed = ($previousMpManifestHashMismatchWarning -ne $currentMpManifestHashMismatchWarning)
+    }
     identity_risk_warning = [ordered]@{
         active = $identityRiskWarning
         reason = $identityRiskWarningReason
@@ -434,6 +473,15 @@ Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_current=" + $c
 Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_previous=" + $previousMpIdentityMismatchWarning)
 Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_changed=" + ($mpIdentityMismatchWarningChanged.ToString().ToLowerInvariant()))
 Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_codes_changed=" + ($mpIdentityMismatchWarningCodesChanged.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_game_version_mismatch_warning_current=" + ($currentMpVersionMismatchWarning.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_game_version_mismatch_warning_previous=" + ($previousMpVersionMismatchWarning.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_game_version_mismatch_warning_changed=" + ((($previousMpVersionMismatchWarning -ne $currentMpVersionMismatchWarning).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_mod_version_mismatch_warning_current=" + ($currentMpModVersionMismatchWarning.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_mod_version_mismatch_warning_previous=" + ($previousMpModVersionMismatchWarning.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_mod_version_mismatch_warning_changed=" + ((($previousMpModVersionMismatchWarning -ne $currentMpModVersionMismatchWarning).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_manifest_hash_mismatch_warning_current=" + ($currentMpManifestHashMismatchWarning.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_manifest_hash_mismatch_warning_previous=" + ($previousMpManifestHashMismatchWarning.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_manifest_hash_mismatch_warning_changed=" + ((($previousMpManifestHashMismatchWarning -ne $currentMpManifestHashMismatchWarning).ToString().ToLowerInvariant())))
 foreach ($warningCode in $previousMpWarningCodes) {
     Write-Host ("real_session_v0_compare_mp_warning_code_previous=" + $warningCode)
 }
