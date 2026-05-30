@@ -190,6 +190,9 @@ Expected output:
 * read `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
 * estimate approximate burn rate from recent user-reported readings and known work windows when enough data exists
 * revalidate the chosen roadmap item against current architecture docs
+* prioritize first functional v0 real-game validation over polishing already usable pieces
+* choose missing end-to-end v0 integration before convenience, wording, UI polish, report reshaping, broad diagnostics, or non-blocking hardening
+* treat polish as `Navrhy` unless it directly blocks first real Stellaris testing, prevents unsafe/corrupt output, fixes failing verification, or removes repeated friction that is actively stopping progress
 * if remaining budget is above 80%, allow frequent bounded execution
 * if remaining budget is 60-80%, keep execution focused and shorter
 * if remaining budget is 40-60%, implement only important narrow chunks

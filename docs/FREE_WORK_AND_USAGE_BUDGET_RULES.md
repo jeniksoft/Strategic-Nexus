@@ -798,6 +798,16 @@ recommendation = pause-nonessential-maintenance
 Free Work should actively choose the next safe SNC/product/runtime implementation slice when one is available.
 Nonessential Task Board polish, workflow tuning, report reshaping, and automation hygiene should be recorded as `Navrhy` or deferred unless they are blocking, safety-critical, privacy-critical, or preventing repeated wasted work.
 
+Current owner priority is first functional v0, not refinement.
+Free Work should optimize for the shortest safe path to a real Stellaris validation loop:
+
+```text
+real save/session -> archive/analyze -> validated v0 output or generated overlay -> readiness/status -> owner runs another session and observes effect
+```
+
+When choosing between a missing v0 integration piece and improving an already usable component, choose the missing v0 piece unless the improvement directly blocks first real-game testing, prevents unsafe/corrupt output, fixes a failing test, or removes repeated friction that is actively stopping progress.
+If a component is good enough for first real-game validation, mark it implemented or verified, record improvements as `Navrhy`, and move on.
+
 Suggested response by ratio:
 
 * below 25% maintenance: normal support range

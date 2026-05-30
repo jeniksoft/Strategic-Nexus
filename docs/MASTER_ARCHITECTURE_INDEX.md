@@ -536,13 +536,20 @@ Tuning rule:
 
 # v0 Implementation Priority
 
+Current owner priority:
+
+Reach the first functional v0 that can be tested in real Stellaris sessions as soon as safely possible.
+The project should optimize for the shortest real-game validation loop, not for polishing already usable pieces.
+If a component is good enough for the first real-game test, record follow-up polish separately and move to the next missing end-to-end v0 piece.
+
 Do next:
 
-1. Keep the verified archive spine aligned with the offline architecture.
-2. Feed the narrow save parser summary into the season delta ledger, empire brief, and ministry input harnesses.
-3. Add functional generated-overlay acceptance evidence for the current v0 domains.
-4. Extend companion-app-safe staging and Status Center visibility without adding realtime game control.
-5. Keep integration limited to supported mod scripting, local archives, generated overlay files, and bounded JSON payloads.
+1. Close the minimum real-game validation loop: save/session archive -> analysis -> validated v0 output/overlay/package/status -> next owner-run Stellaris session.
+2. Keep the verified archive spine aligned with the offline architecture.
+3. Feed the narrow save parser summary into the season delta ledger, empire brief, and ministry input harnesses only as far as needed for first v0 testing.
+4. Add functional generated-overlay acceptance evidence for the current v0 domains.
+5. Extend companion-app-safe staging and Status Center visibility without adding realtime game control.
+6. Keep integration limited to supported mod scripting, local archives, generated overlay files, and bounded JSON payloads.
 
 Do not start yet:
 
@@ -551,6 +558,7 @@ Do not start yet:
 * personality drift
 * war theater control
 * raw LLM integration into game runtime
+* non-blocking polish before the first real-game v0 validation loop exists
 
 ---
 

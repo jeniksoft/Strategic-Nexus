@@ -29,6 +29,21 @@ The goal is architectural proof, not strategic depth.
 In the revised production architecture, this v0 pipeline is an offline validator and generated-output preparation path.
 The bridge-core effect batch remains useful for tests and development harnesses, but it is not a production promise of live LLM delivery into a running game.
 
+The owner priority is to reach the first functional v0 quickly enough to test it in real Stellaris sessions.
+Do not optimize v0 for final polish before this loop exists:
+
+```text
+real save/session
+-> archive/analyze
+-> produce validated v0 output or generated overlay
+-> expose readiness/status
+-> owner runs another game/session
+-> compare whether intended behavior is observable
+```
+
+Once a slice is good enough for this first real-game validation loop, record follow-up improvements separately and move to the next missing v0 integration piece.
+Polish, broader diagnostics, nicer UI, extra wording, and convenience automation belong after the first functional v0 unless they directly block that real-game test.
+
 ---
 
 # v0 Non-Goals
