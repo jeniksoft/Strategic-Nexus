@@ -162,6 +162,46 @@ void applyParsedHeadlineMonthHint(const SeasonDeltaLedger& ledger, strategic_pip
     input.knownFacts.push_back(countFact("turn_context_month_hint_confidence_percent", 80));
 }
 
+void applyParsedHeadlineDayHint(const SeasonDeltaLedger& ledger, strategic_pipeline::MinistryInputContext& input)
+{
+    if (ledger.deltaQuality != "metadata_plus_save_headline") {
+        return;
+    }
+
+    std::string rawSaveDate;
+    for (const auto& fact : ledger.facts) {
+        if (parseFactValue(fact, "save_date", rawSaveDate)) {
+            break;
+        }
+    }
+
+    if (rawSaveDate.empty()) {
+        appendUncertaintyIfMissing(input, "headline_save_date_missing");
+        return;
+    }
+
+    if (rawSaveDate.size() < 10) {
+        appendUncertaintyIfMissing(input, "headline_save_date_invalid");
+        return;
+    }
+
+    std::size_t year = 0;
+    std::size_t month = 0;
+    std::size_t day = 0;
+    if (!parseNonNegativeInteger(rawSaveDate.substr(0, 4), year) ||
+        !parseNonNegativeInteger(rawSaveDate.substr(5, 2), month) ||
+        month < 1 || month > 12 ||
+        !parseNonNegativeInteger(rawSaveDate.substr(8, 2), day) ||
+        day < 1 || day > 31) {
+        appendUncertaintyIfMissing(input, "headline_save_date_invalid");
+        return;
+    }
+
+    input.knownFacts.push_back(countFact("turn_context_day_hint", day));
+    input.knownFacts.push_back("turn_context_day_hint_source:save_date");
+    input.knownFacts.push_back(countFact("turn_context_day_hint_confidence_percent", 80));
+}
+
 } // namespace
 
 strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
@@ -216,6 +256,7 @@ strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
     applyParsedHeadlineWarHint(ledger, input);
     applyParsedHeadlineYearHint(ledger, input);
     applyParsedHeadlineMonthHint(ledger, input);
+    applyParsedHeadlineDayHint(ledger, input);
     if (ledger.deltaQuality != "metadata_plus_save_headline") {
         appendUncertaintyIfMissing(input, "save_content_not_parsed_yet");
     }

@@ -4,6 +4,7 @@
 #include "SeasonDeltaLedgerBuilder.h"
 #include "SaveParser.h"
 
+#include <cctype>
 #include <iomanip>
 #include <sstream>
 
@@ -18,6 +19,34 @@ bool hasNonWhitespace(const std::string& value)
         }
     }
     return false;
+}
+
+bool isValidSaveDate(const std::string& value)
+{
+    if (value.size() != 10) {
+        return false;
+    }
+    if (value[4] != '.' || value[7] != '.') {
+        return false;
+    }
+    for (std::size_t index = 0; index < value.size(); ++index) {
+        if (index == 4 || index == 7) {
+            continue;
+        }
+        if (!std::isdigit(static_cast<unsigned char>(value[index]))) {
+            return false;
+        }
+    }
+
+    const int month = std::stoi(value.substr(5, 2));
+    const int day = std::stoi(value.substr(8, 2));
+    if (month < 1 || month > 12) {
+        return false;
+    }
+    if (day < 1 || day > 31) {
+        return false;
+    }
+    return true;
 }
 
 std::string jsonEscape(const std::string& value)
@@ -126,8 +155,10 @@ SeasonDeltaLedger SeasonDeltaLedgerBuilder::build(
             if (!parsedHeadline->playerCountryId.empty()) {
                 ledger.facts.push_back("player_country_id:" + parsedHeadline->playerCountryId);
             }
-            if (!parsedHeadline->saveDate.empty()) {
+            if (!parsedHeadline->saveDate.empty() && isValidSaveDate(parsedHeadline->saveDate)) {
                 ledger.facts.push_back("save_date:" + parsedHeadline->saveDate);
+            } else if (!parsedHeadline->saveDate.empty()) {
+                ledger.uncertainties.push_back("save_headline_date_invalid");
             }
             ledger.facts.push_back(countFact("headline_owned_fleet_count", parsedHeadline->ownedFleetCount));
             ledger.facts.push_back(countFact("headline_active_war_count", parsedHeadline->activeWarCount));

@@ -4,6 +4,7 @@
 #include "SeasonDeltaLedgerBuilder.h"
 #include "SaveParser.h"
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 
@@ -102,6 +103,25 @@ int main()
     requireCondition(
         parsedLedger.uncertainties[0] == "save_headline_missing_fields_reported",
         "headline-enhanced ledger should report headline field uncertainty");
+
+    strategic_nexus::SaveParserSummary invalidDateHeadline = parsedHeadline;
+    invalidDateHeadline.saveDate = "2301.77.99";
+    const auto invalidDateLedger = builder.build(summary, "campaign_001", &invalidDateHeadline);
+    requireCondition(
+        invalidDateLedger.deltaQuality == "metadata_plus_save_headline",
+        "invalid save date should not downgrade headline delta quality");
+    requireCondition(
+        std::find(
+            invalidDateLedger.facts.begin(),
+            invalidDateLedger.facts.end(),
+            "save_date:2301.77.99") == invalidDateLedger.facts.end(),
+        "invalid save date should not be emitted as a fact");
+    requireCondition(
+        std::find(
+            invalidDateLedger.uncertainties.begin(),
+            invalidDateLedger.uncertainties.end(),
+            "save_headline_date_invalid") != invalidDateLedger.uncertainties.end(),
+        "invalid save date should be surfaced as explicit uncertainty");
 
     std::cout << "season delta ledger builder tests passed.\n";
     return 0;

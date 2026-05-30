@@ -59,7 +59,7 @@ int main()
     requireCondition(ledgerInput.campaignId == "campaign_ledger", "ledger build should preserve campaign id");
     requireCondition(ledgerInput.empireId == "empire_ledger", "ledger build should preserve empire id");
     requireCondition(ledgerInput.ministry == "research", "ledger build should preserve ministry");
-    requireCondition(ledgerInput.knownFacts.size() == 11, "ledger build should forward parsed facts and add turn-context hints");
+    requireCondition(ledgerInput.knownFacts.size() == 14, "ledger build should forward parsed facts and add turn-context hints");
     requireCondition(
         ledgerInput.knownFacts[1] == "save_headline_parsed:true",
         "ledger build should forward parsed-headline marker");
@@ -91,6 +91,15 @@ int main()
         ledgerInput.knownFacts[10] == "turn_context_month_hint_confidence_percent:80",
         "headline-backed ledger should include explicit month hint confidence");
     requireCondition(
+        ledgerInput.knownFacts[11] == "turn_context_day_hint:1",
+        "headline-backed ledger should include day hint from save date");
+    requireCondition(
+        ledgerInput.knownFacts[12] == "turn_context_day_hint_source:save_date",
+        "headline-backed ledger should mark day hint source");
+    requireCondition(
+        ledgerInput.knownFacts[13] == "turn_context_day_hint_confidence_percent:80",
+        "headline-backed ledger should include explicit day hint confidence");
+    requireCondition(
         ledgerInput.uncertainties.size() == 1,
         "headline-backed ledger should not force metadata-only uncertainty");
 
@@ -112,6 +121,16 @@ int main()
     requireCondition(
         !containsValue(badDateInput.knownFacts, "turn_context_month_hint_source:save_date"),
         "invalid save date should not emit month hint facts");
+    requireCondition(
+        !containsValue(badDateInput.knownFacts, "turn_context_day_hint_source:save_date"),
+        "invalid save date should not emit day hint facts");
+
+    strategic_nexus::SeasonDeltaLedger badDayLedger = ledger;
+    badDayLedger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:0", "save_date:2230.07.xx"};
+    const auto badDayInput = builder.build(badDayLedger, "empire_ledger", "research");
+    requireCondition(
+        containsValue(badDayInput.uncertainties, "headline_save_date_invalid"),
+        "invalid save day should be surfaced as explicit uncertainty");
 
     strategic_nexus::SeasonDeltaLedger metadataOnlyLedger = ledger;
     metadataOnlyLedger.deltaQuality = "metadata_only";
