@@ -272,6 +272,8 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpClientReadinessGateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_readiness_gate_current"
     $compareMpHostNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_next_step_current"
     $compareMpClientNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_next_step_current"
+    $compareMpWarningCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_count_current"
+    $compareMpWarningCountDelta = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_count_delta"
     $compareIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning_code"
     if ([string]::IsNullOrWhiteSpace($compareRecommendation)) {
         throw "Compare output is missing real_session_v0_compare_recommendation."
@@ -301,6 +303,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpClientNextStepCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_client_next_step_current=" + $compareMpClientNextStepCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_warning_count_current=" + $compareMpWarningCountCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountDelta)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_warning_count_delta=" + $compareMpWarningCountDelta)
     }
     foreach ($warningCode in $compareIdentityRiskWarningCodes) {
         Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning_code=" + $warningCode)

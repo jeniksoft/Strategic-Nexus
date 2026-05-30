@@ -55,6 +55,18 @@ function Get-OptionalStringArray {
     return @($result)
 }
 
+function Parse-OptionalInt {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+    $parsed = 0
+    if ([int]::TryParse($Value, [ref]$parsed)) {
+        return $parsed
+    }
+    return $null
+}
+
 $previousSessionDirFull = [System.IO.Path]::GetFullPath($PreviousSessionDir)
 $currentSessionDirFull = [System.IO.Path]::GetFullPath($CurrentSessionDir)
 
@@ -144,6 +156,12 @@ $previousMpIdentityMismatchWarningCodes = @($previousMpIdentityMismatchWarningCo
 $currentMpIdentityMismatchWarningCodes = @($currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $previousMpIdentityMismatchWarningCodesJoined = ($previousMpIdentityMismatchWarningCodes -join "|")
 $currentMpIdentityMismatchWarningCodesJoined = ($currentMpIdentityMismatchWarningCodes -join "|")
+$previousMpWarningCountParsed = Parse-OptionalInt -Value $previousMpWarningCount
+$currentMpWarningCountParsed = Parse-OptionalInt -Value $currentMpWarningCount
+$mpWarningCountDelta = $null
+if ($null -ne $previousMpWarningCountParsed -and $null -ne $currentMpWarningCountParsed) {
+    $mpWarningCountDelta = ($currentMpWarningCountParsed - $previousMpWarningCountParsed)
+}
 $identityRiskWarning = $false
 $identityRiskWarningReason = "none"
 if ($currentMpIdentityMismatchWarning -eq "true") {
@@ -201,6 +219,9 @@ $result = [ordered]@{
         previous = $previousMpWarningCount
         current = $currentMpWarningCount
         changed = ($previousMpWarningCount -ne $currentMpWarningCount)
+        previous_int = $previousMpWarningCountParsed
+        current_int = $currentMpWarningCountParsed
+        delta_int = $mpWarningCountDelta
     }
     mp_host_readiness = [ordered]@{
         previous = $previousMpHostReadiness
@@ -260,6 +281,10 @@ Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHos
 Write-Host ("real_session_v0_compare_mp_client_readiness_gate_current=" + $currentMpClientReadinessGate)
 Write-Host ("real_session_v0_compare_mp_host_next_step_current=" + $currentMpHostNextStep)
 Write-Host ("real_session_v0_compare_mp_client_next_step_current=" + $currentMpClientNextStep)
+Write-Host ("real_session_v0_compare_mp_warning_count_current=" + $currentMpWarningCount)
+if ($null -ne $mpWarningCountDelta) {
+    Write-Host ("real_session_v0_compare_mp_warning_count_delta=" + $mpWarningCountDelta)
+}
 foreach ($warningCode in $currentMpIdentityMismatchWarningCodes) {
     Write-Host ("real_session_v0_compare_identity_risk_warning_code=" + $warningCode)
 }
