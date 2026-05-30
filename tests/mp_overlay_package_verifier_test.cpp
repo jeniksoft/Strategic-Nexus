@@ -139,6 +139,14 @@ int main()
     }
     if (verifyResult.readiness != "ready_for_mp" ||
         verifyResult.statusText.find("readiness: ready_for_mp") == std::string::npos ||
+        verifyResult.statusText.find("host_readiness: ready_for_mp") == std::string::npos ||
+        verifyResult.statusText.find("client_readiness_gate: import_and_verify_before_join") == std::string::npos ||
+        verifyResult.statusText.find("host_next_step: share this package and package_manifest_hash with every joining player") ==
+            std::string::npos ||
+        verifyResult.statusText.find("client_next_step: import package, verify package_manifest_hash, then join lobby") ==
+            std::string::npos ||
+        verifyResult.statusText.find("host_handoff_state: previous host unavailable; manual save recovery may be needed") ==
+            std::string::npos ||
         verifyResult.statusText.find("mp_join_check: every player must use this same package_manifest_hash before joining") ==
             std::string::npos) {
         std::cerr << "verify did not expose MP readiness in copyable status text\n";

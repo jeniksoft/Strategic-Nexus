@@ -152,6 +152,9 @@ std::string buildCopyableStatusText(
     const std::string& packageManifestHash,
     bool previousHostAvailable)
 {
+    const bool handoffComplete = handoffStatus == "complete" && previousHostAvailable;
+    const bool handoffDegraded = handoffStatus == "degraded_previous_host_unavailable" && !previousHostAvailable;
+
     std::ostringstream text;
     text << "Strategic Nexus MP overlay package\n";
     text << "campaign_id: " << campaignId << "\n";
@@ -162,6 +165,17 @@ std::string buildCopyableStatusText(
     text << "readiness: " << readiness << "\n";
     text << "package_manifest_hash: " << packageManifestHash << "\n";
     text << "previous_host_available: " << (previousHostAvailable ? "true" : "false") << "\n";
+    text << "host_readiness: " << readiness << "\n";
+    text << "host_next_step: share this package and package_manifest_hash with every joining player\n";
+    text << "client_readiness_gate: import_and_verify_before_join\n";
+    text << "client_next_step: import package, verify package_manifest_hash, then join lobby\n";
+    if (handoffComplete) {
+        text << "host_handoff_state: previous host package continuity available\n";
+    } else if (handoffDegraded) {
+        text << "host_handoff_state: previous host unavailable; manual save recovery may be needed\n";
+    } else {
+        text << "host_handoff_state: unknown\n";
+    }
     text << "mp_join_check: every player must use this same package_manifest_hash before joining\n";
     return text.str();
 }
