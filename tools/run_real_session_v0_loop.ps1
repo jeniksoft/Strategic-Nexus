@@ -415,6 +415,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpGameVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_game_version_mismatch_warning_current"
     $compareMpGameVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_game_version_mismatch_warning_previous"
     $compareMpGameVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_game_version_mismatch_warning_changed"
+    $compareMpCampaignIdMismatchWarningCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_campaign_id_mismatch_warning_current"
+    $compareMpCampaignIdMismatchWarningPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_campaign_id_mismatch_warning_previous"
+    $compareMpCampaignIdMismatchWarningChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_campaign_id_mismatch_warning_changed"
+    $compareMpOverlayVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_overlay_version_mismatch_warning_current"
+    $compareMpOverlayVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_overlay_version_mismatch_warning_previous"
+    $compareMpOverlayVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_overlay_version_mismatch_warning_changed"
     $compareMpModVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_mod_version_mismatch_warning_current"
     $compareMpModVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_mod_version_mismatch_warning_previous"
     $compareMpModVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_mod_version_mismatch_warning_changed"
@@ -586,6 +592,24 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpGameVersionMismatchWarningChanged)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_game_version_mismatch_warning_changed=" + $compareMpGameVersionMismatchWarningChanged)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpCampaignIdMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_campaign_id_mismatch_warning_current=" + $compareMpCampaignIdMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpCampaignIdMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_campaign_id_mismatch_warning_previous=" + $compareMpCampaignIdMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpCampaignIdMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_campaign_id_mismatch_warning_changed=" + $compareMpCampaignIdMismatchWarningChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpOverlayVersionMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_overlay_version_mismatch_warning_current=" + $compareMpOverlayVersionMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpOverlayVersionMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_overlay_version_mismatch_warning_previous=" + $compareMpOverlayVersionMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpOverlayVersionMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_overlay_version_mismatch_warning_changed=" + $compareMpOverlayVersionMismatchWarningChanged)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpModVersionMismatchWarningCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_mod_version_mismatch_warning_current=" + $compareMpModVersionMismatchWarningCurrent)
     }
@@ -718,6 +742,12 @@ if ($EmitTrendSummary) {
     $trendMpGameVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_game_version_mismatch_warning_current"
     $trendMpGameVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_game_version_mismatch_warning_previous"
     $trendMpGameVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_game_version_mismatch_warning_changed"
+    $trendMpCampaignIdMismatchWarningCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_campaign_id_mismatch_warning_current"
+    $trendMpCampaignIdMismatchWarningPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_campaign_id_mismatch_warning_previous"
+    $trendMpCampaignIdMismatchWarningChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_campaign_id_mismatch_warning_changed"
+    $trendMpOverlayVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_overlay_version_mismatch_warning_current"
+    $trendMpOverlayVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_overlay_version_mismatch_warning_previous"
+    $trendMpOverlayVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_overlay_version_mismatch_warning_changed"
     $trendMpModVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_mod_version_mismatch_warning_current"
     $trendMpModVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_mod_version_mismatch_warning_previous"
     $trendMpModVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_mod_version_mismatch_warning_changed"
@@ -887,6 +917,24 @@ if ($EmitTrendSummary) {
     if (-not [string]::IsNullOrWhiteSpace($trendMpGameVersionMismatchWarningChanged)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_game_version_mismatch_warning_changed=" + $trendMpGameVersionMismatchWarningChanged)
     }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpCampaignIdMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_campaign_id_mismatch_warning_current=" + $trendMpCampaignIdMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpCampaignIdMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_campaign_id_mismatch_warning_previous=" + $trendMpCampaignIdMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpCampaignIdMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_campaign_id_mismatch_warning_changed=" + $trendMpCampaignIdMismatchWarningChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpOverlayVersionMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_overlay_version_mismatch_warning_current=" + $trendMpOverlayVersionMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpOverlayVersionMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_overlay_version_mismatch_warning_previous=" + $trendMpOverlayVersionMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpOverlayVersionMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_overlay_version_mismatch_warning_changed=" + $trendMpOverlayVersionMismatchWarningChanged)
+    }
     if (-not [string]::IsNullOrWhiteSpace($trendMpModVersionMismatchWarningCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_mod_version_mismatch_warning_current=" + $trendMpModVersionMismatchWarningCurrent)
     }
@@ -1024,6 +1072,12 @@ $sessionEvidence = [ordered]@{
             game_version_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningCurrent")
             game_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningPrevious")
             game_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningChanged")
+            campaign_id_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpCampaignIdMismatchWarningCurrent")
+            campaign_id_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpCampaignIdMismatchWarningPrevious")
+            campaign_id_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpCampaignIdMismatchWarningChanged")
+            overlay_version_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpOverlayVersionMismatchWarningCurrent")
+            overlay_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpOverlayVersionMismatchWarningPrevious")
+            overlay_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpOverlayVersionMismatchWarningChanged")
             mod_version_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpModVersionMismatchWarningCurrent")
             mod_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpModVersionMismatchWarningPrevious")
             mod_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpModVersionMismatchWarningChanged")
@@ -1095,6 +1149,12 @@ $sessionEvidence = [ordered]@{
             game_version_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningCurrent")
             game_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningPrevious")
             game_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningChanged")
+            campaign_id_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpCampaignIdMismatchWarningCurrent")
+            campaign_id_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpCampaignIdMismatchWarningPrevious")
+            campaign_id_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpCampaignIdMismatchWarningChanged")
+            overlay_version_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpOverlayVersionMismatchWarningCurrent")
+            overlay_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpOverlayVersionMismatchWarningPrevious")
+            overlay_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpOverlayVersionMismatchWarningChanged")
             mod_version_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpModVersionMismatchWarningCurrent")
             mod_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpModVersionMismatchWarningPrevious")
             mod_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpModVersionMismatchWarningChanged")

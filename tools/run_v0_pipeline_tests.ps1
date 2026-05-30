@@ -1807,6 +1807,12 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_game_version_mismatch_warning_current=true"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_game_version_mismatch_warning_previous=false"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_game_version_mismatch_warning_changed=true"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_campaign_id_mismatch_warning_current=false"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_campaign_id_mismatch_warning_previous=false"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_campaign_id_mismatch_warning_changed=false"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_overlay_version_mismatch_warning_current=false"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_overlay_version_mismatch_warning_previous=true"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_overlay_version_mismatch_warning_changed=true"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_mod_version_mismatch_warning_current=false"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_mod_version_mismatch_warning_previous=false"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_mod_version_mismatch_warning_changed=false"
@@ -1837,6 +1843,12 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_game_version_mismatch_warning_current=true"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_game_version_mismatch_warning_previous=false"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_game_version_mismatch_warning_changed=true"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_campaign_id_mismatch_warning_current=false"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_campaign_id_mismatch_warning_previous=false"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_campaign_id_mismatch_warning_changed=false"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_overlay_version_mismatch_warning_current=false"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_overlay_version_mismatch_warning_previous=true"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_overlay_version_mismatch_warning_changed=true"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_mod_version_mismatch_warning_current=false"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_mod_version_mismatch_warning_previous=false"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_mod_version_mismatch_warning_changed=false"
@@ -1880,9 +1892,13 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
 
     $text = $output -join "`n"
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_game_version_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_campaign_id_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_overlay_version_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_mod_version_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_manifest_hash_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_game_version_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_campaign_id_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_overlay_version_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_mod_version_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_manifest_hash_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_game_version_mismatch_warning="
@@ -1907,6 +1923,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     }
     $evidenceText = Get-Content -Raw -LiteralPath $evidencePath
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"game_version_mismatch_warning_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"campaign_id_mismatch_warning_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"overlay_version_mismatch_warning_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"mod_version_mismatch_warning_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"manifest_hash_mismatch_warning_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"game_version_mismatch_warning"'

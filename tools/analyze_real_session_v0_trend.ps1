@@ -230,6 +230,12 @@ if ($sessionCount -ge 2) {
     $compareMpGameVersionMismatchWarningCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_game_version_mismatch_warning_current=*" } | Select-Object -First 1
     $compareMpGameVersionMismatchWarningPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_game_version_mismatch_warning_previous=*" } | Select-Object -First 1
     $compareMpGameVersionMismatchWarningChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_game_version_mismatch_warning_changed=*" } | Select-Object -First 1
+    $compareMpCampaignIdMismatchWarningCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_campaign_id_mismatch_warning_current=*" } | Select-Object -First 1
+    $compareMpCampaignIdMismatchWarningPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_campaign_id_mismatch_warning_previous=*" } | Select-Object -First 1
+    $compareMpCampaignIdMismatchWarningChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_campaign_id_mismatch_warning_changed=*" } | Select-Object -First 1
+    $compareMpOverlayVersionMismatchWarningCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_overlay_version_mismatch_warning_current=*" } | Select-Object -First 1
+    $compareMpOverlayVersionMismatchWarningPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_overlay_version_mismatch_warning_previous=*" } | Select-Object -First 1
+    $compareMpOverlayVersionMismatchWarningChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_overlay_version_mismatch_warning_changed=*" } | Select-Object -First 1
     $compareMpModVersionMismatchWarningCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mod_version_mismatch_warning_current=*" } | Select-Object -First 1
     $compareMpModVersionMismatchWarningPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mod_version_mismatch_warning_previous=*" } | Select-Object -First 1
     $compareMpModVersionMismatchWarningChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mod_version_mismatch_warning_changed=*" } | Select-Object -First 1
@@ -407,6 +413,24 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpGameVersionMismatchWarningChangedLine)) {
         $latestMpGameVersionMismatchWarningChanged = $compareMpGameVersionMismatchWarningChangedLine.Substring("real_session_v0_compare_mp_game_version_mismatch_warning_changed=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpCampaignIdMismatchWarningCurrentLine)) {
+        $latestMpCampaignIdMismatchWarningCurrent = $compareMpCampaignIdMismatchWarningCurrentLine.Substring("real_session_v0_compare_mp_campaign_id_mismatch_warning_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpCampaignIdMismatchWarningPreviousLine)) {
+        $latestMpCampaignIdMismatchWarningPrevious = $compareMpCampaignIdMismatchWarningPreviousLine.Substring("real_session_v0_compare_mp_campaign_id_mismatch_warning_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpCampaignIdMismatchWarningChangedLine)) {
+        $latestMpCampaignIdMismatchWarningChanged = $compareMpCampaignIdMismatchWarningChangedLine.Substring("real_session_v0_compare_mp_campaign_id_mismatch_warning_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpOverlayVersionMismatchWarningCurrentLine)) {
+        $latestMpOverlayVersionMismatchWarningCurrent = $compareMpOverlayVersionMismatchWarningCurrentLine.Substring("real_session_v0_compare_mp_overlay_version_mismatch_warning_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpOverlayVersionMismatchWarningPreviousLine)) {
+        $latestMpOverlayVersionMismatchWarningPrevious = $compareMpOverlayVersionMismatchWarningPreviousLine.Substring("real_session_v0_compare_mp_overlay_version_mismatch_warning_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpOverlayVersionMismatchWarningChangedLine)) {
+        $latestMpOverlayVersionMismatchWarningChanged = $compareMpOverlayVersionMismatchWarningChangedLine.Substring("real_session_v0_compare_mp_overlay_version_mismatch_warning_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpModVersionMismatchWarningCurrentLine)) {
         $latestMpModVersionMismatchWarningCurrent = $compareMpModVersionMismatchWarningCurrentLine.Substring("real_session_v0_compare_mp_mod_version_mismatch_warning_current=".Length)
     }
@@ -531,6 +555,12 @@ $result = [ordered]@{
         game_version_mismatch_warning_previous = $latestMpGameVersionMismatchWarningPrevious
         game_version_mismatch_warning_current = $latestMpGameVersionMismatchWarningCurrent
         game_version_mismatch_warning_changed = $latestMpGameVersionMismatchWarningChanged
+        campaign_id_mismatch_warning_previous = $latestMpCampaignIdMismatchWarningPrevious
+        campaign_id_mismatch_warning_current = $latestMpCampaignIdMismatchWarningCurrent
+        campaign_id_mismatch_warning_changed = $latestMpCampaignIdMismatchWarningChanged
+        overlay_version_mismatch_warning_previous = $latestMpOverlayVersionMismatchWarningPrevious
+        overlay_version_mismatch_warning_current = $latestMpOverlayVersionMismatchWarningCurrent
+        overlay_version_mismatch_warning_changed = $latestMpOverlayVersionMismatchWarningChanged
         mod_version_mismatch_warning_previous = $latestMpModVersionMismatchWarningPrevious
         mod_version_mismatch_warning_current = $latestMpModVersionMismatchWarningCurrent
         mod_version_mismatch_warning_changed = $latestMpModVersionMismatchWarningChanged
@@ -690,6 +720,24 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpGameVersionMismatchWarningPreviou
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpGameVersionMismatchWarningChanged)) {
     Write-Host ("real_session_v0_trend_mp_game_version_mismatch_warning_changed=" + $latestMpGameVersionMismatchWarningChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpCampaignIdMismatchWarningCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_campaign_id_mismatch_warning_current=" + $latestMpCampaignIdMismatchWarningCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpCampaignIdMismatchWarningPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_campaign_id_mismatch_warning_previous=" + $latestMpCampaignIdMismatchWarningPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpCampaignIdMismatchWarningChanged)) {
+    Write-Host ("real_session_v0_trend_mp_campaign_id_mismatch_warning_changed=" + $latestMpCampaignIdMismatchWarningChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpOverlayVersionMismatchWarningCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_overlay_version_mismatch_warning_current=" + $latestMpOverlayVersionMismatchWarningCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpOverlayVersionMismatchWarningPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_overlay_version_mismatch_warning_previous=" + $latestMpOverlayVersionMismatchWarningPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpOverlayVersionMismatchWarningChanged)) {
+    Write-Host ("real_session_v0_trend_mp_overlay_version_mismatch_warning_changed=" + $latestMpOverlayVersionMismatchWarningChanged)
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpModVersionMismatchWarningCurrent)) {
     Write-Host ("real_session_v0_trend_mp_mod_version_mismatch_warning_current=" + $latestMpModVersionMismatchWarningCurrent)
