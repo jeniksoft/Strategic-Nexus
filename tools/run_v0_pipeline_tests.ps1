@@ -1857,6 +1857,51 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Write-Host "[PASS] real_session_warning_code_drift_surface"
 }
 
+function Invoke-RealSessionLoopMismatchForwardingCase {
+    $saveRoot = Join-Path $repoRoot "dist/test_real_session_loop_saves"
+    $archiveRoot = Join-Path $repoRoot "dist/test_real_session_loop_archive"
+    $dslPath = Join-Path $repoRoot "resources/generated_overlay_valid.dsl"
+    $previousSessionDir = Join-Path $repoRoot "dist/real_session_v0_loop/session_manual_smoke_mp5"
+    $sessionId = "session_test_mismatch_forwarding_" + [DateTime]::UtcNow.ToString("yyyyMMdd_HHmmss")
+
+    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "run_real_session_v0_loop.ps1") `
+        $saveRoot `
+        $archiveRoot `
+        "campaign_001" `
+        "empire_001" `
+        $dslPath `
+        -SessionId $sessionId `
+        -PreviousSessionDirForCompare $previousSessionDir `
+        -EmitTrendSummary `
+        -ExportMpPackage
+    if ($LASTEXITCODE -ne 0) {
+        throw "real session loop mismatch forwarding case failed (exit code $LASTEXITCODE)."
+    }
+
+    $text = $output -join "`n"
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_game_version_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_mod_version_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_manifest_hash_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_game_version_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_mod_version_mismatch_warning_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_manifest_hash_mismatch_warning_current="
+
+    $evidencePathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_evidence_json=*" } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($evidencePathLine)) {
+        throw "real session loop mismatch forwarding case missing evidence path."
+    }
+    $evidencePath = $evidencePathLine.Substring("real_session_v0_loop_evidence_json=".Length)
+    if (-not (Test-Path -LiteralPath $evidencePath)) {
+        throw "real session loop mismatch forwarding evidence json missing: $evidencePath"
+    }
+    $evidenceText = Get-Content -Raw -LiteralPath $evidencePath
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"game_version_mismatch_warning_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"mod_version_mismatch_warning_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"manifest_hash_mismatch_warning_current"'
+
+    Write-Host "[PASS] real_session_loop_mismatch_forwarding"
+}
+
 Invoke-V0PipelineCase `
     -Name "v0_defensive" `
     -InputFixture "resources/ministry_context_military_defensive.json" `
@@ -2161,6 +2206,7 @@ Invoke-AutosaveArchiveCase
 Invoke-AutosaveArchiveVerifyMismatchCase
 Invoke-RealSessionTrendIdentityRiskPriorityCase
 Invoke-RealSessionWarningCodeDriftSurfaceCase
+Invoke-RealSessionLoopMismatchForwardingCase
 
 & $autosaveArchiverExePath
 if ($LASTEXITCODE -ne 0) {
