@@ -362,6 +362,15 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpIdentityMismatchWarningCodesChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_codes_changed"
     $compareMpIdentityMismatchWarningCodesPrevious = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_code_previous"
     $compareMpIdentityMismatchWarningCodesCurrent = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_mp_identity_mismatch_warning_code_current"
+    $compareMpGameVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_game_version_mismatch_warning_current"
+    $compareMpGameVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_game_version_mismatch_warning_previous"
+    $compareMpGameVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_game_version_mismatch_warning_changed"
+    $compareMpModVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_mod_version_mismatch_warning_current"
+    $compareMpModVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_mod_version_mismatch_warning_previous"
+    $compareMpModVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_mod_version_mismatch_warning_changed"
+    $compareMpManifestHashMismatchWarningCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_mismatch_warning_current"
+    $compareMpManifestHashMismatchWarningPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_mismatch_warning_previous"
+    $compareMpManifestHashMismatchWarningChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_mismatch_warning_changed"
     $compareMpManifestHashCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_current"
     $compareMpManifestHashPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_previous"
     $compareMpManifestHashChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_changed"
@@ -518,6 +527,33 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpIdentityMismatchWarningCodesChanged)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_identity_mismatch_warning_codes_changed=" + $compareMpIdentityMismatchWarningCodesChanged)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpGameVersionMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_game_version_mismatch_warning_current=" + $compareMpGameVersionMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpGameVersionMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_game_version_mismatch_warning_previous=" + $compareMpGameVersionMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpGameVersionMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_game_version_mismatch_warning_changed=" + $compareMpGameVersionMismatchWarningChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpModVersionMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_mod_version_mismatch_warning_current=" + $compareMpModVersionMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpModVersionMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_mod_version_mismatch_warning_previous=" + $compareMpModVersionMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpModVersionMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_mod_version_mismatch_warning_changed=" + $compareMpModVersionMismatchWarningChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_mismatch_warning_current=" + $compareMpManifestHashMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_mismatch_warning_previous=" + $compareMpManifestHashMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_mismatch_warning_changed=" + $compareMpManifestHashMismatchWarningChanged)
+    }
     foreach ($warningCode in $compareMpWarningCodesPrevious) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_warning_code_previous=" + $warningCode)
     }
@@ -624,6 +660,15 @@ if ($EmitTrendSummary) {
     $trendMpIdentityMismatchWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_codes_changed"
     $trendMpIdentityMismatchWarningCodesPrevious = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_code_previous"
     $trendMpIdentityMismatchWarningCodesCurrent = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_identity_mismatch_warning_code_current"
+    $trendMpGameVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_game_version_mismatch_warning_current"
+    $trendMpGameVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_game_version_mismatch_warning_previous"
+    $trendMpGameVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_game_version_mismatch_warning_changed"
+    $trendMpModVersionMismatchWarningCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_mod_version_mismatch_warning_current"
+    $trendMpModVersionMismatchWarningPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_mod_version_mismatch_warning_previous"
+    $trendMpModVersionMismatchWarningChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_mod_version_mismatch_warning_changed"
+    $trendMpManifestHashMismatchWarningCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_mismatch_warning_current"
+    $trendMpManifestHashMismatchWarningPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_mismatch_warning_previous"
+    $trendMpManifestHashMismatchWarningChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_mismatch_warning_changed"
     $trendLatestCompareCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_latest_compare_command_hint"
     $trendNextSessionCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_session_command_hint"
     $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
@@ -778,6 +823,33 @@ if ($EmitTrendSummary) {
     if (-not [string]::IsNullOrWhiteSpace($trendMpIdentityMismatchWarningCodesChanged)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_identity_mismatch_warning_codes_changed=" + $trendMpIdentityMismatchWarningCodesChanged)
     }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpGameVersionMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_game_version_mismatch_warning_current=" + $trendMpGameVersionMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpGameVersionMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_game_version_mismatch_warning_previous=" + $trendMpGameVersionMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpGameVersionMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_game_version_mismatch_warning_changed=" + $trendMpGameVersionMismatchWarningChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpModVersionMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_mod_version_mismatch_warning_current=" + $trendMpModVersionMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpModVersionMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_mod_version_mismatch_warning_previous=" + $trendMpModVersionMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpModVersionMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_mod_version_mismatch_warning_changed=" + $trendMpModVersionMismatchWarningChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpManifestHashMismatchWarningCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_manifest_hash_mismatch_warning_current=" + $trendMpManifestHashMismatchWarningCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpManifestHashMismatchWarningPrevious)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_manifest_hash_mismatch_warning_previous=" + $trendMpManifestHashMismatchWarningPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpManifestHashMismatchWarningChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_manifest_hash_mismatch_warning_changed=" + $trendMpManifestHashMismatchWarningChanged)
+    }
     foreach ($warningCode in $trendMpIdentityMismatchWarningCodesPrevious) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_identity_mismatch_warning_code_previous=" + $warningCode)
     }
@@ -886,6 +958,15 @@ $sessionEvidence = [ordered]@{
             identity_mismatch_warning_codes_changed = (Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningCodesChanged")
             identity_mismatch_warning_codes_current = @((Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningCodesCurrent"))
             identity_mismatch_warning_codes_previous = @((Get-VariableOrDefault -Name "compareMpIdentityMismatchWarningCodesPrevious"))
+            game_version_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningCurrent")
+            game_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningPrevious")
+            game_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpGameVersionMismatchWarningChanged")
+            mod_version_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpModVersionMismatchWarningCurrent")
+            mod_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpModVersionMismatchWarningPrevious")
+            mod_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpModVersionMismatchWarningChanged")
+            manifest_hash_mismatch_warning_current = (Get-VariableOrDefault -Name "compareMpManifestHashMismatchWarningCurrent")
+            manifest_hash_mismatch_warning_previous = (Get-VariableOrDefault -Name "compareMpManifestHashMismatchWarningPrevious")
+            manifest_hash_mismatch_warning_changed = (Get-VariableOrDefault -Name "compareMpManifestHashMismatchWarningChanged")
         }
     }
     auto_trend = [ordered]@{
@@ -948,6 +1029,15 @@ $sessionEvidence = [ordered]@{
             identity_mismatch_warning_codes_changed = (Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningCodesChanged")
             identity_mismatch_warning_codes_current = @((Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningCodesCurrent"))
             identity_mismatch_warning_codes_previous = @((Get-VariableOrDefault -Name "trendMpIdentityMismatchWarningCodesPrevious"))
+            game_version_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningCurrent")
+            game_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningPrevious")
+            game_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpGameVersionMismatchWarningChanged")
+            mod_version_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpModVersionMismatchWarningCurrent")
+            mod_version_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpModVersionMismatchWarningPrevious")
+            mod_version_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpModVersionMismatchWarningChanged")
+            manifest_hash_mismatch_warning_current = (Get-VariableOrDefault -Name "trendMpManifestHashMismatchWarningCurrent")
+            manifest_hash_mismatch_warning_previous = (Get-VariableOrDefault -Name "trendMpManifestHashMismatchWarningPrevious")
+            manifest_hash_mismatch_warning_changed = (Get-VariableOrDefault -Name "trendMpManifestHashMismatchWarningChanged")
         }
     }
 }
