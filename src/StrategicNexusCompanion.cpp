@@ -724,6 +724,7 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.statusText.empty()) {
         text << "mp_overlay_package_status_text: " << mpOverlayPackage.statusText << "\n";
     }
+    text << "mp_warning_count: " << mpOverlayPackage.warningCodes.size() << "\n";
     for (const auto& warningCode : mpOverlayPackage.warningCodes) {
         text << "mp_warning_code: " << warningCode << "\n";
     }

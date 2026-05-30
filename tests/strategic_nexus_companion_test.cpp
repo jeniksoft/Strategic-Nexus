@@ -364,6 +364,9 @@ int main()
     requireCondition(
         missingMpPackage.statusCenterSummaryText.find("mp_warning_code: mp overlay package directory missing") != std::string::npos,
         "status center summary should include structured MP warning code");
+    requireCondition(
+        missingMpPackage.statusCenterSummaryText.find("mp_warning_count: 1") != std::string::npos,
+        "status center summary should include MP warning count");
 
     writeTextFileAtomically(
         mpPackageRoot / "events/strategic_nexus_generated_events.txt",
@@ -387,6 +390,9 @@ int main()
     requireCondition(
         tamperedMpPackage.statusCenterSummaryText.find("mp_warning_code: mp_overlay_package_files_mismatch_manifest") != std::string::npos,
         "status center summary should include structured mismatch warning code");
+    requireCondition(
+        tamperedMpPackage.statusCenterSummaryText.find("mp_warning_count: 1") != std::string::npos,
+        "status center summary should include mismatch warning count");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
@@ -425,6 +431,7 @@ int main()
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
     requireCondition(json.find("generated_at_local: ") != std::string::npos, "status center summary should include generated_at_local timestamp");
+    requireCondition(json.find("mp_warning_count: 0") != std::string::npos, "ready status center summary should include zero MP warning count");
 
     const auto gameplayAcceptanceReport = root / "gameplay_acceptance_v0.json";
     {
