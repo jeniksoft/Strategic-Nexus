@@ -173,6 +173,12 @@ std::string buildCopyableStatusText(
     text << "verify_command: Strategic Nexus.exe --verify-mp-overlay-package \"" << packageDirectory.generic_string() << "\"\n";
     text << "import_command: Strategic Nexus.exe --import-mp-overlay-package \"" << packageDirectory.generic_string()
          << "\" <target_overlay_dir>\n";
+    text << "strict_verify_command: Strategic Nexus.exe --verify-mp-overlay-package \"" << packageDirectory.generic_string()
+         << "\" " << campaignId << " " << overlayVersion << " " << gameVersion << " " << strategicNexusModVersion << " "
+         << packageManifestHash << "\n";
+    text << "strict_import_command: Strategic Nexus.exe --import-mp-overlay-package \"" << packageDirectory.generic_string()
+         << "\" <target_overlay_dir> " << campaignId << " " << overlayVersion << " " << gameVersion << " "
+         << strategicNexusModVersion << " " << packageManifestHash << "\n";
     if (handoffComplete) {
         text << "host_handoff_state: previous host package continuity available\n";
     } else if (handoffDegraded) {

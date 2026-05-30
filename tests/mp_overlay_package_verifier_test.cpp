@@ -145,6 +145,10 @@ int main()
             std::string::npos ||
         verifyResult.statusText.find("import_command: Strategic Nexus.exe --import-mp-overlay-package \"dist/mp_overlay_package_test_package\" <target_overlay_dir>") ==
             std::string::npos ||
+        verifyResult.statusText.find("strict_verify_command: Strategic Nexus.exe --verify-mp-overlay-package \"dist/mp_overlay_package_test_package\" campaign_mp_001 overlay_v1 stellaris_4.x strategic_nexus_v0 ") ==
+            std::string::npos ||
+        verifyResult.statusText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package \"dist/mp_overlay_package_test_package\" <target_overlay_dir> campaign_mp_001 overlay_v1 stellaris_4.x strategic_nexus_v0 ") ==
+            std::string::npos ||
         verifyResult.statusText.find("host_next_step: share this package and package_manifest_hash with every joining player") ==
             std::string::npos ||
         verifyResult.statusText.find("client_next_step: import package, verify package_manifest_hash, then join lobby") ==

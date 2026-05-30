@@ -174,6 +174,12 @@ int main()
     requireCondition(
         ready.mpOverlayPackage.statusText.find("client_readiness_gate: import_and_verify_before_join") != std::string::npos,
         "mp overlay package status text should include client readiness gate");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("strict_verify_command: Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
+        "mp overlay package status text should include strict verify command");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
+        "mp overlay package status text should include strict import command");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
     requireCondition(
         ready.statusCenterSummaryText.find("stav: starting - waiting for archive to become ready") != std::string::npos,
@@ -211,6 +217,12 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("client_readiness_gate: import_and_verify_before_join") != std::string::npos,
         "status center summary should include client readiness gate text");
+    requireCondition(
+        ready.statusCenterSummaryText.find("strict_verify_command: Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
+        "status center summary should include strict verify command text");
+    requireCondition(
+        ready.statusCenterSummaryText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
+        "status center summary should include strict import command text");
     requireCondition(
         ready.statusCenterSummaryText.find("gameplay_acceptance: starting - gameplay acceptance pending") != std::string::npos,
         "status center summary should include gameplay acceptance pending state");
