@@ -1768,6 +1768,8 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Remove-Item -LiteralPath $trendRoot -Recurse -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force -Path (Join-Path $trendRoot "session_a/work") | Out-Null
     New-Item -ItemType Directory -Force -Path (Join-Path $trendRoot "session_b/work") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $trendRoot "session_a/mp_overlay_package") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $trendRoot "session_b/mp_overlay_package") | Out-Null
 
     Copy-Item -LiteralPath (Join-Path $prevDir "snc_status_snapshot.json") -Destination (Join-Path $trendRoot "session_a/snc_status_snapshot.json")
     Copy-Item -LiteralPath (Join-Path $prevDir "snc_status_snapshot_with_mp.json") -Destination (Join-Path $trendRoot "session_a/snc_status_snapshot_with_mp.json")
@@ -1800,6 +1802,7 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_warning_codes_changed=true"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_warning_code_previous=package_overlay_version_mismatch"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_warning_code_current=package_game_version_mismatch"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_package_output_dir_changed=true"
 
     $trendOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1") $trendRoot $trendOutputPath
     if ($LASTEXITCODE -ne 0) {
@@ -1809,6 +1812,7 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_warning_codes_changed=true"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_warning_code_previous=package_overlay_version_mismatch"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_warning_code_current=package_game_version_mismatch"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_package_output_dir_changed=true"
 
     Write-Host "[PASS] real_session_warning_code_drift_surface"
 }

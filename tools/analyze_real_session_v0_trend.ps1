@@ -100,6 +100,9 @@ $latestMpWarningCodesChanged = ""
 $latestMpManifestHashCurrent = ""
 $latestMpManifestHashPrevious = ""
 $latestMpManifestHashChanged = ""
+$latestMpPackageOutputDirCurrent = ""
+$latestMpPackageOutputDirPrevious = ""
+$latestMpPackageOutputDirChanged = ""
 $latestMpWarningCodesPrevious = @()
 $latestMpWarningCodesCurrent = @()
 $latestMpHostReadinessCurrent = ""
@@ -152,6 +155,9 @@ if ($sessionCount -ge 2) {
     $compareMpManifestHashCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_current=*" } | Select-Object -First 1
     $compareMpManifestHashPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_previous=*" } | Select-Object -First 1
     $compareMpManifestHashChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_changed=*" } | Select-Object -First 1
+    $compareMpPackageOutputDirCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_output_dir_current=*" } | Select-Object -First 1
+    $compareMpPackageOutputDirPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_output_dir_previous=*" } | Select-Object -First 1
+    $compareMpPackageOutputDirChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_output_dir_changed=*" } | Select-Object -First 1
     $latestMpWarningCodesCurrent = @(
         $compareLines |
             Where-Object { $_ -like "real_session_v0_compare_mp_warning_code_current=*" } |
@@ -226,6 +232,15 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashChangedLine)) {
         $latestMpManifestHashChanged = $compareMpManifestHashChangedLine.Substring("real_session_v0_compare_mp_manifest_hash_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageOutputDirCurrentLine)) {
+        $latestMpPackageOutputDirCurrent = $compareMpPackageOutputDirCurrentLine.Substring("real_session_v0_compare_mp_package_output_dir_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageOutputDirPreviousLine)) {
+        $latestMpPackageOutputDirPrevious = $compareMpPackageOutputDirPreviousLine.Substring("real_session_v0_compare_mp_package_output_dir_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageOutputDirChangedLine)) {
+        $latestMpPackageOutputDirChanged = $compareMpPackageOutputDirChangedLine.Substring("real_session_v0_compare_mp_package_output_dir_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrentLine)) {
         $latestMpHostReadinessCurrent = $compareMpHostReadinessCurrentLine.Substring("real_session_v0_compare_mp_host_readiness_current=".Length)
@@ -359,6 +374,9 @@ $result = [ordered]@{
         hash_previous = $latestMpManifestHashPrevious
         hash_current = $latestMpManifestHashCurrent
         hash_changed = $latestMpManifestHashChanged
+        package_output_dir_previous = $latestMpPackageOutputDirPrevious
+        package_output_dir_current = $latestMpPackageOutputDirCurrent
+        package_output_dir_changed = $latestMpPackageOutputDirChanged
     }
     latest_mp_readiness = [ordered]@{
         host_readiness_previous = $latestMpHostReadinessPrevious
@@ -421,6 +439,15 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashPrevious)) {
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashChanged)) {
     Write-Host ("real_session_v0_trend_mp_manifest_hash_changed=" + $latestMpManifestHashChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageOutputDirCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_package_output_dir_current=" + $latestMpPackageOutputDirCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageOutputDirPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_package_output_dir_previous=" + $latestMpPackageOutputDirPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageOutputDirChanged)) {
+    Write-Host ("real_session_v0_trend_mp_package_output_dir_changed=" + $latestMpPackageOutputDirChanged)
 }
 foreach ($warningCode in $latestMpWarningCodesCurrent) {
     Write-Host ("real_session_v0_trend_mp_warning_code_current=" + $warningCode)

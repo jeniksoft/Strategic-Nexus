@@ -111,6 +111,8 @@ if ($null -ne $currentStatus.gameplay_acceptance_status -and $null -ne $currentS
 
 $previousMpManifestHash = ""
 $currentMpManifestHash = ""
+$previousMpPackageOutputDir = ""
+$currentMpPackageOutputDir = ""
 $previousMpReadiness = ""
 $currentMpReadiness = ""
 $previousMpWarningCount = ""
@@ -139,6 +141,10 @@ $previousMpIdentityMismatchWarningCodes = @()
 $currentMpIdentityMismatchWarningCodes = @()
 if (Test-Path -LiteralPath $previousStatusWithMpPath) {
     $previousStatusWithMp = Read-JsonFile -Path $previousStatusWithMpPath
+    $previousMpPackageOutputDirCandidate = Join-Path $previousSessionDirFull "mp_overlay_package"
+    if (Test-Path -LiteralPath $previousMpPackageOutputDirCandidate) {
+        $previousMpPackageOutputDir = [System.IO.Path]::GetFullPath($previousMpPackageOutputDirCandidate)
+    }
     if ($null -ne $previousStatusWithMp.mp_overlay_package_status) {
         $previousMpManifestHash = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "package_manifest_hash"
         $previousMpReadiness = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "readiness"
@@ -158,6 +164,10 @@ if (Test-Path -LiteralPath $previousStatusWithMpPath) {
 }
 if (Test-Path -LiteralPath $currentStatusWithMpPath) {
     $currentStatusWithMp = Read-JsonFile -Path $currentStatusWithMpPath
+    $currentMpPackageOutputDirCandidate = Join-Path $currentSessionDirFull "mp_overlay_package"
+    if (Test-Path -LiteralPath $currentMpPackageOutputDirCandidate) {
+        $currentMpPackageOutputDir = [System.IO.Path]::GetFullPath($currentMpPackageOutputDirCandidate)
+    }
     if ($null -ne $currentStatusWithMp.mp_overlay_package_status) {
         $currentMpManifestHash = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "package_manifest_hash"
         $currentMpReadiness = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "readiness"
@@ -254,6 +264,11 @@ $result = [ordered]@{
         previous = $previousMpManifestHash
         current = $currentMpManifestHash
         changed = ($previousMpManifestHash -ne $currentMpManifestHash)
+    }
+    mp_package_output_dir = [ordered]@{
+        previous = $previousMpPackageOutputDir
+        current = $currentMpPackageOutputDir
+        changed = ($previousMpPackageOutputDir -ne $currentMpPackageOutputDir)
     }
     mp_package_readiness = [ordered]@{
         previous = $previousMpReadiness
@@ -382,6 +397,9 @@ Write-Host ("real_session_v0_compare_mp_strict_import_command_changed=" + ((($pr
 Write-Host ("real_session_v0_compare_mp_manifest_hash_current=" + $currentMpManifestHash)
 Write-Host ("real_session_v0_compare_mp_manifest_hash_previous=" + $previousMpManifestHash)
 Write-Host ("real_session_v0_compare_mp_manifest_hash_changed=" + ((($previousMpManifestHash -ne $currentMpManifestHash).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_package_output_dir_current=" + $currentMpPackageOutputDir)
+Write-Host ("real_session_v0_compare_mp_package_output_dir_previous=" + $previousMpPackageOutputDir)
+Write-Host ("real_session_v0_compare_mp_package_output_dir_changed=" + ((($previousMpPackageOutputDir -ne $currentMpPackageOutputDir).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_warning_count_current=" + $currentMpWarningCount)
 if ($null -ne $mpWarningCountDelta) {
     Write-Host ("real_session_v0_compare_mp_warning_count_delta=" + $mpWarningCountDelta)

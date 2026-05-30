@@ -334,6 +334,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpManifestHashCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_current"
     $compareMpManifestHashPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_previous"
     $compareMpManifestHashChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_changed"
+    $compareMpPackageOutputDirCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_output_dir_current"
+    $compareMpPackageOutputDirPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_output_dir_previous"
+    $compareMpPackageOutputDirChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_output_dir_changed"
     $compareMpWarningCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_count_current"
     $compareMpWarningCountDelta = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_count_delta"
     $compareMpWarningCodesChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_codes_changed"
@@ -448,6 +451,15 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_previous=" + $compareMpManifestHashPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_current=" + $compareMpManifestHashCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_changed=" + $compareMpManifestHashChanged)
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageOutputDirPrevious)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_package_output_dir_previous=" + $compareMpPackageOutputDirPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageOutputDirCurrent)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_package_output_dir_current=" + $compareMpPackageOutputDirCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageOutputDirChanged)) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_package_output_dir_changed=" + $compareMpPackageOutputDirChanged)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_warning_count_current=" + $compareMpWarningCountCurrent)
     }
@@ -516,6 +528,9 @@ if ($EmitTrendSummary) {
     $trendMpManifestHashCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_current"
     $trendMpManifestHashPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_previous"
     $trendMpManifestHashChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_changed"
+    $trendMpPackageOutputDirCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_output_dir_current"
+    $trendMpPackageOutputDirPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_output_dir_previous"
+    $trendMpPackageOutputDirChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_output_dir_changed"
     $trendMpWarningCodesPrevious = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_warning_code_previous"
     $trendMpWarningCodesCurrent = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_warning_code_current"
     $trendMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_readiness_current"
@@ -585,6 +600,15 @@ if ($EmitTrendSummary) {
     }
     if (-not [string]::IsNullOrWhiteSpace($trendMpManifestHashChanged)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_manifest_hash_changed=" + $trendMpManifestHashChanged)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpPackageOutputDirPrevious)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_package_output_dir_previous=" + $trendMpPackageOutputDirPrevious)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpPackageOutputDirCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_package_output_dir_current=" + $trendMpPackageOutputDirCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpPackageOutputDirChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_package_output_dir_changed=" + $trendMpPackageOutputDirChanged)
     }
     foreach ($warningCode in $trendMpWarningCodesPrevious) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_code_previous=" + $warningCode)
