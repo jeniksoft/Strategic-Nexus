@@ -94,6 +94,8 @@ $latestIdentityRiskWarningReason = "need_more_real_sessions"
 $latestIdentityRiskWarningCodes = @()
 $latestMpWarningCountCurrent = ""
 $latestMpWarningCountDelta = ""
+$latestMpManifestHashCurrent = ""
+$latestMpManifestHashChanged = ""
 $latestMpWarningCodesCurrent = @()
 $latestMpHostReadinessCurrent = ""
 $latestMpClientReadinessGateCurrent = ""
@@ -135,6 +137,8 @@ if ($sessionCount -ge 2) {
     $compareIdentityRiskWarningReasonLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning_reason=*" } | Select-Object -First 1
     $compareMpWarningCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_current=*" } | Select-Object -First 1
     $compareMpWarningCountDeltaLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_delta=*" } | Select-Object -First 1
+    $compareMpManifestHashCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_current=*" } | Select-Object -First 1
+    $compareMpManifestHashChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_changed=*" } | Select-Object -First 1
     $latestMpWarningCodesCurrent = @(
         $compareLines |
             Where-Object { $_ -like "real_session_v0_compare_mp_warning_code_current=*" } |
@@ -164,6 +168,12 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountDeltaLine)) {
         $latestMpWarningCountDelta = $compareMpWarningCountDeltaLine.Substring("real_session_v0_compare_mp_warning_count_delta=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashCurrentLine)) {
+        $latestMpManifestHashCurrent = $compareMpManifestHashCurrentLine.Substring("real_session_v0_compare_mp_manifest_hash_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashChangedLine)) {
+        $latestMpManifestHashChanged = $compareMpManifestHashChangedLine.Substring("real_session_v0_compare_mp_manifest_hash_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrentLine)) {
         $latestMpHostReadinessCurrent = $compareMpHostReadinessCurrentLine.Substring("real_session_v0_compare_mp_host_readiness_current=".Length)
@@ -227,6 +237,10 @@ $result = [ordered]@{
         delta = $latestMpWarningCountDelta
         warning_codes_current = $latestMpWarningCodesCurrent
     }
+    latest_mp_manifest = [ordered]@{
+        hash_current = $latestMpManifestHashCurrent
+        hash_changed = $latestMpManifestHashChanged
+    }
     latest_mp_readiness = [ordered]@{
         host_readiness_current = $latestMpHostReadinessCurrent
         client_readiness_gate_current = $latestMpClientReadinessGateCurrent
@@ -257,6 +271,12 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpWarningCountCurrent)) {
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpWarningCountDelta)) {
     Write-Host ("real_session_v0_trend_mp_warning_count_delta=" + $latestMpWarningCountDelta)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_manifest_hash_current=" + $latestMpManifestHashCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashChanged)) {
+    Write-Host ("real_session_v0_trend_mp_manifest_hash_changed=" + $latestMpManifestHashChanged)
 }
 foreach ($warningCode in $latestMpWarningCodesCurrent) {
     Write-Host ("real_session_v0_trend_mp_warning_code_current=" + $warningCode)

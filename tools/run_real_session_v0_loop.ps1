@@ -379,6 +379,8 @@ if ($EmitTrendSummary) {
     $trendIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_reason"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
+    $trendMpManifestHashCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_current"
+    $trendMpManifestHashChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_changed"
     $trendMpWarningCodesCurrent = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_warning_code_current"
     $trendMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_readiness_current"
     $trendMpClientReadinessGateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_readiness_gate_current"
@@ -405,6 +407,12 @@ if ($EmitTrendSummary) {
     }
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountDelta)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_delta=" + $trendMpWarningCountDelta)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpManifestHashCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_manifest_hash_current=" + $trendMpManifestHashCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpManifestHashChanged)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_manifest_hash_changed=" + $trendMpManifestHashChanged)
     }
     foreach ($warningCode in $trendMpWarningCodesCurrent) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_code_current=" + $warningCode)
