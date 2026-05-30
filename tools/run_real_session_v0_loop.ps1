@@ -60,6 +60,7 @@ if ([string]::IsNullOrWhiteSpace($OverlayOutputDir)) {
 if ([string]::IsNullOrWhiteSpace($StatusOutputJson)) {
     $StatusOutputJson = Join-Path $defaultRunRoot "snc_status_snapshot.json"
 }
+$statusWithMpOutputJson = Join-Path $defaultRunRoot "snc_status_snapshot_with_mp.json"
 if ([string]::IsNullOrWhiteSpace($MpPackageOutputDir)) {
     $MpPackageOutputDir = Join-Path $defaultRunRoot "mp_overlay_package"
 }
@@ -75,6 +76,7 @@ $dslInputFull = [System.IO.Path]::GetFullPath($DslInput)
 $workDirFull = [System.IO.Path]::GetFullPath($WorkDir)
 $overlayOutputDirFull = [System.IO.Path]::GetFullPath($OverlayOutputDir)
 $statusOutputJsonFull = [System.IO.Path]::GetFullPath($StatusOutputJson)
+$statusWithMpOutputJsonFull = [System.IO.Path]::GetFullPath($statusWithMpOutputJson)
 $mpPackageOutputDirFull = [System.IO.Path]::GetFullPath($MpPackageOutputDir)
 $sessionArchiveDir = Join-Path $archiveRootFull $SessionId
 $archiveSummaryPath = Join-Path $workDirFull "archive_summary.json"
@@ -95,6 +97,7 @@ New-Item -ItemType Directory -Force -Path $overlayOutputDirFull | Out-Null
 
 Remove-Item -LiteralPath $archiveSummaryPath -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $statusOutputJsonFull -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $statusWithMpOutputJsonFull -Force -ErrorAction SilentlyContinue
 
 Write-Host "==> archive stable saves"
 & $exe --archive-stable-saves $saveRootFull $archiveRootFull $SessionId $StabilityDelayMs
@@ -113,6 +116,7 @@ Write-Host "==> run offline spine"
 Assert-LastExitCodeOk -StepName "run offline spine"
 
 $mpExportReadiness = ""
+$sncStatusWithMpReadiness = ""
 if ($ExportMpPackage) {
     if (Test-Path -LiteralPath $mpPackageOutputDirFull) {
         throw "MpPackageOutputDir must not already exist: $mpPackageOutputDirFull"
@@ -133,6 +137,19 @@ if ($ExportMpPackage) {
     if ($mpExportReadiness -ne "ready_for_mp") {
         throw "MP package export readiness is '$mpExportReadiness' instead of ready_for_mp."
     }
+
+    Write-Host "==> refresh snc status snapshot with mp package visibility"
+    & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false
+    Assert-LastExitCodeOk -StepName "snc status snapshot with mp package"
+    if (-not (Test-Path -LiteralPath $statusWithMpOutputJsonFull)) {
+        throw "Missing SNC MP status snapshot output: $statusWithMpOutputJsonFull"
+    }
+
+    $statusWithMpText = Get-Content -Raw -LiteralPath $statusWithMpOutputJsonFull
+    if ($statusWithMpText -notmatch '"readiness"\s*:\s*"ready_for_mp"') {
+        throw "SNC MP status snapshot is missing mp overlay package readiness=ready_for_mp."
+    }
+    $sncStatusWithMpReadiness = "ready_for_mp"
 }
 
 if (-not (Test-Path -LiteralPath $statusOutputJsonFull)) {
@@ -156,5 +173,7 @@ Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull
 if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_output_dir=" + $mpPackageOutputDirFull)
     Write-Host ("real_session_v0_loop_mp_package_readiness=" + $mpExportReadiness)
+    Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpOutputJsonFull)
+    Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
 }
 exit 0
