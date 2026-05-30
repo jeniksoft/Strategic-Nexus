@@ -116,6 +116,40 @@ std::string readStatusTextField(const std::string& statusText, const std::string
     return std::string();
 }
 
+std::vector<std::string> readStatusTextFields(const std::string& statusText, const std::string& key)
+{
+    std::vector<std::string> values;
+    if (key.empty()) {
+        return values;
+    }
+
+    const std::string needle = key + ":";
+    std::istringstream stream(statusText);
+    std::set<std::string> seen;
+    std::string line;
+    while (std::getline(stream, line)) {
+        if (line.rfind(needle, 0) != 0) {
+            continue;
+        }
+
+        std::string value = line.substr(needle.size());
+        const auto first = value.find_first_not_of(" \t");
+        if (first == std::string::npos) {
+            continue;
+        }
+        value.erase(0, first);
+        const auto last = value.find_last_not_of(" \t\r");
+        if (last != std::string::npos) {
+            value.erase(last + 1);
+        }
+        if (!value.empty() && seen.insert(value).second) {
+            values.push_back(value);
+        }
+    }
+
+    return values;
+}
+
 bool parseLatestArchivedSaveHeadline(
     const AutosaveArchiveSummary& summary,
     SaveParserSummary& outSummary)
@@ -1173,10 +1207,12 @@ int Application::run(const RunConfig& config) const
                     std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
                 }
             } else {
-                const auto mpWarningCode = readStatusTextField(snapshot.mpOverlayPackage.statusText, "warning_code");
-                if (!mpWarningCode.empty()) {
-                    std::cout << "snc_mp_overlay_package_warning_count=1\n";
-                    std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(mpWarningCode) << "\n";
+                const auto mpWarningCodes = readStatusTextFields(snapshot.mpOverlayPackage.statusText, "warning_code");
+                if (!mpWarningCodes.empty()) {
+                    std::cout << "snc_mp_overlay_package_warning_count=" << mpWarningCodes.size() << "\n";
+                    for (const auto& warningCode : mpWarningCodes) {
+                        std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
+                    }
                 }
             }
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
