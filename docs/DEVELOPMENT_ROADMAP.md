@@ -825,6 +825,7 @@ SNC snapshot JSON and `--snc-status-snapshot` CLI output now expose structured `
 `--verify-mp-overlay-package` and `--import-mp-overlay-package` CLI outputs now also expose structured host/client readiness fields (`*_host_readiness`, `*_client_readiness_gate`) parsed from package status text, so release-companion import/verify UX can read readiness gates from stable CLI keys.
 SNC snapshot JSON, Status Center summary text, and `--snc-status-snapshot` CLI output now expose explicit identity-mismatch signal fields (`identity_mismatch_warning`, `identity_mismatch_warning_codes`) so release-companion flows can surface campaign/version/hash mismatch risk without reparsing generic failure reasons.
 `--verify-mp-overlay-package` and `--import-mp-overlay-package` CLI outputs now also emit explicit identity-mismatch signal fields (`*_identity_mismatch_warning`, `*_identity_mismatch_warning_code`) so release-companion import/verify UX can surface mismatch risk from stable keys instead of inferring it from generic warning lists.
+`--verify-mp-overlay-package` and `--import-mp-overlay-package` CLI outputs now also emit structured host/client next-step fields (`*_host_next_step`, `*_client_next_step`) parsed from package status text; SNC snapshot JSON/CLI now includes `host_next_step` and `client_next_step` so release-companion UX can consume actionable MP guidance without parsing free-form status blobs.
 
 Next worker-ready slice:
 
