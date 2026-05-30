@@ -95,6 +95,7 @@ $latestIdentityRiskWarningCodes = @()
 $latestMpWarningCountCurrent = ""
 $latestMpWarningCountDelta = ""
 $latestMpManifestHashCurrent = ""
+$latestMpManifestHashPrevious = ""
 $latestMpManifestHashChanged = ""
 $latestMpWarningCodesCurrent = @()
 $latestMpHostReadinessCurrent = ""
@@ -138,6 +139,7 @@ if ($sessionCount -ge 2) {
     $compareMpWarningCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_current=*" } | Select-Object -First 1
     $compareMpWarningCountDeltaLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_delta=*" } | Select-Object -First 1
     $compareMpManifestHashCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_current=*" } | Select-Object -First 1
+    $compareMpManifestHashPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_previous=*" } | Select-Object -First 1
     $compareMpManifestHashChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_changed=*" } | Select-Object -First 1
     $latestMpWarningCodesCurrent = @(
         $compareLines |
@@ -171,6 +173,9 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashCurrentLine)) {
         $latestMpManifestHashCurrent = $compareMpManifestHashCurrentLine.Substring("real_session_v0_compare_mp_manifest_hash_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashPreviousLine)) {
+        $latestMpManifestHashPrevious = $compareMpManifestHashPreviousLine.Substring("real_session_v0_compare_mp_manifest_hash_previous=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashChangedLine)) {
         $latestMpManifestHashChanged = $compareMpManifestHashChangedLine.Substring("real_session_v0_compare_mp_manifest_hash_changed=".Length)
@@ -238,6 +243,7 @@ $result = [ordered]@{
         warning_codes_current = $latestMpWarningCodesCurrent
     }
     latest_mp_manifest = [ordered]@{
+        hash_previous = $latestMpManifestHashPrevious
         hash_current = $latestMpManifestHashCurrent
         hash_changed = $latestMpManifestHashChanged
     }
@@ -274,6 +280,9 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpWarningCountDelta)) {
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashCurrent)) {
     Write-Host ("real_session_v0_trend_mp_manifest_hash_current=" + $latestMpManifestHashCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_manifest_hash_previous=" + $latestMpManifestHashPrevious)
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashChanged)) {
     Write-Host ("real_session_v0_trend_mp_manifest_hash_changed=" + $latestMpManifestHashChanged)
