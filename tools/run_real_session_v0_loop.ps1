@@ -345,12 +345,24 @@ if ($EmitTrendSummary) {
     $trendOutputJsonLine = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_output_json"
     $trendSessionCount = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_session_count"
     $trendRecommendation = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_recommendation"
-    if ([string]::IsNullOrWhiteSpace($trendOutputJsonLine) -or [string]::IsNullOrWhiteSpace($trendSessionCount) -or [string]::IsNullOrWhiteSpace($trendRecommendation)) {
+    $trendIdentityRiskWarning = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning"
+    $trendIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_reason"
+    $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
+    if ([string]::IsNullOrWhiteSpace($trendOutputJsonLine) -or
+        [string]::IsNullOrWhiteSpace($trendSessionCount) -or
+        [string]::IsNullOrWhiteSpace($trendRecommendation) -or
+        [string]::IsNullOrWhiteSpace($trendIdentityRiskWarning) -or
+        [string]::IsNullOrWhiteSpace($trendIdentityRiskWarningReason)) {
         throw "Trend output is missing required fields."
     }
     Write-Host "real_session_v0_loop_trend_auto_ok=true"
     Write-Host ("real_session_v0_loop_trend_auto_output_json=" + $trendOutputJsonLine)
     Write-Host ("real_session_v0_loop_trend_auto_session_count=" + $trendSessionCount)
     Write-Host ("real_session_v0_loop_trend_auto_recommendation=" + $trendRecommendation)
+    Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning=" + $trendIdentityRiskWarning)
+    Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning_reason=" + $trendIdentityRiskWarningReason)
+    foreach ($warningCode in $trendIdentityRiskWarningCodes) {
+        Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning_code=" + $warningCode)
+    }
 }
 exit 0

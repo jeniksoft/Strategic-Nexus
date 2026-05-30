@@ -88,6 +88,9 @@ $latestDeltaArchiveSaveCountDelta = ""
 $latestDeltaGameplayChanged = ""
 $latestCompareCommandHint = ""
 $latestTrendRecommendation = "need_more_real_sessions"
+$latestIdentityRiskWarning = "false"
+$latestIdentityRiskWarningReason = "need_more_real_sessions"
+$latestIdentityRiskWarningCodes = @()
 if ($sessionCount -ge 1) {
     $latest = $sessions[$sessionCount - 1]
     $latestSessionId = $latest.session_id
@@ -107,8 +110,40 @@ if ($sessionCount -ge 2) {
     $latestDeltaGameplayChanged = if ($latestGameplayState -ne $previousGameplayState) { "true" } else { "false" }
     $latestCompareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "' + $previous.session_dir + '" "' + $latest.session_dir + '" "dist\private_reports\real_session_v0_compare_' + $previous.session_id + '_to_' + $latest.session_id + '.json"'
 
+    $compareScriptPath = Join-Path $PSScriptRoot "compare_real_session_v0_outputs.ps1"
+    if (-not (Test-Path -LiteralPath $compareScriptPath)) {
+        throw "Missing compare script: $compareScriptPath"
+    }
+    $compareOutputJson = Join-Path $repoRoot "dist/private_reports/real_session_v0_trend_latest_compare.json"
+    $compareLines = & powershell -NoProfile -ExecutionPolicy Bypass -File $compareScriptPath $previous.session_dir $latest.session_dir $compareOutputJson
+    if ($LASTEXITCODE -ne 0) {
+        throw "compare_real_session_v0_outputs.ps1 failed during trend analysis (exit code $LASTEXITCODE)."
+    }
+    if ($null -eq $compareLines) {
+        throw "Compare script returned no output during trend analysis."
+    }
+
+    $compareIdentityRiskWarningLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning=*" } | Select-Object -First 1
+    $compareIdentityRiskWarningReasonLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning_reason=*" } | Select-Object -First 1
+    $latestIdentityRiskWarningCodes = @(
+        $compareLines |
+            Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning_code=*" } |
+            ForEach-Object { $_.Substring("real_session_v0_compare_identity_risk_warning_code=".Length) } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            Sort-Object -Unique
+    )
+    if (-not [string]::IsNullOrWhiteSpace($compareIdentityRiskWarningLine)) {
+        $latestIdentityRiskWarning = $compareIdentityRiskWarningLine.Substring("real_session_v0_compare_identity_risk_warning=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareIdentityRiskWarningReasonLine)) {
+        $latestIdentityRiskWarningReason = $compareIdentityRiskWarningReasonLine.Substring("real_session_v0_compare_identity_risk_warning_reason=".Length)
+    }
+
     if (($latestDeltaOverlayChanged -eq "true") -or ([int]$latestDeltaArchiveSaveCountDelta -ne 0) -or ($latestDeltaGameplayChanged -eq "true")) {
         $latestTrendRecommendation = "review_observable_deltas"
+    }
+    elseif ($latestIdentityRiskWarning -eq "true") {
+        $latestTrendRecommendation = "review_identity_risk_warning"
     }
     else {
         $latestTrendRecommendation = "no_pipeline_delta_detected"
@@ -140,6 +175,11 @@ $result = [ordered]@{
         archive_save_count_delta = $latestDeltaArchiveSaveCountDelta
         gameplay_acceptance_state_changed = $latestDeltaGameplayChanged
     }
+    latest_identity_risk_warning = [ordered]@{
+        active = $latestIdentityRiskWarning
+        reason = $latestIdentityRiskWarningReason
+        warning_codes = $latestIdentityRiskWarningCodes
+    }
     next_step_recommendation = $latestTrendRecommendation
 }
 
@@ -156,6 +196,11 @@ Write-Host ("real_session_v0_trend_session_count=" + $sessionCount)
 Write-Host ("real_session_v0_trend_unique_overlay_manifest_hash_count=" + $manifestHashes.Count)
 Write-Host ("real_session_v0_trend_unique_gameplay_acceptance_state_count=" + $gameplayStates.Count)
 Write-Host ("real_session_v0_trend_recommendation=" + $latestTrendRecommendation)
+Write-Host ("real_session_v0_trend_identity_risk_warning=" + $latestIdentityRiskWarning)
+Write-Host ("real_session_v0_trend_identity_risk_warning_reason=" + $latestIdentityRiskWarningReason)
+foreach ($warningCode in $latestIdentityRiskWarningCodes) {
+    Write-Host ("real_session_v0_trend_identity_risk_warning_code=" + $warningCode)
+}
 if (-not [string]::IsNullOrWhiteSpace($latestCompareCommandHint)) {
     Write-Host ("real_session_v0_trend_latest_compare_command_hint=" + $latestCompareCommandHint)
 }
