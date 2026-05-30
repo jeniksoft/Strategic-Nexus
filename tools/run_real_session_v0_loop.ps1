@@ -376,6 +376,7 @@ if ($EmitTrendSummary) {
     $trendMpClientReadinessGateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_readiness_gate_current"
     $trendMpHostNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_next_step_current"
     $trendMpClientNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_next_step_current"
+    $trendLatestCompareCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_latest_compare_command_hint"
     $trendNextSessionCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_session_command_hint"
     $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
     if ([string]::IsNullOrWhiteSpace($trendOutputJsonLine) -or
@@ -411,6 +412,9 @@ if ($EmitTrendSummary) {
     }
     if (-not [string]::IsNullOrWhiteSpace($trendMpClientNextStepCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_client_next_step_current=" + $trendMpClientNextStepCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendLatestCompareCommandHint)) {
+        Write-Host ("real_session_v0_loop_trend_auto_latest_compare_command_hint=" + $trendLatestCompareCommandHint)
     }
     if (-not [string]::IsNullOrWhiteSpace($trendNextSessionCommandHint)) {
         Write-Host ("real_session_v0_loop_trend_auto_next_session_command_hint=" + $trendNextSessionCommandHint)

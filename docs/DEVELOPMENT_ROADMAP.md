@@ -851,6 +851,7 @@ Status Center summary now also emits explicit `mp_identity_mismatch_alert` text 
 `tools/run_real_session_v0_loop.ps1` now also emits `real_session_v0_loop_next_session_compare_baseline_dir` and `real_session_v0_loop_next_session_command_hint`, so the next real Stellaris validation run can reuse the same inputs and auto-compare against the just-finished session in one copyable command.
 `tools/analyze_real_session_v0_trend.ps1` now also emits `real_session_v0_trend_next_session_command_hint` (and stores `next_session_command_hint` in trend JSON), so trend-only follow-up can still hand off one copyable command for the next real-session run with compare baseline prefilled.
 `tools/run_real_session_v0_loop.ps1` now also forwards trend next-session command output as `real_session_v0_loop_trend_auto_next_session_command_hint`, so one-command loop/trend output can be copied directly for the next real-session run.
+`tools/run_real_session_v0_loop.ps1` now also forwards trend compare replay command output as `real_session_v0_loop_trend_auto_latest_compare_command_hint`, so latest compare evidence can be replayed from the same loop/trend output surface.
 
 Next worker-ready slice:
 
