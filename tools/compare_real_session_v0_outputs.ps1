@@ -69,6 +69,9 @@ function Parse-OptionalInt {
 
 $previousSessionDirFull = [System.IO.Path]::GetFullPath($PreviousSessionDir)
 $currentSessionDirFull = [System.IO.Path]::GetFullPath($CurrentSessionDir)
+$previousSessionId = Get-SessionIdFromDir -SessionDir $previousSessionDirFull
+$currentSessionId = Get-SessionIdFromDir -SessionDir $currentSessionDirFull
+$compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "' + $previousSessionDirFull + '" "' + $currentSessionDirFull + '" "dist\private_reports\real_session_v0_compare_' + $previousSessionId + '_to_' + $currentSessionId + '.json"'
 
 $previousStatusPath = Join-Path $previousSessionDirFull "snc_status_snapshot.json"
 $currentStatusPath = Join-Path $currentSessionDirFull "snc_status_snapshot.json"
@@ -194,8 +197,8 @@ if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -an
 
 $result = [ordered]@{
     schema_version = 1
-    previous_session_id = Get-SessionIdFromDir -SessionDir $previousSessionDirFull
-    current_session_id = Get-SessionIdFromDir -SessionDir $currentSessionDirFull
+    previous_session_id = $previousSessionId
+    current_session_id = $currentSessionId
     previous_session_dir = $previousSessionDirFull
     current_session_dir = $currentSessionDirFull
     generated_overlay_manifest_hash = [ordered]@{
@@ -271,6 +274,7 @@ $result = [ordered]@{
         reason = $identityRiskWarningReason
         current_warning_codes = $currentMpIdentityMismatchWarningCodes
     }
+    compare_command_hint = $compareCommandHint
     next_step_recommendation = $recommendation
 }
 
@@ -283,6 +287,7 @@ $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $outputJsonFull -En
 
 Write-Host "real_session_v0_compare_ok=true"
 Write-Host ("real_session_v0_compare_output_json=" + $outputJsonFull)
+Write-Host ("real_session_v0_compare_command_hint=" + $compareCommandHint)
 Write-Host ("real_session_v0_compare_recommendation=" + $recommendation)
 $identityRiskWarningText = "false"
 if ($identityRiskWarning) {
