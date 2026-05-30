@@ -13,6 +13,11 @@ param(
     [string]$WorkDir,
     [string]$OverlayOutputDir,
     [string]$StatusOutputJson,
+    [string]$MpPackageOutputDir,
+    [string]$MpOverlayVersion = "overlay_v0_session",
+    [string]$MpGameVersion = "stellaris_4.x",
+    [string]$MpModVersion = "strategic_nexus_v0",
+    [switch]$ExportMpPackage,
     [int]$StabilityDelayMs = 1200
 )
 
@@ -55,6 +60,9 @@ if ([string]::IsNullOrWhiteSpace($OverlayOutputDir)) {
 if ([string]::IsNullOrWhiteSpace($StatusOutputJson)) {
     $StatusOutputJson = Join-Path $defaultRunRoot "snc_status_snapshot.json"
 }
+if ([string]::IsNullOrWhiteSpace($MpPackageOutputDir)) {
+    $MpPackageOutputDir = Join-Path $defaultRunRoot "mp_overlay_package"
+}
 
 $exe = Resolve-ExePath -RelativePath "dist/strategic_nexus_app_test.exe"
 if (-not $exe) {
@@ -67,6 +75,7 @@ $dslInputFull = [System.IO.Path]::GetFullPath($DslInput)
 $workDirFull = [System.IO.Path]::GetFullPath($WorkDir)
 $overlayOutputDirFull = [System.IO.Path]::GetFullPath($OverlayOutputDir)
 $statusOutputJsonFull = [System.IO.Path]::GetFullPath($StatusOutputJson)
+$mpPackageOutputDirFull = [System.IO.Path]::GetFullPath($MpPackageOutputDir)
 $sessionArchiveDir = Join-Path $archiveRootFull $SessionId
 $archiveSummaryPath = Join-Path $workDirFull "archive_summary.json"
 
@@ -103,6 +112,29 @@ Write-Host "==> run offline spine"
 & $exe --run-offline-spine $sessionArchiveDir $CampaignId $EmpireId $dslInputFull $workDirFull $overlayOutputDirFull $statusOutputJsonFull
 Assert-LastExitCodeOk -StepName "run offline spine"
 
+$mpExportReadiness = ""
+if ($ExportMpPackage) {
+    if (Test-Path -LiteralPath $mpPackageOutputDirFull) {
+        throw "MpPackageOutputDir must not already exist: $mpPackageOutputDirFull"
+    }
+    Write-Host "==> export mp overlay package"
+    $mpExportLines = & $exe --export-mp-overlay-package $overlayOutputDirFull $CampaignId $MpOverlayVersion $MpGameVersion $MpModVersion $mpPackageOutputDirFull
+    Assert-LastExitCodeOk -StepName "export mp overlay package"
+    if ($null -eq $mpExportLines) {
+        throw "MP package export returned no output."
+    }
+
+    $mpExportReadinessLine = ($mpExportLines | Where-Object { $_ -match '^mp_overlay_package_export_readiness=' } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($mpExportReadinessLine)) {
+        throw "MP package export output is missing mp_overlay_package_export_readiness."
+    }
+
+    $mpExportReadiness = $mpExportReadinessLine.Substring("mp_overlay_package_export_readiness=".Length)
+    if ($mpExportReadiness -ne "ready_for_mp") {
+        throw "MP package export readiness is '$mpExportReadiness' instead of ready_for_mp."
+    }
+}
+
 if (-not (Test-Path -LiteralPath $statusOutputJsonFull)) {
     throw "Missing SNC status snapshot output: $statusOutputJsonFull"
 }
@@ -121,4 +153,8 @@ Write-Host ("real_session_v0_loop_session_archive_dir=" + $sessionArchiveDir)
 Write-Host ("real_session_v0_loop_archive_summary_path=" + $archiveSummaryPath)
 Write-Host ("real_session_v0_loop_generated_overlay_dir=" + $overlayOutputDirFull)
 Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull)
+if ($ExportMpPackage) {
+    Write-Host ("real_session_v0_loop_mp_package_output_dir=" + $mpPackageOutputDirFull)
+    Write-Host ("real_session_v0_loop_mp_package_readiness=" + $mpExportReadiness)
+}
 exit 0
