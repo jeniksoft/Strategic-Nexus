@@ -1722,6 +1722,41 @@ function Invoke-AutosaveArchiveVerifyMismatchCase {
     Write-Host "[PASS] autosave_archive_verify_mismatch"
 }
 
+function Invoke-RealSessionTrendIdentityRiskPriorityCase {
+    $trendFixtureRoot = Join-Path $repoRoot "dist/test_trend_identity_risk_priority"
+    $sessionA = Join-Path $trendFixtureRoot "session_a"
+    $sessionB = Join-Path $trendFixtureRoot "session_b"
+    Remove-Item -LiteralPath $trendFixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $sessionA | Out-Null
+    New-Item -ItemType Directory -Force -Path $sessionB | Out-Null
+
+    Copy-Item -LiteralPath (Join-Path $repoRoot "dist/test_compare_identity_risk/prev/snc_status_snapshot.json") -Destination (Join-Path $sessionA "snc_status_snapshot.json")
+    Copy-Item -LiteralPath (Join-Path $repoRoot "dist/test_compare_identity_risk/prev/snc_status_snapshot_with_mp.json") -Destination (Join-Path $sessionA "snc_status_snapshot_with_mp.json")
+    New-Item -ItemType Directory -Force -Path (Join-Path $sessionA "work") | Out-Null
+    Copy-Item -LiteralPath (Join-Path $repoRoot "dist/test_compare_identity_risk/prev/work/archive_summary.json") -Destination (Join-Path $sessionA "work/archive_summary.json")
+
+    Copy-Item -LiteralPath (Join-Path $repoRoot "dist/test_compare_identity_risk/curr/snc_status_snapshot.json") -Destination (Join-Path $sessionB "snc_status_snapshot.json")
+    Copy-Item -LiteralPath (Join-Path $repoRoot "dist/test_compare_identity_risk/curr/snc_status_snapshot_with_mp.json") -Destination (Join-Path $sessionB "snc_status_snapshot_with_mp.json")
+    New-Item -ItemType Directory -Force -Path (Join-Path $sessionB "work") | Out-Null
+    Copy-Item -LiteralPath (Join-Path $repoRoot "dist/test_compare_identity_risk/curr/work/archive_summary.json") -Destination (Join-Path $sessionB "work/archive_summary.json")
+
+    # Force an additional observable delta so recommendation priority is exercised.
+    $summaryB = Get-Content -Raw -LiteralPath (Join-Path $sessionB "work/archive_summary.json") | ConvertFrom-Json
+    $summaryB.copied_save_count = [int]$summaryB.copied_save_count + 1
+    $summaryB | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $sessionB "work/archive_summary.json") -Encoding UTF8
+
+    $trendOutputPath = Join-Path $trendFixtureRoot "trend_output.json"
+    $trendOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1") $trendFixtureRoot $trendOutputPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "real session trend identity-risk priority case failed running trend analyzer (exit code $LASTEXITCODE)."
+    }
+    $trendText = $trendOutput -join "`n"
+    Assert-Contains -Name "real session trend identity-risk priority" -Text $trendText -Expected "real_session_v0_trend_recommendation=review_identity_risk_warning"
+    Assert-Contains -Name "real session trend identity-risk priority" -Text $trendText -Expected "real_session_v0_trend_identity_risk_warning=true"
+    Assert-Contains -Name "real session trend identity-risk priority" -Text $trendText -Expected "real_session_v0_trend_observable_effect_signal=true"
+    Write-Host "[PASS] real_session_trend_identity_risk_priority"
+}
+
 Invoke-V0PipelineCase `
     -Name "v0_defensive" `
     -InputFixture "resources/ministry_context_military_defensive.json" `
@@ -2024,6 +2059,7 @@ Invoke-StellarisProcessDetectionCase
 Invoke-SncStatusSnapshotCase
 Invoke-AutosaveArchiveCase
 Invoke-AutosaveArchiveVerifyMismatchCase
+Invoke-RealSessionTrendIdentityRiskPriorityCase
 
 & $autosaveArchiverExePath
 if ($LASTEXITCODE -ne 0) {
