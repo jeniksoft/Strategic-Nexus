@@ -813,6 +813,7 @@ Strategic Nexus Companion snapshot/status-center tests now assert these host/cli
 SNC MP package snapshot now carries structured `warning_codes` (plus CLI `snc_mp_overlay_package_warning_count`/`snc_mp_overlay_package_warning_code` output), so release-companion and Status Center flows can surface non-ready package reasons without parsing free-form text.
 SNC snapshot/CLI now also carries explicit MP verify/import command fields, and MP package copyable status text now includes ready-to-run `verify_command`/`import_command` lines tied to the package directory.
 MP package verifier failure paths now also emit explicit copyable `warning_code` status text (`mp_overlay_package_unexpected_files`, `mp_overlay_package_files_mismatch_manifest`, and malformed/missing manifest variants), so SNC and CLI surfaces can show concrete recovery guidance even when package verification is not ready.
+MP package verifier failure status text now also includes strict verify/import command variants when package identity fields are valid, and SNC missing-package status text now includes verify/import commands for direct host/client recovery flow.
 
 Next worker-ready slice:
 
