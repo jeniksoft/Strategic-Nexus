@@ -242,6 +242,9 @@ Write-Host ("real_session_v0_loop_status_snapshot_path=" + $statusOutputJsonFull
 Write-Host ("real_session_v0_loop_compare_previous_session_dir_hint=dist\\real_session_v0_loop\\<previous_session_id>")
 $compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "dist\real_session_v0_loop\<previous_session_id>" "' + $defaultRunRoot + '" "dist\private_reports\real_session_v0_compare_' + $SessionId + '.json"'
 Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
+Write-Host "real_session_v0_loop_trend_sessions_root_hint=dist\\real_session_v0_loop"
+$trendCommandHint = 'cmd /c tools\analyze_real_session_v0_trend.cmd "dist\real_session_v0_loop" "dist\private_reports\real_session_v0_trend.json"'
+Write-Host ("real_session_v0_loop_trend_command_hint=" + $trendCommandHint)
 if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $previousSessionDirForCompareFull = [System.IO.Path]::GetFullPath($PreviousSessionDirForCompare)
     if (-not (Test-Path -LiteralPath $previousSessionDirForCompareFull)) {
