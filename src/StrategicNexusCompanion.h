@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <chrono>
 #include <string>
+#include <vector>
 
 namespace strategic_nexus {
 
@@ -52,6 +53,7 @@ struct CompanionMpOverlayPackageStatus {
     std::string readiness;
     std::string packageManifestHash;
     std::string statusText;
+    std::vector<std::string> warningCodes;
 };
 
 struct CompanionLifecycleStatus {

@@ -17,6 +17,7 @@
 #include <string>
 #include <system_error>
 #include <thread>
+#include <vector>
 
 namespace strategic_nexus {
 namespace {
@@ -274,6 +275,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (packageDirectory.empty()) {
         status.state = "disabled";
         status.reason = "mp overlay package directory not configured";
+        status.warningCodes.push_back(status.reason);
         return status;
     }
 
@@ -282,6 +284,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (error) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory inaccessible";
+        status.warningCodes.push_back(status.reason);
         setFailureStatusText();
         return status;
     }
@@ -289,6 +292,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (!exists) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory missing";
+        status.warningCodes.push_back(status.reason);
         setFailureStatusText();
         return status;
     }
@@ -297,6 +301,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (error) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory inaccessible";
+        status.warningCodes.push_back(status.reason);
         setFailureStatusText();
         return status;
     }
@@ -304,6 +309,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (!isDirectory) {
         status.state = "needs_attention";
         status.reason = "mp overlay package path is not a directory";
+        status.warningCodes.push_back(status.reason);
         setFailureStatusText();
         return status;
     }
@@ -326,6 +332,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
 
     status.state = "needs_attention";
     status.reason = verification.reason.empty() ? "mp overlay package verification failed" : verification.reason;
+    status.warningCodes.push_back(status.reason);
     if (!verification.statusText.empty()) {
         status.statusText = verification.statusText;
     } else {
@@ -622,6 +629,9 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.statusText.empty()) {
         text << "mp_overlay_package_status_text: " << mpOverlayPackage.statusText << "\n";
     }
+    for (const auto& warningCode : mpOverlayPackage.warningCodes) {
+        text << "mp_warning_code: " << warningCode << "\n";
+    }
     text << "gameplay_acceptance: " << gameplayAcceptance.state << " - " << gameplayAcceptance.reason << "\n";
     if (!gameplayAcceptance.path.empty()) {
         text << "gameplay_acceptance_report_path: " << pathString(gameplayAcceptance.path) << "\n";
@@ -661,7 +671,15 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"handoff_status\": " << jsonString(status.handoffStatus) << ",\n";
     output << indent << "  \"readiness\": " << jsonString(status.readiness) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
-    output << indent << "  \"status_text\": " << jsonString(status.statusText) << "\n";
+    output << indent << "  \"status_text\": " << jsonString(status.statusText) << ",\n";
+    output << indent << "  \"warning_codes\": [";
+    for (std::size_t index = 0; index < status.warningCodes.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << jsonString(status.warningCodes[index]);
+    }
+    output << "]\n";
     output << indent << "}";
 }
 

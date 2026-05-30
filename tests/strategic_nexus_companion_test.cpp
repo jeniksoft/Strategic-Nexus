@@ -299,6 +299,10 @@ int main()
     requireCondition(missingMpPackage.generatedOverlay.state == "ready", "overlay should remain ready when mp package missing");
     requireCondition(missingMpPackage.mpOverlayPackage.state == "needs_attention", "missing mp overlay package should need attention");
     requireCondition(
+        missingMpPackage.mpOverlayPackage.warningCodes.size() == 1 &&
+            missingMpPackage.mpOverlayPackage.warningCodes.front() == "mp overlay package directory missing",
+        "missing mp overlay package should expose structured warning code");
+    requireCondition(
         missingMpPackage.mpOverlayPackage.statusText.find("readiness: not_ready") != std::string::npos,
         "missing mp overlay package should expose not_ready status text");
     requireCondition(
@@ -310,6 +314,9 @@ int main()
     requireCondition(
         missingMpPackage.statusCenterSummaryText.find("warning_code: mp overlay package directory missing") != std::string::npos,
         "status center summary should include MP package warning code");
+    requireCondition(
+        missingMpPackage.statusCenterSummaryText.find("mp_warning_code: mp overlay package directory missing") != std::string::npos,
+        "status center summary should include structured MP warning code");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
@@ -331,6 +338,7 @@ int main()
         "JSON should include mp overlay package handoff status");
     requireCondition(json.find("\"readiness\": \"ready_for_mp\"") != std::string::npos, "JSON should include mp overlay package readiness");
     requireCondition(json.find("\"package_manifest_hash\": \"") != std::string::npos, "JSON should include mp overlay package manifest hash");
+    requireCondition(json.find("\"warning_codes\": []") != std::string::npos, "ready MP package JSON should include empty warning codes array");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
