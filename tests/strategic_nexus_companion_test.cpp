@@ -341,13 +341,13 @@ int main()
     requireCondition(missingMpPackage.mpOverlayPackage.state == "needs_attention", "missing mp overlay package should need attention");
     requireCondition(
         missingMpPackage.mpOverlayPackage.warningCodes.size() == 1 &&
-            missingMpPackage.mpOverlayPackage.warningCodes.front() == "mp overlay package directory missing",
+            missingMpPackage.mpOverlayPackage.warningCodes.front() == "mp_overlay_package_directory_missing",
         "missing mp overlay package should expose structured warning code");
     requireCondition(
         missingMpPackage.mpOverlayPackage.statusText.find("readiness: not_ready") != std::string::npos,
         "missing mp overlay package should expose not_ready status text");
     requireCondition(
-        missingMpPackage.mpOverlayPackage.statusText.find("warning_code: mp overlay package directory missing") != std::string::npos,
+        missingMpPackage.mpOverlayPackage.statusText.find("warning_code: mp_overlay_package_directory_missing") != std::string::npos,
         "missing mp overlay package should expose warning code in status text");
     requireCondition(
         missingMpPackage.mpOverlayPackage.statusText.find("verify_command: Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
@@ -359,10 +359,10 @@ int main()
     requireCondition(missingMpPackage.statusCenter.reason == "mp overlay package needs attention", "status center reason should name mp overlay package attention");
     requireCondition(missingMpPackage.statusCenter.path == (root / "missing_mp_overlay_package"), "status center path should point to the mp overlay package needing attention");
     requireCondition(
-        missingMpPackage.statusCenterSummaryText.find("warning_code: mp overlay package directory missing") != std::string::npos,
+        missingMpPackage.statusCenterSummaryText.find("warning_code: mp_overlay_package_directory_missing") != std::string::npos,
         "status center summary should include MP package warning code");
     requireCondition(
-        missingMpPackage.statusCenterSummaryText.find("mp_warning_code: mp overlay package directory missing") != std::string::npos,
+        missingMpPackage.statusCenterSummaryText.find("mp_warning_code: mp_overlay_package_directory_missing") != std::string::npos,
         "status center summary should include structured MP warning code");
     requireCondition(
         missingMpPackage.statusCenterSummaryText.find("mp_warning_count: 1") != std::string::npos,

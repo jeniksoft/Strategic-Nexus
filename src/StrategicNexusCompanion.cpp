@@ -83,6 +83,36 @@ std::string trimWhitespace(const std::string& value)
     return value.substr(start, end - start);
 }
 
+std::string toWarningCode(const std::string& value)
+{
+    std::string code;
+    code.reserve(value.size());
+    bool lastWasUnderscore = false;
+    for (const unsigned char raw : value) {
+        const char lower = static_cast<char>(std::tolower(raw));
+        if ((lower >= 'a' && lower <= 'z') || (lower >= '0' && lower <= '9')) {
+            code.push_back(lower);
+            lastWasUnderscore = false;
+            continue;
+        }
+        if (!lastWasUnderscore) {
+            code.push_back('_');
+            lastWasUnderscore = true;
+        }
+    }
+
+    while (!code.empty() && code.front() == '_') {
+        code.erase(code.begin());
+    }
+    while (!code.empty() && code.back() == '_') {
+        code.pop_back();
+    }
+    if (code.empty()) {
+        return "mp_overlay_package_warning_unknown";
+    }
+    return code;
+}
+
 std::vector<std::string> extractWarningCodesFromStatusText(const std::string& statusText)
 {
     std::vector<std::string> warnings;
@@ -319,9 +349,10 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     CompanionMpOverlayPackageStatus status;
     status.path = packageDirectory;
     const auto setFailureStatusText = [&status]() {
+        const std::string warningCode = toWarningCode(status.reason);
         std::ostringstream text;
         text << "readiness: not_ready\n";
-        text << "warning_code: " << status.reason << "\n";
+        text << "warning_code: " << warningCode << "\n";
         text << "next_step: re-export package on host and import+verify before multiplayer join\n";
         if (!status.verifyCommand.empty()) {
             text << "verify_command: " << status.verifyCommand << "\n";
@@ -341,7 +372,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (packageDirectory.empty()) {
         status.state = "disabled";
         status.reason = "mp overlay package directory not configured";
-        status.warningCodes.push_back(status.reason);
+        status.warningCodes.push_back(toWarningCode(status.reason));
         return status;
     }
     status.verifyCommand = "Strategic Nexus.exe --verify-mp-overlay-package " + quoteCliPathArg(packageDirectory);
@@ -354,7 +385,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (error) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory inaccessible";
-        status.warningCodes.push_back(status.reason);
+        status.warningCodes.push_back(toWarningCode(status.reason));
         setFailureStatusText();
         return status;
     }
@@ -362,7 +393,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (!exists) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory missing";
-        status.warningCodes.push_back(status.reason);
+        status.warningCodes.push_back(toWarningCode(status.reason));
         setFailureStatusText();
         return status;
     }
@@ -371,7 +402,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (error) {
         status.state = "needs_attention";
         status.reason = "mp overlay package directory inaccessible";
-        status.warningCodes.push_back(status.reason);
+        status.warningCodes.push_back(toWarningCode(status.reason));
         setFailureStatusText();
         return status;
     }
@@ -379,7 +410,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (!isDirectory) {
         status.state = "needs_attention";
         status.reason = "mp overlay package path is not a directory";
-        status.warningCodes.push_back(status.reason);
+        status.warningCodes.push_back(toWarningCode(status.reason));
         setFailureStatusText();
         return status;
     }
@@ -411,7 +442,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
 
     status.state = "needs_attention";
     status.reason = verification.reason.empty() ? "mp overlay package verification failed" : verification.reason;
-    status.warningCodes.push_back(status.reason);
+    status.warningCodes.push_back(toWarningCode(status.reason));
     if (!verification.statusText.empty()) {
         status.statusText = verification.statusText;
     } else {
