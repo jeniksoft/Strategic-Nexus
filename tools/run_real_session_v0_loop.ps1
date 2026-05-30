@@ -357,6 +357,10 @@ if ($EmitTrendSummary) {
     $trendIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_reason"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
+    $trendMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_readiness_current"
+    $trendMpClientReadinessGateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_readiness_gate_current"
+    $trendMpHostNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_next_step_current"
+    $trendMpClientNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_next_step_current"
     $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
     if ([string]::IsNullOrWhiteSpace($trendOutputJsonLine) -or
         [string]::IsNullOrWhiteSpace($trendSessionCount) -or
@@ -376,6 +380,18 @@ if ($EmitTrendSummary) {
     }
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountDelta)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_delta=" + $trendMpWarningCountDelta)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpHostReadinessCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_host_readiness_current=" + $trendMpHostReadinessCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpClientReadinessGateCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_client_readiness_gate_current=" + $trendMpClientReadinessGateCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpHostNextStepCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_host_next_step_current=" + $trendMpHostNextStepCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpClientNextStepCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_client_next_step_current=" + $trendMpClientNextStepCurrent)
     }
     foreach ($warningCode in $trendIdentityRiskWarningCodes) {
         Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning_code=" + $warningCode)
