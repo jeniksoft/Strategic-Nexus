@@ -150,6 +150,16 @@ std::vector<std::string> readStatusTextFields(const std::string& statusText, con
     return values;
 }
 
+bool isIdentityMismatchWarningCode(const std::string& warningCode)
+{
+    return warningCode == "package_campaign_id_mismatch" ||
+           warningCode == "package_overlay_version_mismatch" ||
+           warningCode == "package_game_version_mismatch" ||
+           warningCode == "package_mod_version_mismatch" ||
+           warningCode == "package_manifest_hash_mismatch" ||
+           warningCode == "mp_overlay_package_files_mismatch_manifest";
+}
+
 bool parseLatestArchivedSaveHeadline(
     const AutosaveArchiveSummary& summary,
     SaveParserSummary& outSummary)
@@ -1084,9 +1094,21 @@ int Application::run(const RunConfig& config) const
                 std::cout << "mp_overlay_package_unexpected_file=" << sanitizeCliValue(file) << "\n";
             }
             std::cout << "mp_overlay_package_warning_count=" << warnings.size() << "\n";
+            std::vector<std::string> identityMismatchWarningCodes;
+            for (const auto& warning : warnings) {
+                if (isIdentityMismatchWarningCode(warning)) {
+                    identityMismatchWarningCodes.push_back(warning);
+                }
+            }
             for (const auto& warning : warnings) {
                 std::cout << "mp_overlay_package_warning=" << sanitizeCliValue(warning) << "\n";
                 std::cout << "mp_overlay_package_warning_code=" << sanitizeCliValue(warning) << "\n";
+            }
+            std::cout << "mp_overlay_package_identity_mismatch_warning="
+                      << (!identityMismatchWarningCodes.empty() ? "true" : "false") << "\n";
+            for (const auto& warningCode : identityMismatchWarningCodes) {
+                std::cout << "mp_overlay_package_identity_mismatch_warning_code="
+                          << sanitizeCliValue(warningCode) << "\n";
             }
             return result.ok ? 0 : 1;
         }
@@ -1192,9 +1214,21 @@ int Application::run(const RunConfig& config) const
                 std::cout << "mp_overlay_package_imported_file=" << sanitizeCliValue(file.path) << "\n";
             }
             std::cout << "mp_overlay_package_import_warning_count=" << warnings.size() << "\n";
+            std::vector<std::string> identityMismatchWarningCodes;
+            for (const auto& warning : warnings) {
+                if (isIdentityMismatchWarningCode(warning)) {
+                    identityMismatchWarningCodes.push_back(warning);
+                }
+            }
             for (const auto& warning : warnings) {
                 std::cout << "mp_overlay_package_import_warning=" << sanitizeCliValue(warning) << "\n";
                 std::cout << "mp_overlay_package_import_warning_code=" << sanitizeCliValue(warning) << "\n";
+            }
+            std::cout << "mp_overlay_package_import_identity_mismatch_warning="
+                      << (!identityMismatchWarningCodes.empty() ? "true" : "false") << "\n";
+            for (const auto& warningCode : identityMismatchWarningCodes) {
+                std::cout << "mp_overlay_package_import_identity_mismatch_warning_code="
+                          << sanitizeCliValue(warningCode) << "\n";
             }
             return result.ok ? 0 : 1;
         }

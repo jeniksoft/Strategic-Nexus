@@ -678,6 +678,7 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_verify app command" -Text $mpVerifyText -Expected "mp_overlay_package_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
     Assert-Contains -Name "mp_overlay_package_verify app readiness" -Text $mpVerifyText -Expected "mp_overlay_package_host_readiness=ready_for_mp"
     Assert-Contains -Name "mp_overlay_package_verify app readiness" -Text $mpVerifyText -Expected "mp_overlay_package_client_readiness_gate=import_and_verify_before_join"
+    Assert-Contains -Name "mp_overlay_package_verify app identity warning" -Text $mpVerifyText -Expected "mp_overlay_package_identity_mismatch_warning=false"
     $mpManifestHash = [regex]::Match($mpVerifyText, "mp_overlay_package_manifest_hash=([^\r\n]+)").Groups[1].Value.Trim()
     if ([string]::IsNullOrWhiteSpace($mpManifestHash)) {
         throw "mp_overlay_package_verify app did not provide manifest hash value."
@@ -699,6 +700,8 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_verify mismatch app" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_ok=true"
     Assert-Contains -Name "mp_overlay_package_verify mismatch app" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_warning=package_manifest_hash_mismatch"
     Assert-Contains -Name "mp_overlay_package_verify mismatch app warning_code" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_warning_code=package_manifest_hash_mismatch"
+    Assert-Contains -Name "mp_overlay_package_verify mismatch identity warning" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_identity_mismatch_warning=true"
+    Assert-Contains -Name "mp_overlay_package_verify mismatch identity warning_code" -Text $mpVerifyMismatchText -Expected "mp_overlay_package_identity_mismatch_warning_code=package_manifest_hash_mismatch"
 
     $mpImportOutput = & $exePath `
         --import-mp-overlay-package `
@@ -721,6 +724,7 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_import app command" -Text $mpImportText -Expected "mp_overlay_package_import_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
     Assert-Contains -Name "mp_overlay_package_import app readiness" -Text $mpImportText -Expected "mp_overlay_package_import_host_readiness=ready_for_mp"
     Assert-Contains -Name "mp_overlay_package_import app readiness" -Text $mpImportText -Expected "mp_overlay_package_import_client_readiness_gate=import_and_verify_before_join"
+    Assert-Contains -Name "mp_overlay_package_import app identity warning" -Text $mpImportText -Expected "mp_overlay_package_import_identity_mismatch_warning=false"
 
     $mpImportMismatchOutput = & $exePath `
         --import-mp-overlay-package `
@@ -739,6 +743,8 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "mp_overlay_package_import mismatch app" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_ok=true"
     Assert-Contains -Name "mp_overlay_package_import mismatch app" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_warning=package_manifest_hash_mismatch"
     Assert-Contains -Name "mp_overlay_package_import mismatch app warning_code" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_warning_code=package_manifest_hash_mismatch"
+    Assert-Contains -Name "mp_overlay_package_import mismatch identity warning" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_identity_mismatch_warning=true"
+    Assert-Contains -Name "mp_overlay_package_import mismatch identity warning_code" -Text $mpImportMismatchText -Expected "mp_overlay_package_import_identity_mismatch_warning_code=package_manifest_hash_mismatch"
 
     $mpImportedVerifyOutput = & $exePath `
         --verify-generated-overlay `
