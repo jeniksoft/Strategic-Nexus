@@ -340,11 +340,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if ([string]::IsNullOrWhiteSpace($compareObservableEffectReason)) {
         throw "Compare output is missing real_session_v0_compare_observable_effect_reason."
     }
+    if ([string]::IsNullOrWhiteSpace($compareCommandHintLine)) {
+        throw "Compare output is missing real_session_v0_compare_command_hint."
+    }
     Write-Host "real_session_v0_loop_compare_auto_ok=true"
     Write-Host ("real_session_v0_loop_compare_auto_output_json=" + $compareOutputJsonLine)
-    if (-not [string]::IsNullOrWhiteSpace($compareCommandHintLine)) {
-        Write-Host ("real_session_v0_loop_compare_auto_command_hint=" + $compareCommandHintLine)
-    }
+    Write-Host ("real_session_v0_loop_compare_auto_command_hint=" + $compareCommandHintLine)
     Write-Host ("real_session_v0_loop_compare_auto_recommendation=" + $compareRecommendation)
     Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning=" + $compareIdentityRiskWarning)
     Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning_reason=" + $compareIdentityRiskWarningReason)
@@ -456,7 +457,9 @@ if ($EmitTrendSummary) {
         [string]::IsNullOrWhiteSpace($trendIdentityRiskWarning) -or
         [string]::IsNullOrWhiteSpace($trendIdentityRiskWarningReason) -or
         [string]::IsNullOrWhiteSpace($trendObservableEffectSignal) -or
-        [string]::IsNullOrWhiteSpace($trendObservableEffectReason)) {
+        [string]::IsNullOrWhiteSpace($trendObservableEffectReason) -or
+        [string]::IsNullOrWhiteSpace($trendLatestCompareCommandHint) -or
+        [string]::IsNullOrWhiteSpace($trendNextSessionCommandHint)) {
         throw "Trend output is missing required fields."
     }
     Write-Host "real_session_v0_loop_trend_auto_ok=true"
@@ -509,12 +512,8 @@ if ($EmitTrendSummary) {
     if (-not [string]::IsNullOrWhiteSpace($trendMpStrictImportCommandCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_strict_import_command_current=" + $trendMpStrictImportCommandCurrent)
     }
-    if (-not [string]::IsNullOrWhiteSpace($trendLatestCompareCommandHint)) {
-        Write-Host ("real_session_v0_loop_trend_auto_latest_compare_command_hint=" + $trendLatestCompareCommandHint)
-    }
-    if (-not [string]::IsNullOrWhiteSpace($trendNextSessionCommandHint)) {
-        Write-Host ("real_session_v0_loop_trend_auto_next_session_command_hint=" + $trendNextSessionCommandHint)
-    }
+    Write-Host ("real_session_v0_loop_trend_auto_latest_compare_command_hint=" + $trendLatestCompareCommandHint)
+    Write-Host ("real_session_v0_loop_trend_auto_next_session_command_hint=" + $trendNextSessionCommandHint)
     foreach ($warningCode in $trendIdentityRiskWarningCodes) {
         Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning_code=" + $warningCode)
     }
