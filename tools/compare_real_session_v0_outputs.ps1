@@ -210,6 +210,9 @@ $recommendation = "review_observable_deltas"
 if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -and $previousGameplayStatus -eq $currentGameplayStatus -and $previousMpManifestHash -eq $currentMpManifestHash) {
     $recommendation = "no_pipeline_delta_detected"
 }
+if ($identityRiskWarning) {
+    $recommendation = "review_identity_risk_warning"
+}
 $observableEffectSignal = $false
 $observableEffectReason = "no_observable_delta"
 if ($overlayChanged) {
