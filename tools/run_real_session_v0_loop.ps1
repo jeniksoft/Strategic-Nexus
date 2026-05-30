@@ -14,6 +14,7 @@ param(
     [string]$WorkDir,
     [string]$OverlayOutputDir,
     [string]$StatusOutputJson,
+    [string]$SessionEvidenceJson,
     [string]$MpPackageOutputDir,
     [string]$MpOverlayVersion = "overlay_v0_session",
     [string]$MpGameVersion = "stellaris_4.x",
@@ -91,6 +92,19 @@ function Get-SafeFileToken {
     return $safe
 }
 
+function Get-VariableOrDefault {
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        [string]$DefaultValue = ""
+    )
+
+    $var = Get-Variable -Name $Name -ErrorAction SilentlyContinue
+    if ($null -eq $var -or $null -eq $var.Value) {
+        return $DefaultValue
+    }
+    return [string]$var.Value
+}
+
 if ([string]::IsNullOrWhiteSpace($SessionId)) {
     $SessionId = "session_" + (Get-Date -Format "yyyyMMdd_HHmmss")
 }
@@ -104,6 +118,9 @@ if ([string]::IsNullOrWhiteSpace($OverlayOutputDir)) {
 }
 if ([string]::IsNullOrWhiteSpace($StatusOutputJson)) {
     $StatusOutputJson = Join-Path $defaultRunRoot "snc_status_snapshot.json"
+}
+if ([string]::IsNullOrWhiteSpace($SessionEvidenceJson)) {
+    $SessionEvidenceJson = Join-Path $defaultRunRoot "real_session_v0_loop_evidence.json"
 }
 $statusWithMpOutputJson = Join-Path $defaultRunRoot "snc_status_snapshot_with_mp.json"
 if ([string]::IsNullOrWhiteSpace($MpPackageOutputDir)) {
@@ -121,6 +138,7 @@ $dslInputFull = [System.IO.Path]::GetFullPath($DslInput)
 $workDirFull = [System.IO.Path]::GetFullPath($WorkDir)
 $overlayOutputDirFull = [System.IO.Path]::GetFullPath($OverlayOutputDir)
 $statusOutputJsonFull = [System.IO.Path]::GetFullPath($StatusOutputJson)
+$sessionEvidenceJsonFull = [System.IO.Path]::GetFullPath($SessionEvidenceJson)
 $statusWithMpOutputJsonFull = [System.IO.Path]::GetFullPath($statusWithMpOutputJson)
 $mpPackageOutputDirFull = [System.IO.Path]::GetFullPath($MpPackageOutputDir)
 $sessionArchiveDir = Join-Path $archiveRootFull $SessionId
@@ -142,6 +160,7 @@ New-Item -ItemType Directory -Force -Path $overlayOutputDirFull | Out-Null
 
 Remove-Item -LiteralPath $archiveSummaryPath -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $statusOutputJsonFull -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $sessionEvidenceJsonFull -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $statusWithMpOutputJsonFull -Force -ErrorAction SilentlyContinue
 
 Write-Host "==> archive stable saves"
@@ -771,4 +790,69 @@ if ($EmitTrendSummary) {
         Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning_code=" + $warningCode)
     }
 }
+
+$sessionEvidence = [ordered]@{
+    session_id = $SessionId
+    session_archive_dir = $sessionArchiveDir
+    archive_summary_path = $archiveSummaryPath
+    generated_overlay_dir = $overlayOutputDirFull
+    status_snapshot_path = $statusOutputJsonFull
+    gameplay_acceptance = [ordered]@{
+        state = $gameplayAcceptanceState
+        reason = $gameplayAcceptanceReason
+        path = $gameplayAcceptancePath
+    }
+    command_hints = [ordered]@{
+        compare = $compareCommandHint
+        trend = $trendCommandHint
+        next_session_compare_baseline_dir = $defaultRunRoot
+        next_session = $nextSessionCommandHint
+    }
+    mp_export = [ordered]@{
+        enabled = [bool]$ExportMpPackage
+        output_dir = $mpPackageOutputDirFull
+        readiness = $mpExportReadiness
+        manifest_hash = $mpExportManifestHash
+        warning_count = $mpExportWarningCount
+        identity_mismatch_warning = $mpExportIdentityMismatchWarning
+        identity_mismatch_warning_codes = @($mpExportIdentityMismatchWarningCodes)
+        warning_codes = @($mpExportWarningCodes)
+        verify_command = $mpExportVerifyCommand
+        import_command = $mpExportImportCommand
+        strict_verify_command = $mpExportStrictVerifyCommand
+        strict_import_command = $mpExportStrictImportCommand
+        host_readiness = $mpExportHostReadiness
+        client_readiness_gate = $mpExportClientReadinessGate
+        host_next_step = $mpExportHostNextStep
+        client_next_step = $mpExportClientNextStep
+    }
+    auto_compare = [ordered]@{
+        enabled = -not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)
+        output_json = (Get-VariableOrDefault -Name "compareOutputJsonLine")
+        recommendation = (Get-VariableOrDefault -Name "compareRecommendation")
+        identity_risk_warning = (Get-VariableOrDefault -Name "compareIdentityRiskWarning")
+        identity_risk_warning_reason = (Get-VariableOrDefault -Name "compareIdentityRiskWarningReason")
+        observable_effect_signal = (Get-VariableOrDefault -Name "compareObservableEffectSignal")
+        observable_effect_reason = (Get-VariableOrDefault -Name "compareObservableEffectReason")
+    }
+    auto_trend = [ordered]@{
+        enabled = [bool]$EmitTrendSummary
+        output_json = (Get-VariableOrDefault -Name "trendOutputJsonLine")
+        session_count = (Get-VariableOrDefault -Name "trendSessionCount")
+        recommendation = (Get-VariableOrDefault -Name "trendRecommendation")
+        identity_risk_warning = (Get-VariableOrDefault -Name "trendIdentityRiskWarning")
+        identity_risk_warning_reason = (Get-VariableOrDefault -Name "trendIdentityRiskWarningReason")
+        observable_effect_signal = (Get-VariableOrDefault -Name "trendObservableEffectSignal")
+        observable_effect_reason = (Get-VariableOrDefault -Name "trendObservableEffectReason")
+        latest_compare_command_hint = (Get-VariableOrDefault -Name "trendLatestCompareCommandHint")
+        next_session_command_hint = (Get-VariableOrDefault -Name "trendNextSessionCommandHint")
+    }
+}
+
+$sessionEvidenceJsonDir = Split-Path -Parent $sessionEvidenceJsonFull
+if (-not [string]::IsNullOrWhiteSpace($sessionEvidenceJsonDir)) {
+    New-Item -ItemType Directory -Force -Path $sessionEvidenceJsonDir | Out-Null
+}
+($sessionEvidence | ConvertTo-Json -Depth 8) | Set-Content -LiteralPath $sessionEvidenceJsonFull -Encoding utf8
+Write-Host ("real_session_v0_loop_evidence_json=" + $sessionEvidenceJsonFull)
 exit 0
