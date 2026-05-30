@@ -1811,6 +1811,9 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_gameplay_acceptance_state_current=accepted"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_gameplay_acceptance_state_previous=accepted"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_gameplay_acceptance_state_changed=false"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_gameplay_acceptance_reason_current="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_gameplay_acceptance_reason_previous="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_gameplay_acceptance_reason_changed=false"
 
     $trendOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1") $trendRoot $trendOutputPath
     if ($LASTEXITCODE -ne 0) {
@@ -1829,6 +1832,9 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_gameplay_acceptance_state_current=accepted"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_gameplay_acceptance_state_previous=accepted"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_gameplay_acceptance_state_changed=false"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_gameplay_acceptance_reason_current="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_gameplay_acceptance_reason_previous="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_gameplay_acceptance_reason_changed=false"
 
     Write-Host "[PASS] real_session_warning_code_drift_surface"
 }

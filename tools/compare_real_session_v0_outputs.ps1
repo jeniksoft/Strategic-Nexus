@@ -102,11 +102,19 @@ if ($null -ne $currentSummary.copied_save_count) { $currentArchiveCount = [int]$
 
 $previousGameplayStatus = ""
 $currentGameplayStatus = ""
+$previousGameplayReason = ""
+$currentGameplayReason = ""
 if ($null -ne $previousStatus.gameplay_acceptance_status -and $null -ne $previousStatus.gameplay_acceptance_status.state) {
     $previousGameplayStatus = [string]$previousStatus.gameplay_acceptance_status.state
 }
 if ($null -ne $currentStatus.gameplay_acceptance_status -and $null -ne $currentStatus.gameplay_acceptance_status.state) {
     $currentGameplayStatus = [string]$currentStatus.gameplay_acceptance_status.state
+}
+if ($null -ne $previousStatus.gameplay_acceptance_status -and $null -ne $previousStatus.gameplay_acceptance_status.reason) {
+    $previousGameplayReason = [string]$previousStatus.gameplay_acceptance_status.reason
+}
+if ($null -ne $currentStatus.gameplay_acceptance_status -and $null -ne $currentStatus.gameplay_acceptance_status.reason) {
+    $currentGameplayReason = [string]$currentStatus.gameplay_acceptance_status.reason
 }
 
 $previousMpManifestHash = ""
@@ -220,7 +228,7 @@ elseif ($previousMpIdentityMismatchWarningCodesJoined -ne $currentMpIdentityMism
 }
 
 $recommendation = "review_observable_deltas"
-if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -and $previousGameplayStatus -eq $currentGameplayStatus -and $previousMpManifestHash -eq $currentMpManifestHash) {
+if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -and $previousGameplayStatus -eq $currentGameplayStatus -and $previousGameplayReason -eq $currentGameplayReason -and $previousMpManifestHash -eq $currentMpManifestHash) {
     $recommendation = "no_pipeline_delta_detected"
 }
 if ($identityRiskWarning) {
@@ -235,6 +243,10 @@ if ($overlayChanged) {
 elseif ($previousGameplayStatus -ne $currentGameplayStatus) {
     $observableEffectSignal = $true
     $observableEffectReason = "gameplay_acceptance_state_changed"
+}
+elseif ($previousGameplayReason -ne $currentGameplayReason) {
+    $observableEffectSignal = $true
+    $observableEffectReason = "gameplay_acceptance_reason_changed"
 }
 elseif ($previousArchiveCount -ne $currentArchiveCount) {
     $observableEffectSignal = $true
@@ -261,6 +273,11 @@ $result = [ordered]@{
         previous = $previousGameplayStatus
         current = $currentGameplayStatus
         changed = ($previousGameplayStatus -ne $currentGameplayStatus)
+    }
+    gameplay_acceptance_reason = [ordered]@{
+        previous = $previousGameplayReason
+        current = $currentGameplayReason
+        changed = ($previousGameplayReason -ne $currentGameplayReason)
     }
     mp_package_manifest_hash = [ordered]@{
         previous = $previousMpManifestHash
@@ -375,6 +392,9 @@ Write-Host ("real_session_v0_compare_observable_effect_reason=" + $observableEff
 Write-Host ("real_session_v0_compare_gameplay_acceptance_state_current=" + $currentGameplayStatus)
 Write-Host ("real_session_v0_compare_gameplay_acceptance_state_previous=" + $previousGameplayStatus)
 Write-Host ("real_session_v0_compare_gameplay_acceptance_state_changed=" + ((($previousGameplayStatus -ne $currentGameplayStatus).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_gameplay_acceptance_reason_current=" + $currentGameplayReason)
+Write-Host ("real_session_v0_compare_gameplay_acceptance_reason_previous=" + $previousGameplayReason)
+Write-Host ("real_session_v0_compare_gameplay_acceptance_reason_changed=" + ((($previousGameplayReason -ne $currentGameplayReason).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_previous=" + $previousMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_changed=" + ((($previousMpHostReadiness -ne $currentMpHostReadiness).ToString().ToLowerInvariant())))

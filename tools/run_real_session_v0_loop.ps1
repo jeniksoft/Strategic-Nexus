@@ -310,6 +310,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareGameplayAcceptanceStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_state_current"
     $compareGameplayAcceptanceStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_state_previous"
     $compareGameplayAcceptanceStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_state_changed"
+    $compareGameplayAcceptanceReasonCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_reason_current"
+    $compareGameplayAcceptanceReasonPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_reason_previous"
+    $compareGameplayAcceptanceReasonChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_reason_changed"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
     $compareMpHostReadinessPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_previous"
     $compareMpHostReadinessChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_changed"
@@ -388,6 +391,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_state_current=" + $compareGameplayAcceptanceStateCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_state_previous=" + $compareGameplayAcceptanceStatePrevious)
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_state_changed=" + $compareGameplayAcceptanceStateChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_reason_current=" + $compareGameplayAcceptanceReasonCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_reason_previous=" + $compareGameplayAcceptanceReasonPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_reason_changed=" + $compareGameplayAcceptanceReasonChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_host_readiness_current=" + $compareMpHostReadinessCurrent)
     }
@@ -555,6 +561,9 @@ if ($EmitTrendSummary) {
     $trendGameplayAcceptanceStateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_state_current"
     $trendGameplayAcceptanceStatePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_state_previous"
     $trendGameplayAcceptanceStateChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_state_changed"
+    $trendGameplayAcceptanceReasonCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_reason_current"
+    $trendGameplayAcceptanceReasonPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_reason_previous"
+    $trendGameplayAcceptanceReasonChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_reason_changed"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendMpWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_codes_changed"
@@ -630,6 +639,9 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_state_current=" + $trendGameplayAcceptanceStateCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_state_previous=" + $trendGameplayAcceptanceStatePrevious)
     Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_state_changed=" + $trendGameplayAcceptanceStateChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_reason_current=" + $trendGameplayAcceptanceReasonCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_reason_previous=" + $trendGameplayAcceptanceReasonPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_reason_changed=" + $trendGameplayAcceptanceReasonChanged)
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
     }
