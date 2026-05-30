@@ -344,6 +344,12 @@ int main()
     requireCondition(
         missingMpPackage.mpOverlayPackage.statusText.find("warning_code: mp overlay package directory missing") != std::string::npos,
         "missing mp overlay package should expose warning code in status text");
+    requireCondition(
+        missingMpPackage.mpOverlayPackage.statusText.find("verify_command: Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
+        "missing mp overlay package should expose verify command in status text");
+    requireCondition(
+        missingMpPackage.mpOverlayPackage.statusText.find("import_command: Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
+        "missing mp overlay package should expose import command in status text");
     requireCondition(missingMpPackage.statusCenter.state == "attention_required", "status center should surface mp overlay package attention");
     requireCondition(missingMpPackage.statusCenter.reason == "mp overlay package needs attention", "status center reason should name mp overlay package attention");
     requireCondition(missingMpPackage.statusCenter.path == (root / "missing_mp_overlay_package"), "status center path should point to the mp overlay package needing attention");

@@ -286,6 +286,18 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         text << "readiness: not_ready\n";
         text << "warning_code: " << status.reason << "\n";
         text << "next_step: re-export package on host and import+verify before multiplayer join\n";
+        if (!status.verifyCommand.empty()) {
+            text << "verify_command: " << status.verifyCommand << "\n";
+        }
+        if (!status.importCommand.empty()) {
+            text << "import_command: " << status.importCommand << "\n";
+        }
+        if (!status.strictVerifyCommand.empty()) {
+            text << "strict_verify_command: " << status.strictVerifyCommand << "\n";
+        }
+        if (!status.strictImportCommand.empty()) {
+            text << "strict_import_command: " << status.strictImportCommand << "\n";
+        }
         status.statusText = text.str();
     };
 
@@ -344,13 +356,16 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.handoffStatus = verification.handoffStatus;
     status.readiness = verification.readiness;
     status.packageManifestHash = verification.packageManifestHash;
-    if (verification.ok) {
+    if (!status.campaignId.empty() && !status.overlayVersion.empty() && !status.gameVersion.empty() &&
+        !status.strategicNexusModVersion.empty() && !status.packageManifestHash.empty()) {
         status.strictVerifyCommand =
             status.verifyCommand + " " + status.campaignId + " " + status.overlayVersion + " " + status.gameVersion + " " +
             status.strategicNexusModVersion + " " + status.packageManifestHash;
         status.strictImportCommand =
             status.importCommand + " " + status.campaignId + " " + status.overlayVersion + " " + status.gameVersion + " " +
             status.strategicNexusModVersion + " " + status.packageManifestHash;
+    }
+    if (verification.ok) {
         status.state = "ready";
         status.reason = "mp overlay package verified";
         status.statusText = verification.statusText;
