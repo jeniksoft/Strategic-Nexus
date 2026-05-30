@@ -355,6 +355,8 @@ if ($EmitTrendSummary) {
     $trendRecommendation = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_recommendation"
     $trendIdentityRiskWarning = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning"
     $trendIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_reason"
+    $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
+    $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
     if ([string]::IsNullOrWhiteSpace($trendOutputJsonLine) -or
         [string]::IsNullOrWhiteSpace($trendSessionCount) -or
@@ -369,6 +371,12 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_recommendation=" + $trendRecommendation)
     Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning=" + $trendIdentityRiskWarning)
     Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning_reason=" + $trendIdentityRiskWarningReason)
+    if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountDelta)) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_delta=" + $trendMpWarningCountDelta)
+    }
     foreach ($warningCode in $trendIdentityRiskWarningCodes) {
         Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning_code=" + $warningCode)
     }
