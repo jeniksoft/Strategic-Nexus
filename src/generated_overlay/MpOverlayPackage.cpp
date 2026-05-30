@@ -24,6 +24,14 @@ constexpr const char* packageManifestFileName = "strategic_nexus_mp_overlay_pack
 constexpr const char* gameplayAffecting = "gameplay_affecting";
 constexpr const char* localOnlyDiagnostic = "local_only_diagnostic";
 
+struct PackageIdentity {
+    std::string campaignId;
+    std::string overlayVersion;
+    std::string gameVersion;
+    std::string strategicNexusModVersion;
+    std::string packageManifestHash;
+};
+
 std::string jsonEscape(const std::string& value)
 {
     std::ostringstream output;
@@ -193,7 +201,8 @@ std::string buildCopyableStatusText(
 std::string buildFailureStatusText(
     const std::string& warningCode,
     const std::string& nextStep,
-    const std::filesystem::path& packageDirectory)
+    const std::filesystem::path& packageDirectory,
+    const std::optional<PackageIdentity>& identity = std::nullopt)
 {
     std::ostringstream text;
     text << "readiness: not_ready\n";
@@ -202,6 +211,15 @@ std::string buildFailureStatusText(
     text << "verify_command: Strategic Nexus.exe --verify-mp-overlay-package \"" << packageDirectory.generic_string() << "\"\n";
     text << "import_command: Strategic Nexus.exe --import-mp-overlay-package \"" << packageDirectory.generic_string()
          << "\" <target_overlay_dir>\n";
+    if (identity.has_value()) {
+        text << "strict_verify_command: Strategic Nexus.exe --verify-mp-overlay-package \"" << packageDirectory.generic_string()
+             << "\" " << identity->campaignId << " " << identity->overlayVersion << " " << identity->gameVersion << " "
+             << identity->strategicNexusModVersion << " " << identity->packageManifestHash << "\n";
+        text << "strict_import_command: Strategic Nexus.exe --import-mp-overlay-package \"" << packageDirectory.generic_string()
+             << "\" <target_overlay_dir> " << identity->campaignId << " " << identity->overlayVersion << " "
+             << identity->gameVersion << " " << identity->strategicNexusModVersion << " " << identity->packageManifestHash
+             << "\n";
+    }
     return text.str();
 }
 
@@ -491,6 +509,13 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     result.gameVersion = *gameVersion;
     result.strategicNexusModVersion = *strategicNexusModVersion;
     result.handoffStatus = *handoffStatus;
+    const PackageIdentity identity{
+        result.campaignId,
+        result.overlayVersion,
+        result.gameVersion,
+        result.strategicNexusModVersion,
+        result.packageManifestHash
+    };
 
     const auto objects = extractFileObjects(manifestText);
     if (objects.empty()) {
@@ -498,7 +523,8 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
         result.statusText = buildFailureStatusText(
             "mp_overlay_package_manifest_no_files",
             "re-export package on host before import/verify",
-            packageDirectory);
+            packageDirectory,
+            identity);
         return result;
     }
 
@@ -512,7 +538,8 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
             result.statusText = buildFailureStatusText(
                 "mp_overlay_package_manifest_invalid_file_entry",
                 "re-export package on host before import/verify",
-                packageDirectory);
+                packageDirectory,
+                identity);
             return result;
         }
 
@@ -576,14 +603,16 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
         result.statusText = buildFailureStatusText(
             "mp_overlay_package_unexpected_files",
             "remove unexpected files or re-export package on host",
-            packageDirectory);
+            packageDirectory,
+            identity);
     } else {
         result.readiness = "not_ready";
         result.reason = "MP overlay package files do not match manifest";
         result.statusText = buildFailureStatusText(
             "mp_overlay_package_files_mismatch_manifest",
             "re-export package on host and import+verify again",
-            packageDirectory);
+            packageDirectory,
+            identity);
     }
     return result;
 }

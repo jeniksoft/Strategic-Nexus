@@ -250,7 +250,11 @@ int main()
         return 1;
     }
     if (unexpectedResult.readiness != "not_ready" ||
-        unexpectedResult.statusText.find("warning_code: mp_overlay_package_unexpected_files") == std::string::npos) {
+        unexpectedResult.statusText.find("warning_code: mp_overlay_package_unexpected_files") == std::string::npos ||
+        unexpectedResult.statusText.find("strict_verify_command: Strategic Nexus.exe --verify-mp-overlay-package ") ==
+            std::string::npos ||
+        unexpectedResult.statusText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package ") ==
+            std::string::npos) {
         std::cerr << "unexpected-file verification exposed shareable ready text\n";
         return 1;
     }
@@ -265,7 +269,11 @@ int main()
         return 1;
     }
     if (tamperedResult.readiness != "not_ready" ||
-        tamperedResult.statusText.find("warning_code: mp_overlay_package_files_mismatch_manifest") == std::string::npos) {
+        tamperedResult.statusText.find("warning_code: mp_overlay_package_files_mismatch_manifest") == std::string::npos ||
+        tamperedResult.statusText.find("strict_verify_command: Strategic Nexus.exe --verify-mp-overlay-package ") ==
+            std::string::npos ||
+        tamperedResult.statusText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package ") ==
+            std::string::npos) {
         std::cerr << "tamper verification exposed shareable ready text\n";
         return 1;
     }
