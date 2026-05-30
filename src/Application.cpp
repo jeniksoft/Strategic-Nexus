@@ -1238,6 +1238,7 @@ int Application::run(const RunConfig& config) const
             if (!snapshot.mpOverlayPackage.warningCodes.empty()) {
                 std::cout << "snc_mp_overlay_package_warning_count=" << snapshot.mpOverlayPackage.warningCodes.size() << "\n";
                 for (const auto& warningCode : snapshot.mpOverlayPackage.warningCodes) {
+                    std::cout << "snc_mp_overlay_package_warning=" << sanitizeCliValue(warningCode) << "\n";
                     std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
                 }
             } else {
@@ -1245,6 +1246,7 @@ int Application::run(const RunConfig& config) const
                 if (!mpWarningCodes.empty()) {
                     std::cout << "snc_mp_overlay_package_warning_count=" << mpWarningCodes.size() << "\n";
                     for (const auto& warningCode : mpWarningCodes) {
+                        std::cout << "snc_mp_overlay_package_warning=" << sanitizeCliValue(warningCode) << "\n";
                         std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
                     }
                 }
