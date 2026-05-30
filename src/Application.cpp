@@ -1226,10 +1226,22 @@ int Application::run(const RunConfig& config) const
                 return 1;
             }
 
-            const ArchiveMinistryInputBuilder builder;
-            const auto input = builder.build(
+            SaveParserSummary parsedHeadline;
+            const bool hasParsedHeadline = parseLatestArchivedSaveHeadline(summary, parsedHeadline);
+            const SeasonDeltaLedgerBuilder ledgerBuilder;
+            const auto ledger = ledgerBuilder.build(
                 summary,
                 config.archiveMinistryInputCampaignId,
+                hasParsedHeadline ? &parsedHeadline : nullptr);
+            if (!ledger.ok) {
+                std::cout << "archive_ministry_input_success=false\n";
+                std::cout << "archive_ministry_input_reason=" << sanitizeCliValue(ledger.reason) << "\n";
+                return 1;
+            }
+
+            const ArchiveMinistryInputBuilder builder;
+            const auto input = builder.build(
+                ledger,
                 config.archiveMinistryInputEmpireId,
                 config.archiveMinistryInputMinistry);
             const bool written = common::writeTextFileAtomically(
@@ -1267,10 +1279,22 @@ int Application::run(const RunConfig& config) const
                 return 1;
             }
 
-            const ArchiveMinistryInputBuilder builder;
-            const auto input = builder.build(
+            SaveParserSummary parsedHeadline;
+            const bool hasParsedHeadline = parseLatestArchivedSaveHeadline(summary, parsedHeadline);
+            const SeasonDeltaLedgerBuilder ledgerBuilder;
+            const auto ledger = ledgerBuilder.build(
                 summary,
                 config.archivePipelineCampaignId,
+                hasParsedHeadline ? &parsedHeadline : nullptr);
+            if (!ledger.ok) {
+                std::cout << "archive_v0_pipeline_success=false\n";
+                std::cout << "archive_v0_pipeline_reason=" << sanitizeCliValue(ledger.reason) << "\n";
+                return 1;
+            }
+
+            const ArchiveMinistryInputBuilder builder;
+            const auto input = builder.build(
+                ledger,
                 config.archivePipelineEmpireId,
                 config.archivePipelineMinistry);
             const bool inputWritten = common::writeTextFileAtomically(

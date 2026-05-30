@@ -54,5 +54,32 @@ strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
     return input;
 }
 
+strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
+    const SeasonDeltaLedger& ledger,
+    const std::string& empireId,
+    const std::string& ministry) const
+{
+    strategic_pipeline::MinistryInputContext input;
+    input.schemaVersion = 1;
+    input.contextId = "archive_session_summary_v0";
+    input.campaignId = ledger.campaignId;
+    input.empireId = empireId;
+    input.ministry = ministry;
+    input.turnContext.year = 0;
+    input.turnContext.isAtWar = false;
+    input.turnContext.strategicPressure = 0.25;
+    input.knownFacts = ledger.facts;
+    input.uncertainties = ledger.uncertainties;
+    if (!ledger.ok) {
+        input.uncertainties.push_back("archive_ledger_not_verified");
+    }
+    if (ledger.deltaQuality != "metadata_plus_save_headline") {
+        input.uncertainties.push_back("save_content_not_parsed_yet");
+    }
+    input.currentMilitaryPosture = "defensive";
+    input.currentResearchBias = "economy";
+    return input;
+}
+
 } // namespace strategic_nexus
 

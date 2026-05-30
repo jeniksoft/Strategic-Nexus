@@ -38,6 +38,28 @@ int main()
     requireCondition(input.uncertainties.size() == 2, "builder should emit explicit archive uncertainties");
     requireCondition(input.currentMilitaryPosture == "defensive", "builder should emit safe military fallback");
     requireCondition(input.currentResearchBias == "economy", "builder should emit safe research fallback");
+    requireCondition(
+        input.uncertainties[0] == "save_content_not_parsed_yet",
+        "metadata-only build should keep explicit parser uncertainty");
+
+    strategic_nexus::SeasonDeltaLedger ledger;
+    ledger.ok = true;
+    ledger.campaignId = "campaign_ledger";
+    ledger.deltaQuality = "metadata_plus_save_headline";
+    ledger.facts = {"archive_verified:true", "save_headline_parsed:true", "headline_active_war_count:1"};
+    ledger.uncertainties = {"empire_state_not_extracted_yet"};
+
+    const auto ledgerInput = builder.build(ledger, "empire_ledger", "research");
+    requireCondition(ledgerInput.campaignId == "campaign_ledger", "ledger build should preserve campaign id");
+    requireCondition(ledgerInput.empireId == "empire_ledger", "ledger build should preserve empire id");
+    requireCondition(ledgerInput.ministry == "research", "ledger build should preserve ministry");
+    requireCondition(ledgerInput.knownFacts.size() == 3, "ledger build should forward parsed facts");
+    requireCondition(
+        ledgerInput.knownFacts[1] == "save_headline_parsed:true",
+        "ledger build should forward parsed-headline marker");
+    requireCondition(
+        ledgerInput.uncertainties.size() == 1,
+        "headline-backed ledger should not force metadata-only uncertainty");
 
     std::cout << "archive ministry input builder tests passed.\n";
     return 0;
