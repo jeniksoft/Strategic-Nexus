@@ -317,12 +317,8 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpClientNextStepCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_client_next_step_current=" + $compareMpClientNextStepCurrent)
     }
-    if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashCurrent)) {
-        Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_current=" + $compareMpManifestHashCurrent)
-    }
-    if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashChanged)) {
-        Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_changed=" + $compareMpManifestHashChanged)
-    }
+    Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_current=" + $compareMpManifestHashCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_changed=" + $compareMpManifestHashChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_warning_count_current=" + $compareMpWarningCountCurrent)
     }
