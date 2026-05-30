@@ -77,12 +77,15 @@ $previousMpReadiness = ""
 $currentMpReadiness = ""
 $previousMpWarningCount = ""
 $currentMpWarningCount = ""
+$previousMpIdentityMismatchWarning = ""
+$currentMpIdentityMismatchWarning = ""
 if (Test-Path -LiteralPath $previousStatusWithMpPath) {
     $previousStatusWithMp = Read-JsonFile -Path $previousStatusWithMpPath
     if ($null -ne $previousStatusWithMp.mp_overlay_package_status) {
         $previousMpManifestHash = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "package_manifest_hash"
         $previousMpReadiness = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "readiness"
         $previousMpWarningCount = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "warning_count"
+        $previousMpIdentityMismatchWarning = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
     }
 }
 if (Test-Path -LiteralPath $currentStatusWithMpPath) {
@@ -91,6 +94,7 @@ if (Test-Path -LiteralPath $currentStatusWithMpPath) {
         $currentMpManifestHash = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "package_manifest_hash"
         $currentMpReadiness = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "readiness"
         $currentMpWarningCount = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "warning_count"
+        $currentMpIdentityMismatchWarning = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
     }
 }
 
@@ -134,6 +138,11 @@ $result = [ordered]@{
         previous = $previousMpWarningCount
         current = $currentMpWarningCount
         changed = ($previousMpWarningCount -ne $currentMpWarningCount)
+    }
+    mp_identity_mismatch_warning = [ordered]@{
+        previous = $previousMpIdentityMismatchWarning
+        current = $currentMpIdentityMismatchWarning
+        changed = ($previousMpIdentityMismatchWarning -ne $currentMpIdentityMismatchWarning)
     }
     next_step_recommendation = $recommendation
 }
