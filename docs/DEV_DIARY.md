@@ -103,7 +103,7 @@ Projekt dnes posunul hlavne offline analyzu autosave vstupu, navazani archivniho
 
 Co pribylo v repozitari:
 
-* Pribyl uzce ohraniceny Stellaris save parser CLI a navazujici dokumentace save container formatu. Tato vrstva dava projektu prvni konkretni vstup pro runtime reverse engineering v bezpecnem, ctecim a auditovatelnem rozsahu.
+* Pribyl uzce ohraniceny Stellaris save parser CLI a navazujici dokumentace save container formatu. Tato vrstva dava projektu prvni konkretni vstup pro offline save parsing v bezpecnem, ctecim a auditovatelnem rozsahu.
 * Nasledne commity propojily parsovanou hlavicku savu a season delta ledger s `ArchiveMinistryInputBuilder`, vcetne threading `parsed_headline_war_hint` a `save_date` year hintu do archivniho brief toku.
 * Runtime spine byla zpevnena dalsi validaci archive identity a generated overlay DSL validation, aby scripted event/effect path zustal bounded a fail-closed i pri problematickych vstupech.
 * Posledni dnesni commit doplnil warning codes do verify CLI vystupu pro MP package cestu, tedy presnejsi diagnostiku na hranici mezi generated overlay packagingem, companion observability a dalsim export workflow.

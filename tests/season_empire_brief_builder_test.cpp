@@ -39,6 +39,9 @@ int main()
     requireCondition(brief.relevantFacts.size() == 2, "brief should carry ledger facts");
     requireCondition(brief.explicitUncertainties.size() == 1, "brief should carry ledger uncertainties");
     requireCondition(brief.missingInformation.size() == 4, "brief should declare missing parser information");
+    requireCondition(
+        brief.compressionNotes.size() == 2 && brief.compressionNotes[0] == "metadata_only_archive_brief",
+        "metadata-only brief should advertise metadata-only compression");
 
     const auto json = strategic_nexus::serializeSeasonEmpireBrief(brief);
     requireCondition(json.find("\"empire_id\": \"empire_001\"") != std::string::npos, "brief JSON should include empire id");
@@ -76,6 +79,16 @@ int main()
     requireCondition(
         parsedHeadlineBrief.ok,
         "brief should accept metadata_plus_save_headline ledger quality");
+    requireCondition(
+        parsedHeadlineBrief.missingInformation.size() == 5,
+        "headline-enhanced brief should still declare full save extraction gap");
+    requireCondition(
+        parsedHeadlineBrief.missingInformation[4] == "full_save_state_still_not_extracted",
+        "headline-enhanced brief should name remaining full-save extraction gap");
+    requireCondition(
+        parsedHeadlineBrief.compressionNotes.size() == 2 &&
+            parsedHeadlineBrief.compressionNotes[0] == "metadata_plus_headline_archive_brief",
+        "headline-enhanced brief should advertise metadata-plus-headline compression");
 
     std::cout << "season empire brief builder tests passed.\n";
     return 0;

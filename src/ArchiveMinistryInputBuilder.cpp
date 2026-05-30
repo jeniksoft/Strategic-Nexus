@@ -52,6 +52,16 @@ bool parseFactValue(const std::string& fact, const char* key, std::string& outVa
     return true;
 }
 
+void appendUncertaintyIfMissing(strategic_pipeline::MinistryInputContext& input, const std::string& value)
+{
+    for (const auto& existing : input.uncertainties) {
+        if (existing == value) {
+            return;
+        }
+    }
+    input.uncertainties.push_back(value);
+}
+
 void applyParsedHeadlineWarHint(const SeasonDeltaLedger& ledger, strategic_pipeline::MinistryInputContext& input)
 {
     if (ledger.deltaQuality != "metadata_plus_save_headline") {
@@ -66,13 +76,13 @@ void applyParsedHeadlineWarHint(const SeasonDeltaLedger& ledger, strategic_pipel
     }
 
     if (rawWarCount.empty()) {
-        input.uncertainties.push_back("headline_war_count_missing");
+        appendUncertaintyIfMissing(input, "headline_war_count_missing");
         return;
     }
 
     std::size_t warCount = 0;
     if (!parseNonNegativeInteger(rawWarCount, warCount)) {
-        input.uncertainties.push_back("headline_war_count_invalid");
+        appendUncertaintyIfMissing(input, "headline_war_count_invalid");
         return;
     }
 
@@ -95,18 +105,18 @@ void applyParsedHeadlineYearHint(const SeasonDeltaLedger& ledger, strategic_pipe
     }
 
     if (rawSaveDate.empty()) {
-        input.uncertainties.push_back("headline_save_date_missing");
+        appendUncertaintyIfMissing(input, "headline_save_date_missing");
         return;
     }
 
     if (rawSaveDate.size() < 4) {
-        input.uncertainties.push_back("headline_save_date_invalid");
+        appendUncertaintyIfMissing(input, "headline_save_date_invalid");
         return;
     }
 
     std::size_t year = 0;
     if (!parseNonNegativeInteger(rawSaveDate.substr(0, 4), year)) {
-        input.uncertainties.push_back("headline_save_date_invalid");
+        appendUncertaintyIfMissing(input, "headline_save_date_invalid");
         return;
     }
 
@@ -164,12 +174,12 @@ strategic_pipeline::MinistryInputContext ArchiveMinistryInputBuilder::build(
     input.knownFacts = ledger.facts;
     input.uncertainties = ledger.uncertainties;
     if (!ledger.ok) {
-        input.uncertainties.push_back("archive_ledger_not_verified");
+        appendUncertaintyIfMissing(input, "archive_ledger_not_verified");
     }
     applyParsedHeadlineWarHint(ledger, input);
     applyParsedHeadlineYearHint(ledger, input);
     if (ledger.deltaQuality != "metadata_plus_save_headline") {
-        input.uncertainties.push_back("save_content_not_parsed_yet");
+        appendUncertaintyIfMissing(input, "save_content_not_parsed_yet");
     }
     input.currentMilitaryPosture = "defensive";
     input.currentResearchBias = "economy";

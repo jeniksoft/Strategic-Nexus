@@ -95,8 +95,15 @@ SeasonEmpireBrief SeasonEmpireBriefBuilder::build(
     brief.missingInformation.push_back("empire_visible_state_not_extracted_yet");
     brief.missingInformation.push_back("diplomatic_relationships_not_extracted_yet");
     brief.missingInformation.push_back("wars_borders_economy_and_fleets_not_extracted_yet");
+    if (ledger.deltaQuality == "metadata_plus_save_headline") {
+        brief.missingInformation.push_back("full_save_state_still_not_extracted");
+    }
 
-    brief.compressionNotes.push_back("metadata_only_archive_brief");
+    if (ledger.deltaQuality == "metadata_plus_save_headline") {
+        brief.compressionNotes.push_back("metadata_plus_headline_archive_brief");
+    } else {
+        brief.compressionNotes.push_back("metadata_only_archive_brief");
+    }
     brief.compressionNotes.push_back("do_not_infer_personality_or_strategy_from_this_brief_alone");
     return brief;
 }

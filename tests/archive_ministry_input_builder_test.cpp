@@ -101,6 +101,18 @@ int main()
         containsValue(badDateInput.uncertainties, "headline_save_date_invalid"),
         "invalid save date should be surfaced as explicit uncertainty");
 
+    strategic_nexus::SeasonDeltaLedger metadataOnlyLedger = ledger;
+    metadataOnlyLedger.deltaQuality = "metadata_only";
+    metadataOnlyLedger.facts = {"archive_verified:true"};
+    metadataOnlyLedger.uncertainties = {"save_content_not_parsed_yet"};
+    const auto dedupInput = builder.build(metadataOnlyLedger, "empire_ledger", "research");
+    requireCondition(
+        std::count(
+            dedupInput.uncertainties.begin(),
+            dedupInput.uncertainties.end(),
+            "save_content_not_parsed_yet") == 1,
+        "metadata-only ledger uncertainty should not be duplicated");
+
     std::cout << "archive ministry input builder tests passed.\n";
     return 0;
 }
