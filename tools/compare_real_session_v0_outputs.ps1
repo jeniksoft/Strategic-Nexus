@@ -194,6 +194,20 @@ $recommendation = "review_observable_deltas"
 if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -and $previousGameplayStatus -eq $currentGameplayStatus -and $previousMpManifestHash -eq $currentMpManifestHash) {
     $recommendation = "no_pipeline_delta_detected"
 }
+$observableEffectSignal = $false
+$observableEffectReason = "no_observable_delta"
+if ($overlayChanged) {
+    $observableEffectSignal = $true
+    $observableEffectReason = "generated_overlay_manifest_changed"
+}
+elseif ($previousGameplayStatus -ne $currentGameplayStatus) {
+    $observableEffectSignal = $true
+    $observableEffectReason = "gameplay_acceptance_state_changed"
+}
+elseif ($previousArchiveCount -ne $currentArchiveCount) {
+    $observableEffectSignal = $true
+    $observableEffectReason = "verified_archive_save_count_changed"
+}
 
 $result = [ordered]@{
     schema_version = 1
@@ -274,6 +288,10 @@ $result = [ordered]@{
         reason = $identityRiskWarningReason
         current_warning_codes = $currentMpIdentityMismatchWarningCodes
     }
+    observable_effect_signal = [ordered]@{
+        active = $observableEffectSignal
+        reason = $observableEffectReason
+    }
     compare_command_hint = $compareCommandHint
     next_step_recommendation = $recommendation
 }
@@ -295,6 +313,8 @@ if ($identityRiskWarning) {
 }
 Write-Host ("real_session_v0_compare_identity_risk_warning=" + $identityRiskWarningText)
 Write-Host ("real_session_v0_compare_identity_risk_warning_reason=" + $identityRiskWarningReason)
+Write-Host ("real_session_v0_compare_observable_effect_signal=" + ($observableEffectSignal.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_observable_effect_reason=" + $observableEffectReason)
 Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_client_readiness_gate_current=" + $currentMpClientReadinessGate)
 Write-Host ("real_session_v0_compare_mp_host_next_step_current=" + $currentMpHostNextStep)

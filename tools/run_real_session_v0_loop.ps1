@@ -279,6 +279,8 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareCommandHintLine = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_command_hint"
     $compareIdentityRiskWarning = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning"
     $compareIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning_reason"
+    $compareObservableEffectSignal = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_observable_effect_signal"
+    $compareObservableEffectReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_observable_effect_reason"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
     $compareMpClientReadinessGateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_readiness_gate_current"
     $compareMpHostNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_next_step_current"
@@ -302,6 +304,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if ([string]::IsNullOrWhiteSpace($compareIdentityRiskWarningReason)) {
         throw "Compare output is missing real_session_v0_compare_identity_risk_warning_reason."
     }
+    if ([string]::IsNullOrWhiteSpace($compareObservableEffectSignal)) {
+        throw "Compare output is missing real_session_v0_compare_observable_effect_signal."
+    }
+    if ([string]::IsNullOrWhiteSpace($compareObservableEffectReason)) {
+        throw "Compare output is missing real_session_v0_compare_observable_effect_reason."
+    }
     Write-Host "real_session_v0_loop_compare_auto_ok=true"
     Write-Host ("real_session_v0_loop_compare_auto_output_json=" + $compareOutputJsonLine)
     if (-not [string]::IsNullOrWhiteSpace($compareCommandHintLine)) {
@@ -310,6 +318,8 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_recommendation=" + $compareRecommendation)
     Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning=" + $compareIdentityRiskWarning)
     Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning_reason=" + $compareIdentityRiskWarningReason)
+    Write-Host ("real_session_v0_loop_compare_auto_observable_effect_signal=" + $compareObservableEffectSignal)
+    Write-Host ("real_session_v0_loop_compare_auto_observable_effect_reason=" + $compareObservableEffectReason)
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_host_readiness_current=" + $compareMpHostReadinessCurrent)
     }
@@ -379,6 +389,8 @@ if ($EmitTrendSummary) {
     $trendRecommendation = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_recommendation"
     $trendIdentityRiskWarning = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning"
     $trendIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_reason"
+    $trendObservableEffectSignal = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_observable_effect_signal"
+    $trendObservableEffectReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_observable_effect_reason"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendMpManifestHashCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_manifest_hash_current"
@@ -396,7 +408,9 @@ if ($EmitTrendSummary) {
         [string]::IsNullOrWhiteSpace($trendSessionCount) -or
         [string]::IsNullOrWhiteSpace($trendRecommendation) -or
         [string]::IsNullOrWhiteSpace($trendIdentityRiskWarning) -or
-        [string]::IsNullOrWhiteSpace($trendIdentityRiskWarningReason)) {
+        [string]::IsNullOrWhiteSpace($trendIdentityRiskWarningReason) -or
+        [string]::IsNullOrWhiteSpace($trendObservableEffectSignal) -or
+        [string]::IsNullOrWhiteSpace($trendObservableEffectReason)) {
         throw "Trend output is missing required fields."
     }
     Write-Host "real_session_v0_loop_trend_auto_ok=true"
@@ -405,6 +419,8 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_recommendation=" + $trendRecommendation)
     Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning=" + $trendIdentityRiskWarning)
     Write-Host ("real_session_v0_loop_trend_auto_identity_risk_warning_reason=" + $trendIdentityRiskWarningReason)
+    Write-Host ("real_session_v0_loop_trend_auto_observable_effect_signal=" + $trendObservableEffectSignal)
+    Write-Host ("real_session_v0_loop_trend_auto_observable_effect_reason=" + $trendObservableEffectReason)
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
     }

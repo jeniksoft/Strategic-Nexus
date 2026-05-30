@@ -92,6 +92,8 @@ $latestTrendRecommendation = "need_more_real_sessions"
 $latestIdentityRiskWarning = "false"
 $latestIdentityRiskWarningReason = "need_more_real_sessions"
 $latestIdentityRiskWarningCodes = @()
+$latestObservableEffectSignal = "false"
+$latestObservableEffectReason = "need_more_real_sessions"
 $latestMpWarningCountCurrent = ""
 $latestMpWarningCountDelta = ""
 $latestMpManifestHashCurrent = ""
@@ -136,6 +138,8 @@ if ($sessionCount -ge 2) {
 
     $compareIdentityRiskWarningLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning=*" } | Select-Object -First 1
     $compareIdentityRiskWarningReasonLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_identity_risk_warning_reason=*" } | Select-Object -First 1
+    $compareObservableEffectSignalLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_observable_effect_signal=*" } | Select-Object -First 1
+    $compareObservableEffectReasonLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_observable_effect_reason=*" } | Select-Object -First 1
     $compareMpWarningCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_current=*" } | Select-Object -First 1
     $compareMpWarningCountDeltaLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_delta=*" } | Select-Object -First 1
     $compareMpManifestHashCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_current=*" } | Select-Object -First 1
@@ -164,6 +168,12 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareIdentityRiskWarningReasonLine)) {
         $latestIdentityRiskWarningReason = $compareIdentityRiskWarningReasonLine.Substring("real_session_v0_compare_identity_risk_warning_reason=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareObservableEffectSignalLine)) {
+        $latestObservableEffectSignal = $compareObservableEffectSignalLine.Substring("real_session_v0_compare_observable_effect_signal=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareObservableEffectReasonLine)) {
+        $latestObservableEffectReason = $compareObservableEffectReasonLine.Substring("real_session_v0_compare_observable_effect_reason=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrentLine)) {
         $latestMpWarningCountCurrent = $compareMpWarningCountCurrentLine.Substring("real_session_v0_compare_mp_warning_count_current=".Length)
@@ -237,6 +247,10 @@ $result = [ordered]@{
         reason = $latestIdentityRiskWarningReason
         warning_codes = $latestIdentityRiskWarningCodes
     }
+    latest_observable_effect_signal = [ordered]@{
+        active = $latestObservableEffectSignal
+        reason = $latestObservableEffectReason
+    }
     latest_mp_warning_count = [ordered]@{
         current = $latestMpWarningCountCurrent
         delta = $latestMpWarningCountDelta
@@ -272,6 +286,8 @@ Write-Host ("real_session_v0_trend_unique_gameplay_acceptance_state_count=" + $g
 Write-Host ("real_session_v0_trend_recommendation=" + $latestTrendRecommendation)
 Write-Host ("real_session_v0_trend_identity_risk_warning=" + $latestIdentityRiskWarning)
 Write-Host ("real_session_v0_trend_identity_risk_warning_reason=" + $latestIdentityRiskWarningReason)
+Write-Host ("real_session_v0_trend_observable_effect_signal=" + $latestObservableEffectSignal)
+Write-Host ("real_session_v0_trend_observable_effect_reason=" + $latestObservableEffectReason)
 if (-not [string]::IsNullOrWhiteSpace($latestMpWarningCountCurrent)) {
     Write-Host ("real_session_v0_trend_mp_warning_count_current=" + $latestMpWarningCountCurrent)
 }

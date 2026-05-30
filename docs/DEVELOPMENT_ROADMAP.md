@@ -854,6 +854,7 @@ Status Center summary now also emits explicit `mp_identity_mismatch_alert` text 
 `tools/run_real_session_v0_loop.ps1` now also forwards trend next-session command output as `real_session_v0_loop_trend_auto_next_session_command_hint`, so one-command loop/trend output can be copied directly for the next real-session run.
 `tools/run_real_session_v0_loop.ps1` now also forwards trend compare replay command output as `real_session_v0_loop_trend_auto_latest_compare_command_hint`, so latest compare evidence can be replayed from the same loop/trend output surface.
 `tools/compare_real_session_v0_outputs.ps1` now also emits previous+current MP manifest-hash compare fields (`real_session_v0_compare_mp_manifest_hash_previous/current/changed`), and trend/loop auto forwarding now surfaces the same pair (`real_session_v0_trend_mp_manifest_hash_previous/current/changed`, `real_session_v0_loop_trend_auto_mp_manifest_hash_previous/current/changed`, `real_session_v0_loop_compare_auto_mp_manifest_hash_previous/current/changed`) for direct hash-drift inspection from one run output.
+Compare/trend/loop outputs now also expose explicit observable-effect signal fields (`real_session_v0_compare_observable_effect_signal/reason`, `real_session_v0_trend_observable_effect_signal/reason`, and forwarded `real_session_v0_loop_*_observable_effect_*`) so owner/release-companion flow can quickly decide whether the latest session pair shows any measurable v0 pipeline delta worth in-game follow-up.
 
 Next worker-ready slice:
 
