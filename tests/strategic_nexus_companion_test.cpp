@@ -185,6 +185,9 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_readiness: ready_for_mp") != std::string::npos,
         "status center summary should include MP readiness");
+    requireCondition(
+        ready.statusCenterSummaryText.find("gameplay_acceptance: starting - gameplay acceptance pending") != std::string::npos,
+        "status center summary should include gameplay acceptance pending state");
 
     const auto emptyOverlay = companion.buildStatusSnapshot({
         archiveRoot,
@@ -289,6 +292,7 @@ int main()
     requireCondition(json.find("\"manifest_hash\": \"") != std::string::npos, "JSON should include generated overlay manifest hash");
     requireCondition(json.find("\"generated_overlay_publish_gate_status\"") != std::string::npos, "JSON should include generated overlay publish gate status");
     requireCondition(json.find("\"mp_overlay_package_status\"") != std::string::npos, "JSON should include mp overlay package status");
+    requireCondition(json.find("\"gameplay_acceptance_status\"") != std::string::npos, "JSON should include gameplay acceptance status");
     requireCondition(json.find("\"campaign_id\": \"campaign_mp_001\"") != std::string::npos, "JSON should include mp overlay package campaign id");
     requireCondition(json.find("\"overlay_version\": \"overlay_v1\"") != std::string::npos, "JSON should include mp overlay package overlay version");
     requireCondition(json.find("\"game_version\": \"stellaris_4.x\"") != std::string::npos, "JSON should include mp overlay package game version");
@@ -302,6 +306,32 @@ int main()
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
     requireCondition(json.find("generated_at_local: ") != std::string::npos, "status center summary should include generated_at_local timestamp");
+
+    const auto gameplayAcceptanceReport = root / "gameplay_acceptance_v0.json";
+    {
+        std::ofstream out(gameplayAcceptanceReport, std::ios::binary | std::ios::trunc);
+        out << "{\n"
+            << "  \"schema_version\": 1,\n"
+            << "  \"acceptance_state\": \"verified_for_v0_domains\"\n"
+            << "}\n";
+    }
+
+    const auto acceptanceReady = companion.buildStatusSnapshot({
+        archiveRoot,
+        overlayRoot,
+        mpPackageRoot,
+        true,
+        false,
+        false,
+        gameplayAcceptanceReport
+    });
+    requireCondition(acceptanceReady.gameplayAcceptance.state == "ready", "gameplay acceptance should be ready when report is verified");
+    requireCondition(
+        acceptanceReady.gameplayAcceptance.reason == "gameplay acceptance verified for v0 domains",
+        "gameplay acceptance should expose verified reason");
+    requireCondition(
+        acceptanceReady.statusCenterSummaryText.find("gameplay_acceptance: ready - gameplay acceptance verified for v0 domains") != std::string::npos,
+        "status center summary should include verified gameplay acceptance state");
 
     {
         strategic_nexus::CompanionStatusSnapshot snapshot;

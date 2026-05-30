@@ -4,6 +4,7 @@
 #include "StrategicNexusCompanion.h"
 
 #include "common/FileUtil.h"
+#include "common/JsonExtract.h"
 #include "generated_overlay/ManifestVerifier.h"
 #include "generated_overlay/MpOverlayPackage.h"
 #include "StellarisProcessDetector.h"
@@ -318,6 +319,72 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     return status;
 }
 
+CompanionSubsystemStatus buildGameplayAcceptanceStatus(const std::filesystem::path& reportPath)
+{
+    CompanionSubsystemStatus status;
+    status.path = reportPath;
+
+    if (reportPath.empty()) {
+        status.state = "starting";
+        status.reason = "gameplay acceptance pending";
+        return status;
+    }
+
+    std::error_code error;
+    const bool exists = std::filesystem::exists(reportPath, error);
+    if (error) {
+        status.state = "needs_attention";
+        status.reason = "gameplay acceptance report inaccessible";
+        return status;
+    }
+    if (!exists) {
+        status.state = "starting";
+        status.reason = "gameplay acceptance pending";
+        return status;
+    }
+
+    const bool isRegularFile = std::filesystem::is_regular_file(reportPath, error);
+    if (error || !isRegularFile) {
+        status.state = "needs_attention";
+        status.reason = "gameplay acceptance report path is not a file";
+        return status;
+    }
+
+    std::string reportJson;
+    if (!common::tryReadTextFile(reportPath, reportJson)) {
+        status.state = "needs_attention";
+        status.reason = "gameplay acceptance report unreadable";
+        return status;
+    }
+
+    const auto acceptanceState = common::extractJsonString(reportJson, "acceptance_state");
+    if (!acceptanceState.has_value()) {
+        status.state = "needs_attention";
+        status.reason = "gameplay acceptance report malformed";
+        return status;
+    }
+
+    if (acceptanceState.value() == "verified_for_v0_domains") {
+        status.state = "ready";
+        status.reason = "gameplay acceptance verified for v0 domains";
+        return status;
+    }
+    if (acceptanceState.value() == "pending") {
+        status.state = "starting";
+        status.reason = "gameplay acceptance pending";
+        return status;
+    }
+    if (acceptanceState.value() == "failed") {
+        status.state = "needs_attention";
+        status.reason = "gameplay acceptance failed";
+        return status;
+    }
+
+    status.state = "needs_attention";
+    status.reason = "gameplay acceptance report has unknown state";
+    return status;
+}
+
 CompanionSubsystemStatus buildGeneratedOverlayPublishGateStatus(
     const CompanionSubsystemStatus& generatedOverlay,
     const CompanionStatusConfig& config)
@@ -483,6 +550,7 @@ std::string buildStatusCenterSummaryText(
     const CompanionSubsystemStatus& generatedOverlay,
     const CompanionSubsystemStatus& generatedOverlayPublishGate,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const CompanionSubsystemStatus& gameplayAcceptance,
     const CompanionSubsystemStatus& statusCenter)
 {
     std::ostringstream text;
@@ -539,6 +607,10 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.statusText.empty()) {
         text << "mp_overlay_package_status_text: " << mpOverlayPackage.statusText << "\n";
     }
+    text << "gameplay_acceptance: " << gameplayAcceptance.state << " - " << gameplayAcceptance.reason << "\n";
+    if (!gameplayAcceptance.path.empty()) {
+        text << "gameplay_acceptance_report_path: " << pathString(gameplayAcceptance.path) << "\n";
+    }
     return text.str();
 }
 
@@ -590,6 +662,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
     snapshot.generatedOverlayPublishGate = buildGeneratedOverlayPublishGateStatus(snapshot.generatedOverlay, config);
     snapshot.mpOverlayPackage = buildMpOverlayPackageStatus(config.mpOverlayPackageDirectory);
+    snapshot.gameplayAcceptance = buildGameplayAcceptanceStatus(config.gameplayAcceptanceReportPath);
     snapshot.statusCenter =
         buildStatusCenterStatus(
             snapshot.saveDiscovery,
@@ -604,6 +677,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
         snapshot.generatedOverlay,
         snapshot.generatedOverlayPublishGate,
         snapshot.mpOverlayPackage,
+        snapshot.gameplayAcceptance,
         snapshot.statusCenter);
     return snapshot;
 }
@@ -640,6 +714,9 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << ",\n";
     output << "  \"mp_overlay_package_status\": ";
     writeMpOverlayPackageJson(output, snapshot.mpOverlayPackage, "  ");
+    output << ",\n";
+    output << "  \"gameplay_acceptance_status\": ";
+    writeSubsystemJson(output, snapshot.gameplayAcceptance, "  ");
     output << ",\n";
     output << "  \"status_center\": ";
     writeSubsystemJson(output, snapshot.statusCenter, "  ");

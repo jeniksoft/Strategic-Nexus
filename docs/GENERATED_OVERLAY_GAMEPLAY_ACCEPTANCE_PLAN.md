@@ -59,11 +59,11 @@ Expected result:
 
 Input:
 
-- DSL rule selecting `research_bias = military`
+- DSL rule selecting `research_bias = military_industry`
 
 Expected result:
 
-- Generated scripted artifacts contain military-focused scripted value toggles and no economy fallback for that same accepted decision.
+- Generated scripted artifacts contain military-industry focused scripted value toggles and no economy fallback for that same accepted decision.
 
 ## Fail-Closed Acceptance Cases
 
@@ -100,6 +100,9 @@ For each accepted run, record:
 - short note describing observed strategic effect branch
 
 Store evidence as local report artifacts under `dist/private_reports/`.
+Primary automation artifact path:
+
+- `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`
 
 ## Done Criteria
 

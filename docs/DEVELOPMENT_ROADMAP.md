@@ -272,6 +272,8 @@ Generated overlay verification now exposes `generated_overlay_manifest_hash`; SN
 MP overlay package verification now exposes `package_manifest_hash`; SNC status JSON, CLI output, copyable MP package text, and Status Center summary include that hash as a stable package identity signal.
 MP overlay package verification now exposes `readiness`; copyable MP package status text is emitted only after the manifest, expected files, hashes, byte counts, and unexpected-file scan all pass, and Status Center summary surfaces `mp_readiness: ready_for_mp` for verified packages.
 `tools/run_end_to_end_spine_smoke_tests.ps1` is repeatable and clears only its own smoke output directories before rerunning the spine through staged overlay publish, active overlay verification, MP package export, and SNC status snapshot.
+`tools/run_generated_overlay_gameplay_acceptance.ps1` now runs bounded v0 gameplay acceptance cases (A-F), records pass/fail evidence with manifest hashes into `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`, and fails closed when any acceptance case fails.
+SNC status snapshots now include `gameplay_acceptance_status`; the copyable Status Center summary also surfaces gameplay acceptance state/reason and report path for owner-facing visibility.
 
 ---
 

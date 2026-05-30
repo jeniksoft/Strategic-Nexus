@@ -1021,6 +1021,9 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_readiness=" << sanitizeCliValue(snapshot.mpOverlayPackage.readiness) << "\n";
             std::cout << "snc_mp_overlay_package_manifest_hash=" << sanitizeCliValue(snapshot.mpOverlayPackage.packageManifestHash) << "\n";
             std::cout << "snc_mp_overlay_package_status_text=" << sanitizeCliValue(snapshot.mpOverlayPackage.statusText) << "\n";
+            std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
+            std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
+            std::cout << "snc_gameplay_acceptance_path=" << sanitizeCliValue(stdoutPath(snapshot.gameplayAcceptance.path)) << "\n";
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
             std::cout << "snc_status_center_path=" << sanitizeCliValue(stdoutPath(snapshot.statusCenter.path)) << "\n";

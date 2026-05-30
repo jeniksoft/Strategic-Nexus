@@ -16,6 +16,8 @@ struct CompanionStatusConfig {
     bool startWithWindowsEnabled = false;
     bool useDetectedStellarisState = true;
     bool stellarisRunningOverride = false;
+    std::filesystem::path gameplayAcceptanceReportPath =
+        "dist/private_reports/generated_overlay_gameplay_acceptance_v0.json";
 };
 
 struct CompanionStatusLoopConfig {
@@ -69,6 +71,7 @@ struct CompanionStatusSnapshot {
     CompanionSubsystemStatus generatedOverlay;
     CompanionSubsystemStatus generatedOverlayPublishGate;
     CompanionMpOverlayPackageStatus mpOverlayPackage;
+    CompanionSubsystemStatus gameplayAcceptance;
     CompanionSubsystemStatus statusCenter;
     std::string statusCenterSummaryText;
 };
