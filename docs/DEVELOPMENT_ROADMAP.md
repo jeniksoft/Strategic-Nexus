@@ -816,6 +816,7 @@ MP package verifier failure paths now also emit explicit copyable `warning_code`
 MP package verifier failure status text now also includes strict verify/import command variants when package identity fields are valid, and SNC missing-package status text now includes verify/import commands for direct host/client recovery flow.
 MP verify/import CLI now also emits structured `mp_overlay_package_warning_code=*` and `mp_overlay_package_import_warning_code=*` fields alongside legacy warning lines, so release-companion parsers can consume stable warning keys directly.
 SNC snapshot normalization now parses `warning_code:` lines from MP package status text into structured `warning_codes`, so Status Center/release-companion surfaces can rely on stable mismatch codes (for example `mp_overlay_package_files_mismatch_manifest`) instead of generic failure reasons.
+SNC CLI fallback now emits all unique `snc_mp_overlay_package_warning_code=*` values found in MP package `status_text` (not only the first), preserving structured warning visibility even when the snapshot warning-code array is empty.
 
 Next worker-ready slice:
 
