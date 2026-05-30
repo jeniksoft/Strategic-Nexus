@@ -808,6 +808,8 @@ The verifier fails closed on file drift and unexpected package files.
 The CLI verifier output now also emits explicit `mp_overlay_package_warning` codes (missing expected files, hash mismatch, byte-count mismatch, unexpected files, identity/version mismatch) to support release-companion import/verify UX and Status Center wiring.
 `Strategic Nexus.exe --verify-mp-overlay-package <package_dir> [expected_campaign_id] [expected_overlay_version] [expected_game_version] [expected_mod_version] [expected_manifest_hash]` now emits explicit mismatch warnings (`package_campaign_id_mismatch`, `package_overlay_version_mismatch`, `package_game_version_mismatch`, `package_mod_version_mismatch`, `package_manifest_hash_mismatch`) when a package differs from expected host/session identity.
 `Strategic Nexus.exe --import-mp-overlay-package <package_dir> <target_overlay_dir> [expected_campaign_id] [expected_overlay_version] [expected_game_version] [expected_mod_version] [expected_manifest_hash]` now keeps fail-closed import verification and also emits import-side mismatch warnings (`mp_overlay_package_import_warning=*`) plus package identity metadata in CLI output, so release-companion flows can surface host/client mismatch risk directly at import time.
+MP package copyable status text now includes explicit host/client readiness lines (`host_readiness`, `host_next_step`, `client_readiness_gate`, `client_next_step`) and handoff continuity hinting for host-rotation fallback.
+Strategic Nexus Companion snapshot/status-center tests now assert these host/client readiness lines are present in `mp_overlay_package_status_text` and in copyable Status Center summary output.
 
 Next worker-ready slice:
 
