@@ -396,6 +396,10 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareIdentityRiskWarningReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_identity_risk_warning_reason"
     $compareObservableEffectSignal = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_observable_effect_signal"
     $compareObservableEffectReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_observable_effect_reason"
+    $compareArchiveSaveCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_verified_archive_save_count_current"
+    $compareArchiveSaveCountPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_verified_archive_save_count_previous"
+    $compareArchiveSaveCountDelta = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_verified_archive_save_count_delta"
+    $compareArchiveSaveCountChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_verified_archive_save_count_changed"
     $compareGameplayAcceptanceStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_state_current"
     $compareGameplayAcceptanceStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_state_previous"
     $compareGameplayAcceptanceStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_state_changed"
@@ -477,6 +481,18 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if ([string]::IsNullOrWhiteSpace($compareObservableEffectReason)) {
         throw "Compare output is missing real_session_v0_compare_observable_effect_reason."
     }
+    if ([string]::IsNullOrWhiteSpace($compareArchiveSaveCountCurrent)) {
+        throw "Compare output is missing real_session_v0_compare_verified_archive_save_count_current."
+    }
+    if ([string]::IsNullOrWhiteSpace($compareArchiveSaveCountPrevious)) {
+        throw "Compare output is missing real_session_v0_compare_verified_archive_save_count_previous."
+    }
+    if ([string]::IsNullOrWhiteSpace($compareArchiveSaveCountDelta)) {
+        throw "Compare output is missing real_session_v0_compare_verified_archive_save_count_delta."
+    }
+    if ([string]::IsNullOrWhiteSpace($compareArchiveSaveCountChanged)) {
+        throw "Compare output is missing real_session_v0_compare_verified_archive_save_count_changed."
+    }
     if ([string]::IsNullOrWhiteSpace($compareCommandHintLine)) {
         throw "Compare output is missing real_session_v0_compare_command_hint."
     }
@@ -492,6 +508,10 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_identity_risk_warning_reason=" + $compareIdentityRiskWarningReason)
     Write-Host ("real_session_v0_loop_compare_auto_observable_effect_signal=" + $compareObservableEffectSignal)
     Write-Host ("real_session_v0_loop_compare_auto_observable_effect_reason=" + $compareObservableEffectReason)
+    Write-Host ("real_session_v0_loop_compare_auto_verified_archive_save_count_current=" + $compareArchiveSaveCountCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_verified_archive_save_count_previous=" + $compareArchiveSaveCountPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_verified_archive_save_count_delta=" + $compareArchiveSaveCountDelta)
+    Write-Host ("real_session_v0_loop_compare_auto_verified_archive_save_count_changed=" + $compareArchiveSaveCountChanged)
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_state_current=" + $compareGameplayAcceptanceStateCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_state_previous=" + $compareGameplayAcceptanceStatePrevious)
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_state_changed=" + $compareGameplayAcceptanceStateChanged)
@@ -1045,6 +1065,10 @@ $sessionEvidence = [ordered]@{
         identity_risk_warning_codes = @(Get-VariableArrayOrDefault -Name "compareIdentityRiskWarningCodes")
         observable_effect_signal = (Get-VariableOrDefault -Name "compareObservableEffectSignal")
         observable_effect_reason = (Get-VariableOrDefault -Name "compareObservableEffectReason")
+        verified_archive_save_count_current = (Get-VariableOrDefault -Name "compareArchiveSaveCountCurrent")
+        verified_archive_save_count_previous = (Get-VariableOrDefault -Name "compareArchiveSaveCountPrevious")
+        verified_archive_save_count_delta = (Get-VariableOrDefault -Name "compareArchiveSaveCountDelta")
+        verified_archive_save_count_changed = (Get-VariableOrDefault -Name "compareArchiveSaveCountChanged")
         gameplay_acceptance_state_current = (Get-VariableOrDefault -Name "compareGameplayAcceptanceStateCurrent")
         gameplay_acceptance_state_previous = (Get-VariableOrDefault -Name "compareGameplayAcceptanceStatePrevious")
         gameplay_acceptance_state_changed = (Get-VariableOrDefault -Name "compareGameplayAcceptanceStateChanged")
