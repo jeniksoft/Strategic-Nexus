@@ -957,6 +957,142 @@ int Application::run(const RunConfig& config) const
 
             std::cout << "mp_overlay_package_export_ok=" << (result.ok ? "true" : "false") << "\n";
             std::cout << "mp_overlay_package_export_reason=" << sanitizeCliValue(result.reason) << "\n";
+            if (result.ok) {
+                const generated_overlay::MpOverlayPackageVerifier verifier;
+                const auto verificationResult = verifier.verify(config.mpOverlayPackageDirectory);
+                std::vector<std::string> exportWarnings;
+                bool hasExportFileHashMismatch = false;
+                bool hasExportFileByteCountMismatch = false;
+                bool hasExportMissingExpectedFiles = false;
+                for (const auto& file : verificationResult.files) {
+                    if (!file.exists) {
+                        hasExportMissingExpectedFiles = true;
+                    }
+                    if (!file.hashMatches) {
+                        hasExportFileHashMismatch = true;
+                    }
+                    if (!file.byteCountMatches) {
+                        hasExportFileByteCountMismatch = true;
+                    }
+                }
+                if (hasExportMissingExpectedFiles) {
+                    exportWarnings.push_back("missing_expected_files");
+                }
+                if (hasExportFileHashMismatch) {
+                    exportWarnings.push_back("generated_file_hash_mismatch");
+                }
+                if (hasExportFileByteCountMismatch) {
+                    exportWarnings.push_back("generated_file_byte_count_mismatch");
+                }
+                if (!verificationResult.unexpectedFiles.empty()) {
+                    exportWarnings.push_back("unexpected_files_present");
+                }
+                if (!verificationResult.ok && verificationResult.readiness == "not_ready" &&
+                    !verificationResult.statusText.empty()) {
+                    exportWarnings.push_back("package_identity_or_version_mismatch");
+                }
+                if (!verificationResult.campaignId.empty()) {
+                    std::cout << "mp_overlay_package_export_campaign_id="
+                              << sanitizeCliValue(verificationResult.campaignId) << "\n";
+                }
+                if (!verificationResult.overlayVersion.empty()) {
+                    std::cout << "mp_overlay_package_export_overlay_version="
+                              << sanitizeCliValue(verificationResult.overlayVersion) << "\n";
+                }
+                if (!verificationResult.gameVersion.empty()) {
+                    std::cout << "mp_overlay_package_export_game_version="
+                              << sanitizeCliValue(verificationResult.gameVersion) << "\n";
+                }
+                if (!verificationResult.strategicNexusModVersion.empty()) {
+                    std::cout << "mp_overlay_package_export_strategic_nexus_mod_version="
+                              << sanitizeCliValue(verificationResult.strategicNexusModVersion) << "\n";
+                }
+                if (!verificationResult.handoffStatus.empty()) {
+                    std::cout << "mp_overlay_package_export_handoff_status="
+                              << sanitizeCliValue(verificationResult.handoffStatus) << "\n";
+                }
+                if (!verificationResult.readiness.empty()) {
+                    std::cout << "mp_overlay_package_export_readiness="
+                              << sanitizeCliValue(verificationResult.readiness) << "\n";
+                }
+                if (!verificationResult.packageManifestHash.empty()) {
+                    std::cout << "mp_overlay_package_export_manifest_hash="
+                              << sanitizeCliValue(verificationResult.packageManifestHash) << "\n";
+                }
+                if (!verificationResult.statusText.empty()) {
+                    std::cout << "mp_overlay_package_export_status_text="
+                              << sanitizeCliValue(verificationResult.statusText) << "\n";
+                    const auto verifyCommand = readStatusTextField(verificationResult.statusText, "verify_command");
+                    if (!verifyCommand.empty()) {
+                        std::cout << "mp_overlay_package_export_verify_command=" << sanitizeCliValue(verifyCommand)
+                                  << "\n";
+                    }
+                    const auto importCommand = readStatusTextField(verificationResult.statusText, "import_command");
+                    if (!importCommand.empty()) {
+                        std::cout << "mp_overlay_package_export_import_command=" << sanitizeCliValue(importCommand)
+                                  << "\n";
+                    }
+                    const auto strictVerifyCommand =
+                        readStatusTextField(verificationResult.statusText, "strict_verify_command");
+                    if (!strictVerifyCommand.empty()) {
+                        std::cout << "mp_overlay_package_export_strict_verify_command="
+                                  << sanitizeCliValue(strictVerifyCommand) << "\n";
+                    }
+                    const auto strictImportCommand =
+                        readStatusTextField(verificationResult.statusText, "strict_import_command");
+                    if (!strictImportCommand.empty()) {
+                        std::cout << "mp_overlay_package_export_strict_import_command="
+                                  << sanitizeCliValue(strictImportCommand) << "\n";
+                    }
+                    const auto hostReadiness = readStatusTextField(verificationResult.statusText, "host_readiness");
+                    if (!hostReadiness.empty()) {
+                        std::cout << "mp_overlay_package_export_host_readiness=" << sanitizeCliValue(hostReadiness)
+                                  << "\n";
+                    }
+                    const auto clientReadiness =
+                        readStatusTextField(verificationResult.statusText, "client_readiness_gate");
+                    if (!clientReadiness.empty()) {
+                        std::cout << "mp_overlay_package_export_client_readiness_gate="
+                                  << sanitizeCliValue(clientReadiness) << "\n";
+                    }
+                    const auto hostNextStep = readStatusTextField(verificationResult.statusText, "host_next_step");
+                    if (!hostNextStep.empty()) {
+                        std::cout << "mp_overlay_package_export_host_next_step=" << sanitizeCliValue(hostNextStep)
+                                  << "\n";
+                    }
+                    const auto clientNextStep = readStatusTextField(verificationResult.statusText, "client_next_step");
+                    if (!clientNextStep.empty()) {
+                        std::cout << "mp_overlay_package_export_client_next_step="
+                                  << sanitizeCliValue(clientNextStep) << "\n";
+                    }
+                }
+                const auto statusWarningCodes = readStatusTextFields(verificationResult.statusText, "warning_code");
+                for (const auto& warningCode : statusWarningCodes) {
+                    exportWarnings.push_back(warningCode);
+                }
+                std::set<std::string> uniqueExportWarnings(exportWarnings.begin(), exportWarnings.end());
+                std::vector<std::string> exportWarningCodes(uniqueExportWarnings.begin(), uniqueExportWarnings.end());
+                std::cout << "mp_overlay_package_export_warning_count=" << exportWarningCodes.size() << "\n";
+                for (const auto& warning : exportWarningCodes) {
+                    std::cout << "mp_overlay_package_export_warning=" << sanitizeCliValue(warning) << "\n";
+                    std::cout << "mp_overlay_package_export_warning_code=" << sanitizeCliValue(warning) << "\n";
+                }
+                bool hasExportIdentityMismatchWarning = false;
+                for (const auto& warning : exportWarningCodes) {
+                    if (isIdentityMismatchWarningCode(warning)) {
+                        hasExportIdentityMismatchWarning = true;
+                        break;
+                    }
+                }
+                std::cout << "mp_overlay_package_export_identity_mismatch_warning="
+                          << (hasExportIdentityMismatchWarning ? "true" : "false") << "\n";
+                for (const auto& warning : exportWarningCodes) {
+                    if (isIdentityMismatchWarningCode(warning)) {
+                        std::cout << "mp_overlay_package_export_identity_mismatch_warning_code="
+                                  << sanitizeCliValue(warning) << "\n";
+                    }
+                }
+            }
             std::cout << "mp_overlay_package_export_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
                 std::cout << "mp_overlay_package_export_file=" << sanitizeCliValue(file.path)

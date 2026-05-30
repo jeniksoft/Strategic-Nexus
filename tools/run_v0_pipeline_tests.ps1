@@ -660,6 +660,18 @@ function Invoke-GeneratedOverlayCompileCase {
     }
     Assert-Contains -Name "mp_overlay_package_export app" -Text $mpExportText -Expected "mp_overlay_package_export_ok=true"
     Assert-Contains -Name "mp_overlay_package_export app" -Text $mpExportText -Expected "mp_overlay_package_export_reason=accepted_degraded_previous_host_unavailable"
+    Assert-Contains -Name "mp_overlay_package_export app" -Text $mpExportText -Expected "mp_overlay_package_export_readiness=ready_for_mp"
+    Assert-Contains -Name "mp_overlay_package_export app" -Text $mpExportText -Expected "mp_overlay_package_export_manifest_hash="
+    Assert-Contains -Name "mp_overlay_package_export app command" -Text $mpExportText -Expected "mp_overlay_package_export_verify_command=Strategic Nexus.exe --verify-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_export app command" -Text $mpExportText -Expected "mp_overlay_package_export_import_command=Strategic Nexus.exe --import-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_export app command" -Text $mpExportText -Expected "mp_overlay_package_export_strict_verify_command=Strategic Nexus.exe --verify-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_export app command" -Text $mpExportText -Expected "mp_overlay_package_export_strict_import_command=Strategic Nexus.exe --import-mp-overlay-package "
+    Assert-Contains -Name "mp_overlay_package_export app readiness" -Text $mpExportText -Expected "mp_overlay_package_export_host_readiness=ready_for_mp"
+    Assert-Contains -Name "mp_overlay_package_export app readiness" -Text $mpExportText -Expected "mp_overlay_package_export_client_readiness_gate=import_and_verify_before_join"
+    Assert-Contains -Name "mp_overlay_package_export app next_step" -Text $mpExportText -Expected "mp_overlay_package_export_host_next_step=share this package and package_manifest_hash with every joining player"
+    Assert-Contains -Name "mp_overlay_package_export app next_step" -Text $mpExportText -Expected "mp_overlay_package_export_client_next_step=import package, verify package_manifest_hash, then join lobby"
+    Assert-Contains -Name "mp_overlay_package_export app identity warning" -Text $mpExportText -Expected "mp_overlay_package_export_identity_mismatch_warning=false"
+    Assert-Contains -Name "mp_overlay_package_export app warning count" -Text $mpExportText -Expected "mp_overlay_package_export_warning_count=0"
 
     $mpVerifyOutput = & $exePath `
         --verify-mp-overlay-package `
