@@ -246,6 +246,16 @@ Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
 Write-Host "real_session_v0_loop_trend_sessions_root_hint=dist\\real_session_v0_loop"
 $trendCommandHint = 'cmd /c tools\analyze_real_session_v0_trend.cmd "dist\real_session_v0_loop" "dist\private_reports\real_session_v0_trend.json"'
 Write-Host ("real_session_v0_loop_trend_command_hint=" + $trendCommandHint)
+$nextSessionCommandHint = 'cmd /c tools\run_real_session_v0_loop.cmd "' + $saveRootFull + '" "' + $archiveRootFull + '" "' + $CampaignId + '" "' + $EmpireId + '" "' + $dslInputFull + '"'
+if ($ExportMpPackage) {
+    $nextSessionCommandHint += " -ExportMpPackage"
+}
+if ($EmitTrendSummary) {
+    $nextSessionCommandHint += " -EmitTrendSummary"
+}
+$nextSessionCommandHint += ' -PreviousSessionDirForCompare "' + $defaultRunRoot + '"'
+Write-Host ("real_session_v0_loop_next_session_compare_baseline_dir=" + $defaultRunRoot)
+Write-Host ("real_session_v0_loop_next_session_command_hint=" + $nextSessionCommandHint)
 if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $previousSessionDirForCompareFull = [System.IO.Path]::GetFullPath($PreviousSessionDirForCompare)
     if (-not (Test-Path -LiteralPath $previousSessionDirForCompareFull)) {

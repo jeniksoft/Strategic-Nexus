@@ -848,6 +848,7 @@ SNC snapshot JSON, Status Center summary text, and `--snc-status-snapshot` CLI o
 `tools/compare_real_session_v0_outputs.ps1` now also emits structured MP warning-count compare signals (`real_session_v0_compare_mp_warning_count_current`, `real_session_v0_compare_mp_warning_count_delta`) and auto-compare forwards them (`real_session_v0_loop_compare_auto_mp_warning_count_*`), so warning drift between sessions is visible without opening compare JSON manually.
 `tools/compare_real_session_v0_outputs.ps1` now also emits structured current MP warning-code lines (`real_session_v0_compare_mp_warning_code_current=*`), and these are forwarded by trend + loop auto outputs (`real_session_v0_trend_mp_warning_code_current=*`, `real_session_v0_loop_trend_auto_mp_warning_code_current=*`, `real_session_v0_loop_compare_auto_mp_warning_code_current=*`) for one-command release-companion/status parsing.
 Status Center summary now also emits explicit `mp_identity_mismatch_alert` text when package identity mismatch is detected, so owner/release-companion flows get a direct human-readable warning to run strict verify/import before MP join.
+`tools/run_real_session_v0_loop.ps1` now also emits `real_session_v0_loop_next_session_compare_baseline_dir` and `real_session_v0_loop_next_session_command_hint`, so the next real Stellaris validation run can reuse the same inputs and auto-compare against the just-finished session in one copyable command.
 
 Next worker-ready slice:
 
