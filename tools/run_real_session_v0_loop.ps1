@@ -569,6 +569,11 @@ if ($EmitTrendSummary) {
     $trendLatestCompareCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_latest_compare_command_hint"
     $trendNextSessionCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_session_command_hint"
     $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
+    $trendSessionCountInt = 0
+    if (-not [int]::TryParse($trendSessionCount, [ref]$trendSessionCountInt)) {
+        throw "Trend output has invalid session count '$trendSessionCount'."
+    }
+    $requireTrendCompareHint = ($trendSessionCountInt -ge 2)
     if ([string]::IsNullOrWhiteSpace($trendOutputJsonLine) -or
         [string]::IsNullOrWhiteSpace($trendSessionCount) -or
         [string]::IsNullOrWhiteSpace($trendRecommendation) -or
@@ -576,7 +581,7 @@ if ($EmitTrendSummary) {
         [string]::IsNullOrWhiteSpace($trendIdentityRiskWarningReason) -or
         [string]::IsNullOrWhiteSpace($trendObservableEffectSignal) -or
         [string]::IsNullOrWhiteSpace($trendObservableEffectReason) -or
-        [string]::IsNullOrWhiteSpace($trendLatestCompareCommandHint) -or
+        ($requireTrendCompareHint -and [string]::IsNullOrWhiteSpace($trendLatestCompareCommandHint)) -or
         [string]::IsNullOrWhiteSpace($trendNextSessionCommandHint)) {
         throw "Trend output is missing required fields."
     }
