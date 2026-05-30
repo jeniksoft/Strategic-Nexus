@@ -821,6 +821,9 @@ std::string buildStatusCenterSummaryText(
     for (const auto& warningCode : mpOverlayPackage.identityMismatchWarningCodes) {
         text << "mp_identity_mismatch_warning_code: " << warningCode << "\n";
     }
+    if (mpOverlayPackage.identityMismatchWarning) {
+        text << "mp_identity_mismatch_alert: package identity mismatch detected (campaign/version/mod/hash); run strict verify/import before MP join\n";
+    }
     text << "gameplay_acceptance: " << gameplayAcceptance.state << " - " << gameplayAcceptance.reason << "\n";
     if (!gameplayAcceptance.path.empty()) {
         text << "gameplay_acceptance_report_path: " << pathString(gameplayAcceptance.path) << "\n";

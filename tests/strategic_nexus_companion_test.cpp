@@ -424,6 +424,11 @@ int main()
     requireCondition(
         tamperedMpPackage.statusCenterSummaryText.find("mp_identity_mismatch_warning_code: mp_overlay_package_files_mismatch_manifest") != std::string::npos,
         "status center summary should include identity mismatch warning code");
+    requireCondition(
+        tamperedMpPackage.statusCenterSummaryText.find(
+            "mp_identity_mismatch_alert: package identity mismatch detected (campaign/version/mod/hash); run strict verify/import before MP join") !=
+            std::string::npos,
+        "status center summary should include explicit owner-facing identity mismatch alert");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
