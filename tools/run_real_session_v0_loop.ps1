@@ -19,6 +19,7 @@ param(
     [string]$MpGameVersion = "stellaris_4.x",
     [string]$MpModVersion = "strategic_nexus_v0",
     [switch]$ExportMpPackage,
+    [switch]$EmitTrendSummary,
     [int]$StabilityDelayMs = 1200
 )
 
@@ -311,5 +312,29 @@ if ($ExportMpPackage) {
     }
     Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpOutputJsonFull)
     Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
+}
+if ($EmitTrendSummary) {
+    $trendScriptPath = Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1"
+    if (-not (Test-Path -LiteralPath $trendScriptPath)) {
+        throw "Missing trend script: $trendScriptPath"
+    }
+
+    $trendSessionsRoot = Join-Path $repoRoot "dist/real_session_v0_loop"
+    $trendOutputJson = Join-Path $repoRoot "dist/private_reports/real_session_v0_trend.json"
+    $trendLines = & powershell -NoProfile -ExecutionPolicy Bypass -File $trendScriptPath $trendSessionsRoot $trendOutputJson
+    Assert-LastExitCodeOk -StepName "analyze real session v0 trend"
+    if ($null -eq $trendLines) {
+        throw "Trend script returned no output."
+    }
+    $trendOutputJsonLine = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_output_json"
+    $trendSessionCount = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_session_count"
+    $trendRecommendation = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_recommendation"
+    if ([string]::IsNullOrWhiteSpace($trendOutputJsonLine) -or [string]::IsNullOrWhiteSpace($trendSessionCount) -or [string]::IsNullOrWhiteSpace($trendRecommendation)) {
+        throw "Trend output is missing required fields."
+    }
+    Write-Host "real_session_v0_loop_trend_auto_ok=true"
+    Write-Host ("real_session_v0_loop_trend_auto_output_json=" + $trendOutputJsonLine)
+    Write-Host ("real_session_v0_loop_trend_auto_session_count=" + $trendSessionCount)
+    Write-Host ("real_session_v0_loop_trend_auto_recommendation=" + $trendRecommendation)
 }
 exit 0
