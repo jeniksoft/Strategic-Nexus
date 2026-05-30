@@ -11,12 +11,14 @@
 #include "StellarisSavePathResolver.h"
 
 #include <filesystem>
+#include <cctype>
 #include <iomanip>
 #include <ctime>
 #include <sstream>
 #include <string>
 #include <system_error>
 #include <thread>
+#include <unordered_set>
 #include <vector>
 
 namespace strategic_nexus {
@@ -65,6 +67,41 @@ std::string escapeJson(const std::string& value)
 std::string jsonString(const std::string& value)
 {
     return "\"" + escapeJson(value) + "\"";
+}
+
+std::string trimWhitespace(const std::string& value)
+{
+    std::size_t start = 0;
+    while (start < value.size() && std::isspace(static_cast<unsigned char>(value[start])) != 0) {
+        ++start;
+    }
+
+    std::size_t end = value.size();
+    while (end > start && std::isspace(static_cast<unsigned char>(value[end - 1])) != 0) {
+        --end;
+    }
+    return value.substr(start, end - start);
+}
+
+std::vector<std::string> extractWarningCodesFromStatusText(const std::string& statusText)
+{
+    std::vector<std::string> warnings;
+    std::unordered_set<std::string> seen;
+    std::istringstream input(statusText);
+    std::string line;
+    while (std::getline(input, line)) {
+        constexpr std::string_view prefix = "warning_code:";
+        if (line.rfind(prefix.data(), 0) != 0) {
+            continue;
+        }
+        const auto warningCode = trimWhitespace(line.substr(prefix.size()));
+        if (warningCode.empty() || seen.find(warningCode) != seen.end()) {
+            continue;
+        }
+        seen.insert(warningCode);
+        warnings.push_back(warningCode);
+    }
+    return warnings;
 }
 
 std::string pathString(const std::filesystem::path& path)
@@ -379,6 +416,10 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.statusText = verification.statusText;
     } else {
         setFailureStatusText();
+    }
+    const auto warningCodes = extractWarningCodesFromStatusText(status.statusText);
+    if (!warningCodes.empty()) {
+        status.warningCodes = warningCodes;
     }
     return status;
 }

@@ -3,14 +3,19 @@
 
 #include "StrategicNexusCompanion.h"
 
+#include "common/FileUtil.h"
 #include "generated_overlay/ManifestVerifier.h"
 #include "generated_overlay/MpOverlayPackage.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
+
+using strategic_nexus::common::readTextFile;
+using strategic_nexus::common::writeTextFileAtomically;
 
 namespace {
 
@@ -359,6 +364,29 @@ int main()
     requireCondition(
         missingMpPackage.statusCenterSummaryText.find("mp_warning_code: mp overlay package directory missing") != std::string::npos,
         "status center summary should include structured MP warning code");
+
+    writeTextFileAtomically(
+        mpPackageRoot / "events/strategic_nexus_generated_events.txt",
+        readTextFile(mpPackageRoot / "events/strategic_nexus_generated_events.txt") + "# tamper\n");
+    const auto tamperedMpPackage = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        overlayRoot,
+        mpPackageRoot,
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport
+    });
+    requireCondition(tamperedMpPackage.mpOverlayPackage.state == "needs_attention", "tampered mp package should need attention");
+    requireCondition(
+        std::find(
+            tamperedMpPackage.mpOverlayPackage.warningCodes.begin(),
+            tamperedMpPackage.mpOverlayPackage.warningCodes.end(),
+            "mp_overlay_package_files_mismatch_manifest") != tamperedMpPackage.mpOverlayPackage.warningCodes.end(),
+        "tampered mp package should expose manifest mismatch warning code");
+    requireCondition(
+        tamperedMpPackage.statusCenterSummaryText.find("mp_warning_code: mp_overlay_package_files_mismatch_manifest") != std::string::npos,
+        "status center summary should include structured mismatch warning code");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
