@@ -287,11 +287,11 @@ if ($sessionCount -ge 2) {
         $latestMpStrictImportCommandChanged = $compareMpStrictImportCommandChangedLine.Substring("real_session_v0_compare_mp_strict_import_command_changed=".Length)
     }
 
-    if (($latestDeltaOverlayChanged -eq "true") -or ([int]$latestDeltaArchiveSaveCountDelta -ne 0) -or ($latestDeltaGameplayChanged -eq "true")) {
-        $latestTrendRecommendation = "review_observable_deltas"
-    }
-    elseif ($latestIdentityRiskWarning -eq "true") {
+    if ($latestIdentityRiskWarning -eq "true") {
         $latestTrendRecommendation = "review_identity_risk_warning"
+    }
+    elseif (($latestDeltaOverlayChanged -eq "true") -or ([int]$latestDeltaArchiveSaveCountDelta -ne 0) -or ($latestDeltaGameplayChanged -eq "true")) {
+        $latestTrendRecommendation = "review_observable_deltas"
     }
     else {
         $latestTrendRecommendation = "no_pipeline_delta_detected"
