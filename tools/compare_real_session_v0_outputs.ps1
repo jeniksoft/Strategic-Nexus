@@ -1,0 +1,151 @@
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$PreviousSessionDir,
+    [Parameter(Mandatory = $true)]
+    [string]$CurrentSessionDir,
+    [string]$OutputJson
+)
+
+$ErrorActionPreference = "Stop"
+
+$repoRoot = Split-Path -Parent $PSScriptRoot
+
+function Get-SessionIdFromDir {
+    param([Parameter(Mandatory = $true)][string]$SessionDir)
+    return Split-Path -Leaf ([System.IO.Path]::GetFullPath($SessionDir))
+}
+
+function Read-JsonFile {
+    param([Parameter(Mandatory = $true)][string]$Path)
+    if (-not (Test-Path -LiteralPath $Path)) {
+        throw "Missing required JSON file: $Path"
+    }
+    return Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json
+}
+
+function Get-OptionalString {
+    param([Parameter(Mandatory = $true)]$Object, [Parameter(Mandatory = $true)][string]$Property)
+    if ($null -eq $Object) { return "" }
+    $value = $Object.PSObject.Properties[$Property]
+    if ($null -eq $value) { return "" }
+    if ($null -eq $value.Value) { return "" }
+    return [string]$value.Value
+}
+
+$previousSessionDirFull = [System.IO.Path]::GetFullPath($PreviousSessionDir)
+$currentSessionDirFull = [System.IO.Path]::GetFullPath($CurrentSessionDir)
+
+$previousStatusPath = Join-Path $previousSessionDirFull "snc_status_snapshot.json"
+$currentStatusPath = Join-Path $currentSessionDirFull "snc_status_snapshot.json"
+$previousSummaryPath = Join-Path $previousSessionDirFull "work/archive_summary.json"
+$currentSummaryPath = Join-Path $currentSessionDirFull "work/archive_summary.json"
+$previousStatusWithMpPath = Join-Path $previousSessionDirFull "snc_status_snapshot_with_mp.json"
+$currentStatusWithMpPath = Join-Path $currentSessionDirFull "snc_status_snapshot_with_mp.json"
+
+$previousStatus = Read-JsonFile -Path $previousStatusPath
+$currentStatus = Read-JsonFile -Path $currentStatusPath
+$previousSummary = Read-JsonFile -Path $previousSummaryPath
+$currentSummary = Read-JsonFile -Path $currentSummaryPath
+
+$previousOverlayManifestHash = ""
+$currentOverlayManifestHash = ""
+if ($null -ne $previousStatus.generated_overlay_status) {
+    $previousOverlayManifestHash = Get-OptionalString -Object $previousStatus.generated_overlay_status -Property "manifest_hash"
+}
+if ($null -ne $currentStatus.generated_overlay_status) {
+    $currentOverlayManifestHash = Get-OptionalString -Object $currentStatus.generated_overlay_status -Property "manifest_hash"
+}
+$overlayChanged = ($previousOverlayManifestHash -ne $currentOverlayManifestHash)
+
+$previousArchiveCount = 0
+$currentArchiveCount = 0
+if ($null -ne $previousSummary.copied_save_count) { $previousArchiveCount = [int]$previousSummary.copied_save_count }
+if ($null -ne $currentSummary.copied_save_count) { $currentArchiveCount = [int]$currentSummary.copied_save_count }
+
+$previousGameplayStatus = ""
+$currentGameplayStatus = ""
+if ($null -ne $previousStatus.gameplay_acceptance_status -and $null -ne $previousStatus.gameplay_acceptance_status.state) {
+    $previousGameplayStatus = [string]$previousStatus.gameplay_acceptance_status.state
+}
+if ($null -ne $currentStatus.gameplay_acceptance_status -and $null -ne $currentStatus.gameplay_acceptance_status.state) {
+    $currentGameplayStatus = [string]$currentStatus.gameplay_acceptance_status.state
+}
+
+$previousMpManifestHash = ""
+$currentMpManifestHash = ""
+$previousMpReadiness = ""
+$currentMpReadiness = ""
+$previousMpWarningCount = ""
+$currentMpWarningCount = ""
+if (Test-Path -LiteralPath $previousStatusWithMpPath) {
+    $previousStatusWithMp = Read-JsonFile -Path $previousStatusWithMpPath
+    if ($null -ne $previousStatusWithMp.mp_overlay_package_status) {
+        $previousMpManifestHash = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "package_manifest_hash"
+        $previousMpReadiness = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "readiness"
+        $previousMpWarningCount = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "warning_count"
+    }
+}
+if (Test-Path -LiteralPath $currentStatusWithMpPath) {
+    $currentStatusWithMp = Read-JsonFile -Path $currentStatusWithMpPath
+    if ($null -ne $currentStatusWithMp.mp_overlay_package_status) {
+        $currentMpManifestHash = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "package_manifest_hash"
+        $currentMpReadiness = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "readiness"
+        $currentMpWarningCount = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "warning_count"
+    }
+}
+
+$recommendation = "review_observable_deltas"
+if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -and $previousGameplayStatus -eq $currentGameplayStatus -and $previousMpManifestHash -eq $currentMpManifestHash) {
+    $recommendation = "no_pipeline_delta_detected"
+}
+
+$result = [ordered]@{
+    schema_version = 1
+    previous_session_id = Get-SessionIdFromDir -SessionDir $previousSessionDirFull
+    current_session_id = Get-SessionIdFromDir -SessionDir $currentSessionDirFull
+    previous_session_dir = $previousSessionDirFull
+    current_session_dir = $currentSessionDirFull
+    generated_overlay_manifest_hash = [ordered]@{
+        previous = $previousOverlayManifestHash
+        current = $currentOverlayManifestHash
+        changed = $overlayChanged
+    }
+    verified_archive_save_count = [ordered]@{
+        previous = $previousArchiveCount
+        current = $currentArchiveCount
+        delta = ($currentArchiveCount - $previousArchiveCount)
+    }
+    gameplay_acceptance_state = [ordered]@{
+        previous = $previousGameplayStatus
+        current = $currentGameplayStatus
+        changed = ($previousGameplayStatus -ne $currentGameplayStatus)
+    }
+    mp_package_manifest_hash = [ordered]@{
+        previous = $previousMpManifestHash
+        current = $currentMpManifestHash
+        changed = ($previousMpManifestHash -ne $currentMpManifestHash)
+    }
+    mp_package_readiness = [ordered]@{
+        previous = $previousMpReadiness
+        current = $currentMpReadiness
+        changed = ($previousMpReadiness -ne $currentMpReadiness)
+    }
+    mp_package_warning_count = [ordered]@{
+        previous = $previousMpWarningCount
+        current = $currentMpWarningCount
+        changed = ($previousMpWarningCount -ne $currentMpWarningCount)
+    }
+    next_step_recommendation = $recommendation
+}
+
+if ([string]::IsNullOrWhiteSpace($OutputJson)) {
+    $OutputJson = Join-Path $repoRoot "dist/private_reports/real_session_v0_compare.json"
+}
+$outputJsonFull = [System.IO.Path]::GetFullPath($OutputJson)
+New-Item -ItemType Directory -Path (Split-Path -Parent $outputJsonFull) -Force | Out-Null
+$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $outputJsonFull -Encoding UTF8
+
+Write-Host "real_session_v0_compare_ok=true"
+Write-Host ("real_session_v0_compare_output_json=" + $outputJsonFull)
+Write-Host ("real_session_v0_compare_recommendation=" + $recommendation)
+exit 0
