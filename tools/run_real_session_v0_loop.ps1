@@ -454,6 +454,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpManifestHashCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_current"
     $compareMpManifestHashPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_previous"
     $compareMpManifestHashChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_manifest_hash_changed"
+    $compareMpStatusSnapshotPresentCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_status_snapshot_present_current"
+    $compareMpStatusSnapshotPresentPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_status_snapshot_present_previous"
+    $compareMpStatusSnapshotPresentChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_status_snapshot_present_changed"
     $compareMpPackageOutputDirCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_output_dir_current"
     $compareMpPackageOutputDirPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_output_dir_previous"
     $compareMpPackageOutputDirChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_output_dir_changed"
@@ -593,6 +596,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_previous=" + $compareMpManifestHashPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_current=" + $compareMpManifestHashCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_mp_manifest_hash_changed=" + $compareMpManifestHashChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_status_snapshot_present_previous=" + $compareMpStatusSnapshotPresentPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_status_snapshot_present_current=" + $compareMpStatusSnapshotPresentCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_status_snapshot_present_changed=" + $compareMpStatusSnapshotPresentChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpPackageOutputDirPrevious)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_package_output_dir_previous=" + $compareMpPackageOutputDirPrevious)
     }
@@ -1103,6 +1109,9 @@ $sessionEvidence = [ordered]@{
             manifest_hash_current = (Get-VariableOrDefault -Name "compareMpManifestHashCurrent")
             manifest_hash_previous = (Get-VariableOrDefault -Name "compareMpManifestHashPrevious")
             manifest_hash_changed = (Get-VariableOrDefault -Name "compareMpManifestHashChanged")
+            status_snapshot_present_current = (Get-VariableOrDefault -Name "compareMpStatusSnapshotPresentCurrent")
+            status_snapshot_present_previous = (Get-VariableOrDefault -Name "compareMpStatusSnapshotPresentPrevious")
+            status_snapshot_present_changed = (Get-VariableOrDefault -Name "compareMpStatusSnapshotPresentChanged")
             package_output_dir_current = (Get-VariableOrDefault -Name "compareMpPackageOutputDirCurrent")
             package_output_dir_previous = (Get-VariableOrDefault -Name "compareMpPackageOutputDirPrevious")
             package_output_dir_changed = (Get-VariableOrDefault -Name "compareMpPackageOutputDirChanged")

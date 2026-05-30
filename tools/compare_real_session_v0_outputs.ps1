@@ -95,6 +95,8 @@ $previousSummaryPath = Join-Path $previousSessionDirFull "work/archive_summary.j
 $currentSummaryPath = Join-Path $currentSessionDirFull "work/archive_summary.json"
 $previousStatusWithMpPath = Join-Path $previousSessionDirFull "snc_status_snapshot_with_mp.json"
 $currentStatusWithMpPath = Join-Path $currentSessionDirFull "snc_status_snapshot_with_mp.json"
+$previousMpStatusSnapshotPresent = $false
+$currentMpStatusSnapshotPresent = $false
 
 $previousStatus = Read-JsonFile -Path $previousStatusPath
 $currentStatus = Read-JsonFile -Path $currentStatusPath
@@ -164,6 +166,7 @@ $currentMpWarningCodes = @()
 $previousMpIdentityMismatchWarningCodes = @()
 $currentMpIdentityMismatchWarningCodes = @()
 if (Test-Path -LiteralPath $previousStatusWithMpPath) {
+    $previousMpStatusSnapshotPresent = $true
     $previousStatusWithMp = Read-JsonFile -Path $previousStatusWithMpPath
     $previousMpPackageOutputDirCandidate = Join-Path $previousSessionDirFull "mp_overlay_package"
     if (Test-Path -LiteralPath $previousMpPackageOutputDirCandidate) {
@@ -187,6 +190,7 @@ if (Test-Path -LiteralPath $previousStatusWithMpPath) {
     }
 }
 if (Test-Path -LiteralPath $currentStatusWithMpPath) {
+    $currentMpStatusSnapshotPresent = $true
     $currentStatusWithMp = Read-JsonFile -Path $currentStatusWithMpPath
     $currentMpPackageOutputDirCandidate = Join-Path $currentSessionDirFull "mp_overlay_package"
     if (Test-Path -LiteralPath $currentMpPackageOutputDirCandidate) {
@@ -311,6 +315,11 @@ $result = [ordered]@{
         previous = $previousMpManifestHash
         current = $currentMpManifestHash
         changed = ($previousMpManifestHash -ne $currentMpManifestHash)
+    }
+    mp_status_snapshot_present = [ordered]@{
+        previous = $previousMpStatusSnapshotPresent
+        current = $currentMpStatusSnapshotPresent
+        changed = ($previousMpStatusSnapshotPresent -ne $currentMpStatusSnapshotPresent)
     }
     mp_package_output_dir = [ordered]@{
         previous = $previousMpPackageOutputDir
@@ -479,6 +488,9 @@ Write-Host ("real_session_v0_compare_mp_strict_import_command_changed=" + ((($pr
 Write-Host ("real_session_v0_compare_mp_manifest_hash_current=" + $currentMpManifestHash)
 Write-Host ("real_session_v0_compare_mp_manifest_hash_previous=" + $previousMpManifestHash)
 Write-Host ("real_session_v0_compare_mp_manifest_hash_changed=" + ((($previousMpManifestHash -ne $currentMpManifestHash).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_status_snapshot_present_current=" + ($currentMpStatusSnapshotPresent.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_status_snapshot_present_previous=" + ($previousMpStatusSnapshotPresent.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_status_snapshot_present_changed=" + ((($previousMpStatusSnapshotPresent -ne $currentMpStatusSnapshotPresent).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_package_output_dir_current=" + $currentMpPackageOutputDir)
 Write-Host ("real_session_v0_compare_mp_package_output_dir_previous=" + $previousMpPackageOutputDir)
 Write-Host ("real_session_v0_compare_mp_package_output_dir_changed=" + ((($previousMpPackageOutputDir -ne $currentMpPackageOutputDir).ToString().ToLowerInvariant())))
