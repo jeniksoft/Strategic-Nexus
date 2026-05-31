@@ -136,6 +136,12 @@ $latestMpPackageZipReasonChanged = ""
 $latestMpPackageZipSha256Current = ""
 $latestMpPackageZipSha256Previous = ""
 $latestMpPackageZipSha256Changed = ""
+$latestMpPackageZipPathCurrent = ""
+$latestMpPackageZipPathPrevious = ""
+$latestMpPackageZipPathChanged = ""
+$latestMpPackageZipBytesCurrent = ""
+$latestMpPackageZipBytesPrevious = ""
+$latestMpPackageZipBytesChanged = ""
 $latestMpWarningCodesPrevious = @()
 $latestMpWarningCodesCurrent = @()
 $latestMpHostReadinessCurrent = ""
@@ -239,6 +245,12 @@ if ($sessionCount -ge 2) {
     $compareMpPackageZipSha256CurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_sha256_current=*" } | Select-Object -First 1
     $compareMpPackageZipSha256PreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_sha256_previous=*" } | Select-Object -First 1
     $compareMpPackageZipSha256ChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_sha256_changed=*" } | Select-Object -First 1
+    $compareMpPackageZipPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_path_current=*" } | Select-Object -First 1
+    $compareMpPackageZipPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_path_previous=*" } | Select-Object -First 1
+    $compareMpPackageZipPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_path_changed=*" } | Select-Object -First 1
+    $compareMpPackageZipBytesCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_bytes_current=*" } | Select-Object -First 1
+    $compareMpPackageZipBytesPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_bytes_previous=*" } | Select-Object -First 1
+    $compareMpPackageZipBytesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_bytes_changed=*" } | Select-Object -First 1
     $latestMpWarningCodesCurrent = @(
         $compareLines |
             Where-Object { $_ -like "real_session_v0_compare_mp_warning_code_current=*" } |
@@ -454,6 +466,24 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpPackageZipSha256ChangedLine)) {
         $latestMpPackageZipSha256Changed = $compareMpPackageZipSha256ChangedLine.Substring("real_session_v0_compare_mp_package_zip_sha256_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageZipPathCurrentLine)) {
+        $latestMpPackageZipPathCurrent = $compareMpPackageZipPathCurrentLine.Substring("real_session_v0_compare_mp_package_zip_path_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageZipPathPreviousLine)) {
+        $latestMpPackageZipPathPrevious = $compareMpPackageZipPathPreviousLine.Substring("real_session_v0_compare_mp_package_zip_path_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageZipPathChangedLine)) {
+        $latestMpPackageZipPathChanged = $compareMpPackageZipPathChangedLine.Substring("real_session_v0_compare_mp_package_zip_path_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageZipBytesCurrentLine)) {
+        $latestMpPackageZipBytesCurrent = $compareMpPackageZipBytesCurrentLine.Substring("real_session_v0_compare_mp_package_zip_bytes_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageZipBytesPreviousLine)) {
+        $latestMpPackageZipBytesPrevious = $compareMpPackageZipBytesPreviousLine.Substring("real_session_v0_compare_mp_package_zip_bytes_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPackageZipBytesChangedLine)) {
+        $latestMpPackageZipBytesChanged = $compareMpPackageZipBytesChangedLine.Substring("real_session_v0_compare_mp_package_zip_bytes_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrentLine)) {
         $latestMpHostReadinessCurrent = $compareMpHostReadinessCurrentLine.Substring("real_session_v0_compare_mp_host_readiness_current=".Length)
@@ -686,6 +716,12 @@ $result = [ordered]@{
         package_zip_sha256_previous = $latestMpPackageZipSha256Previous
         package_zip_sha256_current = $latestMpPackageZipSha256Current
         package_zip_sha256_changed = $latestMpPackageZipSha256Changed
+        package_zip_path_previous = $latestMpPackageZipPathPrevious
+        package_zip_path_current = $latestMpPackageZipPathCurrent
+        package_zip_path_changed = $latestMpPackageZipPathChanged
+        package_zip_bytes_previous = $latestMpPackageZipBytesPrevious
+        package_zip_bytes_current = $latestMpPackageZipBytesCurrent
+        package_zip_bytes_changed = $latestMpPackageZipBytesChanged
     }
     latest_mp_readiness = [ordered]@{
         host_readiness_previous = $latestMpHostReadinessPrevious
@@ -829,6 +865,24 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipSha256Previous)) {
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipSha256Changed)) {
     Write-Host ("real_session_v0_trend_mp_package_zip_sha256_changed=" + $latestMpPackageZipSha256Changed)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipPathCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_package_zip_path_current=" + $latestMpPackageZipPathCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipPathPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_package_zip_path_previous=" + $latestMpPackageZipPathPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipPathChanged)) {
+    Write-Host ("real_session_v0_trend_mp_package_zip_path_changed=" + $latestMpPackageZipPathChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipBytesCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_package_zip_bytes_current=" + $latestMpPackageZipBytesCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipBytesPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_package_zip_bytes_previous=" + $latestMpPackageZipBytesPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipBytesChanged)) {
+    Write-Host ("real_session_v0_trend_mp_package_zip_bytes_changed=" + $latestMpPackageZipBytesChanged)
 }
 foreach ($warningCode in $latestMpWarningCodesCurrent) {
     Write-Host ("real_session_v0_trend_mp_warning_code_current=" + $warningCode)

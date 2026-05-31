@@ -652,6 +652,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpPackageZipSha256Current = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_sha256_current"
     $compareMpPackageZipSha256Previous = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_sha256_previous"
     $compareMpPackageZipSha256Changed = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_sha256_changed"
+    $compareMpPackageZipPathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_path_current"
+    $compareMpPackageZipPathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_path_previous"
+    $compareMpPackageZipPathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_path_changed"
+    $compareMpPackageZipBytesCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_bytes_current"
+    $compareMpPackageZipBytesPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_bytes_previous"
+    $compareMpPackageZipBytesChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_package_zip_bytes_changed"
     $compareMpWarningCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_count_current"
     $compareMpWarningCountDelta = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_count_delta"
     $compareMpWarningCodesChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_warning_codes_changed"
@@ -827,6 +833,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_sha256_previous=" + $compareMpPackageZipSha256Previous)
     Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_sha256_current=" + $compareMpPackageZipSha256Current)
     Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_sha256_changed=" + $compareMpPackageZipSha256Changed)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_path_previous=" + $compareMpPackageZipPathPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_path_current=" + $compareMpPackageZipPathCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_path_changed=" + $compareMpPackageZipPathChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_bytes_previous=" + $compareMpPackageZipBytesPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_bytes_current=" + $compareMpPackageZipBytesCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_package_zip_bytes_changed=" + $compareMpPackageZipBytesChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_warning_count_current=" + $compareMpWarningCountCurrent)
     }
@@ -1014,6 +1026,12 @@ if ($EmitTrendSummary) {
     $trendMpPackageZipSha256Current = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_sha256_current"
     $trendMpPackageZipSha256Previous = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_sha256_previous"
     $trendMpPackageZipSha256Changed = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_sha256_changed"
+    $trendMpPackageZipPathCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_path_current"
+    $trendMpPackageZipPathPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_path_previous"
+    $trendMpPackageZipPathChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_path_changed"
+    $trendMpPackageZipBytesCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_bytes_current"
+    $trendMpPackageZipBytesPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_bytes_previous"
+    $trendMpPackageZipBytesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_package_zip_bytes_changed"
     $trendMpWarningCodesPrevious = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_warning_code_previous"
     $trendMpWarningCodesCurrent = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_warning_code_current"
     $trendMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_host_readiness_current"
@@ -1152,6 +1170,12 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_sha256_previous=" + $trendMpPackageZipSha256Previous)
     Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_sha256_current=" + $trendMpPackageZipSha256Current)
     Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_sha256_changed=" + $trendMpPackageZipSha256Changed)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_path_previous=" + $trendMpPackageZipPathPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_path_current=" + $trendMpPackageZipPathCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_path_changed=" + $trendMpPackageZipPathChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_bytes_previous=" + $trendMpPackageZipBytesPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_bytes_current=" + $trendMpPackageZipBytesCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_package_zip_bytes_changed=" + $trendMpPackageZipBytesChanged)
     foreach ($warningCode in $trendMpWarningCodesPrevious) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_code_previous=" + $warningCode)
     }
@@ -1464,6 +1488,12 @@ $sessionEvidence = [ordered]@{
             package_zip_sha256_current = (Get-VariableOrDefault -Name "compareMpPackageZipSha256Current")
             package_zip_sha256_previous = (Get-VariableOrDefault -Name "compareMpPackageZipSha256Previous")
             package_zip_sha256_changed = (Get-VariableOrDefault -Name "compareMpPackageZipSha256Changed")
+            package_zip_path_current = (Get-VariableOrDefault -Name "compareMpPackageZipPathCurrent")
+            package_zip_path_previous = (Get-VariableOrDefault -Name "compareMpPackageZipPathPrevious")
+            package_zip_path_changed = (Get-VariableOrDefault -Name "compareMpPackageZipPathChanged")
+            package_zip_bytes_current = (Get-VariableOrDefault -Name "compareMpPackageZipBytesCurrent")
+            package_zip_bytes_previous = (Get-VariableOrDefault -Name "compareMpPackageZipBytesPrevious")
+            package_zip_bytes_changed = (Get-VariableOrDefault -Name "compareMpPackageZipBytesChanged")
             warning_count_current = (Get-VariableOrDefault -Name "compareMpWarningCountCurrent")
             warning_count_delta = (Get-VariableOrDefault -Name "compareMpWarningCountDelta")
             warning_codes_changed = (Get-VariableOrDefault -Name "compareMpWarningCodesChanged")
@@ -1568,6 +1598,12 @@ $sessionEvidence = [ordered]@{
             package_zip_sha256_current = (Get-VariableOrDefault -Name "trendMpPackageZipSha256Current")
             package_zip_sha256_previous = (Get-VariableOrDefault -Name "trendMpPackageZipSha256Previous")
             package_zip_sha256_changed = (Get-VariableOrDefault -Name "trendMpPackageZipSha256Changed")
+            package_zip_path_current = (Get-VariableOrDefault -Name "trendMpPackageZipPathCurrent")
+            package_zip_path_previous = (Get-VariableOrDefault -Name "trendMpPackageZipPathPrevious")
+            package_zip_path_changed = (Get-VariableOrDefault -Name "trendMpPackageZipPathChanged")
+            package_zip_bytes_current = (Get-VariableOrDefault -Name "trendMpPackageZipBytesCurrent")
+            package_zip_bytes_previous = (Get-VariableOrDefault -Name "trendMpPackageZipBytesPrevious")
+            package_zip_bytes_changed = (Get-VariableOrDefault -Name "trendMpPackageZipBytesChanged")
             warning_count_current = (Get-VariableOrDefault -Name "trendMpWarningCountCurrent")
             warning_count_delta = (Get-VariableOrDefault -Name "trendMpWarningCountDelta")
             warning_codes_changed = (Get-VariableOrDefault -Name "trendMpWarningCodesChanged")
