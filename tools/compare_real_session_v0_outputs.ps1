@@ -91,6 +91,8 @@ $compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "' + $pr
 
 $previousStatusPath = Join-Path $previousSessionDirFull "snc_status_snapshot.json"
 $currentStatusPath = Join-Path $currentSessionDirFull "snc_status_snapshot.json"
+$previousEvidencePath = Join-Path $previousSessionDirFull "real_session_v0_loop_evidence.json"
+$currentEvidencePath = Join-Path $currentSessionDirFull "real_session_v0_loop_evidence.json"
 $previousSummaryPath = Join-Path $previousSessionDirFull "work/archive_summary.json"
 $currentSummaryPath = Join-Path $currentSessionDirFull "work/archive_summary.json"
 $previousStatusWithMpPath = Join-Path $previousSessionDirFull "snc_status_snapshot_with_mp.json"
@@ -157,6 +159,32 @@ if ($null -ne $previousStatus.status_center_summary_text) {
 }
 if ($null -ne $currentStatus.status_center_summary_text) {
     $currentStatusCenterSummaryText = [string]$currentStatus.status_center_summary_text
+}
+$previousNextAction = ""
+$currentNextAction = ""
+$previousNextActionReason = ""
+$currentNextActionReason = ""
+$previousNextActionCommandHintSource = ""
+$currentNextActionCommandHintSource = ""
+$previousNextActionCommandHint = ""
+$currentNextActionCommandHint = ""
+if (Test-Path -LiteralPath $previousEvidencePath) {
+    $previousEvidence = Read-JsonFile -Path $previousEvidencePath
+    if ($null -ne $previousEvidence.next_action) {
+        $previousNextAction = Get-OptionalString -Object $previousEvidence.next_action -Property "action"
+        $previousNextActionReason = Get-OptionalString -Object $previousEvidence.next_action -Property "reason"
+        $previousNextActionCommandHintSource = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint_source"
+        $previousNextActionCommandHint = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint"
+    }
+}
+if (Test-Path -LiteralPath $currentEvidencePath) {
+    $currentEvidence = Read-JsonFile -Path $currentEvidencePath
+    if ($null -ne $currentEvidence.next_action) {
+        $currentNextAction = Get-OptionalString -Object $currentEvidence.next_action -Property "action"
+        $currentNextActionReason = Get-OptionalString -Object $currentEvidence.next_action -Property "reason"
+        $currentNextActionCommandHintSource = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint_source"
+        $currentNextActionCommandHint = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint"
+    }
 }
 
 $previousMpManifestHash = ""
@@ -350,6 +378,26 @@ $result = [ordered]@{
         current = $currentStatusCenterSummaryText
         changed = ($previousStatusCenterSummaryText -ne $currentStatusCenterSummaryText)
     }
+    next_action = [ordered]@{
+        previous = $previousNextAction
+        current = $currentNextAction
+        changed = ($previousNextAction -ne $currentNextAction)
+    }
+    next_action_reason = [ordered]@{
+        previous = $previousNextActionReason
+        current = $currentNextActionReason
+        changed = ($previousNextActionReason -ne $currentNextActionReason)
+    }
+    next_action_command_hint_source = [ordered]@{
+        previous = $previousNextActionCommandHintSource
+        current = $currentNextActionCommandHintSource
+        changed = ($previousNextActionCommandHintSource -ne $currentNextActionCommandHintSource)
+    }
+    next_action_command_hint = [ordered]@{
+        previous = $previousNextActionCommandHint
+        current = $currentNextActionCommandHint
+        changed = ($previousNextActionCommandHint -ne $currentNextActionCommandHint)
+    }
     mp_package_manifest_hash = [ordered]@{
         previous = $previousMpManifestHash
         current = $currentMpManifestHash
@@ -509,6 +557,18 @@ Write-Host ("real_session_v0_compare_status_center_reason_changed=" + ((($previo
 Write-Host ("real_session_v0_compare_status_center_summary_text_current=" + $currentStatusCenterSummaryText)
 Write-Host ("real_session_v0_compare_status_center_summary_text_previous=" + $previousStatusCenterSummaryText)
 Write-Host ("real_session_v0_compare_status_center_summary_text_changed=" + ((($previousStatusCenterSummaryText -ne $currentStatusCenterSummaryText).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_next_action_current=" + $currentNextAction)
+Write-Host ("real_session_v0_compare_next_action_previous=" + $previousNextAction)
+Write-Host ("real_session_v0_compare_next_action_changed=" + ((($previousNextAction -ne $currentNextAction).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_next_action_reason_current=" + $currentNextActionReason)
+Write-Host ("real_session_v0_compare_next_action_reason_previous=" + $previousNextActionReason)
+Write-Host ("real_session_v0_compare_next_action_reason_changed=" + ((($previousNextActionReason -ne $currentNextActionReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_next_action_command_hint_source_current=" + $currentNextActionCommandHintSource)
+Write-Host ("real_session_v0_compare_next_action_command_hint_source_previous=" + $previousNextActionCommandHintSource)
+Write-Host ("real_session_v0_compare_next_action_command_hint_source_changed=" + ((($previousNextActionCommandHintSource -ne $currentNextActionCommandHintSource).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_next_action_command_hint_current=" + $currentNextActionCommandHint)
+Write-Host ("real_session_v0_compare_next_action_command_hint_previous=" + $previousNextActionCommandHint)
+Write-Host ("real_session_v0_compare_next_action_command_hint_changed=" + ((($previousNextActionCommandHint -ne $currentNextActionCommandHint).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_previous=" + $previousMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_changed=" + ((($previousMpHostReadiness -ne $currentMpHostReadiness).ToString().ToLowerInvariant())))
