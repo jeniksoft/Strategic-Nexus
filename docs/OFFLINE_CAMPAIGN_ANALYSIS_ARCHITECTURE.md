@@ -431,7 +431,25 @@ Observed save-folder rule:
 * A live capture session is a Stellaris play-activity collection window, not a campaign identity boundary. It may include sequential play segments from more than one campaign folder, so later analysis must group archived entries by source campaign folder before creating campaign ledgers, empire briefs, or generated overlay updates.
 * While `stellaris.exe` is running, the companion capture responsibility is read-only archive preservation and status reporting. Analysis and generated overlay refresh happen after the game exits.
 * After `stellaris.exe` exits, SNC should verify the completed capture archive, partition entries by source campaign folder, analyze those autosaves, and generate/stage new mod rules for the next launch.
+* SNC owns the post-play identity and decision-input flow. In normal product use, the owner must not have to provide `campaign_id`, `empire_id`, ministry input, or DSL by hand.
+* Development CLI commands may still accept explicit identity or `input.dsl` arguments as harness controls, but those arguments are not the final companion workflow.
 * The archive is the long history. The active save folder is only the game's short rolling buffer.
+
+Post-play SNC ownership:
+
+```text
+verified capture archive
+-> partition by source campaign folder
+-> resolve campaign identity from marker, save metadata, hashes, path, and durable memory
+-> resolve player/empire identity from parsed save facts and durable memory
+-> build bounded decision input
+-> produce or select bounded Strategic Nexus DSL candidate
+-> validate DSL and compile generated overlay
+-> verify staged overlay
+-> publish only while Stellaris is closed
+```
+
+If identity confidence is low, SNC should create a new campaign profile or ask for confirmation. It should not silently merge histories or require the owner to type technical identifiers into the normal flow.
 
 The current live-session capture harness is:
 
@@ -484,6 +502,7 @@ It verifies the archived session through the archive summarizer, then writes a m
 This is the first contract step for the `verified archive -> season delta ledger -> empire brief` path.
 It does not extract wars, borders, alliances, economy, fleets, empire state, or personality evidence yet.
 Now that the narrow save parser exists, this ledger should be enriched from parser summaries before broader strategic memory or LLM interpretation is added.
+The explicit `<campaign_id>` parameter is a development harness input. Production SNC should derive or confirm it during post-play archive analysis.
 
 The current local harness for producing the first empire brief skeleton is:
 
@@ -494,6 +513,7 @@ Strategic Nexus.exe --build-empire-brief-from-archive <session_archive_dir> <cam
 It builds from the verified archive and metadata-only ledger, then emits facts, uncertainties, missing information, and compression notes for one campaign empire.
 It intentionally warns that personality or strategy must not be inferred from the metadata-only brief alone.
 This is a contract skeleton for future empire-scoped save parsing and LLM interpretation, not a final strategic analysis.
+The explicit `<empire_id>` parameter is a development harness input. Production SNC should derive or confirm it from parsed save identity plus durable campaign memory.
 
 The current local harness for bridging verified archive metadata into the v0 ministry pipeline is:
 
@@ -503,6 +523,7 @@ Strategic Nexus.exe --build-ministry-input-from-archive <session_archive_dir> <c
 
 It emits a conservative ministry input context with archive facts and explicit uncertainties.
 It must be replaced or enriched by real save parsing before it can support meaningful strategic interpretation.
+Production SNC should call this kind of builder internally after resolving campaign and empire identity, not require the owner to supply those values manually.
 
 The current local harness for proving the metadata-only archive input can pass through the v0 decision pipeline is:
 
@@ -513,6 +534,7 @@ Strategic Nexus.exe --v0-pipeline-from-archive <session_archive_dir> <campaign_i
 It verifies and summarizes the archived session, writes the conservative ministry input context, then runs the deterministic v0 pipeline against that generated input.
 This is an end-to-end contract harness for the current `verified archive -> ministry input -> v0 payload` path.
 It does not add save parsing, LLM interpretation, or strategic memory updates.
+Production SNC should own the generated ministry input and DSL candidate selection/generation before validation. Manual `input.dsl` files are developer fixtures unless the owner explicitly chooses an advanced review/edit mode.
 
 ---
 
@@ -536,6 +558,7 @@ campaign memory, empire personality, and generated mod state must never bleed ac
 ```
 
 If identity confidence is low, Strategic Nexus must create a new campaign profile or ask for user confirmation instead of merging histories aggressively.
+Campaign identity resolution is an SNC responsibility. The final owner workflow should not depend on manual `campaign_id` entry.
 
 ## Mod-Side Campaign Recognition Finding
 
