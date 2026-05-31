@@ -1244,8 +1244,10 @@ war={
 
     $sncLiveSourceRoot = Join-Path $repoRoot "dist/snc_live_autosave_cli_source"
     $sncLiveArchiveRoot = Join-Path $repoRoot "dist/snc_live_autosave_cli_archive"
+    $sncLiveStatusPath = Join-Path $repoRoot "dist/private_reports/snc_live_autosave_monitor_status_test.json"
     Remove-Item -Recurse -Force -LiteralPath $sncLiveSourceRoot -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force -LiteralPath $sncLiveArchiveRoot -ErrorAction SilentlyContinue
+    Remove-Item -Force -LiteralPath $sncLiveStatusPath -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force -Path (Join-Path $sncLiveSourceRoot "campaign_a") | Out-Null
     Set-Content -LiteralPath (Join-Path $sncLiveSourceRoot "campaign_a/autosave_2200.02.01.sav") -Value "snc live autosave one" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $sncLiveSourceRoot "campaign_a/ironman.sav") -Value "snc live ironman one" -Encoding ASCII
@@ -1260,7 +1262,8 @@ war={
         1 `
         false `
         false `
-        false
+        false `
+        $sncLiveStatusPath
     $sncLiveExitCode = $LASTEXITCODE
     $sncLiveText = $sncLiveOutput -join "`n"
 
@@ -1272,11 +1275,67 @@ war={
     Assert-Contains -Name "SNC live autosave monitor app" -Text $sncLiveText -Expected "snc_live_autosave_monitor_iterations=1"
     Assert-Contains -Name "SNC live autosave monitor app" -Text $sncLiveText -Expected "snc_live_autosave_monitor_existing_roots=1"
     Assert-Contains -Name "SNC live autosave monitor app" -Text $sncLiveText -Expected "snc_live_autosave_monitor_copied=2"
+    Assert-Contains -Name "SNC live autosave monitor app" -Text $sncLiveText -Expected "snc_live_autosave_monitor_status_written=true"
 
     $sncLiveManifestPath = Join-Path $sncLiveArchiveRoot "snc_live_cli/manifest.json"
     $sncLiveManifestText = Get-Content -Raw -LiteralPath $sncLiveManifestPath
     $null = $sncLiveManifestText | ConvertFrom-Json
     Assert-Contains -Name "SNC live autosave monitor manifest" -Text $sncLiveManifestText -Expected '"copied_count": 2'
+    $sncLiveStatusText = Get-Content -Raw -LiteralPath $sncLiveStatusPath
+    $null = $sncLiveStatusText | ConvertFrom-Json
+    Assert-Contains -Name "SNC live autosave monitor status" -Text $sncLiveStatusText -Expected '"state": "completed"'
+    Assert-Contains -Name "SNC live autosave monitor status" -Text $sncLiveStatusText -Expected '"copied_count": 2'
+
+    $sncCaptureUserProfile = Join-Path $repoRoot "dist/snc_session_capture_user_profile"
+    $sncCaptureSaveRoot = Join-Path $sncCaptureUserProfile "Documents/Paradox Interactive/Stellaris/save games"
+    $sncCaptureArchiveRoot = Join-Path $repoRoot "dist/snc_session_capture_cli_archive"
+    $sncCaptureStatusPath = Join-Path $repoRoot "dist/private_reports/snc_session_capture_status_test.json"
+    Remove-Item -Recurse -Force -LiteralPath $sncCaptureUserProfile -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force -LiteralPath $sncCaptureArchiveRoot -ErrorAction SilentlyContinue
+    Remove-Item -Force -LiteralPath $sncCaptureStatusPath -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path (Join-Path $sncCaptureSaveRoot "campaign_auto") | Out-Null
+    Set-Content -LiteralPath (Join-Path $sncCaptureSaveRoot "campaign_auto/autosave_2200.03.01.sav") -Value "snc capture autosave one" -Encoding ASCII
+
+    $oldUserProfile = $env:USERPROFILE
+    $oldOneDrive = $env:OneDrive
+    $oldOneDriveConsumer = $env:OneDriveConsumer
+    $oldOneDriveCommercial = $env:OneDriveCommercial
+    try {
+        $env:USERPROFILE = $sncCaptureUserProfile
+        $env:OneDrive = ""
+        $env:OneDriveConsumer = ""
+        $env:OneDriveCommercial = ""
+
+        $sncCaptureOutput = & $exePath `
+            --run-snc-session-capture `
+            $sncCaptureArchiveRoot `
+            $sncCaptureStatusPath `
+            "snc_capture_cli" `
+            0 `
+            0 `
+            1 `
+            true
+        $sncCaptureExitCode = $LASTEXITCODE
+    } finally {
+        $env:USERPROFILE = $oldUserProfile
+        $env:OneDrive = $oldOneDrive
+        $env:OneDriveConsumer = $oldOneDriveConsumer
+        $env:OneDriveCommercial = $oldOneDriveCommercial
+    }
+    $sncCaptureText = $sncCaptureOutput -join "`n"
+
+    if ($sncCaptureExitCode -ne 0) {
+        throw "SNC session capture app failed. Actual output:`n$sncCaptureText"
+    }
+
+    Assert-Contains -Name "SNC session capture app" -Text $sncCaptureText -Expected "snc_session_capture_started=true"
+    Assert-Contains -Name "SNC session capture app" -Text $sncCaptureText -Expected "snc_session_capture_mode=true"
+    Assert-Contains -Name "SNC session capture app" -Text $sncCaptureText -Expected "snc_live_autosave_monitor_success=true"
+    Assert-Contains -Name "SNC session capture app" -Text $sncCaptureText -Expected "snc_live_autosave_monitor_copied=1"
+    $sncCaptureStatusText = Get-Content -Raw -LiteralPath $sncCaptureStatusPath
+    $null = $sncCaptureStatusText | ConvertFrom-Json
+    Assert-Contains -Name "SNC session capture status" -Text $sncCaptureStatusText -Expected '"state": "completed"'
+    Assert-Contains -Name "SNC session capture status" -Text $sncCaptureStatusText -Expected '"copied_count": 1'
 
     $liveManifestPath = Join-Path $archiveRoot "session_live_cli/manifest.json"
     $liveManifestText = Get-Content -Raw -LiteralPath $liveManifestPath

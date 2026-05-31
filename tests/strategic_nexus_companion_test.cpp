@@ -568,6 +568,7 @@ int main()
     {
         const auto liveSaveRoot = root / "live_save_root";
         const auto liveArchiveRoot = root / "live_archive";
+        const auto liveStatusPath = root / "live_monitor_status.json";
         std::filesystem::create_directories(liveSaveRoot / "campaign_a");
         {
             std::ofstream autosave(liveSaveRoot / "campaign_a" / "autosave_2200.01.01.sav", std::ios::binary | std::ios::trunc);
@@ -581,6 +582,7 @@ int main()
         const auto monitorResult = strategic_nexus::runCompanionLiveAutosaveMonitor({
             { liveSaveRoot },
             liveArchiveRoot,
+            liveStatusPath,
             "snc_live_session",
             std::chrono::milliseconds(0),
             0,
@@ -598,10 +600,19 @@ int main()
         requireCondition(
             std::filesystem::exists(liveArchiveRoot / "snc_live_session" / "manifest.json"),
             "SNC live autosave monitor should write a manifest");
+        requireCondition(monitorResult.statusOutputWritten, "SNC live autosave monitor should write a heartbeat status file");
+        const auto liveStatusText = readTextFile(liveStatusPath);
+        requireCondition(
+            liveStatusText.find("\"state\": \"completed\"") != std::string::npos,
+            "SNC live autosave status should mark bounded runs completed");
+        requireCondition(
+            liveStatusText.find("\"copied_count\": 2") != std::string::npos,
+            "SNC live autosave status should expose copied count");
 
         const auto invalidContinuousResult = strategic_nexus::runCompanionLiveAutosaveMonitor({
             { liveSaveRoot },
             liveArchiveRoot,
+            std::filesystem::path(),
             "snc_live_session",
             std::chrono::milliseconds(0),
             0,

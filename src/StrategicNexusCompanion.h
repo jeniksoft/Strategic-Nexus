@@ -38,6 +38,7 @@ struct CompanionStatusLoopResult {
 struct CompanionLiveAutosaveMonitorConfig {
     std::vector<std::filesystem::path> saveRoots;
     std::filesystem::path archiveRoot;
+    std::filesystem::path statusOutputPath;
     std::string sessionId;
     std::chrono::milliseconds pollInterval = std::chrono::milliseconds(1000);
     std::uint32_t stabilityDelayMs = 250;
@@ -56,6 +57,8 @@ struct CompanionLiveAutosaveMonitorResult {
     std::size_t skippedCount = 0;
     bool lastStellarisRunning = false;
     std::filesystem::path archiveSessionDirectory;
+    std::filesystem::path statusOutputPath;
+    bool statusOutputWritten = false;
     std::string reason;
 };
 

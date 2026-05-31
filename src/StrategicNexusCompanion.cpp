@@ -258,6 +258,44 @@ std::string formatLocalTimestamp(std::chrono::system_clock::time_point now)
     return output.str();
 }
 
+std::string serializeLiveAutosaveMonitorStatus(
+    const CompanionLiveAutosaveMonitorResult& result,
+    const std::string& state)
+{
+    std::ostringstream output;
+    output << "{\n";
+    output << "  \"schema_version\": 1,\n";
+    output << "  \"state\": " << jsonString(state) << ",\n";
+    output << "  \"reason\": " << jsonString(result.reason) << ",\n";
+    output << "  \"updated_at_local\": "
+           << jsonString(formatLocalTimestamp(std::chrono::system_clock::now())) << ",\n";
+    output << "  \"iterations_run\": " << result.iterationsRun << ",\n";
+    output << "  \"candidate_root_count\": " << result.candidateRootCount << ",\n";
+    output << "  \"existing_root_count\": " << result.existingRootCount << ",\n";
+    output << "  \"copied_count\": " << result.copiedCount << ",\n";
+    output << "  \"skipped_count\": " << result.skippedCount << ",\n";
+    output << "  \"stellaris_running\": " << (result.lastStellarisRunning ? "true" : "false") << ",\n";
+    output << "  \"archive_session_directory\": "
+           << jsonString(pathString(result.archiveSessionDirectory)) << "\n";
+    output << "}\n";
+    return output.str();
+}
+
+bool writeLiveAutosaveMonitorStatus(
+    CompanionLiveAutosaveMonitorResult& result,
+    const std::string& state)
+{
+    if (result.statusOutputPath.empty()) {
+        return true;
+    }
+
+    const bool written = common::writeTextFileAtomically(
+        result.statusOutputPath,
+        serializeLiveAutosaveMonitorStatus(result, state));
+    result.statusOutputWritten = written;
+    return written;
+}
+
 CompanionSubsystemStatus buildSaveDiscoveryStatus()
 {
     CompanionSubsystemStatus status;
@@ -1076,6 +1114,7 @@ CompanionLiveAutosaveMonitorResult runCompanionLiveAutosaveMonitor(const Compani
 {
     CompanionLiveAutosaveMonitorResult result;
     result.archiveSessionDirectory = config.archiveRoot / config.sessionId;
+    result.statusOutputPath = config.statusOutputPath;
 
     if (config.archiveRoot.empty()) {
         result.reason = "archive root not configured";
@@ -1091,6 +1130,7 @@ CompanionLiveAutosaveMonitorResult runCompanionLiveAutosaveMonitor(const Compani
     const bool runForever = maxIterations == 0;
     if (runForever && config.pollInterval.count() <= 0) {
         result.reason = "continuous monitor requires a positive poll interval";
+        writeLiveAutosaveMonitorStatus(result, "failed");
         return result;
     }
 
@@ -1144,6 +1184,8 @@ CompanionLiveAutosaveMonitorResult runCompanionLiveAutosaveMonitor(const Compani
                 lastWaitingReason = autoDiscoverSaveRoots
                     ? "waiting for discovered Stellaris save root"
                     : "configured Stellaris save root missing";
+            } else {
+                lastWaitingReason = "running";
             }
         } else {
             lastWaitingReason = "Stellaris is not running; live autosave sweep deferred";
@@ -1151,6 +1193,12 @@ CompanionLiveAutosaveMonitorResult runCompanionLiveAutosaveMonitor(const Compani
 
         ++iteration;
         result.iterationsRun = iteration;
+        result.reason = lastWaitingReason;
+        if (!writeLiveAutosaveMonitorStatus(result, "running")) {
+            result.ok = false;
+            result.reason = "failed to write live autosave monitor status";
+            return result;
+        }
 
         if ((runForever || iteration < maxIterations) && config.pollInterval.count() > 0) {
             std::this_thread::sleep_for(config.pollInterval);
@@ -1160,11 +1208,13 @@ CompanionLiveAutosaveMonitorResult runCompanionLiveAutosaveMonitor(const Compani
     if (!sawExistingRoot && !autoDiscoverSaveRoots) {
         result.ok = false;
         result.reason = lastWaitingReason;
+        writeLiveAutosaveMonitorStatus(result, "failed");
         return result;
     }
 
     result.ok = true;
     result.reason = sawExistingRoot ? "ok" : lastWaitingReason;
+    writeLiveAutosaveMonitorStatus(result, "completed");
     return result;
 }
 

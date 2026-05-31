@@ -33,7 +33,9 @@
 
 #include <chrono>
 #include <cstdint>
+#include <ctime>
 #include <exception>
+#include <iomanip>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -73,6 +75,25 @@ bool parseBoolArg(const char* value, const bool fallback)
         return false;
     }
     return fallback;
+}
+
+std::string formatSessionToken(const std::chrono::system_clock::time_point now)
+{
+    const std::time_t timeValue = std::chrono::system_clock::to_time_t(now);
+    std::tm localTime{};
+    if (localtime_s(&localTime, &timeValue) != 0) {
+        return "unknown-time";
+    }
+
+    std::ostringstream output;
+    output << std::setw(4) << std::setfill('0') << (localTime.tm_year + 1900)
+           << std::setw(2) << std::setfill('0') << (localTime.tm_mon + 1)
+           << std::setw(2) << std::setfill('0') << localTime.tm_mday
+           << "T"
+           << std::setw(2) << std::setfill('0') << localTime.tm_hour
+           << std::setw(2) << std::setfill('0') << localTime.tm_min
+           << std::setw(2) << std::setfill('0') << localTime.tm_sec;
+    return output.str();
 }
 
 std::string sanitizeCliValue(const std::string& value)
@@ -402,6 +423,37 @@ RunConfig parseRunConfig(int argc, char* argv[])
         config.sncLiveAutosaveUseDetectedStellarisState = argc > 8 ? parseBoolArg(argv[8], true) : true;
         config.sncLiveAutosaveStellarisRunningOverride = argc > 9 ? parseBoolArg(argv[9], false) : false;
         config.sncLiveAutosaveCaptureWhenStellarisNotRunning = argc > 10 ? parseBoolArg(argv[10], false) : false;
+        if (argc > 11) {
+            config.sncLiveAutosaveStatusOutputPath = argv[11];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--run-snc-session-capture") {
+        config.sncLiveAutosaveMonitorMode = true;
+        config.sncSessionCaptureMode = true;
+        config.sncLiveAutosaveArchiveRoot = "dist/snc_live_autosave_archive";
+        config.sncLiveAutosaveStatusOutputPath = "dist/private_reports/snc_live_autosave_monitor_status.json";
+        config.sncLiveAutosaveSessionId = "snc-session-" + formatSessionToken(std::chrono::system_clock::now());
+        config.sncLiveAutosavePollIntervalMs = 1000;
+        config.sncLiveAutosaveStabilityDelayMs = 250;
+        config.sncLiveAutosaveMaxIterations = 0;
+        config.sncLiveAutosaveUseDetectedStellarisState = true;
+        config.sncLiveAutosaveCaptureWhenStellarisNotRunning = false;
+
+        if (argc > 2) {
+            config.sncLiveAutosaveArchiveRoot = argv[2];
+        }
+        if (argc > 3) {
+            config.sncLiveAutosaveStatusOutputPath = argv[3];
+        }
+        if (argc > 4) {
+            config.sncLiveAutosaveSessionId = argv[4];
+        }
+        config.sncLiveAutosavePollIntervalMs = argc > 5 ? parseInt64Arg(argv[5], config.sncLiveAutosavePollIntervalMs) : config.sncLiveAutosavePollIntervalMs;
+        config.sncLiveAutosaveStabilityDelayMs = argc > 6 ? parseInt64Arg(argv[6], config.sncLiveAutosaveStabilityDelayMs) : config.sncLiveAutosaveStabilityDelayMs;
+        config.sncLiveAutosaveMaxIterations = argc > 7 ? parseInt64Arg(argv[7], config.sncLiveAutosaveMaxIterations) : config.sncLiveAutosaveMaxIterations;
+        config.sncLiveAutosaveCaptureWhenStellarisNotRunning = argc > 8 ? parseBoolArg(argv[8], false) : false;
         return config;
     }
 
@@ -1552,9 +1604,21 @@ int Application::run(const RunConfig& config) const
                 ? 0
                 : static_cast<int>(config.sncLiveAutosaveMaxIterations);
 
+            if (config.sncSessionCaptureMode) {
+                std::cout << "snc_session_capture_started=true\n";
+                std::cout << "snc_session_capture_session_id="
+                          << sanitizeCliValue(config.sncLiveAutosaveSessionId) << "\n";
+                std::cout << "snc_session_capture_archive_root="
+                          << sanitizeCliValue(config.sncLiveAutosaveArchiveRoot.generic_string()) << "\n";
+                std::cout << "snc_session_capture_status_path="
+                          << sanitizeCliValue(config.sncLiveAutosaveStatusOutputPath.generic_string()) << "\n";
+                std::cout << std::flush;
+            }
+
             const auto result = runCompanionLiveAutosaveMonitor({
                 config.sncLiveAutosaveSaveRoots,
                 config.sncLiveAutosaveArchiveRoot,
+                config.sncLiveAutosaveStatusOutputPath,
                 config.sncLiveAutosaveSessionId,
                 std::chrono::milliseconds(pollMs),
                 stabilityDelayMs,
@@ -1564,6 +1628,9 @@ int Application::run(const RunConfig& config) const
                 config.sncLiveAutosaveCaptureWhenStellarisNotRunning
             });
 
+            if (config.sncSessionCaptureMode) {
+                std::cout << "snc_session_capture_mode=true\n";
+            }
             std::cout << "snc_live_autosave_monitor_success=" << (result.ok ? "true" : "false") << "\n";
             std::cout << "snc_live_autosave_monitor_reason=" << sanitizeCliValue(result.reason) << "\n";
             std::cout << "snc_live_autosave_monitor_iterations=" << result.iterationsRun << "\n";
@@ -1575,6 +1642,10 @@ int Application::run(const RunConfig& config) const
                       << (result.lastStellarisRunning ? "true" : "false") << "\n";
             std::cout << "snc_live_autosave_monitor_session_dir="
                       << sanitizeCliValue(result.archiveSessionDirectory.generic_string()) << "\n";
+            std::cout << "snc_live_autosave_monitor_status_path="
+                      << sanitizeCliValue(result.statusOutputPath.generic_string()) << "\n";
+            std::cout << "snc_live_autosave_monitor_status_written="
+                      << (result.statusOutputWritten ? "true" : "false") << "\n";
             return result.ok ? 0 : 1;
         }
 

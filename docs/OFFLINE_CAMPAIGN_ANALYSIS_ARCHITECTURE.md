@@ -431,10 +431,12 @@ The current live-session capture harness is:
 ```text
 Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]
 Strategic Nexus.exe --snc-live-autosave-monitor <save_root|auto> <archive_root> <session_id> [poll_ms] [stability_delay_ms] [max_iterations] [use_detected_stellaris_state] [stellaris_running_override] [capture_when_not_running]
+Strategic Nexus.exe --run-snc-session-capture [archive_root] [status_output.json] [session_id] [poll_ms] [stability_delay_ms] [max_iterations] [capture_when_not_running]
 ```
 
 The one-shot command recursively scans campaign directories, archives stable `autosave*.sav` and `ironman.sav` revisions, and stores changed revisions under hash-based filenames so repeated active autosave names do not overwrite the SNC history.
 The native SNC monitor repeats that archive pass inside the companion runtime. It is the production direction for live capture because the user should only need to run SNC; hidden PowerShell startup helpers and HKCU Run persistence are not acceptable project architecture.
+The session capture command is the first foreground/testable SNC runtime slice: it auto-discovers save roots, uses default archive/status paths, and writes heartbeat JSON so the owner can verify that the monitor is alive during a real Stellaris session.
 
 The current local harness for verifying an archived session is:
 

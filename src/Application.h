@@ -39,6 +39,7 @@ struct RunConfig {
     bool importMpOverlayPackageMode = false;
     bool sncStatusSnapshotMode = false;
     bool sncLiveAutosaveMonitorMode = false;
+    bool sncSessionCaptureMode = false;
     bool offlineSpineMode = false;
     bool parseStellarisSaveMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
@@ -102,6 +103,7 @@ struct RunConfig {
     std::filesystem::path sncStatusOutputPath;
     std::vector<std::filesystem::path> sncLiveAutosaveSaveRoots;
     std::filesystem::path sncLiveAutosaveArchiveRoot;
+    std::filesystem::path sncLiveAutosaveStatusOutputPath;
     std::filesystem::path offlineSpineArchiveDirectory;
     std::filesystem::path offlineSpineDslInputPath;
     std::filesystem::path offlineSpineWorkDirectory;
