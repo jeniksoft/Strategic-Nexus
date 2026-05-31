@@ -99,6 +99,8 @@ Implementation consequence:
 * Each monitor pass must rescan campaign subdirectories below `save games`; new campaigns created by the game or copied in by the user during a session must be picked up without restarting SNC.
 * SNC is expected to be a long-running tray app. Its app lifetime is not the same as a capture session; autosave capture sessions are tied to observed `stellaris.exe` play activity because Stellaris is what creates autosaves.
 * A capture session is not necessarily a single campaign. It may contain sequential segments from different campaign folders within one `stellaris.exe` play window, so offline analysis must partition archived saves by source campaign folder before assigning or using a `campaign_id`.
+* While `stellaris.exe` is running, SNC should only capture stable saves and update status. It must not analyze, promote, or publish new generated mod rules into the active overlay during active play.
+* After `stellaris.exe` exits, SNC can close the capture window, verify the archive, analyze archived autosaves per source campaign folder, and generate/stage new mod rules for the next launch.
 * The live monitor must treat autosaves as a bounded rotating retention window and copy stable changed saves immediately into the SNC archive before Stellaris can prune or overwrite them.
 * Realtime capture is the acceptance criterion: if a session produces hundreds of autosave revisions, the SNC archive should retain every observed stable revision, not just the last files remaining after the game exits.
 * The primary live patterns are `autosave*.sav` and `ironman.sav`; date-named `.sav` files may still be archived by one-shot/manual session tools.

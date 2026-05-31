@@ -429,6 +429,8 @@ Observed save-folder rule:
 * SNC must not rely on knowing the active campaign folder. Each live pass scans the whole `save games` tree so newly created or manually added campaign folders are included.
 * SNC itself is a long-running tray app. Its process lifetime is not a capture-session boundary; capture sessions are derived from observed Stellaris play activity because autosaves are produced only by `stellaris.exe`.
 * A live capture session is a Stellaris play-activity collection window, not a campaign identity boundary. It may include sequential play segments from more than one campaign folder, so later analysis must group archived entries by source campaign folder before creating campaign ledgers, empire briefs, or generated overlay updates.
+* While `stellaris.exe` is running, the companion capture responsibility is read-only archive preservation and status reporting. Analysis and generated overlay refresh happen after the game exits.
+* After `stellaris.exe` exits, SNC should verify the completed capture archive, partition entries by source campaign folder, analyze those autosaves, and generate/stage new mod rules for the next launch.
 * The archive is the long history. The active save folder is only the game's short rolling buffer.
 
 The current live-session capture harness is:
@@ -945,7 +947,8 @@ They are not a safe basis for multiplayer, Ironman-adjacent expectations, launch
 Production rule:
 
 ```text
-analyze after play
+while Stellaris runs -> capture stable autosaves only
+after Stellaris exits -> verify archive and analyze captured autosaves
 -> stage generated overlay while Stellaris is closed
 -> launch or reload the save in a new session
 -> consume the already-loaded overlay during that session

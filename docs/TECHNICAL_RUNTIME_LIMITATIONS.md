@@ -98,6 +98,8 @@ For the revised architecture, the default update cadence is per play session, no
 
 Generated mod overlays should normally update only after Stellaris exits and before the next launch.
 
+During active `stellaris.exe` play, the companion app should preserve stable autosaves and status only. Post-play analysis and generated rule refresh start after the game exits and the capture archive is verified.
+
 Older notes that mention in-game monthly updates should be treated as a possible scripted fallback cadence for already-generated values, not as a requirement for live LLM refresh.
 
 Generated mod files are launch-time inputs.
