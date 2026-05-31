@@ -1373,6 +1373,8 @@ $sessionBriefLines = @(
     "## Current Outputs"
     "- Session archive: $sessionArchiveDir"
     "- Archive summary: $archiveSummaryPath"
+    "- Season delta ledger: $seasonDeltaLedgerPath"
+    "- Empire brief: $empireBriefPath"
     "- SNC status snapshot: $statusOutputJsonFull"
     "- Session evidence JSON: $sessionEvidenceJsonFull"
     "- Generated overlay dir: $overlayOutputDirFull"

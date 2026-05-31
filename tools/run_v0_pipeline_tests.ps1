@@ -2254,6 +2254,9 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     if (-not (Test-Path -LiteralPath $nextStepsBriefPath)) {
         throw "real session loop mp snapshot contract next-steps brief missing: $nextStepsBriefPath"
     }
+    $nextStepsBriefText = Get-Content -Raw -LiteralPath $nextStepsBriefPath
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Season delta ledger:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Empire brief:"
 
     Write-Host "[PASS] real_session_loop_mp_snapshot_contract"
 }
