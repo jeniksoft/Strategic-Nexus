@@ -64,6 +64,39 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-05-31
+
+Projekt dnes pokracoval hlavne ve dvou podpurnych, ale pro dalsi real-session validaci dulezitych smerrech: v presnejsim rizeni Free Work cadence a v rozsirovani observability pro real-session v0 compare loop. Nejde o novy runtime zasah do bezici session; jde o dalsi zpevneni integration boundary mezi offline analyzou, status-center signaly a dalsim host-authoritative rozhodovanim mezi sezenimi.
+
+Co pribylo v repozitari:
+
+* Posledni pushnuty commit `Add adaptive Free Work cadence tuning` (`cf14aba`) doplnil do vyvojove automacni vrstvy adaptivni cadence pravidlo odvozene z dvojice po sobe jdoucich usage budget checku. Soucasne zpresnil dokumentaci budget rules a automation candidates, aby byl tento postup explicitni, auditovatelny a ohraniceny.
+* Na lokalnim headu, ktery je v tuto chvili `ahead 3` oproti `origin/master`, pribyly commity `Add status-center drift signals to real-session compare loop` (`05cc154`), `Forward status-center drift through trend and loop evidence` (`efaf813`) a `Add aggregated next-action contract to real-session v0 loop` (`a3c271d`).
+* Tyto tri novejsi commity rozsiruji compare loop, trend analyzu a loop evidence o drift signaly a o agregovany next-action contract, tedy o presnejsi strojove i lidsky citelnou interpretaci toho, kde se real-session v0 vystupy odchyluji a jaka dalsi akce z toho vyplyva.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Adaptivni cadence tuning zlepsuje disciplinu implementacni automace bez rozsirovani produkcni pravomoci. Prakticky jde o lepsi ridici vrstvu nad vyvojovym workflow, ne o novou gameplay integraci.
+* Nove drift signaly ve status-center compare loop zmensuji diagnostickou mezeru mezi archivovanym vystupem, analyzou trendu a dalsim rozhodnutim, jestli je scripted event/effect path pripraveny jako duveryhodny next-session staged artefakt.
+* Agregovany next-action contract je uzitecny hlavne tim, ze dela z real-session observability vice host-authoritative rozhodovaci rozhrani a mene volnou sadu jednotlivych indikatoru. To je dobry krok pro dalsi runtime interoperability research, protoze pomaha drzet vyklad stavu konzistentni na integration boundary.
+
+Testy a stav overeni:
+
+* Pro dnesni posledni pushnuty commit `cf14aba` se v tomto behu nepodarilo potvrdit verejny GitHub Actions signal pres dostupny konektor; denik proto nepredstira uspesny CI stav bez priameho dukazu.
+* Tri nejnovejsi commity na lokalnim headu zatim nejsou pushnute, takze pro ne verejny CI vysledek logicky jeste neni k dispozici.
+* Tento denikovy beh nespoustel novy plny lokalni test run; zapis vychazi z commit historie, diffu a dostupnych repozitarovych signalu.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe generated overlay packaging a distribucni workflow pro multiplayer ucastniky.
+* Dnesni posun zlepsuje rozhodovaci a diagnostickou vrstvu, ale sam o sobe jeste neuzavira finalni export contract, campaign marker handshake ani empire identity resolver.
+* Rizikem zustava, ze se observability vrstva bude dale zpresnovat rychleji nez samotne end-to-end doruceni generated overlay artefaktu; to je uzitecne pro kvalitu, ale je potreba hlidat navazani na prvni realne export overeni.
+
+Doporuceny dalsi krok:
+
+* Pushnout aktualni lokalni tri-commit sadu spolu s touto denikovou aktualizaci a potvrdit navazujici verejny CI signal pro novy head.
+* Potom navazat prvnim uzce ohranicenym end-to-end overenim generated overlay export contractu, aby nove drift signaly a next-action contract vedly k primo overitelnemu rozhodnuti o pripravenosti dalsi session.
+
 ## 2026-05-29
 
 Projekt dnes zpresnil verejny status companion vrstvy pro multiplayer generated overlay pripravu a soucasne doplnil dokumentacni a vyvojove workflow detaily kolem dalsi implementace.
