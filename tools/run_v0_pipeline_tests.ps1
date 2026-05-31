@@ -1927,6 +1927,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_previous="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_command_hint_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_command_hint_previous="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_command_hint_changed="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_package_zip_state_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_package_zip_reason_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_package_zip_sha256_current="
@@ -1949,6 +1952,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_previous="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_command_hint_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_command_hint_previous="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_command_hint_changed="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_package_zip_state_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_package_zip_reason_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_package_zip_sha256_current="
@@ -2040,6 +2046,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_command_hint_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_command_hint_previous"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_command_hint_changed"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_state_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_reason_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_sha256_current"'
@@ -2060,6 +2069,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_command_hint_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_command_hint_previous"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_command_hint_changed"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"package_zip_state_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"package_zip_reason_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"package_zip_sha256_current"'

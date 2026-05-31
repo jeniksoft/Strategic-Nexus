@@ -895,6 +895,7 @@ Compare recommendation is now fail-safe for MP identity risk: when `identity_ris
 Real-session loop auto compare/trend forwarding now fails closed on unsupported recommendation values, so release-companion flow cannot silently accept unknown compare/trend recommendation semantics.
 Compare/trend/loop outputs now also expose structured MP identity-mismatch drift fields (`*_mp_identity_mismatch_warning_{previous,current,changed}`, `*_mp_identity_mismatch_warning_code_{previous,current}`, `*_mp_identity_mismatch_warning_codes_changed`), so release-companion/status flows can read mismatch evolution directly from one command output without inferring from generic identity-risk signals.
 Compare/trend/loop outputs now also expose structured aggregated next-action drift fields (`*_next_action_{current,previous,changed}`, `*_next_action_reason_{current,previous,changed}`, `*_next_action_command_hint_source_{current,previous,changed}`), and loop evidence JSON mirrors them in auto compare/trend blocks so release-companion can detect guidance drift between sessions from one output artifact.
+Compare/trend/loop outputs now also expose structured next-action command-hint drift fields (`*_next_action_command_hint_{current,previous,changed}`), and loop evidence JSON mirrors them in auto compare/trend blocks so release-companion can replay exact follow-up commands without inferring them from source tags alone.
 
 Next worker-ready slice:
 

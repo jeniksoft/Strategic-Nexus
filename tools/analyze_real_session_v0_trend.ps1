@@ -115,6 +115,9 @@ $latestNextActionChanged = ""
 $latestNextActionReasonCurrent = ""
 $latestNextActionReasonPrevious = ""
 $latestNextActionReasonChanged = ""
+$latestNextActionCommandHintCurrent = ""
+$latestNextActionCommandHintPrevious = ""
+$latestNextActionCommandHintChanged = ""
 $latestNextActionCommandHintSourceCurrent = ""
 $latestNextActionCommandHintSourcePrevious = ""
 $latestNextActionCommandHintSourceChanged = ""
@@ -224,6 +227,9 @@ if ($sessionCount -ge 2) {
     $compareNextActionReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_reason_current=*" } | Select-Object -First 1
     $compareNextActionReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_reason_previous=*" } | Select-Object -First 1
     $compareNextActionReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_reason_changed=*" } | Select-Object -First 1
+    $compareNextActionCommandHintCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_command_hint_current=*" } | Select-Object -First 1
+    $compareNextActionCommandHintPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_command_hint_previous=*" } | Select-Object -First 1
+    $compareNextActionCommandHintChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_command_hint_changed=*" } | Select-Object -First 1
     $compareNextActionCommandHintSourceCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_command_hint_source_current=*" } | Select-Object -First 1
     $compareNextActionCommandHintSourcePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_command_hint_source_previous=*" } | Select-Object -First 1
     $compareNextActionCommandHintSourceChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_command_hint_source_changed=*" } | Select-Object -First 1
@@ -403,6 +409,15 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareNextActionReasonChangedLine)) {
         $latestNextActionReasonChanged = $compareNextActionReasonChangedLine.Substring("real_session_v0_compare_next_action_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareNextActionCommandHintCurrentLine)) {
+        $latestNextActionCommandHintCurrent = $compareNextActionCommandHintCurrentLine.Substring("real_session_v0_compare_next_action_command_hint_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareNextActionCommandHintPreviousLine)) {
+        $latestNextActionCommandHintPrevious = $compareNextActionCommandHintPreviousLine.Substring("real_session_v0_compare_next_action_command_hint_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareNextActionCommandHintChangedLine)) {
+        $latestNextActionCommandHintChanged = $compareNextActionCommandHintChangedLine.Substring("real_session_v0_compare_next_action_command_hint_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareNextActionCommandHintSourceCurrentLine)) {
         $latestNextActionCommandHintSourceCurrent = $compareNextActionCommandHintSourceCurrentLine.Substring("real_session_v0_compare_next_action_command_hint_source_current=".Length)
@@ -689,6 +704,9 @@ $result = [ordered]@{
         reason_current = $latestNextActionReasonCurrent
         reason_previous = $latestNextActionReasonPrevious
         reason_changed = $latestNextActionReasonChanged
+        command_hint_current = $latestNextActionCommandHintCurrent
+        command_hint_previous = $latestNextActionCommandHintPrevious
+        command_hint_changed = $latestNextActionCommandHintChanged
         command_hint_source_current = $latestNextActionCommandHintSourceCurrent
         command_hint_source_previous = $latestNextActionCommandHintSourcePrevious
         command_hint_source_changed = $latestNextActionCommandHintSourceChanged
@@ -812,6 +830,9 @@ Write-Host ("real_session_v0_trend_next_action_changed=" + $latestNextActionChan
 Write-Host ("real_session_v0_trend_next_action_reason_current=" + $latestNextActionReasonCurrent)
 Write-Host ("real_session_v0_trend_next_action_reason_previous=" + $latestNextActionReasonPrevious)
 Write-Host ("real_session_v0_trend_next_action_reason_changed=" + $latestNextActionReasonChanged)
+Write-Host ("real_session_v0_trend_next_action_command_hint_current=" + $latestNextActionCommandHintCurrent)
+Write-Host ("real_session_v0_trend_next_action_command_hint_previous=" + $latestNextActionCommandHintPrevious)
+Write-Host ("real_session_v0_trend_next_action_command_hint_changed=" + $latestNextActionCommandHintChanged)
 Write-Host ("real_session_v0_trend_next_action_command_hint_source_current=" + $latestNextActionCommandHintSourceCurrent)
 Write-Host ("real_session_v0_trend_next_action_command_hint_source_previous=" + $latestNextActionCommandHintSourcePrevious)
 Write-Host ("real_session_v0_trend_next_action_command_hint_source_changed=" + $latestNextActionCommandHintSourceChanged)
