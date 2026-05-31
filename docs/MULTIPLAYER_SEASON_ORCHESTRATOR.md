@@ -45,6 +45,29 @@ Strategic Nexus should use that gate instead of inventing a hidden network proto
 
 ---
 
+# Stellaris Campaign Multiplayer Eligibility
+
+Stellaris multiplayer eligibility is a campaign property, not just a current player-count property.
+
+Observed owner rule:
+
+* a campaign created as single-player cannot later be played as multiplayer
+* a campaign created as multiplayer can be played by one player
+* a running multiplayer-created campaign is exposed through the normal Stellaris lobby/discovery path while hosted
+* the host remains the authority for approving or rejecting joining players
+* Stellaris can support up to 32 players in one multiplayer campaign
+* when a multiplayer campaign is loaded, joining players may take control of available empires according to normal Stellaris host/lobby rules
+
+Architecture consequences:
+
+* Strategic Nexus must distinguish `singleplayer-founded` from `multiplayer-founded` campaign capability when preparing MP status, packages, or handoff guidance.
+* Current player count is not enough. A multiplayer-founded campaign with one current player is still MP-capable.
+* A singleplayer-founded campaign must not be presented as MP-ready merely because the generated overlay package verifies.
+* If SNC cannot prove whether the campaign was multiplayer-founded from save metadata, markers, durable memory, or prior owner confirmation, MP package/export status must be `needs_confirmation` or equivalent, not silently ready.
+* Empire memory still belongs to campaign empires, not human users. A later player may choose a different available empire, so player identity is session metadata.
+
+---
+
 # Host Rotation And Memory Handoff
 
 The active MP host may change between seasons.
@@ -176,6 +199,8 @@ generated overlay version V was loaded
 # Player Count And Empire Control Changes
 
 MP player count may change between seasons.
+
+An MP-capable campaign may also have only one active human player in a given session.
 
 The same human user may play a different empire.
 
@@ -329,6 +354,7 @@ Safe model:
 * every participant uses that same package
 * the game checksum/load-order gate decides compatibility
 * the host may approve or reject joiners through normal Stellaris multiplayer authority
+* joining players may appear without being known to Strategic Nexus in advance, because the host/lobby flow decides whether they can enter and which empire they may control
 
 Strategic Nexus does not need to identify every human player before launch.
 

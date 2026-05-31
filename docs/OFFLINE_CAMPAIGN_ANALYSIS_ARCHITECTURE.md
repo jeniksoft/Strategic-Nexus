@@ -1048,6 +1048,10 @@ All output remains untrusted until validated.
 
 For multiplayer, only the host campaign archive should drive Strategic Nexus analysis.
 
+Stellaris multiplayer campaign capability is determined by how the campaign was created.
+A single-player-founded campaign should not be treated as MP-ready.
+A multiplayer-founded campaign may still have only one current human player and can still be MP-capable.
+
 Clients should receive the same generated mod package for the next session when checksum-sensitive files are involved.
 
 The app must not create per-client divergent gameplay-affecting generated files during a multiplayer campaign unless the packaging process explicitly preserves identical host/client mod content.
