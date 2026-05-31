@@ -106,6 +106,9 @@ $latestStatusCenterStateChanged = ""
 $latestStatusCenterReasonCurrent = ""
 $latestStatusCenterReasonPrevious = ""
 $latestStatusCenterReasonChanged = ""
+$latestStatusCenterSummaryTextCurrent = ""
+$latestStatusCenterSummaryTextPrevious = ""
+$latestStatusCenterSummaryTextChanged = ""
 $latestMpWarningCountCurrent = ""
 $latestMpWarningCountDelta = ""
 $latestMpWarningCodesChanged = ""
@@ -188,6 +191,9 @@ if ($sessionCount -ge 2) {
     $compareStatusCenterReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_reason_current=*" } | Select-Object -First 1
     $compareStatusCenterReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_reason_previous=*" } | Select-Object -First 1
     $compareStatusCenterReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_reason_changed=*" } | Select-Object -First 1
+    $compareStatusCenterSummaryTextCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_summary_text_current=*" } | Select-Object -First 1
+    $compareStatusCenterSummaryTextPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_summary_text_previous=*" } | Select-Object -First 1
+    $compareStatusCenterSummaryTextChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_summary_text_changed=*" } | Select-Object -First 1
     $compareMpWarningCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_current=*" } | Select-Object -First 1
     $compareMpWarningCountDeltaLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_delta=*" } | Select-Object -First 1
     $compareMpWarningCodesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_codes_changed=*" } | Select-Object -First 1
@@ -322,6 +328,15 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareStatusCenterReasonChangedLine)) {
         $latestStatusCenterReasonChanged = $compareStatusCenterReasonChangedLine.Substring("real_session_v0_compare_status_center_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareStatusCenterSummaryTextCurrentLine)) {
+        $latestStatusCenterSummaryTextCurrent = $compareStatusCenterSummaryTextCurrentLine.Substring("real_session_v0_compare_status_center_summary_text_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareStatusCenterSummaryTextPreviousLine)) {
+        $latestStatusCenterSummaryTextPrevious = $compareStatusCenterSummaryTextPreviousLine.Substring("real_session_v0_compare_status_center_summary_text_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareStatusCenterSummaryTextChangedLine)) {
+        $latestStatusCenterSummaryTextChanged = $compareStatusCenterSummaryTextChangedLine.Substring("real_session_v0_compare_status_center_summary_text_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrentLine)) {
         $latestMpWarningCountCurrent = $compareMpWarningCountCurrentLine.Substring("real_session_v0_compare_mp_warning_count_current=".Length)
@@ -543,6 +558,9 @@ $result = [ordered]@{
         reason_current = $latestStatusCenterReasonCurrent
         reason_previous = $latestStatusCenterReasonPrevious
         reason_changed = $latestStatusCenterReasonChanged
+        summary_text_current = $latestStatusCenterSummaryTextCurrent
+        summary_text_previous = $latestStatusCenterSummaryTextPrevious
+        summary_text_changed = $latestStatusCenterSummaryTextChanged
     }
     latest_mp_warning_count = [ordered]@{
         current = $latestMpWarningCountCurrent
@@ -639,6 +657,9 @@ Write-Host ("real_session_v0_trend_status_center_state_changed=" + $latestStatus
 Write-Host ("real_session_v0_trend_status_center_reason_current=" + $latestStatusCenterReasonCurrent)
 Write-Host ("real_session_v0_trend_status_center_reason_previous=" + $latestStatusCenterReasonPrevious)
 Write-Host ("real_session_v0_trend_status_center_reason_changed=" + $latestStatusCenterReasonChanged)
+Write-Host ("real_session_v0_trend_status_center_summary_text_current=" + $latestStatusCenterSummaryTextCurrent)
+Write-Host ("real_session_v0_trend_status_center_summary_text_previous=" + $latestStatusCenterSummaryTextPrevious)
+Write-Host ("real_session_v0_trend_status_center_summary_text_changed=" + $latestStatusCenterSummaryTextChanged)
 if (-not [string]::IsNullOrWhiteSpace($latestMpWarningCountCurrent)) {
     Write-Host ("real_session_v0_trend_mp_warning_count_current=" + $latestMpWarningCountCurrent)
 }

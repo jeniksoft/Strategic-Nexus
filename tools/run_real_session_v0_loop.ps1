@@ -52,13 +52,18 @@ function Assert-LastExitCodeOk {
 function Get-KeyValueLineValue {
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$Lines,
+        [AllowEmptyString()]
+        [object]$Lines,
         [Parameter(Mandatory = $true)]
         [string]$Key
     )
 
+    if ($null -eq $Lines) {
+        return ""
+    }
+    $lineItems = @($Lines | ForEach-Object { [string]$_ })
     $prefix = $Key + "="
-    $line = $Lines | Where-Object { $_ -like "$prefix*" } | Select-Object -First 1
+    $line = $lineItems | Where-Object { $_ -like "$prefix*" } | Select-Object -First 1
     if ([string]::IsNullOrWhiteSpace($line)) {
         return ""
     }
@@ -68,14 +73,19 @@ function Get-KeyValueLineValue {
 function Get-KeyValueLineValues {
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$Lines,
+        [AllowEmptyString()]
+        [object]$Lines,
         [Parameter(Mandatory = $true)]
         [string]$Key
     )
 
+    if ($null -eq $Lines) {
+        return @()
+    }
+    $lineItems = @($Lines | ForEach-Object { [string]$_ })
     $prefix = $Key + "="
     $result = @()
-    foreach ($line in $Lines) {
+    foreach ($line in $lineItems) {
         if ($line -like "$prefix*") {
             $result += $line.Substring($prefix.Length)
         }
@@ -548,6 +558,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareStatusCenterReasonCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_reason_current"
     $compareStatusCenterReasonPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_reason_previous"
     $compareStatusCenterReasonChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_reason_changed"
+    $compareStatusCenterSummaryTextCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_summary_text_current"
+    $compareStatusCenterSummaryTextPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_summary_text_previous"
+    $compareStatusCenterSummaryTextChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_summary_text_changed"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
     $compareMpHostReadinessPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_previous"
     $compareMpHostReadinessChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_changed"
@@ -669,6 +682,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_status_center_reason_current=" + $compareStatusCenterReasonCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_status_center_reason_previous=" + $compareStatusCenterReasonPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_status_center_reason_changed=" + $compareStatusCenterReasonChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_summary_text_current=" + $compareStatusCenterSummaryTextCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_summary_text_previous=" + $compareStatusCenterSummaryTextPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_summary_text_changed=" + $compareStatusCenterSummaryTextChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_host_readiness_current=" + $compareMpHostReadinessCurrent)
     }
@@ -906,6 +922,9 @@ if ($EmitTrendSummary) {
     $trendStatusCenterReasonCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_reason_current"
     $trendStatusCenterReasonPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_reason_previous"
     $trendStatusCenterReasonChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_reason_changed"
+    $trendStatusCenterSummaryTextCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_summary_text_current"
+    $trendStatusCenterSummaryTextPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_summary_text_previous"
+    $trendStatusCenterSummaryTextChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_summary_text_changed"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendMpWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_codes_changed"
@@ -1005,6 +1024,9 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_status_center_reason_current=" + $trendStatusCenterReasonCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_status_center_reason_previous=" + $trendStatusCenterReasonPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_status_center_reason_changed=" + $trendStatusCenterReasonChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_summary_text_current=" + $trendStatusCenterSummaryTextCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_summary_text_previous=" + $trendStatusCenterSummaryTextPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_summary_text_changed=" + $trendStatusCenterSummaryTextChanged)
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
     }
@@ -1284,6 +1306,9 @@ $sessionEvidence = [ordered]@{
         status_center_reason_current = (Get-VariableOrDefault -Name "compareStatusCenterReasonCurrent")
         status_center_reason_previous = (Get-VariableOrDefault -Name "compareStatusCenterReasonPrevious")
         status_center_reason_changed = (Get-VariableOrDefault -Name "compareStatusCenterReasonChanged")
+        status_center_summary_text_current = (Get-VariableOrDefault -Name "compareStatusCenterSummaryTextCurrent")
+        status_center_summary_text_previous = (Get-VariableOrDefault -Name "compareStatusCenterSummaryTextPrevious")
+        status_center_summary_text_changed = (Get-VariableOrDefault -Name "compareStatusCenterSummaryTextChanged")
         mp = [ordered]@{
             host_readiness_current = (Get-VariableOrDefault -Name "compareMpHostReadinessCurrent")
             host_readiness_previous = (Get-VariableOrDefault -Name "compareMpHostReadinessPrevious")
@@ -1368,6 +1393,9 @@ $sessionEvidence = [ordered]@{
         status_center_reason_current = (Get-VariableOrDefault -Name "trendStatusCenterReasonCurrent")
         status_center_reason_previous = (Get-VariableOrDefault -Name "trendStatusCenterReasonPrevious")
         status_center_reason_changed = (Get-VariableOrDefault -Name "trendStatusCenterReasonChanged")
+        status_center_summary_text_current = (Get-VariableOrDefault -Name "trendStatusCenterSummaryTextCurrent")
+        status_center_summary_text_previous = (Get-VariableOrDefault -Name "trendStatusCenterSummaryTextPrevious")
+        status_center_summary_text_changed = (Get-VariableOrDefault -Name "trendStatusCenterSummaryTextChanged")
         latest_compare_command_hint = (Get-VariableOrDefault -Name "trendLatestCompareCommandHint")
         next_session_command_hint = (Get-VariableOrDefault -Name "trendNextSessionCommandHint")
         mp = [ordered]@{

@@ -126,6 +126,8 @@ $previousStatusCenterState = ""
 $currentStatusCenterState = ""
 $previousStatusCenterReason = ""
 $currentStatusCenterReason = ""
+$previousStatusCenterSummaryText = ""
+$currentStatusCenterSummaryText = ""
 if ($null -ne $previousStatus.gameplay_acceptance_status -and $null -ne $previousStatus.gameplay_acceptance_status.state) {
     $previousGameplayStatus = [string]$previousStatus.gameplay_acceptance_status.state
 }
@@ -149,6 +151,12 @@ if ($null -ne $previousStatus.status_center -and $null -ne $previousStatus.statu
 }
 if ($null -ne $currentStatus.status_center -and $null -ne $currentStatus.status_center.reason) {
     $currentStatusCenterReason = [string]$currentStatus.status_center.reason
+}
+if ($null -ne $previousStatus.status_center_summary_text) {
+    $previousStatusCenterSummaryText = [string]$previousStatus.status_center_summary_text
+}
+if ($null -ne $currentStatus.status_center_summary_text) {
+    $currentStatusCenterSummaryText = [string]$currentStatus.status_center_summary_text
 }
 
 $previousMpManifestHash = ""
@@ -337,6 +345,11 @@ $result = [ordered]@{
         current = $currentStatusCenterReason
         changed = ($previousStatusCenterReason -ne $currentStatusCenterReason)
     }
+    status_center_summary_text = [ordered]@{
+        previous = $previousStatusCenterSummaryText
+        current = $currentStatusCenterSummaryText
+        changed = ($previousStatusCenterSummaryText -ne $currentStatusCenterSummaryText)
+    }
     mp_package_manifest_hash = [ordered]@{
         previous = $previousMpManifestHash
         current = $currentMpManifestHash
@@ -493,6 +506,9 @@ Write-Host ("real_session_v0_compare_status_center_state_changed=" + ((($previou
 Write-Host ("real_session_v0_compare_status_center_reason_current=" + $currentStatusCenterReason)
 Write-Host ("real_session_v0_compare_status_center_reason_previous=" + $previousStatusCenterReason)
 Write-Host ("real_session_v0_compare_status_center_reason_changed=" + ((($previousStatusCenterReason -ne $currentStatusCenterReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_status_center_summary_text_current=" + $currentStatusCenterSummaryText)
+Write-Host ("real_session_v0_compare_status_center_summary_text_previous=" + $previousStatusCenterSummaryText)
+Write-Host ("real_session_v0_compare_status_center_summary_text_changed=" + ((($previousStatusCenterSummaryText -ne $currentStatusCenterSummaryText).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_previous=" + $previousMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_changed=" + ((($previousMpHostReadiness -ne $currentMpHostReadiness).ToString().ToLowerInvariant())))
