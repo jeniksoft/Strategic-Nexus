@@ -420,6 +420,8 @@ It is a one-shot archive skeleton for testing the safety contract, not the final
 Observed save-folder rule:
 
 * Stellaris save roots can exist in local Documents, synced Documents/Dokumenty, and Steam Cloud local cache locations such as `Steam/userdata/<steam_user_id>/281990/remote/save games`.
+* The game's cloud-save option can make the Steam Cloud local cache the active save root for a campaign. With cloud saving disabled, the campaign may write to the ordinary local save-game root instead.
+* SNC should treat both locations as normal active roots and monitor them read-only; neither should be treated as a durable long-history archive.
 * Campaign directories contain normal date-named saves, `ironman.sav`, or autosaves such as `autosave_YYYY.MM.DD.sav`.
 * Campaign directory names are expected to be stable for a campaign. Only one campaign is actively played at a time, but the active campaign can change while `stellaris.exe` and SNC are still running.
 * Campaign directories are dynamic. They may be created by a new game, restored by sync, or copied manually while SNC is already running.

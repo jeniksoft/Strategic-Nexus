@@ -83,11 +83,13 @@ The companion app should explain this tradeoff to the user instead of changing g
 Observed local save layout, 31.5.2026:
 
 * Stellaris may have more than one plausible Windows save root, for example local `Documents/Paradox Interactive/Stellaris/save games`, synced `OneDrive/Dokumenty/Paradox Interactive/Stellaris/save games`, and Steam Cloud local cache paths such as `Steam/userdata/<steam_user_id>/281990/remote/save games`.
+* The in-game/cloud-save checkbox can change where the active campaign writes saves. When cloud saving is enabled, the active files may appear in Steam Cloud's local synchronization cache instead of the ordinary local `save games` directory.
+* The Steam Cloud path is still a local filesystem cache that SNC can monitor read-only; it must not be treated as durable archive history because Steam/Stellaris can still rotate or synchronize it.
 * Campaigns are stored as subdirectories below `save games`, commonly with a readable slug plus an id suffix.
 * A campaign folder is the storage boundary for that campaign's saves. SNC must not assume it can know the active campaign folder before observing file changes.
 * Campaign folder names appear stable during normal use. Only one campaign is actively played at a time, but the user can switch campaigns or start a new campaign within the same `stellaris.exe` process/play window.
 * Observed save file names include date-named saves (`YYYY.MM.DD.sav`), `ironman.sav`, and autosaves named `autosave_YYYY.MM.DD.sav`.
-* A current observed autosave setting is `autosave=4` with `autosave_tocloud=yes`; an observed autosave campaign retained five recent autosaves.
+* Observed settings include `autosave_tocloud=yes`, which corresponds to cloud saving being enabled. A current observed autosave setting is `autosave=4`; an observed autosave campaign retained five recent autosaves.
 * `continue_game.json` stores a relative save stem such as `save games/<campaign>/<save-name-without-extension>`, but it is only a hint. It can be stale or point to a save that no longer exists.
 * Autosaves are a retention window, not a full history. With a monthly cadence and only several retained autosaves, the player can roll back only a few months unless they made manual saves.
 * Stellaris prunes or overwrites older autosaves during the active session to avoid save-folder growth, so missing older autosaves are normal and should not be interpreted as data corruption.
