@@ -587,7 +587,7 @@ Generated events/rules should stay bounded because each update replaces the prev
 Current progress:
 A read-only campaign save scanner can inventory campaign directories and loose `.sav` files into deterministic JSON.
 Inventory entries include a local anchor save fingerprint: selected `.sav` name, byte count, hash algorithm, and read-only content hash.
-`--discover-stellaris-save-roots <output.json>` reports likely Windows Stellaris save roots from user Documents and OneDrive Documents/Dokumenty candidates without creating or modifying directories.
+`--discover-stellaris-save-roots <output.json>` reports likely Windows Stellaris save roots from user Documents, OneDrive Documents/Dokumenty, and Steam Cloud userdata candidates without creating or modifying directories.
 The local harness can compare two read-only save roots with `--diff-save-campaigns <previous_save_root> <current_save_root> <diff_output.json>` and report added, removed, changed, and unchanged entries.
 The local harness can plan a bounded active generated campaign library with `--plan-campaign-library <save_root> <max_campaigns> <plan_output.json>`.
 The planner includes only locally present campaigns with anchor fingerprints and skips overflow entries with auditable reasons.

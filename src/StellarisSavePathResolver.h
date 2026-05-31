@@ -24,7 +24,8 @@ public:
     StellarisSaveRootDiscovery discoverFromEnvironment() const;
     StellarisSaveRootDiscovery buildCandidates(
         const std::filesystem::path& userProfile,
-        const std::vector<std::filesystem::path>& oneDriveRoots) const;
+        const std::vector<std::filesystem::path>& oneDriveRoots,
+        const std::vector<std::filesystem::path>& steamUserDataRoots = {}) const;
 };
 
 std::string serializeStellarisSaveRootDiscovery(const StellarisSaveRootDiscovery& discovery);

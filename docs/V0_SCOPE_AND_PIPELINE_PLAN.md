@@ -301,6 +301,7 @@ Current progress:
 * `Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits bounded metadata from a verified archive session.
 * `Strategic Nexus.exe --build-ministry-input-from-archive <session_archive_dir> <campaign_id> <empire_id> <ministry> <output_json>` emits a conservative v0 ministry input context from verified archive metadata.
 * `Strategic Nexus.exe --discover-stellaris-save-roots <output.json>` emits likely Windows Stellaris save root candidates with existence flags.
+* Save-root discovery includes local Documents, OneDrive Documents/Dokumenty, and Steam Cloud userdata cache roots.
 * `Strategic Nexus.exe --scan-save-campaigns <save_root> <inventory_output.json>` emits a deterministic read-only inventory of locally present campaign save directories and loose `.sav` files.
 * Campaign save inventory entries include a selected local anchor save fingerprint for future identity/memory lookup.
 * Real save-folder inspection confirms that active save history is bounded: autosaves are retained only as a small window and older autosaves may be pruned or overwritten by Stellaris during the active session.

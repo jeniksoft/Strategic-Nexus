@@ -419,7 +419,7 @@ It is a one-shot archive skeleton for testing the safety contract, not the final
 
 Observed save-folder rule:
 
-* Stellaris save roots can exist in both local Documents and synced Documents/Dokumenty locations.
+* Stellaris save roots can exist in local Documents, synced Documents/Dokumenty, and Steam Cloud local cache locations such as `Steam/userdata/<steam_user_id>/281990/remote/save games`.
 * Campaign directories contain normal date-named saves, `ironman.sav`, or autosaves such as `autosave_YYYY.MM.DD.sav`.
 * Campaign directory names are expected to be stable for a campaign. Only one campaign is actively played at a time, but the active campaign can change while `stellaris.exe` and SNC are still running.
 * Campaign directories are dynamic. They may be created by a new game, restored by sync, or copied manually while SNC is already running.
@@ -926,7 +926,7 @@ The current local harness for discovering likely Windows Stellaris save roots is
 Strategic Nexus.exe --discover-stellaris-save-roots <output.json>
 ```
 
-It checks common user Documents and OneDrive Documents/Dokumenty locations and reports candidate paths with an `exists` flag.
+It checks common user Documents, OneDrive Documents/Dokumenty, and Steam Cloud userdata locations and reports candidate paths with an `exists` flag.
 It does not create directories, move saves, or assume that a missing candidate is an error.
 
 The current local harness for comparing two read-only save inventories is:

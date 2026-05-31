@@ -82,7 +82,7 @@ The companion app should explain this tradeoff to the user instead of changing g
 
 Observed local save layout, 31.5.2026:
 
-* Stellaris may have more than one plausible Windows save root, for example local `Documents/Paradox Interactive/Stellaris/save games` and synced `OneDrive/Dokumenty/Paradox Interactive/Stellaris/save games`.
+* Stellaris may have more than one plausible Windows save root, for example local `Documents/Paradox Interactive/Stellaris/save games`, synced `OneDrive/Dokumenty/Paradox Interactive/Stellaris/save games`, and Steam Cloud local cache paths such as `Steam/userdata/<steam_user_id>/281990/remote/save games`.
 * Campaigns are stored as subdirectories below `save games`, commonly with a readable slug plus an id suffix.
 * A campaign folder is the storage boundary for that campaign's saves. SNC must not assume it can know the active campaign folder before observing file changes.
 * Campaign folder names appear stable during normal use. Only one campaign is actively played at a time, but the user can switch campaigns or start a new campaign within the same `stellaris.exe` process/play window.

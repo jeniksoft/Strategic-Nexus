@@ -4,6 +4,7 @@
 #include "StellarisSavePathResolver.h"
 
 #include <cstdlib>
+#include <cctype>
 #include <set>
 #include <sstream>
 #include <system_error>
@@ -44,6 +45,11 @@ std::filesystem::path stellarisSaveRootUnderDocuments(const std::filesystem::pat
     return documentsRoot / "Paradox Interactive" / "Stellaris" / "save games";
 }
 
+std::filesystem::path stellarisSteamCloudSaveRoot(const std::filesystem::path& steamAccountRoot)
+{
+    return steamAccountRoot / "281990" / "remote" / "save games";
+}
+
 bool directoryExists(const std::filesystem::path& path)
 {
     std::error_code error;
@@ -68,6 +74,39 @@ void addCandidate(
     discovery.candidates.push_back({path, source, directoryExists(path)});
 }
 
+bool looksLikeSteamUserId(const std::filesystem::path& path)
+{
+    const auto name = path.filename().generic_string();
+    if (name.empty()) {
+        return false;
+    }
+    for (const char ch : name) {
+        if (!std::isdigit(static_cast<unsigned char>(ch))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<std::filesystem::path> steamAccountRootsFromUserDataRoot(const std::filesystem::path& userDataRoot)
+{
+    std::vector<std::filesystem::path> accountRoots;
+    if (!directoryExists(userDataRoot)) {
+        return accountRoots;
+    }
+
+    std::error_code error;
+    for (std::filesystem::directory_iterator it(userDataRoot, error), end; it != end && !error; it.increment(error)) {
+        if (error || !it->is_directory(error)) {
+            continue;
+        }
+        if (looksLikeSteamUserId(it->path())) {
+            accountRoots.push_back(it->path());
+        }
+    }
+    return accountRoots;
+}
+
 } // namespace
 
 StellarisSaveRootDiscovery StellarisSavePathResolver::discoverFromEnvironment() const
@@ -80,12 +119,25 @@ StellarisSaveRootDiscovery StellarisSavePathResolver::discoverFromEnvironment() 
         }
     }
 
-    return buildCandidates(getenvPath("USERPROFILE"), oneDriveRoots);
+    std::vector<std::filesystem::path> steamUserDataRoots;
+    const auto addProgramFilesSteamRoot = [&](const char* envName) {
+        const auto programFilesRoot = getenvPath(envName);
+        if (!programFilesRoot.empty()) {
+            steamUserDataRoots.push_back(programFilesRoot / "Steam" / "userdata");
+        }
+    };
+
+    addProgramFilesSteamRoot("ProgramFiles(x86)");
+    addProgramFilesSteamRoot("ProgramFiles");
+    addProgramFilesSteamRoot("ProgramW6432");
+
+    return buildCandidates(getenvPath("USERPROFILE"), oneDriveRoots, steamUserDataRoots);
 }
 
 StellarisSaveRootDiscovery StellarisSavePathResolver::buildCandidates(
     const std::filesystem::path& userProfile,
-    const std::vector<std::filesystem::path>& oneDriveRoots) const
+    const std::vector<std::filesystem::path>& oneDriveRoots,
+    const std::vector<std::filesystem::path>& steamUserDataRoots) const
 {
     StellarisSaveRootDiscovery discovery;
     std::set<std::string> seen;
@@ -109,6 +161,16 @@ StellarisSaveRootDiscovery StellarisSavePathResolver::buildCandidates(
             seen,
             stellarisSaveRootUnderDocuments(oneDriveRoot / "Dokumenty"),
             "onedrive_dokumenty");
+    }
+
+    for (const auto& steamUserDataRoot : steamUserDataRoots) {
+        for (const auto& accountRoot : steamAccountRootsFromUserDataRoot(steamUserDataRoot)) {
+            addCandidate(
+                discovery,
+                seen,
+                stellarisSteamCloudSaveRoot(accountRoot),
+                "steam_cloud_userdata");
+        }
     }
 
     return discovery;
