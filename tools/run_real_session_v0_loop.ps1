@@ -155,6 +155,60 @@ function Get-SafeFileToken {
     return $safe
 }
 
+function Get-NextActionSummary {
+    param(
+        [string]$MpMismatchWarningState,
+        [string]$CompareRecommendation,
+        [string]$TrendRecommendation,
+        [string]$CompareCommandHint,
+        [string]$TrendNextSessionCommandHint,
+        [string]$DefaultNextSessionCommandHint
+    )
+
+    if ($MpMismatchWarningState -eq "warning") {
+        return [ordered]@{
+            action = "review_mp_package_mismatch_warning"
+            reason = "mp_export_mismatch_warning_active"
+            command_hint = ""
+            command_hint_source = "none"
+        }
+    }
+
+    if ($CompareRecommendation -eq "review_identity_risk_warning" -or $TrendRecommendation -eq "review_identity_risk_warning") {
+        return [ordered]@{
+            action = "review_identity_risk_warning"
+            reason = "identity_risk_warning_active"
+            command_hint = ""
+            command_hint_source = "none"
+        }
+    }
+
+    if ($CompareRecommendation -eq "review_observable_deltas") {
+        return [ordered]@{
+            action = "run_next_session_compare_loop"
+            reason = "observable_delta_detected"
+            command_hint = $DefaultNextSessionCommandHint
+            command_hint_source = "loop_next_session"
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($TrendNextSessionCommandHint)) {
+        return [ordered]@{
+            action = "run_next_session_compare_loop"
+            reason = "trend_follow_up"
+            command_hint = $TrendNextSessionCommandHint
+            command_hint_source = "trend_next_session"
+        }
+    }
+
+    return [ordered]@{
+        action = "run_next_session_compare_loop"
+        reason = "baseline_follow_up"
+        command_hint = $DefaultNextSessionCommandHint
+        command_hint_source = "loop_next_session"
+    }
+}
+
 function Get-VariableOrDefault {
     param(
         [Parameter(Mandatory = $true)][string]$Name,
@@ -1126,6 +1180,21 @@ if ($EmitTrendSummary) {
     }
 }
 
+$nextActionSummary = Get-NextActionSummary `
+    -MpMismatchWarningState $mpPackageMismatchWarningState `
+    -CompareRecommendation (Get-VariableOrDefault -Name "compareRecommendation") `
+    -TrendRecommendation (Get-VariableOrDefault -Name "trendRecommendation") `
+    -CompareCommandHint (Get-VariableOrDefault -Name "compareCommandHintLine") `
+    -TrendNextSessionCommandHint (Get-VariableOrDefault -Name "trendNextSessionCommandHint") `
+    -DefaultNextSessionCommandHint $nextSessionCommandHint
+
+Write-Host ("real_session_v0_loop_next_action=" + $nextActionSummary.action)
+Write-Host ("real_session_v0_loop_next_action_reason=" + $nextActionSummary.reason)
+Write-Host ("real_session_v0_loop_next_action_command_hint_source=" + $nextActionSummary.command_hint_source)
+if (-not [string]::IsNullOrWhiteSpace($nextActionSummary.command_hint)) {
+    Write-Host ("real_session_v0_loop_next_action_command_hint=" + $nextActionSummary.command_hint)
+}
+
 $sessionEvidence = [ordered]@{
     evidence_schema_version = 1
     generated_at_utc = [DateTime]::UtcNow.ToString("o")
@@ -1154,6 +1223,12 @@ $sessionEvidence = [ordered]@{
         trend = $trendCommandHint
         next_session_compare_baseline_dir = $defaultRunRoot
         next_session = $nextSessionCommandHint
+    }
+    next_action = [ordered]@{
+        action = $nextActionSummary.action
+        reason = $nextActionSummary.reason
+        command_hint = $nextActionSummary.command_hint
+        command_hint_source = $nextActionSummary.command_hint_source
     }
     mp_export = [ordered]@{
         enabled = [bool]$ExportMpPackage
