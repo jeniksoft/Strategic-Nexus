@@ -237,10 +237,16 @@ $previousMpStrictImportCommand = ""
 $currentMpStrictImportCommand = ""
 $previousMpIdentityMismatchWarning = ""
 $currentMpIdentityMismatchWarning = ""
+$previousMpMismatchWarningState = ""
+$currentMpMismatchWarningState = ""
+$previousMpMismatchWarningReason = ""
+$currentMpMismatchWarningReason = ""
 $previousMpWarningCodes = @()
 $currentMpWarningCodes = @()
 $previousMpIdentityMismatchWarningCodes = @()
 $currentMpIdentityMismatchWarningCodes = @()
+$previousMpMismatchWarningCodes = @()
+$currentMpMismatchWarningCodes = @()
 if (Test-Path -LiteralPath $previousStatusWithMpPath) {
     $previousMpStatusSnapshotPresent = $true
     $previousStatusWithMp = Read-JsonFile -Path $previousStatusWithMpPath
@@ -263,6 +269,9 @@ if (Test-Path -LiteralPath $previousStatusWithMpPath) {
         $previousMpWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "warning_codes"
         $previousMpIdentityMismatchWarning = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
         $previousMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
+        $previousMpMismatchWarningState = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_state"
+        $previousMpMismatchWarningReason = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_reason"
+        $previousMpMismatchWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_codes"
     }
 }
 if (Test-Path -LiteralPath $currentStatusWithMpPath) {
@@ -287,6 +296,9 @@ if (Test-Path -LiteralPath $currentStatusWithMpPath) {
         $currentMpWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "warning_codes"
         $currentMpIdentityMismatchWarning = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
         $currentMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
+        $currentMpMismatchWarningState = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_state"
+        $currentMpMismatchWarningReason = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_reason"
+        $currentMpMismatchWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_codes"
     }
 }
 $previousMpWarningCodes = @($previousMpWarningCodes | Sort-Object -Unique)
@@ -296,6 +308,8 @@ $currentMpWarningCodesJoined = ($currentMpWarningCodes -join "|")
 $mpWarningCodesChanged = ($previousMpWarningCodesJoined -ne $currentMpWarningCodesJoined)
 $previousMpIdentityMismatchWarningCodes = @($previousMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $currentMpIdentityMismatchWarningCodes = @($currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
+$previousMpMismatchWarningCodes = @($previousMpMismatchWarningCodes | Sort-Object -Unique)
+$currentMpMismatchWarningCodes = @($currentMpMismatchWarningCodes | Sort-Object -Unique)
 $previousMpAllMismatchCodes = @($previousMpWarningCodes + $previousMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $currentMpAllMismatchCodes = @($currentMpWarningCodes + $currentMpIdentityMismatchWarningCodes | Sort-Object -Unique)
 $previousMpIdentityMismatchWarningCodesJoined = ($previousMpIdentityMismatchWarningCodes -join "|")
@@ -530,6 +544,21 @@ $result = [ordered]@{
         current = $currentMpIdentityMismatchWarningCodes
         changed = $mpIdentityMismatchWarningCodesChanged
     }
+    mp_mismatch_warning_state = [ordered]@{
+        previous = $previousMpMismatchWarningState
+        current = $currentMpMismatchWarningState
+        changed = ($previousMpMismatchWarningState -ne $currentMpMismatchWarningState)
+    }
+    mp_mismatch_warning_reason = [ordered]@{
+        previous = $previousMpMismatchWarningReason
+        current = $currentMpMismatchWarningReason
+        changed = ($previousMpMismatchWarningReason -ne $currentMpMismatchWarningReason)
+    }
+    mp_mismatch_warning_codes = [ordered]@{
+        previous = $previousMpMismatchWarningCodes
+        current = $currentMpMismatchWarningCodes
+        changed = (($previousMpMismatchWarningCodes -join "|") -ne ($currentMpMismatchWarningCodes -join "|"))
+    }
     mp_version_mismatch_warning = [ordered]@{
         previous = $previousMpVersionMismatchWarning
         current = $currentMpVersionMismatchWarning
@@ -675,6 +704,13 @@ Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_current=" + $c
 Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_previous=" + $previousMpIdentityMismatchWarning)
 Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_changed=" + ($mpIdentityMismatchWarningChanged.ToString().ToLowerInvariant()))
 Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_codes_changed=" + ($mpIdentityMismatchWarningCodesChanged.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_mismatch_warning_state_current=" + $currentMpMismatchWarningState)
+Write-Host ("real_session_v0_compare_mp_mismatch_warning_state_previous=" + $previousMpMismatchWarningState)
+Write-Host ("real_session_v0_compare_mp_mismatch_warning_state_changed=" + ((($previousMpMismatchWarningState -ne $currentMpMismatchWarningState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_mismatch_warning_reason_current=" + $currentMpMismatchWarningReason)
+Write-Host ("real_session_v0_compare_mp_mismatch_warning_reason_previous=" + $previousMpMismatchWarningReason)
+Write-Host ("real_session_v0_compare_mp_mismatch_warning_reason_changed=" + ((($previousMpMismatchWarningReason -ne $currentMpMismatchWarningReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_mismatch_warning_codes_changed=" + (((($previousMpMismatchWarningCodes -join "|") -ne ($currentMpMismatchWarningCodes -join "|")).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_game_version_mismatch_warning_current=" + ($currentMpVersionMismatchWarning.ToString().ToLowerInvariant()))
 Write-Host ("real_session_v0_compare_mp_game_version_mismatch_warning_previous=" + ($previousMpVersionMismatchWarning.ToString().ToLowerInvariant()))
 Write-Host ("real_session_v0_compare_mp_game_version_mismatch_warning_changed=" + ((($previousMpVersionMismatchWarning -ne $currentMpVersionMismatchWarning).ToString().ToLowerInvariant())))
@@ -701,6 +737,12 @@ foreach ($warningCode in $previousMpIdentityMismatchWarningCodes) {
 }
 foreach ($warningCode in $currentMpIdentityMismatchWarningCodes) {
     Write-Host ("real_session_v0_compare_mp_identity_mismatch_warning_code_current=" + $warningCode)
+}
+foreach ($warningCode in $previousMpMismatchWarningCodes) {
+    Write-Host ("real_session_v0_compare_mp_mismatch_warning_code_previous=" + $warningCode)
+}
+foreach ($warningCode in $currentMpMismatchWarningCodes) {
+    Write-Host ("real_session_v0_compare_mp_mismatch_warning_code_current=" + $warningCode)
 }
 foreach ($warningCode in $currentMpIdentityMismatchWarningCodes) {
     Write-Host ("real_session_v0_compare_identity_risk_warning_code=" + $warningCode)

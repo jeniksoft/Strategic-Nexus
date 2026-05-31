@@ -170,6 +170,15 @@ $latestMpModVersionMismatchWarningChanged = ""
 $latestMpManifestHashMismatchWarningCurrent = ""
 $latestMpManifestHashMismatchWarningPrevious = ""
 $latestMpManifestHashMismatchWarningChanged = ""
+$latestMpMismatchWarningStateCurrent = ""
+$latestMpMismatchWarningStatePrevious = ""
+$latestMpMismatchWarningStateChanged = ""
+$latestMpMismatchWarningReasonCurrent = ""
+$latestMpMismatchWarningReasonPrevious = ""
+$latestMpMismatchWarningReasonChanged = ""
+$latestMpMismatchWarningCodesChanged = ""
+$latestMpMismatchWarningCodesPrevious = @()
+$latestMpMismatchWarningCodesCurrent = @()
 if ($sessionCount -ge 1) {
     $latest = $sessions[$sessionCount - 1]
     $latestSessionId = $latest.session_id
@@ -314,6 +323,13 @@ if ($sessionCount -ge 2) {
     $compareMpManifestHashMismatchWarningCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_mismatch_warning_current=*" } | Select-Object -First 1
     $compareMpManifestHashMismatchWarningPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_mismatch_warning_previous=*" } | Select-Object -First 1
     $compareMpManifestHashMismatchWarningChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_manifest_hash_mismatch_warning_changed=*" } | Select-Object -First 1
+    $compareMpMismatchWarningStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_state_current=*" } | Select-Object -First 1
+    $compareMpMismatchWarningStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_state_previous=*" } | Select-Object -First 1
+    $compareMpMismatchWarningStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_state_changed=*" } | Select-Object -First 1
+    $compareMpMismatchWarningReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_reason_current=*" } | Select-Object -First 1
+    $compareMpMismatchWarningReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_reason_previous=*" } | Select-Object -First 1
+    $compareMpMismatchWarningReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_reason_changed=*" } | Select-Object -First 1
+    $compareMpMismatchWarningCodesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_codes_changed=*" } | Select-Object -First 1
     $latestMpIdentityMismatchWarningCodesPrevious = @(
         $compareLines |
             Where-Object { $_ -like "real_session_v0_compare_mp_identity_mismatch_warning_code_previous=*" } |
@@ -325,6 +341,20 @@ if ($sessionCount -ge 2) {
         $compareLines |
             Where-Object { $_ -like "real_session_v0_compare_mp_identity_mismatch_warning_code_current=*" } |
             ForEach-Object { $_.Substring("real_session_v0_compare_mp_identity_mismatch_warning_code_current=".Length) } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            Sort-Object -Unique
+    )
+    $latestMpMismatchWarningCodesPrevious = @(
+        $compareLines |
+            Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_code_previous=*" } |
+            ForEach-Object { $_.Substring("real_session_v0_compare_mp_mismatch_warning_code_previous=".Length) } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            Sort-Object -Unique
+    )
+    $latestMpMismatchWarningCodesCurrent = @(
+        $compareLines |
+            Where-Object { $_ -like "real_session_v0_compare_mp_mismatch_warning_code_current=*" } |
+            ForEach-Object { $_.Substring("real_session_v0_compare_mp_mismatch_warning_code_current=".Length) } |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
             Sort-Object -Unique
     )
@@ -629,6 +659,27 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpManifestHashMismatchWarningChangedLine)) {
         $latestMpManifestHashMismatchWarningChanged = $compareMpManifestHashMismatchWarningChangedLine.Substring("real_session_v0_compare_mp_manifest_hash_mismatch_warning_changed=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpMismatchWarningStateCurrentLine)) {
+        $latestMpMismatchWarningStateCurrent = $compareMpMismatchWarningStateCurrentLine.Substring("real_session_v0_compare_mp_mismatch_warning_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpMismatchWarningStatePreviousLine)) {
+        $latestMpMismatchWarningStatePrevious = $compareMpMismatchWarningStatePreviousLine.Substring("real_session_v0_compare_mp_mismatch_warning_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpMismatchWarningStateChangedLine)) {
+        $latestMpMismatchWarningStateChanged = $compareMpMismatchWarningStateChangedLine.Substring("real_session_v0_compare_mp_mismatch_warning_state_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpMismatchWarningReasonCurrentLine)) {
+        $latestMpMismatchWarningReasonCurrent = $compareMpMismatchWarningReasonCurrentLine.Substring("real_session_v0_compare_mp_mismatch_warning_reason_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpMismatchWarningReasonPreviousLine)) {
+        $latestMpMismatchWarningReasonPrevious = $compareMpMismatchWarningReasonPreviousLine.Substring("real_session_v0_compare_mp_mismatch_warning_reason_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpMismatchWarningReasonChangedLine)) {
+        $latestMpMismatchWarningReasonChanged = $compareMpMismatchWarningReasonChangedLine.Substring("real_session_v0_compare_mp_mismatch_warning_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpMismatchWarningCodesChangedLine)) {
+        $latestMpMismatchWarningCodesChanged = $compareMpMismatchWarningCodesChangedLine.Substring("real_session_v0_compare_mp_mismatch_warning_codes_changed=".Length)
+    }
 
     if ($latestIdentityRiskWarning -eq "true") {
         $latestTrendRecommendation = "review_identity_risk_warning"
@@ -787,6 +838,15 @@ $result = [ordered]@{
         manifest_hash_mismatch_warning_previous = $latestMpManifestHashMismatchWarningPrevious
         manifest_hash_mismatch_warning_current = $latestMpManifestHashMismatchWarningCurrent
         manifest_hash_mismatch_warning_changed = $latestMpManifestHashMismatchWarningChanged
+        mismatch_warning_state_previous = $latestMpMismatchWarningStatePrevious
+        mismatch_warning_state_current = $latestMpMismatchWarningStateCurrent
+        mismatch_warning_state_changed = $latestMpMismatchWarningStateChanged
+        mismatch_warning_reason_previous = $latestMpMismatchWarningReasonPrevious
+        mismatch_warning_reason_current = $latestMpMismatchWarningReasonCurrent
+        mismatch_warning_reason_changed = $latestMpMismatchWarningReasonChanged
+        mismatch_warning_codes_previous = $latestMpMismatchWarningCodesPrevious
+        mismatch_warning_codes_current = $latestMpMismatchWarningCodesCurrent
+        mismatch_warning_codes_changed = $latestMpMismatchWarningCodesChanged
     }
     next_session_command_hint = $nextSessionCommandHint
     next_step_recommendation = $latestTrendRecommendation
@@ -1043,11 +1103,38 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashMismatchWarningPrevio
 if (-not [string]::IsNullOrWhiteSpace($latestMpManifestHashMismatchWarningChanged)) {
     Write-Host ("real_session_v0_trend_mp_manifest_hash_mismatch_warning_changed=" + $latestMpManifestHashMismatchWarningChanged)
 }
+if (-not [string]::IsNullOrWhiteSpace($latestMpMismatchWarningStateCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_state_current=" + $latestMpMismatchWarningStateCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpMismatchWarningStatePrevious)) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_state_previous=" + $latestMpMismatchWarningStatePrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpMismatchWarningStateChanged)) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_state_changed=" + $latestMpMismatchWarningStateChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpMismatchWarningReasonCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_reason_current=" + $latestMpMismatchWarningReasonCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpMismatchWarningReasonPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_reason_previous=" + $latestMpMismatchWarningReasonPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpMismatchWarningReasonChanged)) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_reason_changed=" + $latestMpMismatchWarningReasonChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpMismatchWarningCodesChanged)) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_codes_changed=" + $latestMpMismatchWarningCodesChanged)
+}
 foreach ($warningCode in $latestMpIdentityMismatchWarningCodesPrevious) {
     Write-Host ("real_session_v0_trend_mp_identity_mismatch_warning_code_previous=" + $warningCode)
 }
 foreach ($warningCode in $latestMpIdentityMismatchWarningCodesCurrent) {
     Write-Host ("real_session_v0_trend_mp_identity_mismatch_warning_code_current=" + $warningCode)
+}
+foreach ($warningCode in $latestMpMismatchWarningCodesPrevious) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_code_previous=" + $warningCode)
+}
+foreach ($warningCode in $latestMpMismatchWarningCodesCurrent) {
+    Write-Host ("real_session_v0_trend_mp_mismatch_warning_code_current=" + $warningCode)
 }
 foreach ($warningCode in $latestIdentityRiskWarningCodes) {
     Write-Host ("real_session_v0_trend_identity_risk_warning_code=" + $warningCode)
