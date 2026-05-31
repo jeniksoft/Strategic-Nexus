@@ -233,9 +233,9 @@ void writeStatus(
     const auto wideReason = utf8ToWide(reason);
     {
         std::lock_guard<std::mutex> lock(g_statusMutex);
-        g_statusText = wideReason.empty() ? L"SNC běží." : wideReason;
+        g_statusText = wideReason.empty() ? L"SNC bezi." : wideReason;
     }
-    updateTrayTip(hwnd, wideReason.empty() ? L"běží" : wideReason);
+    updateTrayTip(hwnd, wideReason.empty() ? L"bezi" : wideReason);
 }
 
 std::vector<std::filesystem::path> discoverExistingSaveRoots(std::size_t& candidateRootCount)
@@ -276,7 +276,7 @@ void workerLoop(HWND hwnd)
     writeStatus(
         hwnd,
         "waiting_for_stellaris",
-        "SNC tray běží; čeká na stellaris.exe.",
+        "SNC tray bezi; ceka na stellaris.exe.",
         false,
         sessionId,
         sessionDirectory,
@@ -300,7 +300,7 @@ void workerLoop(HWND hwnd)
             writeStatus(
                 hwnd,
                 "capturing",
-                "Stellaris běží; SNC začalo capture okno.",
+                "Stellaris bezi; SNC zacalo capture okno.",
                 true,
                 sessionId,
                 sessionDirectory,
@@ -330,7 +330,7 @@ void workerLoop(HWND hwnd)
             writeStatus(
                 hwnd,
                 "capturing",
-                "Stellaris běží; SNC zachytává stabilní autosavy.",
+                "Stellaris bezi; SNC zachytava stabilni autosavy.",
                 true,
                 sessionId,
                 sessionDirectory,
@@ -346,8 +346,8 @@ void workerLoop(HWND hwnd)
             writeLastSummary(summary);
             archiveVerified = verification.ok;
             const std::string reason = verification.ok
-                ? "Stellaris skončil; archiv je ověřený a připravený pro post-play analýzu."
-                : "Stellaris skončil; archiv vyžaduje pozornost: " + verification.reason;
+                ? "Stellaris skoncil; archiv je overeny a pripraveny pro post-play analyzu."
+                : "Stellaris skoncil; archiv vyzaduje pozornost: " + verification.reason;
 
             writeStatus(
                 hwnd,
@@ -366,7 +366,7 @@ void workerLoop(HWND hwnd)
             writeStatus(
                 hwnd,
                 "waiting_for_stellaris",
-                "SNC tray běží; čeká na stellaris.exe.",
+                "SNC tray bezi; ceka na stellaris.exe.",
                 false,
                 sessionId,
                 sessionDirectory,
@@ -385,7 +385,7 @@ void workerLoop(HWND hwnd)
     writeStatus(
         hwnd,
         "stopping",
-        "SNC tray se ukončuje.",
+        "SNC tray se ukoncuje.",
         false,
         sessionId,
         sessionDirectory,
@@ -406,7 +406,7 @@ bool addTrayIcon(HWND hwnd)
     g_trayIcon.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
     g_trayIcon.uCallbackMessage = WM_SNC_TRAY;
     g_trayIcon.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
-    wcscpy_s(g_trayIcon.szTip, L"SNC - čeká na Stellaris");
+    wcscpy_s(g_trayIcon.szTip, L"SNC - ceka na Stellaris");
 
     if (!Shell_NotifyIconW(NIM_ADD, &g_trayIcon)) {
         return false;
@@ -453,7 +453,7 @@ void showTrayMenu(HWND hwnd)
     GetCursorPos(&point);
     HMENU menu = CreatePopupMenu();
     AppendMenuW(menu, MF_STRING, ID_TRAY_STATUS, L"Stav");
-    AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_ARCHIVE, L"Otevřít archiv");
+    AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_ARCHIVE, L"Otevrit archiv");
     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(menu, MF_STRING, ID_TRAY_EXIT, L"Konec");
 
@@ -537,7 +537,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
         return 1;
     }
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        MessageBoxW(nullptr, L"SNC už běží.", L"Strategic Nexus Companion", MB_OK | MB_ICONINFORMATION);
+        MessageBoxW(nullptr, L"SNC uz bezi.", L"Strategic Nexus Companion", MB_OK | MB_ICONINFORMATION);
         CloseHandle(mutex);
         return 0;
     }
