@@ -407,6 +407,41 @@ The tuner recommends:
 * whether the Free Work automation should be updated
 * why the recommendation was chosen
 
+Primary adaptive cadence rule:
+
+```text
+I = real elapsed time between the previous and current budget check
+K = expected budget spend during I to reach the target reserve at reset
+D = previous remaining budget percent - current remaining budget percent
+S = D / K
+T = current Free Work automation interval
+new interval = T * S
+```
+
+Interpretation:
+
+* if `D > K`, Codex is spending budget faster than planned, so `S > 1` and the Free Work interval gets longer
+* if `D < K`, Codex is spending budget slower than planned, so `S < 1` and the Free Work interval gets shorter
+* if `D < 0`, a reset, correction, or bad sample probably occurred; do not use that pair for adaptive cadence
+* clamp `S` to a safe range, initially `0.5..2.0`, so one check can at most halve or double the interval
+* clamp the final interval to safe automation bounds and never allow overlapping heavy implementation in the same worktree
+
+`K` should use the currently configured target reserve rather than a hard-coded constant.
+With a 5% reserve and a full 7-day reset window this is equivalent to:
+
+```text
+K = I / 7 days * 0.95
+```
+
+When the reset window is already partly elapsed, prefer the more precise form:
+
+```text
+K = (previous remaining budget percent - target reserve percent) * I / previous time-to-reset
+```
+
+The threshold table below is a fallback and safety guard.
+The adaptive rule is the normal way to tune cadence when two valid post-reset budget checks exist.
+
 Default cadence policy:
 
 ```text

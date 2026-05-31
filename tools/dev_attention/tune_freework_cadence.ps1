@@ -153,6 +153,122 @@ function Get-UsageBurnRate {
     return $result
 }
 
+function Get-RecentUsageBudgetPair {
+    param(
+        [string]$Path,
+        [DateTime]$ResetAnchor,
+        [int]$TargetReservePercent,
+        $CurrentHoursToReset
+    )
+
+    $result = [pscustomobject]@{
+        available = $false
+        source = "missing"
+        previous_timestamp = $null
+        current_timestamp = $null
+        previous_remaining_percent = $null
+        current_remaining_percent = $null
+        interval_hours = $null
+        expected_spend_percent = $null
+        actual_spend_percent = $null
+        raw_scale = $null
+        scale = $null
+        scale_min = 0.5
+        scale_max = 2.0
+    }
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $result
+    }
+
+    try {
+        $rows = Import-Csv -LiteralPath $Path
+    } catch {
+        $result.source = "unreadable"
+        return $result
+    }
+
+    $samples = New-Object System.Collections.Generic.List[object]
+    foreach ($row in $rows) {
+        $timestampText = [string]$row.timestamp_local
+        $remainingText = [string]$row.remaining_percent
+        if ([string]::IsNullOrWhiteSpace($timestampText) -or [string]::IsNullOrWhiteSpace($remainingText)) {
+            continue
+        }
+
+        $timestamp = [DateTime]::MinValue
+        if (-not [DateTime]::TryParse($timestampText, [ref]$timestamp)) {
+            continue
+        }
+        if ($ResetAnchor -ne [DateTime]::MinValue -and $timestamp -lt $ResetAnchor) {
+            continue
+        }
+
+        $remaining = 0.0
+        if (-not [double]::TryParse($remainingText, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$remaining)) {
+            continue
+        }
+        if ($remaining -lt 0 -or $remaining -gt 100) {
+            continue
+        }
+
+        $samples.Add([pscustomobject]@{
+            timestamp = $timestamp
+            remaining = $remaining
+        }) | Out-Null
+    }
+
+    $ordered = @($samples | Sort-Object timestamp)
+    if ($ordered.Count -lt 2) {
+        $result.source = "insufficient-samples"
+        return $result
+    }
+
+    $previous = $ordered[$ordered.Count - 2]
+    $current = $ordered[$ordered.Count - 1]
+    $intervalHours = ($current.timestamp - $previous.timestamp).TotalHours
+    $actualSpend = $previous.remaining - $current.remaining
+
+    $result.previous_timestamp = $previous.timestamp.ToString("o")
+    $result.current_timestamp = $current.timestamp.ToString("o")
+    $result.previous_remaining_percent = [Math]::Round($previous.remaining, 2)
+    $result.current_remaining_percent = [Math]::Round($current.remaining, 2)
+    $result.interval_hours = [Math]::Round($intervalHours, 3)
+    $result.actual_spend_percent = [Math]::Round($actualSpend, 3)
+
+    if ($intervalHours -le 0.01) {
+        $result.source = "invalid-interval"
+        return $result
+    }
+    if ($actualSpend -lt 0) {
+        $result.source = "reset-or-correction-detected"
+        return $result
+    }
+    if ($null -eq $CurrentHoursToReset -or $CurrentHoursToReset -le 0) {
+        $result.source = "missing-reset-window"
+        return $result
+    }
+
+    $targetReserve = [Math]::Max(0, [Math]::Min(50, $TargetReservePercent))
+    $previousHoursToReset = [Math]::Max(0.01, [double]$CurrentHoursToReset + $intervalHours)
+    $spendableAtPreviousCheck = [Math]::Max(0.0, $previous.remaining - $targetReserve)
+    $expectedSpend = $spendableAtPreviousCheck * $intervalHours / $previousHoursToReset
+    $result.expected_spend_percent = [Math]::Round($expectedSpend, 3)
+
+    if ($expectedSpend -le 0.001) {
+        $result.source = "expected-spend-too-small"
+        return $result
+    }
+
+    $rawScale = $actualSpend / $expectedSpend
+    $scale = [Math]::Max($result.scale_min, [Math]::Min($result.scale_max, $rawScale))
+    $result.raw_scale = [Math]::Round($rawScale, 3)
+    $result.scale = [Math]::Round($scale, 3)
+    $result.source = "latest-budget-check-pair"
+    $result.available = $true
+    return $result
+}
+
 function Get-ProjectRemainingPoints {
     param([string]$Path)
 
@@ -205,11 +321,48 @@ function Get-RRuleForHours {
 function Get-RRuleForMinutes {
     param([int]$Minutes)
 
-    if ($Minutes -lt 60) {
+    if ($Minutes -lt 60 -or ($Minutes % 60) -ne 0) {
         return "FREQ=MINUTELY;INTERVAL=$Minutes"
     }
-    $hours = [Math]::Max(1, [int][Math]::Round($Minutes / 60.0))
+    $hours = [Math]::Max(1, [int]($Minutes / 60))
     return Get-RRuleForHours -Hours $hours
+}
+
+function Get-RRuleIntervalMinutes {
+    param([string]$RRule)
+
+    if ([string]::IsNullOrWhiteSpace($RRule)) {
+        return $null
+    }
+
+    $interval = 1
+    $intervalMatch = [regex]::Match($RRule, '(?:^|;)INTERVAL=(?<value>[0-9]+)(?:;|$)')
+    if ($intervalMatch.Success) {
+        $interval = [int]$intervalMatch.Groups["value"].Value
+    }
+
+    if ($RRule -match '(?:^|;)FREQ=MINUTELY(?:;|$)') {
+        return [Math]::Max(1, $interval)
+    }
+    if ($RRule -match '(?:^|;)FREQ=HOURLY(?:;|$)') {
+        return [Math]::Max(1, $interval) * 60
+    }
+    if ($RRule -match '(?:^|;)FREQ=DAILY(?:;|$)') {
+        return [Math]::Max(1, $interval) * 1440
+    }
+
+    return $null
+}
+
+function Clamp-IntervalMinutes {
+    param(
+        [double]$Minutes,
+        [int]$MinimumMinutes = 5,
+        [int]$MaximumMinutes = 1440
+    )
+
+    $rounded = [int][Math]::Round($Minutes)
+    return [Math]::Max($MinimumMinutes, [Math]::Min($MaximumMinutes, $rounded))
 }
 
 $usagePath = Resolve-ProjectPath $UsageBudgetStatePath
@@ -324,7 +477,42 @@ if ($hasUsefulProjectWork -and $null -ne $hoursToReset) {
     }
 }
 
+$currentRRule = Get-CurrentFreeworkRRule -Path $FreeworkAutomationPath
+$currentIntervalMinutes = Get-RRuleIntervalMinutes -RRule $currentRRule
 $intervalMinutes = $intervalHours * 60
+$fallbackIntervalMinutes = $intervalMinutes
+$adaptiveCadence = if ($null -ne $resetAnchor) {
+    Get-RecentUsageBudgetPair -Path $usageLogPath -ResetAnchor $resetAnchor -TargetReservePercent $targetReserve -CurrentHoursToReset $hoursToReset
+} else {
+    Get-RecentUsageBudgetPair -Path $usageLogPath -ResetAnchor ([DateTime]::MinValue) -TargetReservePercent $targetReserve -CurrentHoursToReset $hoursToReset
+}
+$adaptiveInputIntervalMinutes = if ($null -ne $currentIntervalMinutes) { $currentIntervalMinutes } else { $fallbackIntervalMinutes }
+$adaptiveUnclampedIntervalMinutes = $null
+$adaptiveApplied = $false
+
+if (
+    $hasUsefulProjectWork -and
+    $remainingPercent -ge 40 -and
+    $null -ne $spendableToReserve -and
+    $spendableToReserve -gt 0 -and
+    $adaptiveCadence.available
+) {
+    $adaptiveUnclampedIntervalMinutes = $adaptiveInputIntervalMinutes * [double]$adaptiveCadence.scale
+    $intervalMinutes = Clamp-IntervalMinutes -Minutes $adaptiveUnclampedIntervalMinutes
+    $adaptiveApplied = $true
+    $chunkMode = if ([double]$adaptiveCadence.scale -lt 1.0) {
+        "adaptive-catch-up-bounded"
+    } elseif ([double]$adaptiveCadence.scale -gt 1.0) {
+        "adaptive-controlled-bounded"
+    } else {
+        "adaptive-on-target-bounded"
+    }
+    $reason = "adaptive cadence: actual budget spend D=$($adaptiveCadence.actual_spend_percent)% versus expected K=$($adaptiveCadence.expected_spend_percent)% over I=$($adaptiveCadence.interval_hours)h; applying S=$($adaptiveCadence.scale) to current Free Work interval"
+}
+
+$nearResetCapMinutes = $null
+$nearResetCapMode = $null
+$nearResetCapReason = $null
 if (
     $hasUsefulProjectWork -and
     $null -ne $hoursToReset -and
@@ -332,25 +520,30 @@ if (
     $spendableToReserve -ge 30 -and
     $remainingPercent -ge 40
 ) {
-    $intervalMinutes = 15
-    $chunkMode = "rapid-near-reset-bounded"
-    $reason = "owner-approved rapid near-reset cadence: high spendable budget remains with less than 12 hours to reset"
+    $nearResetCapMinutes = 15
+    $nearResetCapMode = "rapid-near-reset-bounded"
+    $nearResetCapReason = "owner-approved rapid near-reset cadence cap"
 
     if ($hoursToReset -le 3 -and $spendableToReserve -ge 20) {
-        $intervalMinutes = 10
-        $chunkMode = "very-rapid-near-reset-bounded"
-        $reason = "owner-approved final-window cadence: high spendable budget remains with less than 3 hours to reset"
+        $nearResetCapMinutes = 10
+        $nearResetCapMode = "very-rapid-near-reset-bounded"
+        $nearResetCapReason = "owner-approved final-window cadence cap"
     }
 
     if ($hoursToReset -le 8 -and $spendableToReserve -ge 40 -and $remainingPercent -ge 50) {
-        $intervalMinutes = 5
-        $chunkMode = "urgent-near-reset-bounded"
-        $reason = "owner-approved urgent near-reset cadence: large spendable budget remains with less than 8 hours to reset"
+        $nearResetCapMinutes = 5
+        $nearResetCapMode = "urgent-near-reset-bounded"
+        $nearResetCapReason = "owner-approved urgent near-reset cadence cap"
     }
 }
 
+if ($null -ne $nearResetCapMinutes -and $intervalMinutes -gt $nearResetCapMinutes) {
+    $intervalMinutes = $nearResetCapMinutes
+    $chunkMode = $nearResetCapMode
+    $reason = "$reason; $nearResetCapReason lowers maximum interval to $nearResetCapMinutes minutes"
+}
+
 $recommendedRRule = Get-RRuleForMinutes -Minutes $intervalMinutes
-$currentRRule = Get-CurrentFreeworkRRule -Path $FreeworkAutomationPath
 $shouldUpdateAutomation = $currentRRule -and ($currentRRule -ne $recommendedRRule)
 
 $directory = Split-Path -Parent $outputResolvedPath
@@ -375,6 +568,18 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
     historical_burn_sample_count = $burnRate.sample_count
     historical_burn_source = $burnRate.source
     burn_rate_vs_target = $burnRateInterpretation
+    adaptive_cadence_available = [bool]$adaptiveCadence.available
+    adaptive_cadence_source = $adaptiveCadence.source
+    adaptive_previous_budget_check_at = $adaptiveCadence.previous_timestamp
+    adaptive_current_budget_check_at = $adaptiveCadence.current_timestamp
+    adaptive_budget_check_interval_hours_I = $adaptiveCadence.interval_hours
+    adaptive_expected_spend_percent_K = $adaptiveCadence.expected_spend_percent
+    adaptive_actual_spend_percent_D = $adaptiveCadence.actual_spend_percent
+    adaptive_raw_scale_D_over_K = $adaptiveCadence.raw_scale
+    adaptive_applied_scale_S = $adaptiveCadence.scale
+    adaptive_current_interval_minutes_T = $adaptiveInputIntervalMinutes
+    adaptive_unclamped_interval_minutes_T_times_S = if ($null -ne $adaptiveUnclampedIntervalMinutes) { [Math]::Round($adaptiveUnclampedIntervalMinutes, 2) } else { $null }
+    adaptive_applied = [bool]$adaptiveApplied
     remaining_project_complexity_points = $remainingPoints
     has_useful_project_work = $hasUsefulProjectWork
     recommended_freework_rrule = $recommendedRRule

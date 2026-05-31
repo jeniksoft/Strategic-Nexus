@@ -139,6 +139,7 @@ Expected output:
 * warn only if budget data is stale or missing during active Free Work
 * suggest current work mode from `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
 * recommend whether `sn-bounded-free-work-execution` should change cadence
+* when two valid post-reset budget checks exist, prefer the adaptive cadence formula `new interval = current interval * ((actual spend D) / (expected spend K))`, with the safe clamps documented in `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
 * if the recommendation differs, update the Free Work automation only when the change is clearly within approved budget rules; otherwise create a `Navrhy` item for owner review
 * if the recommendation matches current cadence, do not create report spam
 
@@ -193,6 +194,7 @@ Expected output:
 * prioritize first functional v0 real-game validation over polishing already usable pieces
 * choose missing end-to-end v0 integration before convenience, wording, UI polish, report reshaping, broad diagnostics, or non-blocking hardening
 * treat polish as `Navrhy` unless it directly blocks first real Stellaris testing, prevents unsafe/corrupt output, fixes failing verification, or removes repeated friction that is actively stopping progress
+* follow the current usage-budget cadence recommendation; if adaptive cadence data is available, treat it as the primary interval signal and the static threshold table as fallback/safety guard
 * if remaining budget is above 80%, allow frequent bounded execution
 * if remaining budget is 60-80%, keep execution focused and shorter
 * if remaining budget is 40-60%, implement only important narrow chunks
