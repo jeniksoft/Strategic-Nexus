@@ -2040,6 +2040,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_reason="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_steps_brief="
     $runIdLine = ($output | Where-Object { $_ -like "real_session_v0_loop_run_id=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($runIdLine)) {
         throw "real session loop mismatch forwarding case missing run id line."
@@ -2084,6 +2085,15 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"compare"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"trend"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"next_session"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"next_steps_brief"'
+    $nextStepsBriefPathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_next_steps_brief=*" } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($nextStepsBriefPathLine)) {
+        throw "real session loop mismatch forwarding case missing next-steps brief path."
+    }
+    $nextStepsBriefPath = $nextStepsBriefPathLine.Substring("real_session_v0_loop_next_steps_brief=".Length)
+    if (-not (Test-Path -LiteralPath $nextStepsBriefPath)) {
+        throw "real session loop mismatch forwarding next-steps brief missing: $nextStepsBriefPath"
+    }
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"archive"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"copied_save_count"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"last_archived_path"'
@@ -2198,6 +2208,7 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_reason="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_steps_brief="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_mp_package_mismatch_warning_state=not_exported"
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_mp_package_mismatch_warning_reason=mp_export_not_requested"
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_mp_package_zip_state=not_exported"
@@ -2219,10 +2230,19 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"summary_present":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"next_action":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"command_hint_source":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"next_steps_brief":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"mismatch_warning_state":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"mismatch_warning_reason":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"package_zip_state":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"package_zip_reason":'
+    $nextStepsBriefPathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_next_steps_brief=*" } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($nextStepsBriefPathLine)) {
+        throw "real session loop mp snapshot contract case missing next-steps brief path."
+    }
+    $nextStepsBriefPath = $nextStepsBriefPathLine.Substring("real_session_v0_loop_next_steps_brief=".Length)
+    if (-not (Test-Path -LiteralPath $nextStepsBriefPath)) {
+        throw "real session loop mp snapshot contract next-steps brief missing: $nextStepsBriefPath"
+    }
 
     Write-Host "[PASS] real_session_loop_mp_snapshot_contract"
 }
