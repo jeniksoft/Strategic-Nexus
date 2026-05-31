@@ -272,6 +272,9 @@ Generated campaign rules must be inert unless the loaded save exposes the expect
 The base mod may load all active generated campaign rules at startup.
 Only the marker-matching ruleset may apply.
 
+For MP-capable campaigns, generated rules may exist for every detected campaign empire, but gameplay-affecting rules must include an AI-control/current-human-control guard.
+If an empire is currently controlled by a human player, its generated Strategic Nexus gameplay rules must be inert for that session.
+
 If marker match fails:
 
 ```text

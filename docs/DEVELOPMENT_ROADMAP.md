@@ -819,6 +819,8 @@ Required:
 * treat client-provided manual saves as recovery anchors when host autosave archive or handoff is missing
 * persist small campaign/empire/human-control markers into saves through normal mod flags/variables
 * avoid binding empire personality to a specific human user or host machine
+* generate MP campaign rules for all detected empires, but guard gameplay activation so rules never apply to an empire currently controlled by a human player
+* treat single-player-founded campaign player empire as a stable do-not-apply target unless future parser evidence safely proves otherwise
 
 Notes:
 This is mandatory before generated overlays are used for multiplayer campaigns.

@@ -1052,6 +1052,10 @@ Stellaris multiplayer campaign capability is determined by how the campaign was 
 A single-player-founded campaign should not be treated as MP-ready.
 A multiplayer-founded campaign may still have only one current human player and can still be MP-capable.
 
+For MP-capable campaigns, SNC should generate validated rules for all known campaign empires, because players can later take over different empires through the normal host/lobby flow.
+At runtime, rules for a currently human-controlled empire must not activate; rules may activate only for AI-controlled empires under the campaign/empire marker guards.
+For single-player-founded campaigns, the player empire is expected to stay fixed after campaign creation and should remain a do-not-apply target for gameplay-affecting generated rules.
+
 Clients should receive the same generated mod package for the next session when checksum-sensitive files are involved.
 
 The app must not create per-client divergent gameplay-affecting generated files during a multiplayer campaign unless the packaging process explicitly preserves identical host/client mod content.

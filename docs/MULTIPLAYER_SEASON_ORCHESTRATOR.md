@@ -168,6 +168,7 @@ The base mod should write:
 * Strategic Nexus save initialized flag
 * per-country Strategic Nexus empire marker
 * per-country "was human controlled during this season" marker or counter
+* per-country current human-control guard where a safe scripted check is available
 * optional season counter / last observed generated overlay version
 
 These markers should be written through ordinary scripted events/on_actions and then preserved by the normal save.
@@ -193,6 +194,16 @@ country Y existed and had Strategic Nexus marker Z
 country Y was human-controlled at least during observed season N
 generated overlay version V was loaded
 ```
+
+The runtime rule is stricter than the memory rule:
+
+```text
+generated rules may exist for every empire in an MP campaign
+-> if that empire is currently human-controlled, gameplay-affecting Strategic Nexus rules for that empire must not activate
+-> if that empire is AI-controlled, its validated campaign/empire rules may activate through normal marker guards
+```
+
+This lets the package remain complete for a campaign where players can choose different empires, while avoiding Strategic Nexus gameplay nudges overriding a human player's empire.
 
 ---
 
@@ -222,6 +233,9 @@ Empire personality belongs to the campaign empire.
 
 Player participation is session metadata.
 
+MP generated overlays should be prepared for all known campaign empires, because any AI empire may later be selected by a joining player or become AI-controlled again.
+Activation must be conditional on current human-control state.
+
 If a human temporarily controls an empire, the orchestrator may record that fact for analysis context, but it should not erase or replace the empire's personality.
 
 If control changes:
@@ -239,6 +253,9 @@ use empire identity resolver
 -> preserve memory only when confidence is high
 -> otherwise create/branch profiles conservatively
 ```
+
+For single-player-founded campaigns, the owner player empire is expected to remain fixed after campaign creation.
+Strategic Nexus can treat the player empire as a stable do-not-apply target unless the save parser or markers prove a different safe rule.
 
 ---
 
