@@ -84,6 +84,7 @@ Observed local save layout, 31.5.2026:
 
 * Stellaris may have more than one plausible Windows save root, for example local `Documents/Paradox Interactive/Stellaris/save games` and synced `OneDrive/Dokumenty/Paradox Interactive/Stellaris/save games`.
 * Campaigns are stored as subdirectories below `save games`, commonly with a readable slug plus an id suffix.
+* A campaign folder is the storage boundary for that campaign's saves. SNC must not assume it can know the active campaign folder before observing file changes.
 * Observed save file names include date-named saves (`YYYY.MM.DD.sav`), `ironman.sav`, and autosaves named `autosave_YYYY.MM.DD.sav`.
 * A current observed autosave setting is `autosave=4` with `autosave_tocloud=yes`; an observed autosave campaign retained five recent autosaves.
 * `continue_game.json` stores a relative save stem such as `save games/<campaign>/<save-name-without-extension>`, but it is only a hint. It can be stale or point to a save that no longer exists.
@@ -94,6 +95,7 @@ Observed local save layout, 31.5.2026:
 Implementation consequence:
 
 * When `stellaris.exe` is running, SNC must monitor all discovered save roots, not only one manually chosen campaign folder.
+* Each monitor pass must rescan campaign subdirectories below `save games`; new campaigns created by the game or copied in by the user during a session must be picked up without restarting SNC.
 * The live monitor must treat autosaves as a bounded rotating retention window and copy stable changed saves immediately into the SNC archive before Stellaris can prune or overwrite them.
 * Realtime capture is the acceptance criterion: if a session produces hundreds of autosave revisions, the SNC archive should retain every observed stable revision, not just the last files remaining after the game exits.
 * The primary live patterns are `autosave*.sav` and `ironman.sav`; date-named `.sav` files may still be archived by one-shot/manual session tools.

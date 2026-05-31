@@ -27,6 +27,24 @@ void requireCondition(const bool condition, const std::string& message)
     }
 }
 
+std::size_t countSavFiles(const std::filesystem::path& path)
+{
+    std::size_t count = 0;
+    std::error_code error;
+    if (!std::filesystem::exists(path, error)) {
+        return 0;
+    }
+    for (const auto& entry : std::filesystem::directory_iterator(path, error)) {
+        if (error) {
+            break;
+        }
+        if (entry.is_regular_file(error) && entry.path().extension() == ".sav") {
+            ++count;
+        }
+    }
+    return count;
+}
+
 } // namespace
 
 int main()
@@ -608,6 +626,30 @@ int main()
         requireCondition(
             liveStatusText.find("\"copied_count\": 2") != std::string::npos,
             "SNC live autosave status should expose copied count");
+
+        std::filesystem::create_directories(liveSaveRoot / "campaign_b");
+        {
+            std::ofstream autosave(liveSaveRoot / "campaign_b" / "autosave_2200.02.01.sav", std::ios::binary | std::ios::trunc);
+            autosave << "live autosave from new campaign";
+        }
+
+        const auto newCampaignMonitorResult = strategic_nexus::runCompanionLiveAutosaveMonitor({
+            { liveSaveRoot },
+            liveArchiveRoot,
+            liveStatusPath,
+            "snc_live_session",
+            std::chrono::milliseconds(0),
+            0,
+            1,
+            false,
+            false,
+            false
+        });
+        requireCondition(newCampaignMonitorResult.ok, "SNC live autosave monitor should keep scanning the whole save games root");
+        requireCondition(newCampaignMonitorResult.copiedCount == 1, "SNC live autosave monitor should capture new campaign folders");
+        requireCondition(
+            countSavFiles(liveArchiveRoot / "snc_live_session" / "saves") == 3,
+            "SNC live autosave monitor should preserve saves from multiple campaign folders");
 
         const auto invalidContinuousResult = strategic_nexus::runCompanionLiveAutosaveMonitor({
             { liveSaveRoot },

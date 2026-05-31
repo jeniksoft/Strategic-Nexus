@@ -421,9 +421,11 @@ Observed save-folder rule:
 
 * Stellaris save roots can exist in both local Documents and synced Documents/Dokumenty locations.
 * Campaign directories contain normal date-named saves, `ironman.sav`, or autosaves such as `autosave_YYYY.MM.DD.sav`.
+* Campaign directories are dynamic. They may be created by a new game, restored by sync, or copied manually while SNC is already running.
 * Autosaves are a bounded retention window. The game may keep only a small number of recent autosaves and prune or overwrite older ones during the active session according to its autosave cadence.
 * `continue_game.json` can identify the last intended continuation target, but it is not authoritative because it may reference a save stem that is no longer present locally.
 * The final companion monitor must watch all discovered save roots while `stellaris.exe` is running and copy every observed stable `autosave*.sav` and `ironman.sav` revision into the SNC archive immediately after it settles.
+* SNC must not rely on knowing the active campaign folder. Each live pass scans the whole `save games` tree so newly created or manually added campaign folders are included.
 * The archive is the long history. The active save folder is only the game's short rolling buffer.
 
 The current live-session capture harness is:

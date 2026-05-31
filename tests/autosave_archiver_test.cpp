@@ -105,11 +105,16 @@ int main()
     requireCondition(changedLiveResult.copiedCount == 1, "live archiver should capture a changed autosave revision");
     requireCondition(countSavFiles(liveArchiveRoot / "live_session" / "saves") == 3, "live archiver should retain old and new autosave revisions");
 
+    writeFile(liveSourceRoot / "campaign_c" / "autosave_2200.02.01.sav", "live autosave from new campaign");
+    const auto newCampaignLiveResult = archiver.archiveLiveSaves(liveSourceRoot, liveArchiveRoot, "live_session", 0);
+    requireCondition(newCampaignLiveResult.copiedCount == 1, "live archiver should detect newly added campaign folders");
+    requireCondition(countSavFiles(liveArchiveRoot / "live_session" / "saves") == 4, "live archiver should archive autosaves from new campaign folders");
+
     const auto liveManifestText = [&]() {
         std::ifstream input(liveArchiveRoot / "live_session" / "manifest.json");
         return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
     }();
-    requireCondition(liveManifestText.find("\"copied_count\": 3") != std::string::npos, "live manifest should describe all archived revisions");
+    requireCondition(liveManifestText.find("\"copied_count\": 4") != std::string::npos, "live manifest should describe all archived revisions");
     requireCondition(liveManifestText.find("\"reason\": \"live_archive_copy\"") != std::string::npos, "live manifest should mark aggregate live copies");
 
     std::cout << "autosave archiver tests passed.\n";
