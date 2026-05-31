@@ -45,6 +45,7 @@ if (-not (Get-Command cl.exe -ErrorAction SilentlyContinue)) {
 
 $sourceFiles = @((Join-Path $repoRoot "Strategic Nexus.cpp"))
 $sourceFiles += Get-ChildItem -LiteralPath (Join-Path $repoRoot "src") -Filter "*.cpp" |
+    Where-Object { $_.Name -ne "SncTrayApp.cpp" } |
     Sort-Object FullName |
     ForEach-Object { $_.FullName }
 $sourceFiles += Get-ChildItem -LiteralPath (Join-Path $repoRoot "src/common") -Filter "*.cpp" |
