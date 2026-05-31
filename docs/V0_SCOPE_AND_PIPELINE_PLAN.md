@@ -304,7 +304,8 @@ Current progress:
 * `Strategic Nexus.exe --scan-save-campaigns <save_root> <inventory_output.json>` emits a deterministic read-only inventory of locally present campaign save directories and loose `.sav` files.
 * Campaign save inventory entries include a selected local anchor save fingerprint for future identity/memory lookup.
 * Real save-folder inspection confirms that active save history is bounded: autosaves are retained only as a small window and older autosaves may be pruned or overwritten by Stellaris during the active session.
-* A campaign folder is a stable save boundary for one campaign, but not a stable preselected active target. Only one campaign is played at a time, but SNC must rescan the whole `save games` tree because the user can switch campaigns or create new campaigns while SNC is already running.
+* A campaign folder is a stable save boundary for one campaign, but not a stable preselected active target. Only one campaign is played at a time, but SNC must rescan the whole `save games` tree because the user can switch campaigns or create new campaigns while `stellaris.exe` and SNC are already running.
+* SNC app lifetime is not the capture-session boundary. SNC is expected to run as a tray app; autosave capture sessions are tied to observed `stellaris.exe` play activity.
 * A live capture session may contain sequential autosave segments from multiple campaign folders. V0 analysis must avoid treating the capture session id as the campaign id.
 * Observed live-relevant save names include `autosave_YYYY.MM.DD.sav` and `ironman.sav`; `continue_game.json` is only a hint and can point at a save stem that is not currently present on disk.
 * `Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]` recursively captures stable `autosave*.sav` and `ironman.sav` revisions from a whole save-games root, deduplicated by source identity and content hash.

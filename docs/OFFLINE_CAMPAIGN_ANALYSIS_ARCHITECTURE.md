@@ -421,13 +421,14 @@ Observed save-folder rule:
 
 * Stellaris save roots can exist in both local Documents and synced Documents/Dokumenty locations.
 * Campaign directories contain normal date-named saves, `ironman.sav`, or autosaves such as `autosave_YYYY.MM.DD.sav`.
-* Campaign directory names are expected to be stable for a campaign. Only one campaign is actively played at a time, but the active campaign can change while Stellaris and SNC are still running.
+* Campaign directory names are expected to be stable for a campaign. Only one campaign is actively played at a time, but the active campaign can change while `stellaris.exe` and SNC are still running.
 * Campaign directories are dynamic. They may be created by a new game, restored by sync, or copied manually while SNC is already running.
 * Autosaves are a bounded retention window. The game may keep only a small number of recent autosaves and prune or overwrite older ones during the active session according to its autosave cadence.
 * `continue_game.json` can identify the last intended continuation target, but it is not authoritative because it may reference a save stem that is no longer present locally.
 * The final companion monitor must watch all discovered save roots while `stellaris.exe` is running and copy every observed stable `autosave*.sav` and `ironman.sav` revision into the SNC archive immediately after it settles.
 * SNC must not rely on knowing the active campaign folder. Each live pass scans the whole `save games` tree so newly created or manually added campaign folders are included.
-* A live capture session is a runtime collection window, not a campaign identity boundary. It may include sequential play segments from more than one campaign folder, so later analysis must group archived entries by source campaign folder before creating campaign ledgers, empire briefs, or generated overlay updates.
+* SNC itself is a long-running tray app. Its process lifetime is not a capture-session boundary; capture sessions are derived from observed Stellaris play activity because autosaves are produced only by `stellaris.exe`.
+* A live capture session is a Stellaris play-activity collection window, not a campaign identity boundary. It may include sequential play segments from more than one campaign folder, so later analysis must group archived entries by source campaign folder before creating campaign ledgers, empire briefs, or generated overlay updates.
 * The archive is the long history. The active save folder is only the game's short rolling buffer.
 
 The current live-session capture harness is:
