@@ -417,6 +417,14 @@ Strategic Nexus.exe --archive-stable-saves <save_root> <archive_root> <session_i
 It samples `.sav` files twice with a short delay, copies only files whose size and modification time remain stable, and writes `manifest.json` beside the archived session.
 It is a one-shot archive skeleton for testing the safety contract, not the final continuous companion-app monitor.
 
+Observed save-folder rule:
+
+* Stellaris save roots can exist in both local Documents and synced Documents/Dokumenty locations.
+* Campaign directories contain normal date-named saves, `ironman.sav`, or autosaves such as `autosave_YYYY.MM.DD.sav`.
+* Autosaves are a bounded retention window. The game may keep only a small number of recent autosaves and prune or overwrite older ones according to its autosave cadence.
+* `continue_game.json` can identify the last intended continuation target, but it is not authoritative because it may reference a save stem that is no longer present locally.
+* The final companion monitor must watch all discovered save roots while `stellaris.exe` is running and copy stable changed `autosave*.sav` and `ironman.sav` files into the SNC archive immediately after they settle.
+
 The current local harness for verifying an archived session is:
 
 ```text

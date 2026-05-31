@@ -66,6 +66,23 @@ Less frequent autosaves are still valid, but the offline analysis will have a co
 
 The companion app should explain this tradeoff to the user instead of changing game settings silently.
 
+Observed local save layout, 31.5.2026:
+
+* Stellaris may have more than one plausible Windows save root, for example local `Documents/Paradox Interactive/Stellaris/save games` and synced `OneDrive/Dokumenty/Paradox Interactive/Stellaris/save games`.
+* Campaigns are stored as subdirectories below `save games`, commonly with a readable slug plus an id suffix.
+* Observed save file names include date-named saves (`YYYY.MM.DD.sav`), `ironman.sav`, and autosaves named `autosave_YYYY.MM.DD.sav`.
+* A current observed autosave setting is `autosave=4` with `autosave_tocloud=yes`; an observed autosave campaign retained five recent autosaves.
+* `continue_game.json` stores a relative save stem such as `save games/<campaign>/<save-name-without-extension>`, but it is only a hint. It can be stale or point to a save that no longer exists.
+* Autosaves are a retention window, not a full history. With a monthly cadence and only several retained autosaves, the player can roll back only a few months unless they made manual saves.
+* Stellaris prunes or overwrites older autosaves to avoid save-folder growth, so missing older autosaves are normal and should not be interpreted as data corruption.
+
+Implementation consequence:
+
+* When `stellaris.exe` is running, SNC must monitor all discovered save roots, not only one manually chosen campaign folder.
+* The live monitor must treat autosaves as a bounded rotating retention window and copy stable changed saves immediately into the SNC archive before Stellaris can prune or overwrite them.
+* The primary live patterns are `autosave*.sav` and `ironman.sav`; date-named `.sav` files may still be archived by one-shot/manual session tools.
+* Discovery should prefer real filesystem evidence over `continue_game.json`; `continue_game.json` can help choose an active campaign only after the referenced file exists.
+
 ---
 
 ## Stellaris `.sav` Container Contract
