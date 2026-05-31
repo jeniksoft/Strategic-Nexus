@@ -137,10 +137,10 @@ try {
             break
         }
 
-        if ($script:pendingSweep -or $iteration -eq 0) {
+        if ($script:pendingSweep -or $iteration -eq 0 -or $stellarisRunning) {
             $result = Invoke-LiveArchivePass -ExePath $exe -Roots $roots
             $script:pendingSweep = $false
-            Write-Host ("live_autosave_watch_iteration={0};copied={1};skipped={2};stellaris_running={3}" -f $iteration, $result.Copied, $result.Skipped, $stellarisRunning)
+            Write-Output ("live_autosave_watch_iteration={0};copied={1};skipped={2};stellaris_running={3}" -f $iteration, $result.Copied, $result.Skipped, $stellarisRunning)
         }
 
         ++$iteration
@@ -149,7 +149,6 @@ try {
         }
 
         Start-Sleep -Seconds $PollSeconds
-        $script:pendingSweep = $true
     }
 }
 finally {

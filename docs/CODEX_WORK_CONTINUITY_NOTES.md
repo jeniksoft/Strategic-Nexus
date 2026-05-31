@@ -183,6 +183,8 @@ Current progress:
 * `--archive-stable-saves <save_root> <archive_root> <session_id> [stability_delay_ms]` performs a one-shot read-only archive pass for stable `.sav` files
 * `--archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]` recursively captures stable live `autosave*.sav` and `ironman.sav` revisions, deduplicated by source identity and content hash
 * `tools/watch_stellaris_live_autosaves.ps1` runs live autosave capture with filesystem event watching and repeated sweeps while a real session is active
+* `tools/start_stellaris_live_autosave_watcher.ps1` starts the live watcher as a hidden background process with stdout/stderr logs
+* `tools/install_stellaris_live_autosave_watcher_task.ps1` installs startup capture. If Windows Task Scheduler registration is denied, it falls back to the current user's `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` startup key.
 * archived sessions receive `manifest.json` with source path, archived path, byte count, content hash, and copy/skip status
 * `--verify-autosave-archive <session_archive_dir>` verifies copied saves against manifest byte counts and content hashes
 * `--summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits a bounded metadata summary from a verified archive
