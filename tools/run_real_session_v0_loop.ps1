@@ -488,6 +488,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareGameplayAcceptanceReasonCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_reason_current"
     $compareGameplayAcceptanceReasonPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_reason_previous"
     $compareGameplayAcceptanceReasonChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_gameplay_acceptance_reason_changed"
+    $compareStatusCenterStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_state_current"
+    $compareStatusCenterStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_state_previous"
+    $compareStatusCenterStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_state_changed"
+    $compareStatusCenterReasonCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_reason_current"
+    $compareStatusCenterReasonPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_reason_previous"
+    $compareStatusCenterReasonChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_status_center_reason_changed"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
     $compareMpHostReadinessPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_previous"
     $compareMpHostReadinessChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_changed"
@@ -603,6 +609,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_reason_current=" + $compareGameplayAcceptanceReasonCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_reason_previous=" + $compareGameplayAcceptanceReasonPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_gameplay_acceptance_reason_changed=" + $compareGameplayAcceptanceReasonChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_state_current=" + $compareStatusCenterStateCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_state_previous=" + $compareStatusCenterStatePrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_state_changed=" + $compareStatusCenterStateChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_reason_current=" + $compareStatusCenterReasonCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_reason_previous=" + $compareStatusCenterReasonPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_status_center_reason_changed=" + $compareStatusCenterReasonChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_host_readiness_current=" + $compareMpHostReadinessCurrent)
     }
@@ -1179,6 +1191,12 @@ $sessionEvidence = [ordered]@{
         gameplay_acceptance_reason_current = (Get-VariableOrDefault -Name "compareGameplayAcceptanceReasonCurrent")
         gameplay_acceptance_reason_previous = (Get-VariableOrDefault -Name "compareGameplayAcceptanceReasonPrevious")
         gameplay_acceptance_reason_changed = (Get-VariableOrDefault -Name "compareGameplayAcceptanceReasonChanged")
+        status_center_state_current = (Get-VariableOrDefault -Name "compareStatusCenterStateCurrent")
+        status_center_state_previous = (Get-VariableOrDefault -Name "compareStatusCenterStatePrevious")
+        status_center_state_changed = (Get-VariableOrDefault -Name "compareStatusCenterStateChanged")
+        status_center_reason_current = (Get-VariableOrDefault -Name "compareStatusCenterReasonCurrent")
+        status_center_reason_previous = (Get-VariableOrDefault -Name "compareStatusCenterReasonPrevious")
+        status_center_reason_changed = (Get-VariableOrDefault -Name "compareStatusCenterReasonChanged")
         mp = [ordered]@{
             host_readiness_current = (Get-VariableOrDefault -Name "compareMpHostReadinessCurrent")
             host_readiness_previous = (Get-VariableOrDefault -Name "compareMpHostReadinessPrevious")

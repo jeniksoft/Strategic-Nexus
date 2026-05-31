@@ -122,6 +122,10 @@ $previousGameplayStatus = ""
 $currentGameplayStatus = ""
 $previousGameplayReason = ""
 $currentGameplayReason = ""
+$previousStatusCenterState = ""
+$currentStatusCenterState = ""
+$previousStatusCenterReason = ""
+$currentStatusCenterReason = ""
 if ($null -ne $previousStatus.gameplay_acceptance_status -and $null -ne $previousStatus.gameplay_acceptance_status.state) {
     $previousGameplayStatus = [string]$previousStatus.gameplay_acceptance_status.state
 }
@@ -133,6 +137,18 @@ if ($null -ne $previousStatus.gameplay_acceptance_status -and $null -ne $previou
 }
 if ($null -ne $currentStatus.gameplay_acceptance_status -and $null -ne $currentStatus.gameplay_acceptance_status.reason) {
     $currentGameplayReason = [string]$currentStatus.gameplay_acceptance_status.reason
+}
+if ($null -ne $previousStatus.status_center -and $null -ne $previousStatus.status_center.state) {
+    $previousStatusCenterState = [string]$previousStatus.status_center.state
+}
+if ($null -ne $currentStatus.status_center -and $null -ne $currentStatus.status_center.state) {
+    $currentStatusCenterState = [string]$currentStatus.status_center.state
+}
+if ($null -ne $previousStatus.status_center -and $null -ne $previousStatus.status_center.reason) {
+    $previousStatusCenterReason = [string]$previousStatus.status_center.reason
+}
+if ($null -ne $currentStatus.status_center -and $null -ne $currentStatus.status_center.reason) {
+    $currentStatusCenterReason = [string]$currentStatus.status_center.reason
 }
 
 $previousMpManifestHash = ""
@@ -311,6 +327,16 @@ $result = [ordered]@{
         current = $currentGameplayReason
         changed = ($previousGameplayReason -ne $currentGameplayReason)
     }
+    status_center_state = [ordered]@{
+        previous = $previousStatusCenterState
+        current = $currentStatusCenterState
+        changed = ($previousStatusCenterState -ne $currentStatusCenterState)
+    }
+    status_center_reason = [ordered]@{
+        previous = $previousStatusCenterReason
+        current = $currentStatusCenterReason
+        changed = ($previousStatusCenterReason -ne $currentStatusCenterReason)
+    }
     mp_package_manifest_hash = [ordered]@{
         previous = $previousMpManifestHash
         current = $currentMpManifestHash
@@ -461,6 +487,12 @@ Write-Host ("real_session_v0_compare_gameplay_acceptance_state_changed=" + ((($p
 Write-Host ("real_session_v0_compare_gameplay_acceptance_reason_current=" + $currentGameplayReason)
 Write-Host ("real_session_v0_compare_gameplay_acceptance_reason_previous=" + $previousGameplayReason)
 Write-Host ("real_session_v0_compare_gameplay_acceptance_reason_changed=" + ((($previousGameplayReason -ne $currentGameplayReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_status_center_state_current=" + $currentStatusCenterState)
+Write-Host ("real_session_v0_compare_status_center_state_previous=" + $previousStatusCenterState)
+Write-Host ("real_session_v0_compare_status_center_state_changed=" + ((($previousStatusCenterState -ne $currentStatusCenterState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_status_center_reason_current=" + $currentStatusCenterReason)
+Write-Host ("real_session_v0_compare_status_center_reason_previous=" + $previousStatusCenterReason)
+Write-Host ("real_session_v0_compare_status_center_reason_changed=" + ((($previousStatusCenterReason -ne $currentStatusCenterReason).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_previous=" + $previousMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_changed=" + ((($previousMpHostReadiness -ne $currentMpHostReadiness).ToString().ToLowerInvariant())))
