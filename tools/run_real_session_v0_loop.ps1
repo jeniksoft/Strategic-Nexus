@@ -339,6 +339,14 @@ if ([string]::IsNullOrWhiteSpace($archiveCopiedSaveCount)) {
 Write-Host "==> run offline spine"
 & $exe --run-offline-spine $sessionArchiveDir $CampaignId $EmpireId $dslInputFull $workDirFull $overlayOutputDirFull $statusOutputJsonFull
 Assert-LastExitCodeOk -StepName "run offline spine"
+$seasonDeltaLedgerPath = Join-Path $workDirFull "season_delta_ledger.json"
+$empireBriefPath = Join-Path $workDirFull "empire_brief.json"
+if (-not (Test-Path -LiteralPath $seasonDeltaLedgerPath)) {
+    throw "Offline spine output is missing season delta ledger: $seasonDeltaLedgerPath"
+}
+if (-not (Test-Path -LiteralPath $empireBriefPath)) {
+    throw "Offline spine output is missing empire brief: $empireBriefPath"
+}
 
 $mpExportReadiness = ""
 $mpExportManifestHash = ""
@@ -503,6 +511,8 @@ Write-Host "real_session_v0_loop_ok=true"
 Write-Host ("real_session_v0_loop_session_id=" + $SessionId)
 Write-Host ("real_session_v0_loop_session_archive_dir=" + $sessionArchiveDir)
 Write-Host ("real_session_v0_loop_archive_summary_path=" + $archiveSummaryPath)
+Write-Host ("real_session_v0_loop_season_delta_ledger_path=" + $seasonDeltaLedgerPath)
+Write-Host ("real_session_v0_loop_empire_brief_path=" + $empireBriefPath)
 Write-Host ("real_session_v0_loop_archive_copied_save_count=" + $archiveCopiedSaveCount)
 if (-not [string]::IsNullOrWhiteSpace($archiveLastArchivedPath)) {
     Write-Host ("real_session_v0_loop_archive_last_archived_path=" + $archiveLastArchivedPath)
@@ -1423,6 +1433,8 @@ $sessionEvidence = [ordered]@{
         copied_save_count = $archiveCopiedSaveCount
         last_archived_path = $archiveLastArchivedPath
     }
+    season_delta_ledger_path = $seasonDeltaLedgerPath
+    empire_brief_path = $empireBriefPath
     generated_overlay_dir = $overlayOutputDirFull
     status_snapshot_path = $statusOutputJsonFull
     gameplay_acceptance = [ordered]@{
