@@ -1401,6 +1401,8 @@ if ($ExportMpPackage) {
         "- Package zip: $mpPackageZipPath"
         "- Verify command: $mpExportVerifyCommand"
         "- Import command: $mpExportImportCommand"
+        "- Strict verify command: $mpExportStrictVerifyCommand"
+        "- Strict import command: $mpExportStrictImportCommand"
     )
 }
 $sessionBriefDir = Split-Path -Parent $sessionBriefPath
@@ -1440,6 +1442,10 @@ $sessionEvidence = [ordered]@{
         next_session_compare_baseline_dir = $defaultRunRoot
         next_session = $nextSessionCommandHint
         next_steps_brief = $sessionBriefPath
+        mp_verify = $mpExportVerifyCommand
+        mp_import = $mpExportImportCommand
+        mp_strict_verify = $mpExportStrictVerifyCommand
+        mp_strict_import = $mpExportStrictImportCommand
     }
     next_action = [ordered]@{
         action = $nextActionSummary.action

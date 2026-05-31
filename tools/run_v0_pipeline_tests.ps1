@@ -2086,6 +2086,10 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"trend"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"next_session"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"next_steps_brief"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_verify"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_import"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_strict_verify"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_strict_import"'
     $nextStepsBriefPathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_next_steps_brief=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($nextStepsBriefPathLine)) {
         throw "real session loop mismatch forwarding case missing next-steps brief path."
@@ -2094,6 +2098,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     if (-not (Test-Path -LiteralPath $nextStepsBriefPath)) {
         throw "real session loop mismatch forwarding next-steps brief missing: $nextStepsBriefPath"
     }
+    $nextStepsBriefText = Get-Content -Raw -LiteralPath $nextStepsBriefPath
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Strict verify command:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Strict import command:"
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"archive"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"copied_save_count"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"last_archived_path"'
