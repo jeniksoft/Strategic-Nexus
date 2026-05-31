@@ -168,6 +168,12 @@ $previousNextActionCommandHintSource = ""
 $currentNextActionCommandHintSource = ""
 $previousNextActionCommandHint = ""
 $currentNextActionCommandHint = ""
+$previousMpPackageZipState = ""
+$currentMpPackageZipState = ""
+$previousMpPackageZipReason = ""
+$currentMpPackageZipReason = ""
+$previousMpPackageZipSha256 = ""
+$currentMpPackageZipSha256 = ""
 if (Test-Path -LiteralPath $previousEvidencePath) {
     $previousEvidence = Read-JsonFile -Path $previousEvidencePath
     if ($null -ne $previousEvidence.next_action) {
@@ -175,6 +181,11 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousNextActionReason = Get-OptionalString -Object $previousEvidence.next_action -Property "reason"
         $previousNextActionCommandHintSource = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint_source"
         $previousNextActionCommandHint = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint"
+    }
+    if ($null -ne $previousEvidence.mp_export) {
+        $previousMpPackageZipState = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_state"
+        $previousMpPackageZipReason = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_reason"
+        $previousMpPackageZipSha256 = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_sha256"
     }
 }
 if (Test-Path -LiteralPath $currentEvidencePath) {
@@ -184,6 +195,11 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentNextActionReason = Get-OptionalString -Object $currentEvidence.next_action -Property "reason"
         $currentNextActionCommandHintSource = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint_source"
         $currentNextActionCommandHint = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint"
+    }
+    if ($null -ne $currentEvidence.mp_export) {
+        $currentMpPackageZipState = Get-OptionalString -Object $currentEvidence.mp_export -Property "package_zip_state"
+        $currentMpPackageZipReason = Get-OptionalString -Object $currentEvidence.mp_export -Property "package_zip_reason"
+        $currentMpPackageZipSha256 = Get-OptionalString -Object $currentEvidence.mp_export -Property "package_zip_sha256"
     }
 }
 
@@ -413,6 +429,21 @@ $result = [ordered]@{
         current = $currentMpPackageOutputDir
         changed = ($previousMpPackageOutputDir -ne $currentMpPackageOutputDir)
     }
+    mp_package_zip_state = [ordered]@{
+        previous = $previousMpPackageZipState
+        current = $currentMpPackageZipState
+        changed = ($previousMpPackageZipState -ne $currentMpPackageZipState)
+    }
+    mp_package_zip_reason = [ordered]@{
+        previous = $previousMpPackageZipReason
+        current = $currentMpPackageZipReason
+        changed = ($previousMpPackageZipReason -ne $currentMpPackageZipReason)
+    }
+    mp_package_zip_sha256 = [ordered]@{
+        previous = $previousMpPackageZipSha256
+        current = $currentMpPackageZipSha256
+        changed = ($previousMpPackageZipSha256 -ne $currentMpPackageZipSha256)
+    }
     mp_package_readiness = [ordered]@{
         previous = $previousMpReadiness
         current = $currentMpReadiness
@@ -602,6 +633,15 @@ Write-Host ("real_session_v0_compare_mp_status_snapshot_present_changed=" + ((($
 Write-Host ("real_session_v0_compare_mp_package_output_dir_current=" + $currentMpPackageOutputDir)
 Write-Host ("real_session_v0_compare_mp_package_output_dir_previous=" + $previousMpPackageOutputDir)
 Write-Host ("real_session_v0_compare_mp_package_output_dir_changed=" + ((($previousMpPackageOutputDir -ne $currentMpPackageOutputDir).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_package_zip_state_current=" + $currentMpPackageZipState)
+Write-Host ("real_session_v0_compare_mp_package_zip_state_previous=" + $previousMpPackageZipState)
+Write-Host ("real_session_v0_compare_mp_package_zip_state_changed=" + ((($previousMpPackageZipState -ne $currentMpPackageZipState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_package_zip_reason_current=" + $currentMpPackageZipReason)
+Write-Host ("real_session_v0_compare_mp_package_zip_reason_previous=" + $previousMpPackageZipReason)
+Write-Host ("real_session_v0_compare_mp_package_zip_reason_changed=" + ((($previousMpPackageZipReason -ne $currentMpPackageZipReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_package_zip_sha256_current=" + $currentMpPackageZipSha256)
+Write-Host ("real_session_v0_compare_mp_package_zip_sha256_previous=" + $previousMpPackageZipSha256)
+Write-Host ("real_session_v0_compare_mp_package_zip_sha256_changed=" + ((($previousMpPackageZipSha256 -ne $currentMpPackageZipSha256).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_warning_count_current=" + $currentMpWarningCount)
 if ($null -ne $mpWarningCountDelta) {
     Write-Host ("real_session_v0_compare_mp_warning_count_delta=" + $mpWarningCountDelta)
