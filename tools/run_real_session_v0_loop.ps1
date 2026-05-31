@@ -1352,6 +1352,64 @@ if (-not [string]::IsNullOrWhiteSpace($nextActionSummary.command_hint)) {
     Write-Host ("real_session_v0_loop_next_action_command_hint=" + $nextActionSummary.command_hint)
 }
 
+$sessionBriefPath = Join-Path $defaultRunRoot "real_session_v0_next_steps.md"
+$sessionBriefLines = @(
+    "# Strategic Nexus v0 Next Session Brief"
+    ""
+    "Session ID: $SessionId"
+    "Run ID: $realSessionLoopRunId"
+    "Generated UTC: $([DateTime]::UtcNow.ToString("o"))"
+    ""
+    "## Current Outputs"
+    "- Session archive: $sessionArchiveDir"
+    "- Archive summary: $archiveSummaryPath"
+    "- SNC status snapshot: $statusOutputJsonFull"
+    "- Session evidence JSON: $sessionEvidenceJsonFull"
+    "- Generated overlay dir: $overlayOutputDirFull"
+    "- Archive copied save count: $archiveCopiedSaveCount"
+    "- Latest archived save: $archiveLastArchivedPath"
+    ""
+    "## Gameplay Acceptance"
+    "- State: $gameplayAcceptanceState"
+    "- Reason: $gameplayAcceptanceReason"
+    "- Report path: $gameplayAcceptancePath"
+    ""
+    "## Status Center"
+    "- State: $statusCenterState"
+    "- Reason: $statusCenterReason"
+    ""
+    "## Next Action"
+    "- Action: $($nextActionSummary.action)"
+    "- Reason: $($nextActionSummary.reason)"
+    "- Command source: $($nextActionSummary.command_hint_source)"
+    "- Command hint: $($nextActionSummary.command_hint)"
+    ""
+    "## Follow-up Commands"
+    "- Compare hint: $compareCommandHint"
+    "- Trend hint: $trendCommandHint"
+    "- Next session hint: $nextSessionCommandHint"
+)
+if ($ExportMpPackage) {
+    $sessionBriefLines += @(
+        ""
+        "## MP Package"
+        "- Readiness: $mpExportReadiness"
+        "- Manifest hash: $mpExportManifestHash"
+        "- Warning count: $mpExportWarningCount"
+        "- Mismatch warning state: $mpPackageMismatchWarningState"
+        "- Package directory: $mpPackageOutputDirFull"
+        "- Package zip: $mpPackageZipPath"
+        "- Verify command: $mpExportVerifyCommand"
+        "- Import command: $mpExportImportCommand"
+    )
+}
+$sessionBriefDir = Split-Path -Parent $sessionBriefPath
+if (-not [string]::IsNullOrWhiteSpace($sessionBriefDir)) {
+    New-Item -ItemType Directory -Force -Path $sessionBriefDir | Out-Null
+}
+$sessionBriefLines -join "`r`n" | Set-Content -LiteralPath $sessionBriefPath -Encoding utf8
+Write-Host ("real_session_v0_loop_next_steps_brief=" + $sessionBriefPath)
+
 $sessionEvidence = [ordered]@{
     evidence_schema_version = 1
     generated_at_utc = [DateTime]::UtcNow.ToString("o")
@@ -1381,6 +1439,7 @@ $sessionEvidence = [ordered]@{
         trend = $trendCommandHint
         next_session_compare_baseline_dir = $defaultRunRoot
         next_session = $nextSessionCommandHint
+        next_steps_brief = $sessionBriefPath
     }
     next_action = [ordered]@{
         action = $nextActionSummary.action
