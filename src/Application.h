@@ -38,6 +38,7 @@ struct RunConfig {
     bool verifyMpOverlayPackageMode = false;
     bool importMpOverlayPackageMode = false;
     bool sncStatusSnapshotMode = false;
+    bool sncLiveAutosaveMonitorMode = false;
     bool offlineSpineMode = false;
     bool parseStellarisSaveMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
@@ -99,6 +100,8 @@ struct RunConfig {
     std::filesystem::path sncArchiveRoot;
     std::filesystem::path sncGeneratedOverlayDirectory;
     std::filesystem::path sncStatusOutputPath;
+    std::vector<std::filesystem::path> sncLiveAutosaveSaveRoots;
+    std::filesystem::path sncLiveAutosaveArchiveRoot;
     std::filesystem::path offlineSpineArchiveDirectory;
     std::filesystem::path offlineSpineDslInputPath;
     std::filesystem::path offlineSpineWorkDirectory;
@@ -117,10 +120,14 @@ struct RunConfig {
     std::string mpOverlayExpectedManifestHash;
     std::string offlineSpineCampaignId;
     std::string offlineSpineEmpireId;
+    std::string sncLiveAutosaveSessionId;
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
     bool sncUseDetectedStellarisState = true;
     bool sncStellarisRunningOverride = false;
+    bool sncLiveAutosaveUseDetectedStellarisState = true;
+    bool sncLiveAutosaveStellarisRunningOverride = false;
+    bool sncLiveAutosaveCaptureWhenStellarisNotRunning = false;
     bool generatedOverlayPublishStellarisRunning = false;
     bool generatedOverlayPublishUseDetectedStellarisState = true;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;
@@ -130,6 +137,9 @@ struct RunConfig {
     std::int64_t campaignLibraryMaxCampaigns = 16;
     std::int64_t campaignLibraryOverlayMaxCampaigns = 16;
     std::int64_t autosaveArchiveStabilityDelayMs = 250;
+    std::int64_t sncLiveAutosavePollIntervalMs = 1000;
+    std::int64_t sncLiveAutosaveStabilityDelayMs = 250;
+    std::int64_t sncLiveAutosaveMaxIterations = 1;
     StrategicRequest request;
 };
 

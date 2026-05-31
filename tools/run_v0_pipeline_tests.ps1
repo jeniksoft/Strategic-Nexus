@@ -197,6 +197,7 @@ $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_comp
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
     (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),
     (Join-Path $repoRoot "src/StellarisProcessDetector.cpp"),
     (Join-Path $repoRoot "src/StellarisSavePathResolver.cpp"),
     (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
@@ -1240,6 +1241,42 @@ war={
 
     Assert-Contains -Name "changed live autosave archive app" -Text $changedLiveText -Expected "live_autosave_archive_success=true"
     Assert-Contains -Name "changed live autosave archive app" -Text $changedLiveText -Expected "live_autosave_archive_copied=1"
+
+    $sncLiveSourceRoot = Join-Path $repoRoot "dist/snc_live_autosave_cli_source"
+    $sncLiveArchiveRoot = Join-Path $repoRoot "dist/snc_live_autosave_cli_archive"
+    Remove-Item -Recurse -Force -LiteralPath $sncLiveSourceRoot -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force -LiteralPath $sncLiveArchiveRoot -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path (Join-Path $sncLiveSourceRoot "campaign_a") | Out-Null
+    Set-Content -LiteralPath (Join-Path $sncLiveSourceRoot "campaign_a/autosave_2200.02.01.sav") -Value "snc live autosave one" -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $sncLiveSourceRoot "campaign_a/ironman.sav") -Value "snc live ironman one" -Encoding ASCII
+
+    $sncLiveOutput = & $exePath `
+        --snc-live-autosave-monitor `
+        $sncLiveSourceRoot `
+        $sncLiveArchiveRoot `
+        "snc_live_cli" `
+        0 `
+        0 `
+        1 `
+        false `
+        false `
+        false
+    $sncLiveExitCode = $LASTEXITCODE
+    $sncLiveText = $sncLiveOutput -join "`n"
+
+    if ($sncLiveExitCode -ne 0) {
+        throw "SNC live autosave monitor app failed. Actual output:`n$sncLiveText"
+    }
+
+    Assert-Contains -Name "SNC live autosave monitor app" -Text $sncLiveText -Expected "snc_live_autosave_monitor_success=true"
+    Assert-Contains -Name "SNC live autosave monitor app" -Text $sncLiveText -Expected "snc_live_autosave_monitor_iterations=1"
+    Assert-Contains -Name "SNC live autosave monitor app" -Text $sncLiveText -Expected "snc_live_autosave_monitor_existing_roots=1"
+    Assert-Contains -Name "SNC live autosave monitor app" -Text $sncLiveText -Expected "snc_live_autosave_monitor_copied=2"
+
+    $sncLiveManifestPath = Join-Path $sncLiveArchiveRoot "snc_live_cli/manifest.json"
+    $sncLiveManifestText = Get-Content -Raw -LiteralPath $sncLiveManifestPath
+    $null = $sncLiveManifestText | ConvertFrom-Json
+    Assert-Contains -Name "SNC live autosave monitor manifest" -Text $sncLiveManifestText -Expected '"copied_count": 2'
 
     $liveManifestPath = Join-Path $archiveRoot "session_live_cli/manifest.json"
     $liveManifestText = Get-Content -Raw -LiteralPath $liveManifestPath

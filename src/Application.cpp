@@ -59,6 +59,22 @@ std::int64_t parseInt64Arg(const char* value, const std::int64_t fallback)
     }
 }
 
+bool parseBoolArg(const char* value, const bool fallback)
+{
+    if (value == nullptr) {
+        return fallback;
+    }
+
+    const std::string text = value;
+    if (text == "true" || text == "1" || text == "yes") {
+        return true;
+    }
+    if (text == "false" || text == "0" || text == "no") {
+        return false;
+    }
+    return fallback;
+}
+
 std::string sanitizeCliValue(const std::string& value)
 {
     std::ostringstream output;
@@ -362,6 +378,30 @@ RunConfig parseRunConfig(int argc, char* argv[])
                 config.sncStellarisRunningOverride = value == "true";
             }
         }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--snc-live-autosave-monitor") {
+        config.sncLiveAutosaveMonitorMode = true;
+
+        if (argc > 2) {
+            const std::string saveRoot = argv[2];
+            if (saveRoot != "auto" && saveRoot != "AUTO") {
+                config.sncLiveAutosaveSaveRoots.push_back(argv[2]);
+            }
+        }
+        if (argc > 3) {
+            config.sncLiveAutosaveArchiveRoot = argv[3];
+        }
+        if (argc > 4) {
+            config.sncLiveAutosaveSessionId = argv[4];
+        }
+        config.sncLiveAutosavePollIntervalMs = argc > 5 ? parseInt64Arg(argv[5], 1000) : 1000;
+        config.sncLiveAutosaveStabilityDelayMs = argc > 6 ? parseInt64Arg(argv[6], 250) : 250;
+        config.sncLiveAutosaveMaxIterations = argc > 7 ? parseInt64Arg(argv[7], 1) : 1;
+        config.sncLiveAutosaveUseDetectedStellarisState = argc > 8 ? parseBoolArg(argv[8], true) : true;
+        config.sncLiveAutosaveStellarisRunningOverride = argc > 9 ? parseBoolArg(argv[9], false) : false;
+        config.sncLiveAutosaveCaptureWhenStellarisNotRunning = argc > 10 ? parseBoolArg(argv[10], false) : false;
         return config;
     }
 
@@ -1493,6 +1533,49 @@ int Application::run(const RunConfig& config) const
                 std::cout << "snc_status_reason=failed to write status snapshot\n";
             }
             return success ? 0 : 1;
+        }
+
+        if (config.sncLiveAutosaveMonitorMode) {
+            if (config.sncLiveAutosaveArchiveRoot.empty() || config.sncLiveAutosaveSessionId.empty()) {
+                std::cout << "snc_live_autosave_monitor_success=false\n";
+                std::cout << "snc_live_autosave_monitor_reason=missing archive root or session id\n";
+                return 1;
+            }
+
+            const auto pollMs = config.sncLiveAutosavePollIntervalMs < 0
+                ? 0
+                : config.sncLiveAutosavePollIntervalMs;
+            const auto stabilityDelayMs = config.sncLiveAutosaveStabilityDelayMs < 0
+                ? 0
+                : static_cast<std::uint32_t>(config.sncLiveAutosaveStabilityDelayMs);
+            const auto maxIterations = config.sncLiveAutosaveMaxIterations < 0
+                ? 0
+                : static_cast<int>(config.sncLiveAutosaveMaxIterations);
+
+            const auto result = runCompanionLiveAutosaveMonitor({
+                config.sncLiveAutosaveSaveRoots,
+                config.sncLiveAutosaveArchiveRoot,
+                config.sncLiveAutosaveSessionId,
+                std::chrono::milliseconds(pollMs),
+                stabilityDelayMs,
+                maxIterations,
+                config.sncLiveAutosaveUseDetectedStellarisState,
+                config.sncLiveAutosaveStellarisRunningOverride,
+                config.sncLiveAutosaveCaptureWhenStellarisNotRunning
+            });
+
+            std::cout << "snc_live_autosave_monitor_success=" << (result.ok ? "true" : "false") << "\n";
+            std::cout << "snc_live_autosave_monitor_reason=" << sanitizeCliValue(result.reason) << "\n";
+            std::cout << "snc_live_autosave_monitor_iterations=" << result.iterationsRun << "\n";
+            std::cout << "snc_live_autosave_monitor_candidate_roots=" << result.candidateRootCount << "\n";
+            std::cout << "snc_live_autosave_monitor_existing_roots=" << result.existingRootCount << "\n";
+            std::cout << "snc_live_autosave_monitor_copied=" << result.copiedCount << "\n";
+            std::cout << "snc_live_autosave_monitor_skipped=" << result.skippedCount << "\n";
+            std::cout << "snc_live_autosave_monitor_stellaris_running="
+                      << (result.lastStellarisRunning ? "true" : "false") << "\n";
+            std::cout << "snc_live_autosave_monitor_session_dir="
+                      << sanitizeCliValue(result.archiveSessionDirectory.generic_string()) << "\n";
+            return result.ok ? 0 : 1;
         }
 
         if (config.offlineSpineMode) {

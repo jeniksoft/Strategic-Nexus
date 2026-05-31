@@ -306,7 +306,8 @@ Current progress:
 * Real save-folder inspection confirms that active save history is bounded: autosaves are retained only as a small window and older autosaves may be pruned or overwritten by Stellaris during the active session.
 * Observed live-relevant save names include `autosave_YYYY.MM.DD.sav` and `ironman.sav`; `continue_game.json` is only a hint and can point at a save stem that is not currently present on disk.
 * `Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]` recursively captures stable `autosave*.sav` and `ironman.sav` revisions from a whole save-games root, deduplicated by source identity and content hash.
-* `tools/watch_stellaris_live_autosaves.ps1` provides the first realtime watcher wrapper for capturing every observed stable autosave revision before the game rotates it away.
+* `Strategic Nexus.exe --snc-live-autosave-monitor <save_root|auto> <archive_root> <session_id> [poll_ms] [stability_delay_ms] [max_iterations] [use_detected_stellaris_state] [stellaris_running_override] [capture_when_not_running]` provides the native SNC-owned monitor loop for preserving every observed stable autosave revision before the game rotates it away.
+* `tools/watch_stellaris_live_autosaves.ps1` is a manual development harness only; production SNC must not rely on hidden PowerShell startup.
 * `Strategic Nexus.exe --diff-save-campaigns <previous_save_root> <current_save_root> <diff_output.json>` emits a deterministic read-only availability diff for generated campaign library maintenance.
 * `Strategic Nexus.exe --plan-campaign-library <save_root> <max_campaigns> <plan_output.json>` emits a bounded include/skip plan for the active generated campaign library.
 * `Strategic Nexus.exe --compile-campaign-library-overlay <input.dsl> <save_root> <max_campaigns> <output_dir>` compiles a generated overlay snapshot filtered to included local campaign keys.

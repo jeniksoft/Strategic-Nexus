@@ -47,12 +47,13 @@ Live session archive harness:
 
 ```text
 Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]
-tools/watch_stellaris_live_autosaves.ps1 [-SaveRoot <root>...] [-ArchiveRoot <archive_root>] [-SessionId <id>]
+Strategic Nexus.exe --snc-live-autosave-monitor <save_root|auto> <archive_root> <session_id> [poll_ms] [stability_delay_ms] [max_iterations] [use_detected_stellaris_state] [stellaris_running_override] [capture_when_not_running]
 ```
 
 `--archive-live-saves` recursively scans a whole `save games` root, captures stable `autosave*.sav` and `ironman.sav` revisions, and names archived copies by source identity plus content hash.
 Repeating the command is idempotent for unchanged files, but a changed autosave with the same active filename becomes a new archived revision.
-The watcher script runs repeated live passes while watching filesystem events, so the archive can retain hundreds of autosave revisions even when the active game folder keeps only the newest few.
+`--snc-live-autosave-monitor` is the native SNC-owned monitor loop. It can use `auto` to discover Stellaris save roots, polls for stable autosave/ironman revisions, and should be called internally by the companion app so the user only has to run SNC.
+`tools/watch_stellaris_live_autosaves.ps1` may exist as a manual development harness, but production startup capture must not depend on hidden PowerShell, HKCU Run, or scheduled-task persistence.
 
 Archive verification harness:
 

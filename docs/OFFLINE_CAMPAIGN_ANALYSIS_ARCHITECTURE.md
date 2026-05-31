@@ -430,10 +430,11 @@ The current live-session capture harness is:
 
 ```text
 Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]
-tools/watch_stellaris_live_autosaves.ps1 [-SaveRoot <root>...] [-ArchiveRoot <archive_root>] [-SessionId <id>]
+Strategic Nexus.exe --snc-live-autosave-monitor <save_root|auto> <archive_root> <session_id> [poll_ms] [stability_delay_ms] [max_iterations] [use_detected_stellaris_state] [stellaris_running_override] [capture_when_not_running]
 ```
 
-It recursively scans campaign directories, archives stable `autosave*.sav` and `ironman.sav` revisions, and stores changed revisions under hash-based filenames so repeated active autosave names do not overwrite the SNC history.
+The one-shot command recursively scans campaign directories, archives stable `autosave*.sav` and `ironman.sav` revisions, and stores changed revisions under hash-based filenames so repeated active autosave names do not overwrite the SNC history.
+The native SNC monitor repeats that archive pass inside the companion runtime. It is the production direction for live capture because the user should only need to run SNC; hidden PowerShell startup helpers and HKCU Run persistence are not acceptable project architecture.
 
 The current local harness for verifying an archived session is:
 

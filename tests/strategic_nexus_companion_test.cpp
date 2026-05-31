@@ -565,6 +565,57 @@ int main()
         requireCondition(loopResult.reason.find("status output path is a directory") != std::string::npos, "loop failure should name directory output path");
     }
 
+    {
+        const auto liveSaveRoot = root / "live_save_root";
+        const auto liveArchiveRoot = root / "live_archive";
+        std::filesystem::create_directories(liveSaveRoot / "campaign_a");
+        {
+            std::ofstream autosave(liveSaveRoot / "campaign_a" / "autosave_2200.01.01.sav", std::ios::binary | std::ios::trunc);
+            autosave << "live autosave one";
+        }
+        {
+            std::ofstream ironman(liveSaveRoot / "campaign_a" / "ironman.sav", std::ios::binary | std::ios::trunc);
+            ironman << "ironman autosave one";
+        }
+
+        const auto monitorResult = strategic_nexus::runCompanionLiveAutosaveMonitor({
+            { liveSaveRoot },
+            liveArchiveRoot,
+            "snc_live_session",
+            std::chrono::milliseconds(0),
+            0,
+            1,
+            false,
+            false,
+            false
+        });
+
+        requireCondition(monitorResult.ok, "SNC live autosave monitor should succeed for an existing save root");
+        requireCondition(monitorResult.iterationsRun == 1, "SNC live autosave monitor should run the requested iteration count");
+        requireCondition(monitorResult.candidateRootCount == 1, "SNC live autosave monitor should expose configured root count");
+        requireCondition(monitorResult.existingRootCount == 1, "SNC live autosave monitor should expose existing root count");
+        requireCondition(monitorResult.copiedCount == 2, "SNC live autosave monitor should capture autosave and ironman files");
+        requireCondition(
+            std::filesystem::exists(liveArchiveRoot / "snc_live_session" / "manifest.json"),
+            "SNC live autosave monitor should write a manifest");
+
+        const auto invalidContinuousResult = strategic_nexus::runCompanionLiveAutosaveMonitor({
+            { liveSaveRoot },
+            liveArchiveRoot,
+            "snc_live_session",
+            std::chrono::milliseconds(0),
+            0,
+            0,
+            false,
+            false,
+            false
+        });
+        requireCondition(
+            !invalidContinuousResult.ok &&
+                invalidContinuousResult.reason == "continuous monitor requires a positive poll interval",
+            "SNC live autosave monitor should reject a continuous zero-delay loop");
+    }
+
     std::cout << "strategic nexus companion tests passed.\n";
     return 0;
 }

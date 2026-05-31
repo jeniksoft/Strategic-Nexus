@@ -3,6 +3,7 @@
 
 #include "StrategicNexusCompanion.h"
 
+#include "AutosaveArchiver.h"
 #include "common/FileUtil.h"
 #include "common/JsonExtract.h"
 #include "generated_overlay/ManifestVerifier.h"
@@ -18,6 +19,7 @@
 #include <string>
 #include <system_error>
 #include <thread>
+#include <set>
 #include <unordered_set>
 #include <vector>
 
@@ -172,6 +174,56 @@ std::string readStatusTextField(const std::string& statusText, const std::string
 std::string pathString(const std::filesystem::path& path)
 {
     return path.generic_string();
+}
+
+std::string normalizedPathKey(const std::filesystem::path& path)
+{
+    return path.lexically_normal().generic_string();
+}
+
+std::vector<std::filesystem::path> resolveLiveAutosaveMonitorRoots(
+    const std::vector<std::filesystem::path>& configuredRoots,
+    std::size_t& candidateRootCount)
+{
+    std::vector<std::filesystem::path> roots;
+    std::set<std::string> seen;
+
+    const auto addRoot = [&](const std::filesystem::path& root) {
+        if (root.empty()) {
+            return;
+        }
+
+        const auto key = normalizedPathKey(root);
+        if (!seen.insert(key).second) {
+            return;
+        }
+
+        roots.push_back(root);
+    };
+
+    if (!configuredRoots.empty()) {
+        for (const auto& root : configuredRoots) {
+            addRoot(root);
+        }
+        candidateRootCount = roots.size();
+        return roots;
+    }
+
+    const StellarisSavePathResolver resolver;
+    const auto discovery = resolver.discoverFromEnvironment();
+    candidateRootCount = discovery.candidates.size();
+    for (const auto& candidate : discovery.candidates) {
+        if (candidate.exists) {
+            addRoot(candidate.path);
+        }
+    }
+    return roots;
+}
+
+bool directoryExists(const std::filesystem::path& path)
+{
+    std::error_code error;
+    return std::filesystem::exists(path, error) && std::filesystem::is_directory(path, error);
 }
 
 std::string quoteCliPathArg(const std::filesystem::path& path)
@@ -1017,6 +1069,102 @@ CompanionStatusLoopResult runCompanionStatusLoop(const StrategicNexusCompanion& 
 
     result.ok = true;
     result.reason = "ok";
+    return result;
+}
+
+CompanionLiveAutosaveMonitorResult runCompanionLiveAutosaveMonitor(const CompanionLiveAutosaveMonitorConfig& config)
+{
+    CompanionLiveAutosaveMonitorResult result;
+    result.archiveSessionDirectory = config.archiveRoot / config.sessionId;
+
+    if (config.archiveRoot.empty()) {
+        result.reason = "archive root not configured";
+        return result;
+    }
+    if (config.sessionId.empty()) {
+        result.reason = "session id not configured";
+        return result;
+    }
+
+    const bool autoDiscoverSaveRoots = config.saveRoots.empty();
+    const int maxIterations = config.maxIterations < 0 ? 0 : config.maxIterations;
+    const bool runForever = maxIterations == 0;
+    if (runForever && config.pollInterval.count() <= 0) {
+        result.reason = "continuous monitor requires a positive poll interval";
+        return result;
+    }
+
+    int iteration = 0;
+    bool sawExistingRoot = false;
+    std::string lastWaitingReason = "waiting for Stellaris save root";
+
+    while (runForever || iteration < maxIterations) {
+        std::size_t candidateRootCount = 0;
+        const auto roots = resolveLiveAutosaveMonitorRoots(config.saveRoots, candidateRootCount);
+        result.candidateRootCount = candidateRootCount;
+
+        StellarisProcessStatus processStatus;
+        if (config.useDetectedStellarisState) {
+            const StellarisProcessDetector detector;
+            processStatus = detector.detectFromSystem();
+        } else {
+            processStatus.detectionAvailable = true;
+            processStatus.running = config.stellarisRunningOverride;
+            processStatus.reason =
+                config.stellarisRunningOverride ? "explicit Stellaris running override" : "explicit Stellaris not running override";
+        }
+        result.lastStellarisRunning = processStatus.running;
+
+        const bool shouldSweep =
+            iteration == 0 ||
+            config.captureWhenStellarisNotRunning ||
+            !processStatus.detectionAvailable ||
+            processStatus.running;
+
+        if (shouldSweep) {
+            const AutosaveArchiver archiver;
+            std::size_t existingRootsThisIteration = 0;
+            for (const auto& root : roots) {
+                if (!directoryExists(root)) {
+                    continue;
+                }
+
+                ++existingRootsThisIteration;
+                sawExistingRoot = true;
+                const auto archiveResult = archiver.archiveLiveSaves(
+                    root,
+                    config.archiveRoot,
+                    config.sessionId,
+                    config.stabilityDelayMs);
+                result.copiedCount += archiveResult.copiedCount;
+                result.skippedCount += archiveResult.skippedCount;
+            }
+            result.existingRootCount = existingRootsThisIteration;
+            if (existingRootsThisIteration == 0) {
+                lastWaitingReason = autoDiscoverSaveRoots
+                    ? "waiting for discovered Stellaris save root"
+                    : "configured Stellaris save root missing";
+            }
+        } else {
+            lastWaitingReason = "Stellaris is not running; live autosave sweep deferred";
+        }
+
+        ++iteration;
+        result.iterationsRun = iteration;
+
+        if ((runForever || iteration < maxIterations) && config.pollInterval.count() > 0) {
+            std::this_thread::sleep_for(config.pollInterval);
+        }
+    }
+
+    if (!sawExistingRoot && !autoDiscoverSaveRoots) {
+        result.ok = false;
+        result.reason = lastWaitingReason;
+        return result;
+    }
+
+    result.ok = true;
+    result.reason = sawExistingRoot ? "ok" : lastWaitingReason;
     return result;
 }
 

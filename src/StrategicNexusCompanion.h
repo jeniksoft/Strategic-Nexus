@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <chrono>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -31,6 +32,30 @@ struct CompanionStatusLoopConfig {
 struct CompanionStatusLoopResult {
     bool ok = false;
     int iterationsRun = 0;
+    std::string reason;
+};
+
+struct CompanionLiveAutosaveMonitorConfig {
+    std::vector<std::filesystem::path> saveRoots;
+    std::filesystem::path archiveRoot;
+    std::string sessionId;
+    std::chrono::milliseconds pollInterval = std::chrono::milliseconds(1000);
+    std::uint32_t stabilityDelayMs = 250;
+    int maxIterations = 1;
+    bool useDetectedStellarisState = true;
+    bool stellarisRunningOverride = false;
+    bool captureWhenStellarisNotRunning = false;
+};
+
+struct CompanionLiveAutosaveMonitorResult {
+    bool ok = false;
+    int iterationsRun = 0;
+    std::size_t candidateRootCount = 0;
+    std::size_t existingRootCount = 0;
+    std::size_t copiedCount = 0;
+    std::size_t skippedCount = 0;
+    bool lastStellarisRunning = false;
+    std::filesystem::path archiveSessionDirectory;
     std::string reason;
 };
 
@@ -96,5 +121,7 @@ public:
 std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snapshot);
 
 CompanionStatusLoopResult runCompanionStatusLoop(const StrategicNexusCompanion& companion, const CompanionStatusLoopConfig& config);
+
+CompanionLiveAutosaveMonitorResult runCompanionLiveAutosaveMonitor(const CompanionLiveAutosaveMonitorConfig& config);
 
 } // namespace strategic_nexus
