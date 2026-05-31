@@ -2460,6 +2460,29 @@ Invoke-RealSessionTrendIdentityRiskPriorityCase
 Invoke-RealSessionWarningCodeDriftSurfaceCase
 Invoke-RealSessionLoopMpSnapshotContractCase
 Invoke-RealSessionLoopMismatchForwardingCase
+Write-Host "Running generated overlay gameplay acceptance cases..."
+$gameplayAcceptanceOutput = & cmd /c (Join-Path $repoRoot "tools\\run_generated_overlay_gameplay_acceptance.cmd")
+if ($LASTEXITCODE -ne 0) {
+    $gameplayAcceptanceText = $gameplayAcceptanceOutput -join "`n"
+    throw "generated overlay gameplay acceptance cases failed.`n$gameplayAcceptanceText"
+}
+$gameplayAcceptanceText = $gameplayAcceptanceOutput -join "`n"
+Assert-Contains -Name "generated overlay gameplay acceptance output" -Text $gameplayAcceptanceText -Expected "gameplay_acceptance_success=true"
+Assert-Contains -Name "generated overlay gameplay acceptance output" -Text $gameplayAcceptanceText -Expected "gameplay_acceptance_state=verified_for_v0_domains"
+$gameplayAcceptanceReportPath = Join-Path $repoRoot "dist/private_reports/generated_overlay_gameplay_acceptance_v0.json"
+if (-not (Test-Path -LiteralPath $gameplayAcceptanceReportPath)) {
+    throw "generated overlay gameplay acceptance report is missing: $gameplayAcceptanceReportPath"
+}
+$gameplayAcceptanceReport = Get-Content -LiteralPath $gameplayAcceptanceReportPath -Raw | ConvertFrom-Json
+if ($null -eq $gameplayAcceptanceReport) {
+    throw "generated overlay gameplay acceptance report is empty."
+}
+if ([string]$gameplayAcceptanceReport.acceptance_state -ne "verified_for_v0_domains") {
+    throw "generated overlay gameplay acceptance report has unexpected acceptance_state: $($gameplayAcceptanceReport.acceptance_state)"
+}
+if (@($gameplayAcceptanceReport.cases).Count -lt 6) {
+    throw "generated overlay gameplay acceptance report is missing expected case coverage."
+}
 
 & $autosaveArchiverExePath
 if ($LASTEXITCODE -ne 0) {
