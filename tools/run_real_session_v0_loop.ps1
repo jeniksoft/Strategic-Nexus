@@ -846,6 +846,12 @@ if ($EmitTrendSummary) {
     $trendGameplayAcceptanceReasonCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_reason_current"
     $trendGameplayAcceptanceReasonPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_reason_previous"
     $trendGameplayAcceptanceReasonChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_gameplay_acceptance_reason_changed"
+    $trendStatusCenterStateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_state_current"
+    $trendStatusCenterStatePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_state_previous"
+    $trendStatusCenterStateChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_state_changed"
+    $trendStatusCenterReasonCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_reason_current"
+    $trendStatusCenterReasonPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_reason_previous"
+    $trendStatusCenterReasonChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_status_center_reason_changed"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendMpWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_codes_changed"
@@ -939,6 +945,12 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_reason_current=" + $trendGameplayAcceptanceReasonCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_reason_previous=" + $trendGameplayAcceptanceReasonPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_gameplay_acceptance_reason_changed=" + $trendGameplayAcceptanceReasonChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_state_current=" + $trendStatusCenterStateCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_state_previous=" + $trendStatusCenterStatePrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_state_changed=" + $trendStatusCenterStateChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_reason_current=" + $trendStatusCenterReasonCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_reason_previous=" + $trendStatusCenterReasonPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_status_center_reason_changed=" + $trendStatusCenterReasonChanged)
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
     }
@@ -1275,6 +1287,12 @@ $sessionEvidence = [ordered]@{
         gameplay_acceptance_reason_current = (Get-VariableOrDefault -Name "trendGameplayAcceptanceReasonCurrent")
         gameplay_acceptance_reason_previous = (Get-VariableOrDefault -Name "trendGameplayAcceptanceReasonPrevious")
         gameplay_acceptance_reason_changed = (Get-VariableOrDefault -Name "trendGameplayAcceptanceReasonChanged")
+        status_center_state_current = (Get-VariableOrDefault -Name "trendStatusCenterStateCurrent")
+        status_center_state_previous = (Get-VariableOrDefault -Name "trendStatusCenterStatePrevious")
+        status_center_state_changed = (Get-VariableOrDefault -Name "trendStatusCenterStateChanged")
+        status_center_reason_current = (Get-VariableOrDefault -Name "trendStatusCenterReasonCurrent")
+        status_center_reason_previous = (Get-VariableOrDefault -Name "trendStatusCenterReasonPrevious")
+        status_center_reason_changed = (Get-VariableOrDefault -Name "trendStatusCenterReasonChanged")
         latest_compare_command_hint = (Get-VariableOrDefault -Name "trendLatestCompareCommandHint")
         next_session_command_hint = (Get-VariableOrDefault -Name "trendNextSessionCommandHint")
         mp = [ordered]@{
