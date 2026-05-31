@@ -1971,6 +1971,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_archive_last_archived_path="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_status_center_state="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_status_center_reason="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_status_center_summary_text="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_reason="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source="
@@ -1997,6 +1998,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"status_snapshot_present_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"status_snapshot_present_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"status_snapshot_present_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence status center" -Text $evidenceText -Expected '"summary_text"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"game_version_mismatch_warning"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"mod_version_mismatch_warning"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"manifest_hash_mismatch_warning"'

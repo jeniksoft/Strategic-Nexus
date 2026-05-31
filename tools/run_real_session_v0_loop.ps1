@@ -515,6 +515,7 @@ Write-Host ("real_session_v0_loop_status_center_state=" + $statusCenterState)
 Write-Host ("real_session_v0_loop_status_center_reason=" + $statusCenterReason)
 if (-not [string]::IsNullOrWhiteSpace($statusCenterSummaryText)) {
     Write-Host ("real_session_v0_loop_status_center_summary_present=true")
+    Write-Host ("real_session_v0_loop_status_center_summary_text=" + $statusCenterSummaryText)
 }
 if (-not [string]::IsNullOrWhiteSpace($gameplayAcceptancePath)) {
     Write-Host ("real_session_v0_loop_gameplay_acceptance_path=" + $gameplayAcceptancePath)
@@ -1361,6 +1362,7 @@ $sessionEvidence = [ordered]@{
         state = $statusCenterState
         reason = $statusCenterReason
         summary_present = (-not [string]::IsNullOrWhiteSpace($statusCenterSummaryText))
+        summary_text = $statusCenterSummaryText
     }
     command_hints = [ordered]@{
         compare = $compareCommandHint
