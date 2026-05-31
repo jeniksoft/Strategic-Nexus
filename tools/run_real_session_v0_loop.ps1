@@ -362,6 +362,11 @@ $mpExportManifestHashMismatchWarning = "false"
 $mpPackageMismatchWarningState = "not_exported"
 $mpPackageMismatchWarningReason = "mp_export_not_requested"
 $mpPackageMismatchWarningCodes = @()
+$mpPackageZipState = "not_exported"
+$mpPackageZipReason = "mp_export_not_requested"
+$mpPackageZipPath = ""
+$mpPackageZipSha256 = ""
+$mpPackageZipBytes = ""
 $sncStatusWithMpReadiness = "not_exported"
 $statusWithMpSnapshotPathForOutput = ""
 if ($ExportMpPackage) {
@@ -411,6 +416,20 @@ if ($ExportMpPackage) {
     $mpPackageMismatchWarningState = [string]$mpPackageMismatchSummary.state
     $mpPackageMismatchWarningReason = [string]$mpPackageMismatchSummary.reason
     $mpPackageMismatchWarningCodes = @($mpPackageMismatchSummary.codes)
+
+    $mpPackageZipPath = Join-Path $defaultRunRoot "mp_overlay_package.zip"
+    if (Test-Path -LiteralPath $mpPackageZipPath) {
+        Remove-Item -LiteralPath $mpPackageZipPath -Force
+    }
+    Compress-Archive -Path (Join-Path $mpPackageOutputDirFull "*") -DestinationPath $mpPackageZipPath -Force
+    if (-not (Test-Path -LiteralPath $mpPackageZipPath)) {
+        throw "MP package zip export did not create expected file: $mpPackageZipPath"
+    }
+    $mpPackageZipHash = Get-FileHash -Algorithm SHA256 -LiteralPath $mpPackageZipPath
+    $mpPackageZipSha256 = [string]$mpPackageZipHash.Hash
+    $mpPackageZipBytes = [string](Get-Item -LiteralPath $mpPackageZipPath).Length
+    $mpPackageZipState = "ready"
+    $mpPackageZipReason = "zip_created"
 
     Write-Host "==> refresh snc status snapshot with mp package visibility"
     & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false
@@ -902,9 +921,16 @@ if ($ExportMpPackage) {
     foreach ($warningCode in $mpExportWarningCodes) {
         Write-Host ("real_session_v0_loop_mp_package_warning_code=" + $warningCode)
     }
+    Write-Host ("real_session_v0_loop_mp_package_zip_state=" + $mpPackageZipState)
+    Write-Host ("real_session_v0_loop_mp_package_zip_reason=" + $mpPackageZipReason)
+    Write-Host ("real_session_v0_loop_mp_package_zip_path=" + $mpPackageZipPath)
+    Write-Host ("real_session_v0_loop_mp_package_zip_sha256=" + $mpPackageZipSha256)
+    Write-Host ("real_session_v0_loop_mp_package_zip_bytes=" + $mpPackageZipBytes)
 } else {
     Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_state=" + $mpPackageMismatchWarningState)
     Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_reason=" + $mpPackageMismatchWarningReason)
+    Write-Host ("real_session_v0_loop_mp_package_zip_state=" + $mpPackageZipState)
+    Write-Host ("real_session_v0_loop_mp_package_zip_reason=" + $mpPackageZipReason)
 }
 Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpSnapshotPathForOutput)
 Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
@@ -1315,6 +1341,11 @@ $sessionEvidence = [ordered]@{
         mismatch_warning_state = $mpPackageMismatchWarningState
         mismatch_warning_reason = $mpPackageMismatchWarningReason
         mismatch_warning_codes = @($mpPackageMismatchWarningCodes)
+        package_zip_state = $mpPackageZipState
+        package_zip_reason = $mpPackageZipReason
+        package_zip_path = $mpPackageZipPath
+        package_zip_sha256 = $mpPackageZipSha256
+        package_zip_bytes = $mpPackageZipBytes
     }
     auto_compare = [ordered]@{
         enabled = -not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)
