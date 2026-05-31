@@ -421,9 +421,19 @@ Observed save-folder rule:
 
 * Stellaris save roots can exist in both local Documents and synced Documents/Dokumenty locations.
 * Campaign directories contain normal date-named saves, `ironman.sav`, or autosaves such as `autosave_YYYY.MM.DD.sav`.
-* Autosaves are a bounded retention window. The game may keep only a small number of recent autosaves and prune or overwrite older ones according to its autosave cadence.
+* Autosaves are a bounded retention window. The game may keep only a small number of recent autosaves and prune or overwrite older ones during the active session according to its autosave cadence.
 * `continue_game.json` can identify the last intended continuation target, but it is not authoritative because it may reference a save stem that is no longer present locally.
-* The final companion monitor must watch all discovered save roots while `stellaris.exe` is running and copy stable changed `autosave*.sav` and `ironman.sav` files into the SNC archive immediately after they settle.
+* The final companion monitor must watch all discovered save roots while `stellaris.exe` is running and copy every observed stable `autosave*.sav` and `ironman.sav` revision into the SNC archive immediately after it settles.
+* The archive is the long history. The active save folder is only the game's short rolling buffer.
+
+The current live-session capture harness is:
+
+```text
+Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]
+tools/watch_stellaris_live_autosaves.ps1 [-SaveRoot <root>...] [-ArchiveRoot <archive_root>] [-SessionId <id>]
+```
+
+It recursively scans campaign directories, archives stable `autosave*.sav` and `ironman.sav` revisions, and stores changed revisions under hash-based filenames so repeated active autosave names do not overwrite the SNC history.
 
 The current local harness for verifying an archived session is:
 

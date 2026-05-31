@@ -1200,6 +1200,65 @@ war={
     Assert-Contains -Name "autosave_archive manifest" -Text $manifestText -Expected '"copied_count": 1'
     Assert-Contains -Name "autosave_archive manifest" -Text $manifestText -Expected '"reason": "stable_copy"'
 
+    $liveSourceRoot = Join-Path $repoRoot "dist/autosave_live_cli_source"
+    Remove-Item -Recurse -Force -LiteralPath $liveSourceRoot -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path (Join-Path $liveSourceRoot "campaign_a") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $liveSourceRoot "campaign_b") | Out-Null
+    Set-Content -LiteralPath (Join-Path $liveSourceRoot "campaign_a/autosave_2200.01.01.sav") -Value "live autosave one" -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $liveSourceRoot "campaign_b/ironman.sav") -Value "live ironman one" -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $liveSourceRoot "campaign_b/2200.01.01.sav") -Value "ignored date save" -Encoding ASCII
+
+    $liveOutput = & $exePath `
+        --archive-live-saves `
+        $liveSourceRoot `
+        $archiveRoot `
+        "session_live_cli" `
+        0
+    $liveExitCode = $LASTEXITCODE
+    $liveText = $liveOutput -join "`n"
+
+    if ($liveExitCode -ne 0) {
+        throw "live autosave archive app failed. Actual output:`n$liveText"
+    }
+
+    Assert-Contains -Name "live autosave archive app" -Text $liveText -Expected "live_autosave_archive_success=true"
+    Assert-Contains -Name "live autosave archive app" -Text $liveText -Expected "live_autosave_archive_copied=2"
+
+    Set-Content -LiteralPath (Join-Path $liveSourceRoot "campaign_a/autosave_2200.01.01.sav") -Value "live autosave two" -Encoding ASCII
+    $changedLiveOutput = & $exePath `
+        --archive-live-saves `
+        $liveSourceRoot `
+        $archiveRoot `
+        "session_live_cli" `
+        0
+    $changedLiveExitCode = $LASTEXITCODE
+    $changedLiveText = $changedLiveOutput -join "`n"
+
+    if ($changedLiveExitCode -ne 0) {
+        throw "changed live autosave archive app failed. Actual output:`n$changedLiveText"
+    }
+
+    Assert-Contains -Name "changed live autosave archive app" -Text $changedLiveText -Expected "live_autosave_archive_success=true"
+    Assert-Contains -Name "changed live autosave archive app" -Text $changedLiveText -Expected "live_autosave_archive_copied=1"
+
+    $liveManifestPath = Join-Path $archiveRoot "session_live_cli/manifest.json"
+    $liveManifestText = Get-Content -Raw -LiteralPath $liveManifestPath
+    $null = $liveManifestText | ConvertFrom-Json
+    Assert-Contains -Name "live autosave archive manifest" -Text $liveManifestText -Expected '"copied_count": 3'
+    Assert-Contains -Name "live autosave archive manifest" -Text $liveManifestText -Expected '"reason": "live_archive_copy"'
+
+    $liveVerifyOutput = & $exePath `
+        --verify-autosave-archive `
+        (Join-Path $archiveRoot "session_live_cli")
+    $liveVerifyExitCode = $LASTEXITCODE
+    $liveVerifyText = $liveVerifyOutput -join "`n"
+
+    if ($liveVerifyExitCode -ne 0) {
+        throw "live autosave archive verify app failed. Actual output:`n$liveVerifyText"
+    }
+
+    Assert-Contains -Name "live autosave archive verify app" -Text $liveVerifyText -Expected "autosave_archive_manifest_ok=true"
+
     $verifyOutput = & $exePath `
         --verify-autosave-archive `
         (Join-Path $archiveRoot "session_cli")

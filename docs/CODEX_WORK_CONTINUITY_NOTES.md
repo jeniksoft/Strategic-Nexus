@@ -181,6 +181,8 @@ Likely implementation areas:
 Current progress:
 
 * `--archive-stable-saves <save_root> <archive_root> <session_id> [stability_delay_ms]` performs a one-shot read-only archive pass for stable `.sav` files
+* `--archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]` recursively captures stable live `autosave*.sav` and `ironman.sav` revisions, deduplicated by source identity and content hash
+* `tools/watch_stellaris_live_autosaves.ps1` runs live autosave capture with filesystem event watching and repeated sweeps while a real session is active
 * archived sessions receive `manifest.json` with source path, archived path, byte count, content hash, and copy/skip status
 * `--verify-autosave-archive <session_archive_dir>` verifies copied saves against manifest byte counts and content hashes
 * `--summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits a bounded metadata summary from a verified archive

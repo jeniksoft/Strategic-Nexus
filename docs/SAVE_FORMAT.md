@@ -43,6 +43,17 @@ Strategic Nexus.exe --archive-stable-saves <save_root> <archive_root> <session_i
 This copies only stable `.sav` files into a separate session archive and writes a manifest with source path, archived path, byte count, content hash, and copy/skip status.
 It must remain read-only toward the active Stellaris save directory.
 
+Live session archive harness:
+
+```text
+Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]
+tools/watch_stellaris_live_autosaves.ps1 [-SaveRoot <root>...] [-ArchiveRoot <archive_root>] [-SessionId <id>]
+```
+
+`--archive-live-saves` recursively scans a whole `save games` root, captures stable `autosave*.sav` and `ironman.sav` revisions, and names archived copies by source identity plus content hash.
+Repeating the command is idempotent for unchanged files, but a changed autosave with the same active filename becomes a new archived revision.
+The watcher script runs repeated live passes while watching filesystem events, so the archive can retain hundreds of autosave revisions even when the active game folder keeps only the newest few.
+
 Archive verification harness:
 
 ```text
@@ -74,12 +85,14 @@ Observed local save layout, 31.5.2026:
 * A current observed autosave setting is `autosave=4` with `autosave_tocloud=yes`; an observed autosave campaign retained five recent autosaves.
 * `continue_game.json` stores a relative save stem such as `save games/<campaign>/<save-name-without-extension>`, but it is only a hint. It can be stale or point to a save that no longer exists.
 * Autosaves are a retention window, not a full history. With a monthly cadence and only several retained autosaves, the player can roll back only a few months unless they made manual saves.
-* Stellaris prunes or overwrites older autosaves to avoid save-folder growth, so missing older autosaves are normal and should not be interpreted as data corruption.
+* Stellaris prunes or overwrites older autosaves during the active session to avoid save-folder growth, so missing older autosaves are normal and should not be interpreted as data corruption.
+* A long play session may create hundreds of autosave states while only a fixed small number remain visible on disk. SNC must preserve the full observed timeline in its own archive if those states matter for later campaign analysis.
 
 Implementation consequence:
 
 * When `stellaris.exe` is running, SNC must monitor all discovered save roots, not only one manually chosen campaign folder.
 * The live monitor must treat autosaves as a bounded rotating retention window and copy stable changed saves immediately into the SNC archive before Stellaris can prune or overwrite them.
+* Realtime capture is the acceptance criterion: if a session produces hundreds of autosave revisions, the SNC archive should retain every observed stable revision, not just the last files remaining after the game exits.
 * The primary live patterns are `autosave*.sav` and `ironman.sav`; date-named `.sav` files may still be archived by one-shot/manual session tools.
 * Discovery should prefer real filesystem evidence over `continue_game.json`; `continue_game.json` can help choose an active campaign only after the referenced file exists.
 

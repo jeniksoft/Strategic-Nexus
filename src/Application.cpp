@@ -451,6 +451,25 @@ RunConfig parseRunConfig(int argc, char* argv[])
         return config;
     }
 
+    if (argc > 1 && std::string(argv[1]) == "--archive-live-saves") {
+        config.archiveLiveSavesMode = true;
+
+        if (argc > 2) {
+            config.autosaveArchiveSourceRoot = argv[2];
+        }
+
+        if (argc > 3) {
+            config.autosaveArchiveRoot = argv[3];
+        }
+
+        if (argc > 4) {
+            config.autosaveArchiveSessionId = argv[4];
+        }
+
+        config.autosaveArchiveStabilityDelayMs = argc > 5 ? parseInt64Arg(argv[5], 250) : 250;
+        return config;
+    }
+
     if (argc > 1 && std::string(argv[1]) == "--verify-autosave-archive") {
         config.verifyAutosaveArchiveMode = true;
 
@@ -1681,6 +1700,37 @@ int Application::run(const RunConfig& config) const
             std::cout << "autosave_archive_skipped=" << result.skippedCount << "\n";
             if (!success) {
                 std::cout << "autosave_archive_reason=source root missing\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.archiveLiveSavesMode) {
+            if (config.autosaveArchiveSourceRoot.empty() ||
+                config.autosaveArchiveRoot.empty() ||
+                config.autosaveArchiveSessionId.empty()) {
+                std::cout << "live_autosave_archive_success=false\n";
+                std::cout << "live_autosave_archive_reason=missing source root, archive root, or session id\n";
+                return 1;
+            }
+
+            const auto delayMs = config.autosaveArchiveStabilityDelayMs < 0
+                ? 0
+                : static_cast<std::uint32_t>(config.autosaveArchiveStabilityDelayMs);
+            const AutosaveArchiver archiver;
+            const auto result = archiver.archiveLiveSaves(
+                config.autosaveArchiveSourceRoot,
+                config.autosaveArchiveRoot,
+                config.autosaveArchiveSessionId,
+                delayMs);
+            const bool success = result.sourceExists;
+
+            std::cout << "live_autosave_archive_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "live_autosave_archive_source_exists=" << (result.sourceExists ? "true" : "false") << "\n";
+            std::cout << "live_autosave_archive_copied=" << result.copiedCount << "\n";
+            std::cout << "live_autosave_archive_skipped=" << result.skippedCount << "\n";
+            std::cout << "live_autosave_archive_session_dir=" << sanitizeCliValue((config.autosaveArchiveRoot / config.autosaveArchiveSessionId).generic_string()) << "\n";
+            if (!success) {
+                std::cout << "live_autosave_archive_reason=source root missing\n";
             }
             return success ? 0 : 1;
         }

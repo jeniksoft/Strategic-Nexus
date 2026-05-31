@@ -252,6 +252,8 @@ The compiler now emits `strategic_nexus_generated_manifest.json` with complete r
 `Strategic Nexus.exe --verify-generated-overlay <output_dir>` verifies generated files against the manifest and fails closed on drift.
 The generated overlay verifier also fails closed on unknown v0 generated overlay file paths or wrong checksum relevance classifications.
 `Strategic Nexus.exe --archive-stable-saves <save_root> <archive_root> <session_id> [stability_delay_ms]` provides the first read-only one-shot autosave archive harness and manifest writer.
+`Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]` provides the first live-session archive pass for stable `autosave*.sav` and `ironman.sav` revisions across campaign folders, preserving repeated active filenames as hash-named archive copies.
+`tools/watch_stellaris_live_autosaves.ps1` wraps the live archive pass with filesystem event watching plus repeated sweeps, so a long active game session can retain the full observed autosave timeline even when Stellaris keeps only a small rolling buffer.
 `Strategic Nexus.exe --verify-autosave-archive <session_archive_dir>` verifies copied saves against the archive manifest before offline analysis uses them.
 `Strategic Nexus.exe --summarize-autosave-archive <session_archive_dir> <summary_output.json>` emits a bounded verified archive metadata summary for future offline analysis handoff.
 Stellaris `.sav` files should be read as ZIP containers with `meta` and `gamestate` entries; the first real parser should operate on verified archived copies, extract bounded structured facts, and never send raw `gamestate` text to the LLM.

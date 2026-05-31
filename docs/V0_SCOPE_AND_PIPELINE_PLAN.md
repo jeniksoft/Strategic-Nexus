@@ -303,9 +303,10 @@ Current progress:
 * `Strategic Nexus.exe --discover-stellaris-save-roots <output.json>` emits likely Windows Stellaris save root candidates with existence flags.
 * `Strategic Nexus.exe --scan-save-campaigns <save_root> <inventory_output.json>` emits a deterministic read-only inventory of locally present campaign save directories and loose `.sav` files.
 * Campaign save inventory entries include a selected local anchor save fingerprint for future identity/memory lookup.
-* Real save-folder inspection confirms that active save history is bounded: autosaves are retained only as a small window and older autosaves may be pruned or overwritten by Stellaris.
+* Real save-folder inspection confirms that active save history is bounded: autosaves are retained only as a small window and older autosaves may be pruned or overwritten by Stellaris during the active session.
 * Observed live-relevant save names include `autosave_YYYY.MM.DD.sav` and `ironman.sav`; `continue_game.json` is only a hint and can point at a save stem that is not currently present on disk.
-* The companion app still needs a live monitor slice that watches all discovered save roots while `stellaris.exe` is running and immediately archives stable changed autosaves before the game rotates them away.
+* `Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]` recursively captures stable `autosave*.sav` and `ironman.sav` revisions from a whole save-games root, deduplicated by source identity and content hash.
+* `tools/watch_stellaris_live_autosaves.ps1` provides the first realtime watcher wrapper for capturing every observed stable autosave revision before the game rotates it away.
 * `Strategic Nexus.exe --diff-save-campaigns <previous_save_root> <current_save_root> <diff_output.json>` emits a deterministic read-only availability diff for generated campaign library maintenance.
 * `Strategic Nexus.exe --plan-campaign-library <save_root> <max_campaigns> <plan_output.json>` emits a bounded include/skip plan for the active generated campaign library.
 * `Strategic Nexus.exe --compile-campaign-library-overlay <input.dsl> <save_root> <max_campaigns> <output_dir>` compiles a generated overlay snapshot filtered to included local campaign keys.

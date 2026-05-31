@@ -21,6 +21,7 @@ struct RunConfig {
     bool generatedOverlayVerifyMode = false;
     bool generatedOverlayPublishMode = false;
     bool archiveStableSavesMode = false;
+    bool archiveLiveSavesMode = false;
     bool verifyAutosaveArchiveMode = false;
     bool summarizeAutosaveArchiveMode = false;
     bool buildSeasonDeltaLedgerMode = false;

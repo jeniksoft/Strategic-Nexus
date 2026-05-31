@@ -77,6 +77,24 @@ std::string sanitizeFileStem(const std::string& value)
     return output.empty() ? "autosave" : output;
 }
 
+std::string toLower(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(), [](const unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return value;
+}
+
+bool isLiveSaveFile(const std::filesystem::path& path)
+{
+    if (!isSavFile(path)) {
+        return false;
+    }
+
+    const auto filename = toLower(path.filename().string());
+    return filename.rfind("autosave", 0) == 0 || filename == "ironman.sav";
+}
+
 std::string hashFileFnv1a64Hex(const std::filesystem::path& path)
 {
     constexpr std::uint64_t offsetBasis = 14695981039346656037ull;
@@ -132,6 +150,45 @@ std::map<std::string, SaveSample> sampleSaveFiles(const std::filesystem::path& s
     return samples;
 }
 
+std::map<std::string, SaveSample> sampleLiveSaveFiles(const std::filesystem::path& saveGamesRoot)
+{
+    std::map<std::string, SaveSample> samples;
+    std::error_code error;
+    const auto options = std::filesystem::directory_options::skip_permission_denied;
+    for (auto iterator = std::filesystem::recursive_directory_iterator(saveGamesRoot, options, error);
+         iterator != std::filesystem::recursive_directory_iterator();
+         iterator.increment(error)) {
+        if (error) {
+            error.clear();
+            continue;
+        }
+
+        std::error_code entryError;
+        if (!iterator->is_regular_file(entryError) || entryError || !isLiveSaveFile(iterator->path())) {
+            continue;
+        }
+
+        const auto byteCount = std::filesystem::file_size(iterator->path(), entryError);
+        if (entryError) {
+            continue;
+        }
+
+        const auto writeTime = std::filesystem::last_write_time(iterator->path(), entryError);
+        if (entryError) {
+            continue;
+        }
+
+        auto relativePath = std::filesystem::relative(iterator->path(), saveGamesRoot, entryError);
+        if (entryError || relativePath.empty()) {
+            relativePath = iterator->path().filename();
+            entryError.clear();
+        }
+
+        samples[relativePath.generic_string()] = {iterator->path(), byteCount, writeTime};
+    }
+    return samples;
+}
+
 bool sameSample(const SaveSample& first, const SaveSample& second)
 {
     return first.byteCount == second.byteCount && first.writeTime == second.writeTime;
@@ -145,6 +202,72 @@ std::filesystem::path archivePathFor(
     std::ostringstream name;
     name << std::setw(3) << std::setfill('0') << index << "_" << sanitizeFileStem(std::filesystem::path(key).stem().string()) << ".sav";
     return archiveDirectory / name.str();
+}
+
+std::filesystem::path liveArchivePathFor(
+    const std::filesystem::path& archiveDirectory,
+    const std::string& key,
+    const std::string& contentHash)
+{
+    auto sourceIdentity = std::filesystem::path(key).parent_path().generic_string();
+    if (!sourceIdentity.empty()) {
+        sourceIdentity += "_";
+    }
+    sourceIdentity += std::filesystem::path(key).stem().string();
+
+    const auto hashPrefix = contentHash.substr(0, std::min<std::size_t>(contentHash.size(), 12));
+    std::ostringstream name;
+    name << "live_" << sanitizeFileStem(sourceIdentity) << "_" << hashPrefix << ".sav";
+    return archiveDirectory / name.str();
+}
+
+AutosaveArchiveResult buildManifestResultFromArchivedFiles(
+    const std::filesystem::path& sourceRoot,
+    const std::filesystem::path& archiveDirectory,
+    const std::string& sessionId,
+    const bool sourceExists)
+{
+    AutosaveArchiveResult manifestResult;
+    manifestResult.sourceExists = sourceExists;
+    manifestResult.sourceRoot = sourceRoot;
+    manifestResult.archiveDirectory = archiveDirectory;
+    manifestResult.sessionId = sessionId;
+
+    std::error_code error;
+    if (!std::filesystem::exists(archiveDirectory, error) || error) {
+        return manifestResult;
+    }
+
+    std::vector<std::filesystem::path> archivedFiles;
+    for (const auto& entry : std::filesystem::directory_iterator(archiveDirectory, error)) {
+        if (error) {
+            break;
+        }
+        if (!entry.is_regular_file(error) || error || !isSavFile(entry.path())) {
+            error.clear();
+            continue;
+        }
+        archivedFiles.push_back(entry.path());
+    }
+    std::sort(archivedFiles.begin(), archivedFiles.end());
+
+    for (const auto& path : archivedFiles) {
+        AutosaveArchiveEntry archiveEntry;
+        archiveEntry.archivedPath = (std::filesystem::path("saves") / path.filename()).generic_string();
+        archiveEntry.status = "copied";
+        archiveEntry.reason = "live_archive_copy";
+        archiveEntry.hashAlgorithm = "fnv1a64";
+        archiveEntry.contentHash = hashFileFnv1a64Hex(path);
+        archiveEntry.byteCount = std::filesystem::file_size(path, error);
+        if (error || archiveEntry.contentHash.empty()) {
+            error.clear();
+            continue;
+        }
+        ++manifestResult.copiedCount;
+        manifestResult.entries.push_back(archiveEntry);
+    }
+
+    return manifestResult;
 }
 
 } // namespace
@@ -230,6 +353,108 @@ AutosaveArchiveResult AutosaveArchiver::archiveStableSaves(
     common::writeTextFileAtomically(
         archiveRoot / sessionId / "manifest.json",
         serializeAutosaveArchiveManifest(result));
+
+    return result;
+}
+
+AutosaveArchiveResult AutosaveArchiver::archiveLiveSaves(
+    const std::filesystem::path& saveGamesRoot,
+    const std::filesystem::path& archiveRoot,
+    const std::string& sessionId,
+    const std::uint32_t stabilityDelayMs) const
+{
+    AutosaveArchiveResult result;
+    result.sourceRoot = saveGamesRoot;
+    result.archiveDirectory = archiveRoot / sessionId / "saves";
+    result.sessionId = sessionId;
+
+    std::error_code error;
+    result.sourceExists = std::filesystem::exists(saveGamesRoot, error) && std::filesystem::is_directory(saveGamesRoot, error);
+    if (!result.sourceExists) {
+        return result;
+    }
+
+    const auto firstSample = sampleLiveSaveFiles(saveGamesRoot);
+    std::this_thread::sleep_for(std::chrono::milliseconds(stabilityDelayMs));
+    const auto secondSample = sampleLiveSaveFiles(saveGamesRoot);
+
+    std::vector<std::pair<std::string, SaveSample>> orderedSamples(firstSample.begin(), firstSample.end());
+    std::sort(orderedSamples.begin(), orderedSamples.end(), [](const auto& left, const auto& right) {
+        if (left.second.writeTime == right.second.writeTime) {
+            return left.first < right.first;
+        }
+        return left.second.writeTime < right.second.writeTime;
+    });
+
+    for (const auto& [key, first] : orderedSamples) {
+        AutosaveArchiveEntry archiveEntry;
+        archiveEntry.sourcePath = first.path.generic_string();
+        archiveEntry.byteCount = first.byteCount;
+        archiveEntry.hashAlgorithm = "fnv1a64";
+
+        const auto second = secondSample.find(key);
+        if (second == secondSample.end() || !sameSample(first, second->second)) {
+            archiveEntry.status = "skipped";
+            archiveEntry.reason = "not_stable";
+            ++result.skippedCount;
+            result.entries.push_back(archiveEntry);
+            continue;
+        }
+
+        archiveEntry.contentHash = hashFileFnv1a64Hex(first.path);
+        if (archiveEntry.contentHash.empty()) {
+            archiveEntry.status = "skipped";
+            archiveEntry.reason = "hash_failed";
+            ++result.skippedCount;
+            result.entries.push_back(archiveEntry);
+            continue;
+        }
+
+        std::error_code directoryError;
+        std::filesystem::create_directories(result.archiveDirectory, directoryError);
+        if (directoryError) {
+            archiveEntry.status = "skipped";
+            archiveEntry.reason = "archive_directory_unavailable";
+            ++result.skippedCount;
+            result.entries.push_back(archiveEntry);
+            continue;
+        }
+
+        const auto destination = liveArchivePathFor(result.archiveDirectory, key, archiveEntry.contentHash);
+        archiveEntry.archivedPath = destination.generic_string();
+        if (std::filesystem::exists(destination, error) && !error) {
+            archiveEntry.status = "skipped";
+            archiveEntry.reason = "already_archived";
+            ++result.skippedCount;
+            result.entries.push_back(archiveEntry);
+            continue;
+        }
+        error.clear();
+
+        std::error_code copyError;
+        std::filesystem::copy_file(first.path, destination, std::filesystem::copy_options::none, copyError);
+        if (copyError) {
+            archiveEntry.status = "skipped";
+            archiveEntry.reason = "copy_failed";
+            ++result.skippedCount;
+            result.entries.push_back(archiveEntry);
+            continue;
+        }
+
+        archiveEntry.status = "copied";
+        archiveEntry.reason = "live_stable_copy";
+        ++result.copiedCount;
+        result.entries.push_back(archiveEntry);
+    }
+
+    const auto manifestResult = buildManifestResultFromArchivedFiles(
+        saveGamesRoot,
+        result.archiveDirectory,
+        sessionId,
+        result.sourceExists);
+    common::writeTextFileAtomically(
+        archiveRoot / sessionId / "manifest.json",
+        serializeAutosaveArchiveManifest(manifestResult));
 
     return result;
 }

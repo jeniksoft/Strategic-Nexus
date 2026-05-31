@@ -37,6 +37,12 @@ public:
         const std::filesystem::path& archiveRoot,
         const std::string& sessionId,
         std::uint32_t stabilityDelayMs = 250) const;
+
+    AutosaveArchiveResult archiveLiveSaves(
+        const std::filesystem::path& saveGamesRoot,
+        const std::filesystem::path& archiveRoot,
+        const std::string& sessionId,
+        std::uint32_t stabilityDelayMs = 250) const;
 };
 
 std::string serializeAutosaveArchiveManifest(const AutosaveArchiveResult& result);
