@@ -10,6 +10,7 @@
 #include "CampaignLibraryPlanner.h"
 #include "CampaignSaveScanner.h"
 #include "DaemonRunner.h"
+#include "PostPlayPackageBuilder.h"
 #include "RequestFileReader.h"
 #include "SeasonDeltaLedgerBuilder.h"
 #include "SeasonEmpireBriefBuilder.h"
@@ -509,6 +510,21 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         for (int index = 4; index < argc; ++index) {
             config.saveEntryPointRoots.push_back(argv[index]);
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--build-post-play-package") {
+        config.buildPostPlayPackageMode = true;
+
+        if (argc > 2) {
+            config.postPlayPackageArchiveDirectory = argv[2];
+        }
+        if (argc > 3) {
+            config.postPlayPackageOutputPath = argv[3];
+        }
+        for (int index = 4; index < argc; ++index) {
+            config.postPlayPackageSaveRoots.push_back(argv[index]);
         }
         return config;
     }
@@ -2415,6 +2431,50 @@ int Application::run(const RunConfig& config) const
             std::cout << "save_entry_point_analysis_output_written=" << (written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "save_entry_point_analysis_write_reason=failed to write entry point analysis\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.buildPostPlayPackageMode) {
+            if (config.postPlayPackageArchiveDirectory.empty() ||
+                config.postPlayPackageOutputPath.empty()) {
+                std::cout << "post_play_package_success=false\n";
+                std::cout << "post_play_package_reason=missing archive directory or output path\n";
+                return 1;
+            }
+
+            std::vector<std::filesystem::path> roots = config.postPlayPackageSaveRoots;
+            if (roots.empty()) {
+                const StellarisSavePathResolver resolver;
+                const auto discovery = resolver.discoverFromEnvironment();
+                for (const auto& candidate : discovery.candidates) {
+                    if (candidate.exists) {
+                        roots.push_back(candidate.path);
+                    }
+                }
+            }
+
+            const AutosaveArchiveSummarizer summarizer;
+            const SaveEntryPointAnalyzer analyzer;
+            const PostPlayPackageBuilder builder;
+            const auto archiveSummary = summarizer.summarize(config.postPlayPackageArchiveDirectory);
+            const auto analysis = analyzer.analyze(config.postPlayPackageArchiveDirectory, roots);
+            const auto package = builder.build(archiveSummary, analysis);
+            const bool written = common::writeTextFileAtomically(
+                config.postPlayPackageOutputPath,
+                serializePostPlayPackage(package));
+            const bool success = package.ok && written;
+
+            std::cout << "post_play_package_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "post_play_package_reason=" << sanitizeCliValue(package.reason) << "\n";
+            std::cout << "post_play_package_readiness=" << sanitizeCliValue(package.readiness) << "\n";
+            std::cout << "post_play_package_entry_points=" << package.entryPointCount << "\n";
+            std::cout << "post_play_package_decision_ready_entries=" << package.decisionReadyEntryCount << "\n";
+            std::cout << "post_play_package_archived_evidence=" << package.archivedEvidenceCount << "\n";
+            std::cout << "post_play_package_dry_run_only=" << (package.dryRunOnly ? "true" : "false") << "\n";
+            std::cout << "post_play_package_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "post_play_package_write_reason=failed to write post-play package\n";
             }
             return success ? 0 : 1;
         }

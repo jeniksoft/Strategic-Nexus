@@ -43,6 +43,7 @@ struct RunConfig {
     bool offlineSpineMode = false;
     bool parseStellarisSaveMode = false;
     bool analyzeSaveEntryPointsMode = false;
+    bool buildPostPlayPackageMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -115,6 +116,9 @@ struct RunConfig {
     std::filesystem::path saveEntryPointArchiveDirectory;
     std::filesystem::path saveEntryPointAnalysisOutputPath;
     std::vector<std::filesystem::path> saveEntryPointRoots;
+    std::filesystem::path postPlayPackageArchiveDirectory;
+    std::filesystem::path postPlayPackageOutputPath;
+    std::vector<std::filesystem::path> postPlayPackageSaveRoots;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;

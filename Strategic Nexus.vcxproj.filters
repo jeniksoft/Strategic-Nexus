@@ -138,6 +138,9 @@
     <ClCompile Include="src\RequestFileReader.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\PostPlayPackageBuilder.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\SaveParser.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -294,6 +297,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\RequestFileReader.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PostPlayPackageBuilder.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\SaveParser.h">

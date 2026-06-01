@@ -1,0 +1,294 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Antonin Jenik
+
+#include "PostPlayPackageBuilder.h"
+
+#include <algorithm>
+#include <map>
+#include <sstream>
+#include <utility>
+
+namespace strategic_nexus {
+namespace {
+
+std::string jsonEscape(const std::string& value)
+{
+    std::ostringstream output;
+    for (const char ch : value) {
+        switch (ch) {
+        case '\\': output << "\\\\"; break;
+        case '"': output << "\\\""; break;
+        case '\n': output << "\\n"; break;
+        case '\r': output << "\\r"; break;
+        case '\t': output << "\\t"; break;
+        default:
+            if (static_cast<unsigned char>(ch) < 0x20) {
+                output << ' ';
+            } else {
+                output << ch;
+            }
+            break;
+        }
+    }
+    return output.str();
+}
+
+void addUnique(std::vector<std::string>& values, const std::string& value)
+{
+    if (std::find(values.begin(), values.end(), value) == values.end()) {
+        values.push_back(value);
+    }
+}
+
+std::string hashPrefix(const std::string& hash)
+{
+    return hash.substr(0, std::min<std::size_t>(12, hash.size()));
+}
+
+std::string ruleScopeFor(const SaveEntryPoint& entry)
+{
+    std::ostringstream scope;
+    scope << entry.campaignKey << "::";
+    if (!entry.saveDate.empty()) {
+        scope << entry.saveDate;
+    } else {
+        scope << "unknown_date";
+    }
+    scope << "::";
+    if (!entry.contentHash.empty()) {
+        scope << hashPrefix(entry.contentHash);
+    } else {
+        scope << "missing_hash";
+    }
+    return scope.str();
+}
+
+PostPlayPackageEntry buildEntry(const SaveEntryPoint& entry)
+{
+    PostPlayPackageEntry packageEntry;
+    packageEntry.entryPointId = entry.id;
+    packageEntry.campaignKey = entry.campaignKey;
+    packageEntry.sourceKind = entry.sourceKind;
+    packageEntry.saveName = entry.saveName;
+    packageEntry.saveDate = entry.saveDate;
+    packageEntry.contentHash = entry.contentHash;
+    packageEntry.analysisState = entry.analysisState;
+    packageEntry.ruleScope = ruleScopeFor(entry);
+    packageEntry.packageEntryId = "postplay::" + packageEntry.ruleScope;
+    packageEntry.compatibleArchivedEvidenceCount = entry.compatibleArchivedEvidenceCount;
+    packageEntry.laterArchivedEvidenceCount = entry.laterArchivedEvidenceCount;
+    packageEntry.compatibleHistoryAvailable = entry.compatibleArchivedEvidenceCount > 0;
+    packageEntry.futureEvidenceExcluded = entry.laterArchivedEvidenceCount > 0;
+    packageEntry.warningCodes = entry.warningCodes;
+
+    if (entry.analysisState == "ambiguous") {
+        packageEntry.decisionInputState = "blocked_branch_ambiguity";
+        packageEntry.evidencePolicy = "blocked";
+        packageEntry.decisionInputAllowed = false;
+        addUnique(packageEntry.warningCodes, "post_play_branch_ambiguity_blocks_decision_input");
+    } else if (entry.analysisState == "needs_parse" || entry.saveDate.empty()) {
+        packageEntry.decisionInputState = "needs_deferred_parse";
+        packageEntry.evidencePolicy = "defer_until_save_date_known";
+        packageEntry.decisionInputAllowed = false;
+        addUnique(packageEntry.warningCodes, "post_play_entry_point_needs_deferred_parse");
+    } else if (entry.compatibleArchivedEvidenceCount == 0) {
+        packageEntry.decisionInputState = "insufficient_history";
+        packageEntry.evidencePolicy = "no_compatible_history_available";
+        packageEntry.decisionInputAllowed = false;
+        addUnique(packageEntry.warningCodes, "post_play_no_compatible_history");
+    } else {
+        packageEntry.decisionInputState = "ready_for_decision_input";
+        packageEntry.evidencePolicy = entry.laterArchivedEvidenceCount > 0
+            ? "compatible_history_only_future_excluded"
+            : "compatible_history_only";
+        packageEntry.decisionInputAllowed = true;
+    }
+
+    return packageEntry;
+}
+
+void writeStringArray(std::ostringstream& output, const std::vector<std::string>& values)
+{
+    output << "[";
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << "\"" << jsonEscape(values[index]) << "\"";
+    }
+    output << "]";
+}
+
+} // namespace
+
+PostPlayPackage PostPlayPackageBuilder::build(
+    const AutosaveArchiveSummary& archiveSummary,
+    const SaveEntryPointAnalysis& entryPointAnalysis) const
+{
+    PostPlayPackage package;
+    package.sessionArchiveDirectory = archiveSummary.sessionArchiveDirectory;
+    package.archiveVerified = archiveSummary.ok && entryPointAnalysis.archiveVerified;
+    package.entryPointAnalysisReadiness = entryPointAnalysis.readiness;
+    package.branchAmbiguityDetected = entryPointAnalysis.branchAmbiguityDetected;
+    package.copiedSaveCount = archiveSummary.copiedSaveCount;
+    package.totalByteCount = archiveSummary.totalByteCount;
+    package.entryPointCount = entryPointAnalysis.entryPointCount;
+    package.archivedEvidenceCount = entryPointAnalysis.archivedEvidenceCount;
+
+    if (!archiveSummary.ok) {
+        package.reason = archiveSummary.reason.empty() ? "archive summary not ready" : archiveSummary.reason;
+        package.readiness = "blocked";
+        addUnique(package.warningCodes, "post_play_archive_not_verified");
+        return package;
+    }
+    if (!entryPointAnalysis.ok) {
+        package.reason = entryPointAnalysis.reason.empty() ? "entry point analysis not ready" : entryPointAnalysis.reason;
+        package.readiness = "blocked";
+        addUnique(package.warningCodes, "post_play_entry_point_analysis_not_ready");
+        return package;
+    }
+    if (entryPointAnalysis.entryPointCount == 0) {
+        package.ok = true;
+        package.reason = "archive verified but no loadable entry points found";
+        package.readiness = "needs_attention";
+        addUnique(package.warningCodes, "post_play_no_loadable_entry_points");
+        return package;
+    }
+
+    std::map<std::string, PostPlayPackageCampaign> campaignPackages;
+    for (const auto& campaign : entryPointAnalysis.campaigns) {
+        auto& item = campaignPackages[campaign.campaignKey];
+        item.campaignKey = campaign.campaignKey;
+        item.entryPointCount = campaign.entryPointCount;
+        item.archivedEvidenceCount = campaign.archivedEvidenceCount;
+        item.branchAmbiguityDetected = campaign.branchAmbiguityDetected;
+        item.warningCodes = campaign.warningCodes;
+    }
+
+    bool anyReady = false;
+    bool anyBlocked = false;
+    bool anyFutureExcluded = false;
+    for (const auto& entry : entryPointAnalysis.entryPoints) {
+        auto packageEntry = buildEntry(entry);
+        anyReady = anyReady || packageEntry.decisionInputAllowed;
+        anyBlocked = anyBlocked || !packageEntry.decisionInputAllowed;
+        anyFutureExcluded = anyFutureExcluded || packageEntry.futureEvidenceExcluded;
+        if (packageEntry.decisionInputAllowed) {
+            ++package.decisionReadyEntryCount;
+        }
+        for (const auto& warning : packageEntry.warningCodes) {
+            addUnique(package.warningCodes, warning);
+        }
+
+        auto& campaign = campaignPackages[packageEntry.campaignKey];
+        campaign.campaignKey = packageEntry.campaignKey;
+        if (packageEntry.decisionInputAllowed) {
+            ++campaign.decisionReadyEntryCount;
+        }
+        package.entries.push_back(std::move(packageEntry));
+    }
+
+    for (auto& [campaignKey, campaign] : campaignPackages) {
+        if (campaign.branchAmbiguityDetected) {
+            campaign.readiness = "blocked_ambiguous";
+        } else if (campaign.entryPointCount == 0) {
+            campaign.readiness = "needs_attention";
+        } else if (campaign.decisionReadyEntryCount == campaign.entryPointCount) {
+            campaign.readiness = "ready";
+        } else if (campaign.decisionReadyEntryCount > 0) {
+            campaign.readiness = "ready_partial";
+        } else {
+            campaign.readiness = "needs_attention";
+        }
+        package.campaigns.push_back(campaign);
+    }
+
+    package.ok = true;
+    if (entryPointAnalysis.branchAmbiguityDetected) {
+        package.reason = "entry point package built but branch ambiguity blocks some decision input";
+        package.readiness = anyReady ? "ready_partial_ambiguous" : "ambiguous";
+    } else if (anyReady && anyBlocked) {
+        package.reason = "post-play package built; some entry points need more history or parsing";
+        package.readiness = "ready_partial";
+    } else if (anyReady && anyFutureExcluded) {
+        package.reason = "post-play package built; future evidence excluded where needed";
+        package.readiness = "ready_conservative";
+    } else if (anyReady) {
+        package.reason = "post-play package built";
+        package.readiness = "ready";
+    } else {
+        package.reason = "post-play package built but no entry point is ready for decision input";
+        package.readiness = "needs_attention";
+    }
+    return package;
+}
+
+std::string serializePostPlayPackage(const PostPlayPackage& package)
+{
+    std::ostringstream json;
+    json << "{\n";
+    json << "  \"schema_version\": 1,\n";
+    json << "  \"ok\": " << (package.ok ? "true" : "false") << ",\n";
+    json << "  \"reason\": \"" << jsonEscape(package.reason) << "\",\n";
+    json << "  \"readiness\": \"" << jsonEscape(package.readiness) << "\",\n";
+    json << "  \"dry_run_only\": " << (package.dryRunOnly ? "true" : "false") << ",\n";
+    json << "  \"publishes_overlay\": " << (package.publishesOverlay ? "true" : "false") << ",\n";
+    json << "  \"session_archive_directory\": \"" << jsonEscape(package.sessionArchiveDirectory.generic_string()) << "\",\n";
+    json << "  \"archive_verified\": " << (package.archiveVerified ? "true" : "false") << ",\n";
+    json << "  \"entry_point_analysis_readiness\": \"" << jsonEscape(package.entryPointAnalysisReadiness) << "\",\n";
+    json << "  \"branch_ambiguity_detected\": " << (package.branchAmbiguityDetected ? "true" : "false") << ",\n";
+    json << "  \"copied_save_count\": " << package.copiedSaveCount << ",\n";
+    json << "  \"total_byte_count\": " << package.totalByteCount << ",\n";
+    json << "  \"entry_point_count\": " << package.entryPointCount << ",\n";
+    json << "  \"decision_ready_entry_count\": " << package.decisionReadyEntryCount << ",\n";
+    json << "  \"archived_evidence_count\": " << package.archivedEvidenceCount << ",\n";
+    json << "  \"warning_codes\": ";
+    writeStringArray(json, package.warningCodes);
+    json << ",\n";
+    json << "  \"campaigns\": [\n";
+    for (std::size_t index = 0; index < package.campaigns.size(); ++index) {
+        const auto& campaign = package.campaigns[index];
+        json << "    {\n";
+        json << "      \"campaign_key\": \"" << jsonEscape(campaign.campaignKey) << "\",\n";
+        json << "      \"readiness\": \"" << jsonEscape(campaign.readiness) << "\",\n";
+        json << "      \"branch_ambiguity_detected\": " << (campaign.branchAmbiguityDetected ? "true" : "false") << ",\n";
+        json << "      \"entry_point_count\": " << campaign.entryPointCount << ",\n";
+        json << "      \"decision_ready_entry_count\": " << campaign.decisionReadyEntryCount << ",\n";
+        json << "      \"archived_evidence_count\": " << campaign.archivedEvidenceCount << ",\n";
+        json << "      \"warning_codes\": ";
+        writeStringArray(json, campaign.warningCodes);
+        json << "\n";
+        json << "    }" << (index + 1 < package.campaigns.size() ? "," : "") << "\n";
+    }
+    json << "  ],\n";
+    json << "  \"entries\": [\n";
+    for (std::size_t index = 0; index < package.entries.size(); ++index) {
+        const auto& entry = package.entries[index];
+        json << "    {\n";
+        json << "      \"package_entry_id\": \"" << jsonEscape(entry.packageEntryId) << "\",\n";
+        json << "      \"entry_point_id\": \"" << jsonEscape(entry.entryPointId) << "\",\n";
+        json << "      \"campaign_key\": \"" << jsonEscape(entry.campaignKey) << "\",\n";
+        json << "      \"source_kind\": \"" << jsonEscape(entry.sourceKind) << "\",\n";
+        json << "      \"save_name\": \"" << jsonEscape(entry.saveName) << "\",\n";
+        json << "      \"save_date\": \"" << jsonEscape(entry.saveDate) << "\",\n";
+        json << "      \"content_hash\": \"" << jsonEscape(entry.contentHash) << "\",\n";
+        json << "      \"analysis_state\": \"" << jsonEscape(entry.analysisState) << "\",\n";
+        json << "      \"decision_input_state\": \"" << jsonEscape(entry.decisionInputState) << "\",\n";
+        json << "      \"rule_scope\": \"" << jsonEscape(entry.ruleScope) << "\",\n";
+        json << "      \"evidence_policy\": \"" << jsonEscape(entry.evidencePolicy) << "\",\n";
+        json << "      \"decision_input_allowed\": " << (entry.decisionInputAllowed ? "true" : "false") << ",\n";
+        json << "      \"compatible_history_available\": " << (entry.compatibleHistoryAvailable ? "true" : "false") << ",\n";
+        json << "      \"future_evidence_excluded\": " << (entry.futureEvidenceExcluded ? "true" : "false") << ",\n";
+        json << "      \"compatible_archived_evidence_count\": " << entry.compatibleArchivedEvidenceCount << ",\n";
+        json << "      \"later_archived_evidence_count\": " << entry.laterArchivedEvidenceCount << ",\n";
+        json << "      \"warning_codes\": ";
+        writeStringArray(json, entry.warningCodes);
+        json << "\n";
+        json << "    }" << (index + 1 < package.entries.size() ? "," : "") << "\n";
+    }
+    json << "  ]\n";
+    json << "}\n";
+    return json.str();
+}
+
+} // namespace strategic_nexus
