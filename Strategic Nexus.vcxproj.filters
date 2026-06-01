@@ -156,6 +156,9 @@
     <ClCompile Include="src\SncDslDraftPackageBuilder.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\SncGeneratedOverlayStager.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\SeasonDeltaLedgerBuilder.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -324,6 +327,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\SncDslDraftPackageBuilder.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SncGeneratedOverlayStager.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\SeasonDeltaLedgerBuilder.h">

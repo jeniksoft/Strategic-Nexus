@@ -190,6 +190,7 @@
     <ClCompile Include="src\SncCandidateDecisionPackageBuilder.cpp" />
     <ClCompile Include="src\SncDecisionInputPackageBuilder.cpp" />
     <ClCompile Include="src\SncDslDraftPackageBuilder.cpp" />
+    <ClCompile Include="src\SncGeneratedOverlayStager.cpp" />
     <ClCompile Include="src\SeasonDeltaLedgerBuilder.cpp" />
     <ClCompile Include="src\SeasonEmpireBriefBuilder.cpp" />
     <ClCompile Include="src\StellarisSavePathResolver.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="src\SncCandidateDecisionPackageBuilder.h" />
     <ClInclude Include="src\SncDecisionInputPackageBuilder.h" />
     <ClInclude Include="src\SncDslDraftPackageBuilder.h" />
+    <ClInclude Include="src\SncGeneratedOverlayStager.h" />
     <ClInclude Include="src\SeasonDeltaLedgerBuilder.h" />
     <ClInclude Include="src\SeasonEmpireBriefBuilder.h" />
     <ClInclude Include="src\StellarisSavePathResolver.h" />

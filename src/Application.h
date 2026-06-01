@@ -47,6 +47,7 @@ struct RunConfig {
     bool buildSncDecisionInputPackageMode = false;
     bool buildSncCandidateDecisionPackageMode = false;
     bool buildSncDslDraftPackageMode = false;
+    bool stageSncGeneratedOverlayMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -129,6 +130,9 @@ struct RunConfig {
     std::filesystem::path sncDslDraftCandidatePackagePath;
     std::filesystem::path sncDslDraftOutputPath;
     std::filesystem::path sncDslDraftAuditOutputPath;
+    std::filesystem::path sncGeneratedOverlayDslPath;
+    std::filesystem::path sncGeneratedOverlayStagingDirectory;
+    std::filesystem::path sncGeneratedOverlayStagingStatusOutputPath;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;

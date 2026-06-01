@@ -263,6 +263,17 @@ $sncDslDraftPackageBuilderSourceFiles = @(
     (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
     (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
+$sncGeneratedOverlayStagerExePath = Join-Path $repoRoot "dist/snc_generated_overlay_stager_test.exe"
+$sncGeneratedOverlayStagerSourceFiles = @(
+    (Join-Path $repoRoot "tests/snc_generated_overlay_stager_test.cpp"),
+    (Join-Path $repoRoot "src/SncGeneratedOverlayStager.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslParser.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslValidator.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/OverlayCompiler.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
 $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_companion_test.exe"
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
@@ -322,6 +333,7 @@ try {
     Invoke-ClCompile -Name "snc_decision_input_package_builder_test" -SourceFiles $sncDecisionInputPackageBuilderSourceFiles -OutputPath $sncDecisionInputPackageBuilderExePath
     Invoke-ClCompile -Name "snc_candidate_decision_package_builder_test" -SourceFiles $sncCandidateDecisionPackageBuilderSourceFiles -OutputPath $sncCandidateDecisionPackageBuilderExePath
     Invoke-ClCompile -Name "snc_dsl_draft_package_builder_test" -SourceFiles $sncDslDraftPackageBuilderSourceFiles -OutputPath $sncDslDraftPackageBuilderExePath
+    Invoke-ClCompile -Name "snc_generated_overlay_stager_test" -SourceFiles $sncGeneratedOverlayStagerSourceFiles -OutputPath $sncGeneratedOverlayStagerExePath
     Invoke-ClCompile -Name "strategic_nexus_companion_test" -SourceFiles $strategicNexusCompanionSourceFiles -OutputPath $strategicNexusCompanionExePath
 } finally {
     Pop-Location
@@ -2923,6 +2935,11 @@ if ($LASTEXITCODE -ne 0) {
 & $sncDslDraftPackageBuilderExePath
 if ($LASTEXITCODE -ne 0) {
     throw "SNC DSL draft package builder tests failed."
+}
+
+& $sncGeneratedOverlayStagerExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC generated overlay stager tests failed."
 }
 
 & $strategicNexusCompanionExePath

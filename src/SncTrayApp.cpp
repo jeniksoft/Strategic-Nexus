@@ -19,6 +19,7 @@
 #include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
 #include "SncDslDraftPackageBuilder.h"
+#include "SncGeneratedOverlayStager.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "common/FileUtil.h"
@@ -62,6 +63,8 @@ std::filesystem::path g_decisionInputPackagePath;
 std::filesystem::path g_candidateDecisionPackagePath;
 std::filesystem::path g_dslDraftPath;
 std::filesystem::path g_dslDraftAuditPath;
+std::filesystem::path g_generatedOverlayStagingDirectory;
+std::filesystem::path g_generatedOverlayStagingStatusPath;
 NOTIFYICONDATAW g_trayIcon{};
 UINT g_taskbarCreatedMessage = 0;
 
@@ -234,7 +237,14 @@ void writeStatus(
     const std::filesystem::path& dslDraftAuditPath = std::filesystem::path(),
     const std::string& dslDraftReadiness = std::string(),
     const std::size_t dslDraftRuleCount = 0,
-    const bool dslDraftValidatorPassed = false)
+    const bool dslDraftValidatorPassed = false,
+    const std::filesystem::path& generatedOverlayStagingDirectory = std::filesystem::path(),
+    const std::filesystem::path& generatedOverlayStagingStatusPath = std::filesystem::path(),
+    const std::string& generatedOverlayStagingReadiness = std::string(),
+    const std::size_t generatedOverlayStagingRuleCount = 0,
+    const bool generatedOverlayManifestVerified = false,
+    const bool generatedOverlayPublishAllowed = false,
+    const std::string& generatedOverlayManifestHash = std::string())
 {
     std::ostringstream json;
     json << "{\n";
@@ -274,7 +284,20 @@ void writeStatus(
     json << "  \"dsl_draft_readiness\": \"" << jsonEscape(dslDraftReadiness) << "\",\n";
     json << "  \"dsl_draft_rule_count\": " << dslDraftRuleCount << ",\n";
     json << "  \"dsl_draft_validator_passed\": "
-         << (dslDraftValidatorPassed ? "true" : "false") << "\n";
+         << (dslDraftValidatorPassed ? "true" : "false") << ",\n";
+    json << "  \"generated_overlay_staging_directory\": \""
+         << jsonEscape(pathString(generatedOverlayStagingDirectory)) << "\",\n";
+    json << "  \"generated_overlay_staging_status_path\": \""
+         << jsonEscape(pathString(generatedOverlayStagingStatusPath)) << "\",\n";
+    json << "  \"generated_overlay_staging_readiness\": \""
+         << jsonEscape(generatedOverlayStagingReadiness) << "\",\n";
+    json << "  \"generated_overlay_staging_rule_count\": " << generatedOverlayStagingRuleCount << ",\n";
+    json << "  \"generated_overlay_manifest_verified\": "
+         << (generatedOverlayManifestVerified ? "true" : "false") << ",\n";
+    json << "  \"generated_overlay_publish_allowed\": "
+         << (generatedOverlayPublishAllowed ? "true" : "false") << ",\n";
+    json << "  \"generated_overlay_manifest_hash\": \""
+         << jsonEscape(generatedOverlayManifestHash) << "\"\n";
     json << "}\n";
 
     const auto text = json.str();
@@ -321,6 +344,7 @@ void workerLoop(HWND hwnd)
     const strategic_nexus::SncDecisionInputPackageBuilder decisionInputPackageBuilder;
     const strategic_nexus::SncCandidateDecisionPackageBuilder candidateDecisionPackageBuilder;
     const strategic_nexus::SncDslDraftPackageBuilder dslDraftPackageBuilder;
+    const strategic_nexus::SncGeneratedOverlayStager generatedOverlayStager;
 
     bool wasRunning = false;
     std::string sessionId;
@@ -348,6 +372,13 @@ void workerLoop(HWND hwnd)
     std::string lastDslDraftReadiness;
     std::size_t lastDslDraftRuleCount = 0;
     bool lastDslDraftValidatorPassed = false;
+    std::filesystem::path lastGeneratedOverlayStagingDirectory;
+    std::filesystem::path lastGeneratedOverlayStagingStatusPath;
+    std::string lastGeneratedOverlayStagingReadiness;
+    std::size_t lastGeneratedOverlayStagingRuleCount = 0;
+    bool lastGeneratedOverlayManifestVerified = false;
+    bool lastGeneratedOverlayPublishAllowed = false;
+    std::string lastGeneratedOverlayManifestHash;
 
     writeStatus(
         hwnd,
@@ -393,6 +424,13 @@ void workerLoop(HWND hwnd)
             lastDslDraftReadiness.clear();
             lastDslDraftRuleCount = 0;
             lastDslDraftValidatorPassed = false;
+            lastGeneratedOverlayStagingDirectory.clear();
+            lastGeneratedOverlayStagingStatusPath.clear();
+            lastGeneratedOverlayStagingReadiness.clear();
+            lastGeneratedOverlayStagingRuleCount = 0;
+            lastGeneratedOverlayManifestVerified = false;
+            lastGeneratedOverlayPublishAllowed = false;
+            lastGeneratedOverlayManifestHash.clear();
             writeStatus(
                 hwnd,
                 "capturing",
@@ -483,6 +521,13 @@ void workerLoop(HWND hwnd)
             const bool dslDraftWritten = dslDraftPackage.ok && strategic_nexus::common::writeTextFileAtomically(
                 g_dslDraftPath,
                 dslDraftPackage.dslText);
+            const auto generatedOverlayStagingStatus = dslDraftWritten
+                ? generatedOverlayStager.stage(g_dslDraftPath, g_generatedOverlayStagingDirectory)
+                : strategic_nexus::SncGeneratedOverlayStagingStatus{};
+            const bool generatedOverlayStagingStatusWritten = dslDraftWritten &&
+                strategic_nexus::common::writeTextFileAtomically(
+                    g_generatedOverlayStagingStatusPath,
+                    strategic_nexus::serializeSncGeneratedOverlayStagingStatus(generatedOverlayStagingStatus));
             postPlayState = "blocked_by_archive_verification";
             lastEntryPointAnalysisPath.clear();
             lastEntryPointCount = entryPointAnalysis.entryPointCount;
@@ -503,6 +548,13 @@ void workerLoop(HWND hwnd)
             lastDslDraftReadiness = dslDraftPackage.readiness;
             lastDslDraftRuleCount = dslDraftPackage.dslRuleCount;
             lastDslDraftValidatorPassed = dslDraftPackage.validatorPassed;
+            lastGeneratedOverlayStagingDirectory.clear();
+            lastGeneratedOverlayStagingStatusPath.clear();
+            lastGeneratedOverlayStagingReadiness = generatedOverlayStagingStatus.readiness;
+            lastGeneratedOverlayStagingRuleCount = generatedOverlayStagingStatus.dslRuleCount;
+            lastGeneratedOverlayManifestVerified = generatedOverlayStagingStatus.manifestVerified;
+            lastGeneratedOverlayPublishAllowed = generatedOverlayStagingStatus.publishAllowed;
+            lastGeneratedOverlayManifestHash = generatedOverlayStagingStatus.manifestHash;
             if (archiveVerified) {
                 if (!entryPointAnalysisWritten) {
                     postPlayState = "entry_point_analysis_write_failed";
@@ -516,6 +568,12 @@ void workerLoop(HWND hwnd)
                     postPlayState = "dsl_draft_audit_write_failed";
                 } else if (dslDraftPackage.ok && !dslDraftWritten) {
                     postPlayState = "dsl_draft_write_failed";
+                } else if (dslDraftWritten && !generatedOverlayStagingStatusWritten) {
+                    postPlayState = "generated_overlay_staging_status_write_failed";
+                } else if (dslDraftWritten && generatedOverlayStagingStatus.ok) {
+                    postPlayState = "generated_overlay_staged";
+                } else if (dslDraftWritten) {
+                    postPlayState = "generated_overlay_staging_failed";
                 } else if (dslDraftPackage.ok && dslDraftPackage.readiness.rfind("ready", 0) == 0) {
                     postPlayState = "dsl_draft_ready";
                 } else if (dslDraftPackage.readiness == "needs_identity") {
@@ -557,6 +615,12 @@ void workerLoop(HWND hwnd)
                 if (dslDraftWritten) {
                     lastDslDraftPath = g_dslDraftPath;
                 }
+                if (generatedOverlayStagingStatus.ok) {
+                    lastGeneratedOverlayStagingDirectory = g_generatedOverlayStagingDirectory;
+                }
+                if (generatedOverlayStagingStatusWritten) {
+                    lastGeneratedOverlayStagingStatusPath = g_generatedOverlayStagingStatusPath;
+                }
             }
             const std::string reason = verification.ok
                 ? "Stellaris skoncil; archiv je overeny a SNC post-play balicky jsou aktualizovane."
@@ -593,7 +657,14 @@ void workerLoop(HWND hwnd)
                 lastDslDraftAuditPath,
                 lastDslDraftReadiness,
                 lastDslDraftRuleCount,
-                lastDslDraftValidatorPassed);
+                lastDslDraftValidatorPassed,
+                lastGeneratedOverlayStagingDirectory,
+                lastGeneratedOverlayStagingStatusPath,
+                lastGeneratedOverlayStagingReadiness,
+                lastGeneratedOverlayStagingRuleCount,
+                lastGeneratedOverlayManifestVerified,
+                lastGeneratedOverlayPublishAllowed,
+                lastGeneratedOverlayManifestHash);
         } else {
             writeStatus(
                 hwnd,
@@ -626,7 +697,14 @@ void workerLoop(HWND hwnd)
                 lastDslDraftAuditPath,
                 lastDslDraftReadiness,
                 lastDslDraftRuleCount,
-                lastDslDraftValidatorPassed);
+                lastDslDraftValidatorPassed,
+                lastGeneratedOverlayStagingDirectory,
+                lastGeneratedOverlayStagingStatusPath,
+                lastGeneratedOverlayStagingReadiness,
+                lastGeneratedOverlayStagingRuleCount,
+                lastGeneratedOverlayManifestVerified,
+                lastGeneratedOverlayPublishAllowed,
+                lastGeneratedOverlayManifestHash);
         }
 
         wasRunning = running;
@@ -664,7 +742,14 @@ void workerLoop(HWND hwnd)
         lastDslDraftAuditPath,
         lastDslDraftReadiness,
         lastDslDraftRuleCount,
-        lastDslDraftValidatorPassed);
+        lastDslDraftValidatorPassed,
+        lastGeneratedOverlayStagingDirectory,
+        lastGeneratedOverlayStagingStatusPath,
+        lastGeneratedOverlayStagingReadiness,
+        lastGeneratedOverlayStagingRuleCount,
+        lastGeneratedOverlayManifestVerified,
+        lastGeneratedOverlayPublishAllowed,
+        lastGeneratedOverlayManifestHash);
 }
 
 bool addTrayIcon(HWND hwnd)
@@ -800,6 +885,8 @@ void initializePaths()
     g_candidateDecisionPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_candidate_decision_package.json";
     g_dslDraftPath = g_repoRoot / "dist" / "private_reports" / "snc_validated_dsl_draft.dsl";
     g_dslDraftAuditPath = g_repoRoot / "dist" / "private_reports" / "snc_dsl_draft_package.json";
+    g_generatedOverlayStagingDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staged";
+    g_generatedOverlayStagingStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staging_status.json";
 }
 
 } // namespace

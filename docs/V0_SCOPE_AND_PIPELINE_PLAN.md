@@ -315,6 +315,8 @@ Current progress:
 * V0 CLI harnesses may still accept explicit `campaign_id`, `empire_id`, ministry, or `input.dsl` values for testing, but final SNC behavior must derive or confirm campaign/empire identity and construct the bounded decision/DSL path internally.
 * `Strategic Nexus.exe --build-snc-dsl-draft-package <candidate_package.json> <draft.dsl> <audit.json>` builds the first validated dry-run DSL draft from candidate decisions that have parsed entry-point identity.
 * The DSL draft slice remains conservative: it emits only marker/fingerprint/date-gated `doctrine_inertia high` proposals, writes an audit package, and explicitly keeps overlay compile/publish disabled.
+* `Strategic Nexus.exe --stage-snc-generated-overlay <draft.dsl> <staging_dir> <status.json>` converts a validated SNC DSL draft into a clean verified generated-overlay staging snapshot and status JSON, but keeps `publish_allowed=false`.
+* SNC tray now also writes `snc_generated_overlay_staged/` and `snc_generated_overlay_staging_status.json` after a valid DSL draft; this is still a private staging gate, not active mod publication.
 * SNC tray now updates `snc_dsl_draft_package.json` and `snc_validated_dsl_draft.dsl` after post-play candidate generation when enough parsed identity is available.
 * Observed live-relevant save names include `autosave_YYYY.MM.DD.sav` and `ironman.sav`; `continue_game.json` is only a hint and can point at a save stem that is not currently present on disk.
 * `tools/build_snc_tray.ps1`, `tools/run_snc_tray.ps1`, and `tools/smoke_snc_tray.ps1` provide the first native tray companion slice for owner validation before a real Stellaris session test.

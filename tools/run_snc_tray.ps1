@@ -19,7 +19,7 @@ if ($existing) {
     exit 0
 }
 
-$process = Start-Process -FilePath $exePath -WorkingDirectory $repoRoot -PassThru
+$process = Start-Process -FilePath $exePath -WorkingDirectory $repoRoot -WindowStyle Hidden -PassThru
 Write-Host "snc_tray_started=true"
 Write-Host ("snc_tray_process_id=" + $process.Id)
 Write-Host ("snc_tray_exe=" + $exePath)

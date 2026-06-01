@@ -19,6 +19,7 @@
 #include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
 #include "SncDslDraftPackageBuilder.h"
+#include "SncGeneratedOverlayStager.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "StrategicNexusCompanion.h"
@@ -567,6 +568,21 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         if (argc > 4) {
             config.sncDslDraftAuditOutputPath = argv[4];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--stage-snc-generated-overlay") {
+        config.stageSncGeneratedOverlayMode = true;
+
+        if (argc > 2) {
+            config.sncGeneratedOverlayDslPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncGeneratedOverlayStagingDirectory = argv[3];
+        }
+        if (argc > 4) {
+            config.sncGeneratedOverlayStagingStatusOutputPath = argv[4];
         }
         return config;
     }
@@ -2666,6 +2682,40 @@ int Application::run(const RunConfig& config) const
             }
             if (!auditWritten) {
                 std::cout << "snc_dsl_draft_package_audit_write_reason=failed to write DSL draft audit\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.stageSncGeneratedOverlayMode) {
+            if (config.sncGeneratedOverlayDslPath.empty() ||
+                config.sncGeneratedOverlayStagingDirectory.empty() ||
+                config.sncGeneratedOverlayStagingStatusOutputPath.empty()) {
+                std::cout << "snc_generated_overlay_stage_success=false\n";
+                std::cout << "snc_generated_overlay_stage_reason=missing DSL path, staging directory, or status output path\n";
+                return 1;
+            }
+
+            const SncGeneratedOverlayStager stager;
+            const auto status = stager.stage(
+                config.sncGeneratedOverlayDslPath,
+                config.sncGeneratedOverlayStagingDirectory);
+            const bool statusWritten = common::writeTextFileAtomically(
+                config.sncGeneratedOverlayStagingStatusOutputPath,
+                serializeSncGeneratedOverlayStagingStatus(status));
+            const bool success = status.ok && statusWritten;
+
+            std::cout << "snc_generated_overlay_stage_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_stage_reason=" << sanitizeCliValue(status.reason) << "\n";
+            std::cout << "snc_generated_overlay_stage_readiness=" << sanitizeCliValue(status.readiness) << "\n";
+            std::cout << "snc_generated_overlay_stage_dsl_rules=" << status.dslRuleCount << "\n";
+            std::cout << "snc_generated_overlay_stage_validator_passed=" << (status.validatorPassed ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_stage_manifest_verified=" << (status.manifestVerified ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_stage_manifest_hash=" << sanitizeCliValue(status.manifestHash) << "\n";
+            std::cout << "snc_generated_overlay_stage_publish_allowed=" << (status.publishAllowed ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_stage_publishes_overlay=" << (status.publishesOverlay ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_stage_status_output_written=" << (statusWritten ? "true" : "false") << "\n";
+            if (!statusWritten) {
+                std::cout << "snc_generated_overlay_stage_status_write_reason=failed to write staging status\n";
             }
             return success ? 0 : 1;
         }
