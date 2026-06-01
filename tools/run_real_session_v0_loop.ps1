@@ -1592,6 +1592,8 @@ if ($ExportMpPackage) {
         ""
         "## MP Package"
         "- Readiness: $mpExportReadiness"
+        "- Host readiness: $mpExportHostReadiness"
+        "- Client readiness gate: $mpExportClientReadinessGate"
         "- Manifest hash: $mpExportManifestHash"
         "- Warning count: $mpExportWarningCount"
         "- Mismatch warning state: $mpPackageMismatchWarningState"
