@@ -187,6 +187,7 @@
     <ClCompile Include="src\PostPlayPackageBuilder.cpp" />
     <ClCompile Include="src\SaveParser.cpp" />
     <ClCompile Include="src\SaveEntryPointAnalyzer.cpp" />
+    <ClCompile Include="src\SncCandidateDecisionPackageBuilder.cpp" />
     <ClCompile Include="src\SncDecisionInputPackageBuilder.cpp" />
     <ClCompile Include="src\SeasonDeltaLedgerBuilder.cpp" />
     <ClCompile Include="src\SeasonEmpireBriefBuilder.cpp" />
@@ -243,6 +244,7 @@
     <ClInclude Include="src\PostPlayPackageBuilder.h" />
     <ClInclude Include="src\SaveParser.h" />
     <ClInclude Include="src\SaveEntryPointAnalyzer.h" />
+    <ClInclude Include="src\SncCandidateDecisionPackageBuilder.h" />
     <ClInclude Include="src\SncDecisionInputPackageBuilder.h" />
     <ClInclude Include="src\SeasonDeltaLedgerBuilder.h" />
     <ClInclude Include="src\SeasonEmpireBriefBuilder.h" />

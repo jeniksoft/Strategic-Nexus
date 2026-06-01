@@ -16,6 +16,7 @@
 #include "AutosaveArchiver.h"
 #include "PostPlayPackageBuilder.h"
 #include "SaveEntryPointAnalyzer.h"
+#include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
@@ -57,6 +58,7 @@ std::filesystem::path g_lastSummaryPath;
 std::filesystem::path g_entryPointAnalysisPath;
 std::filesystem::path g_postPlayPackagePath;
 std::filesystem::path g_decisionInputPackagePath;
+std::filesystem::path g_candidateDecisionPackagePath;
 NOTIFYICONDATAW g_trayIcon{};
 UINT g_taskbarCreatedMessage = 0;
 
@@ -220,7 +222,11 @@ void writeStatus(
     const std::size_t postPlayDecisionReadyEntryCount = 0,
     const std::filesystem::path& decisionInputPackagePath = std::filesystem::path(),
     const std::string& decisionInputPackageReadiness = std::string(),
-    const std::size_t decisionInputCount = 0)
+    const std::size_t decisionInputCount = 0,
+    const std::filesystem::path& candidateDecisionPackagePath = std::filesystem::path(),
+    const std::string& candidateDecisionPackageReadiness = std::string(),
+    const std::size_t candidateDecisionCount = 0,
+    const bool candidateDecisionValidatorPassed = false)
 {
     std::ostringstream json;
     json << "{\n";
@@ -249,7 +255,12 @@ void writeStatus(
     json << "  \"post_play_decision_ready_entry_count\": " << postPlayDecisionReadyEntryCount << ",\n";
     json << "  \"decision_input_package_path\": \"" << jsonEscape(pathString(decisionInputPackagePath)) << "\",\n";
     json << "  \"decision_input_package_readiness\": \"" << jsonEscape(decisionInputPackageReadiness) << "\",\n";
-    json << "  \"decision_input_count\": " << decisionInputCount << "\n";
+    json << "  \"decision_input_count\": " << decisionInputCount << ",\n";
+    json << "  \"candidate_decision_package_path\": \"" << jsonEscape(pathString(candidateDecisionPackagePath)) << "\",\n";
+    json << "  \"candidate_decision_package_readiness\": \"" << jsonEscape(candidateDecisionPackageReadiness) << "\",\n";
+    json << "  \"candidate_decision_count\": " << candidateDecisionCount << ",\n";
+    json << "  \"candidate_decision_validator_passed\": "
+         << (candidateDecisionValidatorPassed ? "true" : "false") << "\n";
     json << "}\n";
 
     const auto text = json.str();
@@ -294,6 +305,7 @@ void workerLoop(HWND hwnd)
     const strategic_nexus::SaveEntryPointAnalyzer entryPointAnalyzer;
     const strategic_nexus::PostPlayPackageBuilder postPlayPackageBuilder;
     const strategic_nexus::SncDecisionInputPackageBuilder decisionInputPackageBuilder;
+    const strategic_nexus::SncCandidateDecisionPackageBuilder candidateDecisionPackageBuilder;
 
     bool wasRunning = false;
     std::string sessionId;
@@ -312,6 +324,10 @@ void workerLoop(HWND hwnd)
     std::filesystem::path lastDecisionInputPackagePath;
     std::string lastDecisionInputPackageReadiness;
     std::size_t lastDecisionInputCount = 0;
+    std::filesystem::path lastCandidateDecisionPackagePath;
+    std::string lastCandidateDecisionPackageReadiness;
+    std::size_t lastCandidateDecisionCount = 0;
+    bool lastCandidateDecisionValidatorPassed = false;
 
     writeStatus(
         hwnd,
@@ -348,6 +364,10 @@ void workerLoop(HWND hwnd)
             lastDecisionInputPackagePath.clear();
             lastDecisionInputPackageReadiness.clear();
             lastDecisionInputCount = 0;
+            lastCandidateDecisionPackagePath.clear();
+            lastCandidateDecisionPackageReadiness.clear();
+            lastCandidateDecisionCount = 0;
+            lastCandidateDecisionValidatorPassed = false;
             writeStatus(
                 hwnd,
                 "capturing",
@@ -423,6 +443,12 @@ void workerLoop(HWND hwnd)
             const bool decisionInputPackageWritten = postPlayPackageWritten && strategic_nexus::common::writeTextFileAtomically(
                 g_decisionInputPackagePath,
                 strategic_nexus::serializeSncDecisionInputPackage(decisionInputPackage));
+            const auto candidateDecisionPackage = decisionInputPackageWritten
+                ? candidateDecisionPackageBuilder.build(decisionInputPackage, g_decisionInputPackagePath)
+                : strategic_nexus::SncCandidateDecisionPackage{};
+            const bool candidateDecisionPackageWritten = decisionInputPackageWritten && strategic_nexus::common::writeTextFileAtomically(
+                g_candidateDecisionPackagePath,
+                strategic_nexus::serializeSncCandidateDecisionPackage(candidateDecisionPackage));
             postPlayState = "blocked_by_archive_verification";
             lastEntryPointAnalysisPath.clear();
             lastEntryPointCount = entryPointAnalysis.entryPointCount;
@@ -434,6 +460,10 @@ void workerLoop(HWND hwnd)
             lastDecisionInputPackagePath.clear();
             lastDecisionInputPackageReadiness = decisionInputPackage.readiness;
             lastDecisionInputCount = decisionInputPackage.decisionInputCount;
+            lastCandidateDecisionPackagePath.clear();
+            lastCandidateDecisionPackageReadiness = candidateDecisionPackage.readiness;
+            lastCandidateDecisionCount = candidateDecisionPackage.candidateDecisionCount;
+            lastCandidateDecisionValidatorPassed = candidateDecisionPackage.validatorPassed;
             if (archiveVerified) {
                 if (!entryPointAnalysisWritten) {
                     postPlayState = "entry_point_analysis_write_failed";
@@ -441,6 +471,12 @@ void workerLoop(HWND hwnd)
                     postPlayState = "post_play_package_write_failed";
                 } else if (!decisionInputPackageWritten) {
                     postPlayState = "decision_input_package_write_failed";
+                } else if (!candidateDecisionPackageWritten) {
+                    postPlayState = "candidate_decision_package_write_failed";
+                } else if (candidateDecisionPackage.ok && candidateDecisionPackage.readiness.rfind("ready", 0) == 0) {
+                    postPlayState = "candidate_decision_package_ready";
+                } else if (candidateDecisionPackage.ok) {
+                    postPlayState = "candidate_decision_package_attention";
                 } else if (decisionInputPackage.ok && decisionInputPackage.readiness.rfind("ready", 0) == 0) {
                     postPlayState = "decision_input_package_ready";
                 } else if (decisionInputPackage.ok) {
@@ -465,9 +501,12 @@ void workerLoop(HWND hwnd)
                 if (decisionInputPackageWritten) {
                     lastDecisionInputPackagePath = g_decisionInputPackagePath;
                 }
+                if (candidateDecisionPackageWritten) {
+                    lastCandidateDecisionPackagePath = g_candidateDecisionPackagePath;
+                }
             }
             const std::string reason = verification.ok
-                ? "Stellaris skoncil; archiv je overeny a decision input balicek je pripraveny."
+                ? "Stellaris skoncil; archiv je overeny a candidate decision balicek je pripraveny."
                 : "Stellaris skoncil; archiv vyzaduje pozornost: " + verification.reason;
 
             writeStatus(
@@ -492,7 +531,11 @@ void workerLoop(HWND hwnd)
                 lastPostPlayDecisionReadyEntryCount,
                 lastDecisionInputPackagePath,
                 lastDecisionInputPackageReadiness,
-                lastDecisionInputCount);
+                lastDecisionInputCount,
+                lastCandidateDecisionPackagePath,
+                lastCandidateDecisionPackageReadiness,
+                lastCandidateDecisionCount,
+                lastCandidateDecisionValidatorPassed);
         } else {
             writeStatus(
                 hwnd,
@@ -516,7 +559,11 @@ void workerLoop(HWND hwnd)
                 lastPostPlayDecisionReadyEntryCount,
                 lastDecisionInputPackagePath,
                 lastDecisionInputPackageReadiness,
-                lastDecisionInputCount);
+                lastDecisionInputCount,
+                lastCandidateDecisionPackagePath,
+                lastCandidateDecisionPackageReadiness,
+                lastCandidateDecisionCount,
+                lastCandidateDecisionValidatorPassed);
         }
 
         wasRunning = running;
@@ -545,7 +592,11 @@ void workerLoop(HWND hwnd)
         lastPostPlayDecisionReadyEntryCount,
         lastDecisionInputPackagePath,
         lastDecisionInputPackageReadiness,
-        lastDecisionInputCount);
+        lastDecisionInputCount,
+        lastCandidateDecisionPackagePath,
+        lastCandidateDecisionPackageReadiness,
+        lastCandidateDecisionCount,
+        lastCandidateDecisionValidatorPassed);
 }
 
 bool addTrayIcon(HWND hwnd)
@@ -678,6 +729,7 @@ void initializePaths()
     g_entryPointAnalysisPath = g_repoRoot / "dist" / "private_reports" / "snc_entry_point_analysis.json";
     g_postPlayPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_post_play_package.json";
     g_decisionInputPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_decision_input_package.json";
+    g_candidateDecisionPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_candidate_decision_package.json";
 }
 
 } // namespace

@@ -45,6 +45,7 @@ struct RunConfig {
     bool analyzeSaveEntryPointsMode = false;
     bool buildPostPlayPackageMode = false;
     bool buildSncDecisionInputPackageMode = false;
+    bool buildSncCandidateDecisionPackageMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -122,6 +123,8 @@ struct RunConfig {
     std::vector<std::filesystem::path> postPlayPackageSaveRoots;
     std::filesystem::path sncDecisionInputPostPlayPackagePath;
     std::filesystem::path sncDecisionInputOutputPath;
+    std::filesystem::path sncCandidateDecisionInputPackagePath;
+    std::filesystem::path sncCandidateDecisionOutputPath;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;

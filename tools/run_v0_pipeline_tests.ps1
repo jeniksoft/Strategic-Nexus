@@ -230,6 +230,21 @@ $sncDecisionInputPackageBuilderSourceFiles = @(
     (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
     (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
+$sncCandidateDecisionPackageBuilderExePath = Join-Path $repoRoot "dist/snc_candidate_decision_package_builder_test.exe"
+$sncCandidateDecisionPackageBuilderSourceFiles = @(
+    (Join-Path $repoRoot "tests/snc_candidate_decision_package_builder_test.cpp"),
+    (Join-Path $repoRoot "src/SncCandidateDecisionPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src/SncDecisionInputPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src/PostPlayPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src/SaveEntryPointAnalyzer.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiveSummarizer.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiveVerifier.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),
+    (Join-Path $repoRoot "src/SaveParser.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
 $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_companion_test.exe"
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
@@ -287,6 +302,7 @@ try {
     Invoke-ClCompile -Name "save_entry_point_analyzer_test" -SourceFiles $saveEntryPointAnalyzerSourceFiles -OutputPath $saveEntryPointAnalyzerExePath
     Invoke-ClCompile -Name "post_play_package_builder_test" -SourceFiles $postPlayPackageBuilderSourceFiles -OutputPath $postPlayPackageBuilderExePath
     Invoke-ClCompile -Name "snc_decision_input_package_builder_test" -SourceFiles $sncDecisionInputPackageBuilderSourceFiles -OutputPath $sncDecisionInputPackageBuilderExePath
+    Invoke-ClCompile -Name "snc_candidate_decision_package_builder_test" -SourceFiles $sncCandidateDecisionPackageBuilderSourceFiles -OutputPath $sncCandidateDecisionPackageBuilderExePath
     Invoke-ClCompile -Name "strategic_nexus_companion_test" -SourceFiles $strategicNexusCompanionSourceFiles -OutputPath $strategicNexusCompanionExePath
 } finally {
     Pop-Location
@@ -2878,6 +2894,11 @@ if ($LASTEXITCODE -ne 0) {
 & $sncDecisionInputPackageBuilderExePath
 if ($LASTEXITCODE -ne 0) {
     throw "SNC decision input package builder tests failed."
+}
+
+& $sncCandidateDecisionPackageBuilderExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC candidate decision package builder tests failed."
 }
 
 & $strategicNexusCompanionExePath

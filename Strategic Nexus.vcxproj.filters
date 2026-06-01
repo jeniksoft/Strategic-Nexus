@@ -147,6 +147,9 @@
     <ClCompile Include="src\SaveEntryPointAnalyzer.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\SncCandidateDecisionPackageBuilder.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\SncDecisionInputPackageBuilder.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -309,6 +312,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\SaveEntryPointAnalyzer.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SncCandidateDecisionPackageBuilder.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\SncDecisionInputPackageBuilder.h">

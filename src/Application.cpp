@@ -16,6 +16,7 @@
 #include "SeasonEmpireBriefBuilder.h"
 #include "SaveParser.h"
 #include "SaveEntryPointAnalyzer.h"
+#include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
@@ -538,6 +539,18 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         if (argc > 3) {
             config.sncDecisionInputOutputPath = argv[3];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--build-snc-candidate-decision-package") {
+        config.buildSncCandidateDecisionPackageMode = true;
+
+        if (argc > 2) {
+            config.sncCandidateDecisionInputPackagePath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncCandidateDecisionOutputPath = argv[3];
         }
         return config;
     }
@@ -2533,6 +2546,53 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_decision_input_package_output_written=" << (written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "snc_decision_input_package_write_reason=failed to write decision input package\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.buildSncCandidateDecisionPackageMode) {
+            if (config.sncCandidateDecisionInputPackagePath.empty() ||
+                config.sncCandidateDecisionOutputPath.empty()) {
+                std::cout << "snc_candidate_decision_package_success=false\n";
+                std::cout << "snc_candidate_decision_package_reason=missing decision input package path or output path\n";
+                return 1;
+            }
+
+            std::string decisionInputJson;
+            if (!common::tryReadTextFile(config.sncCandidateDecisionInputPackagePath, decisionInputJson)) {
+                std::cout << "snc_candidate_decision_package_success=false\n";
+                std::cout << "snc_candidate_decision_package_reason=failed to read decision input package\n";
+                return 1;
+            }
+
+            const auto readResult = parseSncDecisionInputPackageJson(decisionInputJson);
+            if (!readResult.ok) {
+                std::cout << "snc_candidate_decision_package_success=false\n";
+                std::cout << "snc_candidate_decision_package_reason=" << sanitizeCliValue(readResult.reason) << "\n";
+                return 1;
+            }
+
+            const SncCandidateDecisionPackageBuilder builder;
+            const auto package = builder.build(
+                readResult.package,
+                config.sncCandidateDecisionInputPackagePath);
+            const bool written = common::writeTextFileAtomically(
+                config.sncCandidateDecisionOutputPath,
+                serializeSncCandidateDecisionPackage(package));
+            const bool success = package.ok && written;
+
+            std::cout << "snc_candidate_decision_package_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_candidate_decision_package_reason=" << sanitizeCliValue(package.reason) << "\n";
+            std::cout << "snc_candidate_decision_package_readiness=" << sanitizeCliValue(package.readiness) << "\n";
+            std::cout << "snc_candidate_decision_package_candidate_decisions=" << package.candidateDecisionCount << "\n";
+            std::cout << "snc_candidate_decision_package_accepted_candidates=" << package.acceptedCandidateCount << "\n";
+            std::cout << "snc_candidate_decision_package_rejected_candidates=" << package.rejectedCandidateCount << "\n";
+            std::cout << "snc_candidate_decision_package_blocked_source_entries=" << package.blockedSourceEntryCount << "\n";
+            std::cout << "snc_candidate_decision_package_validator_passed=" << (package.validatorPassed ? "true" : "false") << "\n";
+            std::cout << "snc_candidate_decision_package_dry_run_only=" << (package.dryRunOnly ? "true" : "false") << "\n";
+            std::cout << "snc_candidate_decision_package_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "snc_candidate_decision_package_write_reason=failed to write candidate decision package\n";
             }
             return success ? 0 : 1;
         }
