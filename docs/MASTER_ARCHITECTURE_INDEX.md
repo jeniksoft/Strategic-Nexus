@@ -55,6 +55,7 @@ In progress:
 * host-authoritative multiplayer architecture
 * offline campaign analysis architecture for autosave archiving and next-session mod refresh
 * local owner Task Board / tray helper for Codex coordination
+* production companion tray app prototype (`StrategicNexusCompanionTray.exe`)
 
 Not started:
 
@@ -63,7 +64,7 @@ Not started:
 * ministerial reasoning pipeline implementation
 * strategic memory library implementation
 * real gameplay balancing effects
-* production companion tray app implementation
+* production companion tray app release UX polish and lifecycle completeness
 
 ---
 
@@ -72,7 +73,7 @@ Not started:
 Core documents:
 
 * [PROJECT_VISION.md](PROJECT_VISION.md) - project philosophy and hard boundaries
-* [ARCHITECTURE.md](ARCHITECTURE.md) - three-layer architecture and fail-safe split
+* [ARCHITECTURE.md](ARCHITECTURE.md) - four-layer architecture and fail-safe split
 * [V0_SCOPE_AND_PIPELINE_PLAN.md](V0_SCOPE_AND_PIPELINE_PLAN.md) - bounded v0 scope and offline validator pipeline boundary
 * [OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md](OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md) - revised session-to-session architecture, autosave archiving, campaign analysis, and next-session mod refresh
 * [CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md](CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md) - target release orchestrator architecture for minimal mandatory user interaction
