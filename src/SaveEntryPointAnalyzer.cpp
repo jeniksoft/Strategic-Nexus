@@ -4,6 +4,7 @@
 #include "SaveEntryPointAnalyzer.h"
 
 #include "AutosaveArchiveVerifier.h"
+#include "SaveParser.h"
 
 #include <algorithm>
 #include <cctype>
@@ -252,6 +253,8 @@ std::string campaignKeyFromArchivedFilename(const std::filesystem::path& archive
     return stableKeyFromName(stem);
 }
 
+void addWarning(std::vector<std::string>& warnings, const std::string& warning);
+
 SaveEntryPoint makeEntryPoint(
     const std::filesystem::path& saveRoot,
     const std::filesystem::path& savePath)
@@ -279,6 +282,36 @@ SaveEntryPoint makeEntryPoint(
     }
 
     entry.parseStatus = entry.saveDate.empty() ? "needs_deferred_parse" : "fast_filename_scan";
+
+    const SaveParser parser;
+    const auto parsed = parser.parseSummary(savePath);
+    entry.empireState.parsed = parsed.ok;
+    entry.empireState.parserReason = parsed.reason;
+    entry.empireState.playerCountryId = parsed.playerCountryId;
+    entry.empireState.empireName = parsed.empireName;
+    entry.empireState.government = parsed.government;
+    entry.empireState.authority = parsed.authority;
+    entry.empireState.founderSpeciesName = parsed.founderSpeciesName;
+    entry.empireState.capitalPlanetName = parsed.capitalPlanetName;
+    entry.empireState.homeSystemName = parsed.homeSystemName;
+    entry.empireState.ownedFleetCount = parsed.ownedFleetCount;
+    entry.empireState.activeWarCount = parsed.activeWarCount;
+    entry.empireState.missingFields = parsed.missingFields;
+    entry.empireState.uncertainties = parsed.uncertainties;
+    if (parsed.ok) {
+        entry.parseStatus = "headline_parsed";
+        entry.playerCountryId = parsed.playerCountryId;
+        entry.empireName = parsed.empireName;
+        if (!parsed.saveDate.empty()) {
+            entry.saveDate = parsed.saveDate;
+        }
+    } else {
+        entry.empireState.parseStatus = entry.parseStatus;
+        addWarning(entry.warningCodes, "entry_point_headline_parse_unavailable");
+    }
+    if (entry.empireState.parseStatus.empty()) {
+        entry.empireState.parseStatus = entry.parseStatus;
+    }
 
     entry.id =
         entry.campaignKey + "::" + stableKeyFromName(entry.saveName) + "::" +
@@ -579,6 +612,22 @@ std::string serializeSaveEntryPointAnalysis(const SaveEntryPointAnalysis& analys
         json << "      \"parse_status\": \"" << jsonEscape(entry.parseStatus) << "\",\n";
         json << "      \"player_country_id\": \"" << jsonEscape(entry.playerCountryId) << "\",\n";
         json << "      \"empire_name\": \"" << jsonEscape(entry.empireName) << "\",\n";
+        json << "      \"empire_state_parsed\": " << (entry.empireState.parsed ? "true" : "false") << ",\n";
+        json << "      \"empire_state_parse_status\": \"" << jsonEscape(entry.empireState.parseStatus) << "\",\n";
+        json << "      \"empire_state_parser_reason\": \"" << jsonEscape(entry.empireState.parserReason) << "\",\n";
+        json << "      \"empire_state_government\": \"" << jsonEscape(entry.empireState.government) << "\",\n";
+        json << "      \"empire_state_authority\": \"" << jsonEscape(entry.empireState.authority) << "\",\n";
+        json << "      \"empire_state_founder_species_name\": \"" << jsonEscape(entry.empireState.founderSpeciesName) << "\",\n";
+        json << "      \"empire_state_capital_planet_name\": \"" << jsonEscape(entry.empireState.capitalPlanetName) << "\",\n";
+        json << "      \"empire_state_home_system_name\": \"" << jsonEscape(entry.empireState.homeSystemName) << "\",\n";
+        json << "      \"empire_state_owned_fleet_count\": " << entry.empireState.ownedFleetCount << ",\n";
+        json << "      \"empire_state_active_war_count\": " << entry.empireState.activeWarCount << ",\n";
+        json << "      \"empire_state_missing_fields\": ";
+        writeStringArray(json, entry.empireState.missingFields);
+        json << ",\n";
+        json << "      \"empire_state_uncertainties\": ";
+        writeStringArray(json, entry.empireState.uncertainties);
+        json << ",\n";
         json << "      \"compatible_archived_evidence_count\": " << entry.compatibleArchivedEvidenceCount << ",\n";
         json << "      \"later_archived_evidence_count\": " << entry.laterArchivedEvidenceCount << ",\n";
         json << "      \"analysis_state\": \"" << jsonEscape(entry.analysisState) << "\",\n";

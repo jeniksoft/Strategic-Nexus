@@ -27,6 +27,10 @@ struct SncCandidateDecision {
     std::string saveName;
     std::string saveDate;
     std::string contentHash;
+    std::string parseStatus;
+    std::string playerCountryId;
+    std::string empireName;
+    SaveEmpireStateSummary empireState;
     std::string candidateSource = "deterministic_v0_stub";
     std::string recommendedAction = "observe_only";
     std::string militaryPosture = "preserve";

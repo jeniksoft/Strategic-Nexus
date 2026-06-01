@@ -202,6 +202,23 @@ PostPlayPackageEntry parseEntry(const std::string& json)
     entry.saveName = stringOrEmpty(json, "save_name");
     entry.saveDate = stringOrEmpty(json, "save_date");
     entry.contentHash = stringOrEmpty(json, "content_hash");
+    entry.parseStatus = stringOrEmpty(json, "parse_status");
+    entry.playerCountryId = stringOrEmpty(json, "player_country_id");
+    entry.empireName = stringOrEmpty(json, "empire_name");
+    entry.empireState.parsed = extractJsonBool(json, "empire_state_parsed").value_or(false);
+    entry.empireState.parseStatus = stringOrEmpty(json, "empire_state_parse_status");
+    entry.empireState.parserReason = stringOrEmpty(json, "empire_state_parser_reason");
+    entry.empireState.playerCountryId = entry.playerCountryId;
+    entry.empireState.empireName = entry.empireName;
+    entry.empireState.government = stringOrEmpty(json, "empire_state_government");
+    entry.empireState.authority = stringOrEmpty(json, "empire_state_authority");
+    entry.empireState.founderSpeciesName = stringOrEmpty(json, "empire_state_founder_species_name");
+    entry.empireState.capitalPlanetName = stringOrEmpty(json, "empire_state_capital_planet_name");
+    entry.empireState.homeSystemName = stringOrEmpty(json, "empire_state_home_system_name");
+    entry.empireState.ownedFleetCount = extractJsonSize(json, "empire_state_owned_fleet_count").value_or(0);
+    entry.empireState.activeWarCount = extractJsonSize(json, "empire_state_active_war_count").value_or(0);
+    entry.empireState.missingFields = common::extractJsonStringArray(json, "empire_state_missing_fields");
+    entry.empireState.uncertainties = common::extractJsonStringArray(json, "empire_state_uncertainties");
     entry.analysisState = stringOrEmpty(json, "analysis_state");
     entry.decisionInputState = stringOrEmpty(json, "decision_input_state");
     entry.ruleScope = stringOrEmpty(json, "rule_scope");
@@ -226,6 +243,10 @@ SncDecisionInput buildDecisionInput(const PostPlayPackageEntry& entry)
     input.saveName = entry.saveName;
     input.saveDate = entry.saveDate;
     input.contentHash = entry.contentHash;
+    input.parseStatus = entry.parseStatus;
+    input.playerCountryId = entry.playerCountryId;
+    input.empireName = entry.empireName;
+    input.empireState = entry.empireState;
     input.evidencePolicy = entry.evidencePolicy;
     input.futureEvidenceExcluded = entry.futureEvidenceExcluded;
     input.compatibleArchivedEvidenceCount = entry.compatibleArchivedEvidenceCount;
@@ -238,13 +259,24 @@ SncDecisionInput buildDecisionInput(const PostPlayPackageEntry& entry)
     input.knownFacts.push_back("save_name:" + entry.saveName);
     input.knownFacts.push_back("save_date:" + entry.saveDate);
     input.knownFacts.push_back("content_hash_prefix:" + hashPrefix(entry.contentHash));
+    input.knownFacts.push_back("parse_status:" + entry.parseStatus);
     input.knownFacts.push_back("evidence_policy:" + entry.evidencePolicy);
     input.knownFacts.push_back(countFact("compatible_archived_evidence_count", entry.compatibleArchivedEvidenceCount));
     input.knownFacts.push_back(countFact("later_archived_evidence_excluded_count", entry.laterArchivedEvidenceCount));
     input.knownFacts.push_back(boolFact("future_evidence_excluded", entry.futureEvidenceExcluded));
+    input.knownFacts.push_back(boolFact("empire_state_parsed", entry.empireState.parsed));
+    if (!entry.playerCountryId.empty()) {
+        input.knownFacts.push_back("player_country_id:" + entry.playerCountryId);
+    }
+    if (!entry.empireName.empty()) {
+        input.knownFacts.push_back("empire_name:" + entry.empireName);
+    }
 
-    input.uncertainties.push_back("save_content_not_parsed_yet");
-    input.uncertainties.push_back("empire_identity_not_extracted_yet");
+    if (!entry.empireState.parsed) {
+        input.uncertainties.push_back("empire_state_summary_unavailable");
+    } else {
+        input.uncertainties.push_back("empire_state_summary_is_headline_only");
+    }
     input.uncertainties.push_back("model_output_untrusted_requires_validation");
     if (entry.futureEvidenceExcluded) {
         input.uncertainties.push_back("future_evidence_excluded_for_entry_point");
@@ -428,6 +460,25 @@ std::string serializeSncDecisionInputPackage(const SncDecisionInputPackage& pack
         json << "      \"save_name\": \"" << jsonEscape(input.saveName) << "\",\n";
         json << "      \"save_date\": \"" << jsonEscape(input.saveDate) << "\",\n";
         json << "      \"content_hash\": \"" << jsonEscape(input.contentHash) << "\",\n";
+        json << "      \"parse_status\": \"" << jsonEscape(input.parseStatus) << "\",\n";
+        json << "      \"player_country_id\": \"" << jsonEscape(input.playerCountryId) << "\",\n";
+        json << "      \"empire_name\": \"" << jsonEscape(input.empireName) << "\",\n";
+        json << "      \"empire_state_parsed\": " << (input.empireState.parsed ? "true" : "false") << ",\n";
+        json << "      \"empire_state_parse_status\": \"" << jsonEscape(input.empireState.parseStatus) << "\",\n";
+        json << "      \"empire_state_parser_reason\": \"" << jsonEscape(input.empireState.parserReason) << "\",\n";
+        json << "      \"empire_state_government\": \"" << jsonEscape(input.empireState.government) << "\",\n";
+        json << "      \"empire_state_authority\": \"" << jsonEscape(input.empireState.authority) << "\",\n";
+        json << "      \"empire_state_founder_species_name\": \"" << jsonEscape(input.empireState.founderSpeciesName) << "\",\n";
+        json << "      \"empire_state_capital_planet_name\": \"" << jsonEscape(input.empireState.capitalPlanetName) << "\",\n";
+        json << "      \"empire_state_home_system_name\": \"" << jsonEscape(input.empireState.homeSystemName) << "\",\n";
+        json << "      \"empire_state_owned_fleet_count\": " << input.empireState.ownedFleetCount << ",\n";
+        json << "      \"empire_state_active_war_count\": " << input.empireState.activeWarCount << ",\n";
+        json << "      \"empire_state_missing_fields\": ";
+        writeStringArray(json, input.empireState.missingFields, 6);
+        json << ",\n";
+        json << "      \"empire_state_uncertainties\": ";
+        writeStringArray(json, input.empireState.uncertainties, 6);
+        json << ",\n";
         json << "      \"evidence_policy\": \"" << jsonEscape(input.evidencePolicy) << "\",\n";
         json << "      \"model_output_trusted\": " << (input.modelOutputTrusted ? "true" : "false") << ",\n";
         json << "      \"validation_required\": " << (input.validationRequired ? "true" : "false") << ",\n";

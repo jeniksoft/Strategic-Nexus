@@ -10,6 +10,23 @@
 
 namespace strategic_nexus {
 
+struct SaveEmpireStateSummary {
+    bool parsed = false;
+    std::string parseStatus;
+    std::string parserReason;
+    std::string playerCountryId;
+    std::string empireName;
+    std::string government;
+    std::string authority;
+    std::string founderSpeciesName;
+    std::string capitalPlanetName;
+    std::string homeSystemName;
+    std::size_t ownedFleetCount = 0;
+    std::size_t activeWarCount = 0;
+    std::vector<std::string> missingFields;
+    std::vector<std::string> uncertainties;
+};
+
 struct SaveEntryPoint {
     std::string id;
     std::string campaignKey;
@@ -24,6 +41,7 @@ struct SaveEntryPoint {
     std::string parseStatus;
     std::string playerCountryId;
     std::string empireName;
+    SaveEmpireStateSummary empireState;
     std::size_t compatibleArchivedEvidenceCount = 0;
     std::size_t laterArchivedEvidenceCount = 0;
     std::string analysisState;

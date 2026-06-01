@@ -20,6 +20,10 @@ struct PostPlayPackageEntry {
     std::string saveName;
     std::string saveDate;
     std::string contentHash;
+    std::string parseStatus;
+    std::string playerCountryId;
+    std::string empireName;
+    SaveEmpireStateSummary empireState;
     std::string analysisState;
     std::string decisionInputState;
     std::string ruleScope;

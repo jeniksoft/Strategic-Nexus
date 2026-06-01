@@ -177,6 +177,23 @@ SncDecisionInput parseDecisionInput(const std::string& json)
     input.saveName = stringOrEmpty(json, "save_name");
     input.saveDate = stringOrEmpty(json, "save_date");
     input.contentHash = stringOrEmpty(json, "content_hash");
+    input.parseStatus = stringOrEmpty(json, "parse_status");
+    input.playerCountryId = stringOrEmpty(json, "player_country_id");
+    input.empireName = stringOrEmpty(json, "empire_name");
+    input.empireState.parsed = extractJsonBool(json, "empire_state_parsed").value_or(false);
+    input.empireState.parseStatus = stringOrEmpty(json, "empire_state_parse_status");
+    input.empireState.parserReason = stringOrEmpty(json, "empire_state_parser_reason");
+    input.empireState.playerCountryId = input.playerCountryId;
+    input.empireState.empireName = input.empireName;
+    input.empireState.government = stringOrEmpty(json, "empire_state_government");
+    input.empireState.authority = stringOrEmpty(json, "empire_state_authority");
+    input.empireState.founderSpeciesName = stringOrEmpty(json, "empire_state_founder_species_name");
+    input.empireState.capitalPlanetName = stringOrEmpty(json, "empire_state_capital_planet_name");
+    input.empireState.homeSystemName = stringOrEmpty(json, "empire_state_home_system_name");
+    input.empireState.ownedFleetCount = extractJsonSize(json, "empire_state_owned_fleet_count").value_or(0);
+    input.empireState.activeWarCount = extractJsonSize(json, "empire_state_active_war_count").value_or(0);
+    input.empireState.missingFields = common::extractJsonStringArray(json, "empire_state_missing_fields");
+    input.empireState.uncertainties = common::extractJsonStringArray(json, "empire_state_uncertainties");
     input.evidencePolicy = stringOrEmpty(json, "evidence_policy");
     input.modelOutputTrusted = extractJsonBool(json, "model_output_trusted").value_or(false);
     input.validationRequired = extractJsonBool(json, "validation_required").value_or(true);
@@ -214,14 +231,27 @@ SncCandidateDecision buildCandidateDecision(const SncDecisionInput& input)
     candidate.saveName = input.saveName;
     candidate.saveDate = input.saveDate;
     candidate.contentHash = input.contentHash;
+    candidate.parseStatus = input.parseStatus;
+    candidate.playerCountryId = input.playerCountryId;
+    candidate.empireName = input.empireName;
+    candidate.empireState = input.empireState;
     candidate.knownFacts = input.knownFacts;
     candidate.uncertainties = input.uncertainties;
     candidate.knownFacts.push_back("candidate_source:deterministic_v0_stub");
     candidate.knownFacts.push_back("candidate_action:observe_only");
     candidate.knownFacts.push_back(boolFact("candidate_publishes_overlay", candidate.publishesOverlay));
     candidate.knownFacts.push_back(boolFact("model_output_used", candidate.modelOutputUsed));
-    candidate.uncertainties.push_back("real_strategy_requires_parsed_empire_state");
+    if (!candidate.playerCountryId.empty()) {
+        candidate.knownFacts.push_back("candidate_player_country_id:" + candidate.playerCountryId);
+    }
+    if (!candidate.empireName.empty()) {
+        candidate.knownFacts.push_back("candidate_empire_name:" + candidate.empireName);
+    }
+    candidate.uncertainties.push_back("real_strategy_requires_more_than_headline_state");
     candidate.uncertainties.push_back("candidate_is_not_a_mod_rule");
+    if (!candidate.empireState.parsed) {
+        candidate.uncertainties.push_back("candidate_empire_state_summary_unavailable");
+    }
 
     if (candidate.decisionInputId.empty()) {
         candidate.validationWarnings.push_back("missing_decision_input_id");
@@ -311,6 +341,32 @@ void writeStringArray(std::ostringstream& output, const std::vector<std::string>
         output << indent;
     }
     output << "]";
+}
+
+void writeEmpireStateSummary(std::ostringstream& output, const SaveEmpireStateSummary& summary, const int indentSpaces)
+{
+    const std::string indent(indentSpaces, ' ');
+    const std::string fieldIndent(indentSpaces + 2, ' ');
+    output << "{\n";
+    output << fieldIndent << "\"parsed\": " << (summary.parsed ? "true" : "false") << ",\n";
+    output << fieldIndent << "\"parse_status\": \"" << jsonEscape(summary.parseStatus) << "\",\n";
+    output << fieldIndent << "\"parser_reason\": \"" << jsonEscape(summary.parserReason) << "\",\n";
+    output << fieldIndent << "\"player_country_id\": \"" << jsonEscape(summary.playerCountryId) << "\",\n";
+    output << fieldIndent << "\"empire_name\": \"" << jsonEscape(summary.empireName) << "\",\n";
+    output << fieldIndent << "\"government\": \"" << jsonEscape(summary.government) << "\",\n";
+    output << fieldIndent << "\"authority\": \"" << jsonEscape(summary.authority) << "\",\n";
+    output << fieldIndent << "\"founder_species_name\": \"" << jsonEscape(summary.founderSpeciesName) << "\",\n";
+    output << fieldIndent << "\"capital_planet_name\": \"" << jsonEscape(summary.capitalPlanetName) << "\",\n";
+    output << fieldIndent << "\"home_system_name\": \"" << jsonEscape(summary.homeSystemName) << "\",\n";
+    output << fieldIndent << "\"owned_fleet_count\": " << summary.ownedFleetCount << ",\n";
+    output << fieldIndent << "\"active_war_count\": " << summary.activeWarCount << ",\n";
+    output << fieldIndent << "\"missing_fields\": ";
+    writeStringArray(output, summary.missingFields, indentSpaces + 2);
+    output << ",\n";
+    output << fieldIndent << "\"uncertainties\": ";
+    writeStringArray(output, summary.uncertainties, indentSpaces + 2);
+    output << "\n";
+    output << indent << "}";
 }
 
 } // namespace
@@ -488,6 +544,12 @@ std::string serializeSncCandidateDecisionPackage(const SncCandidateDecisionPacka
         json << "      \"save_name\": \"" << jsonEscape(candidate.saveName) << "\",\n";
         json << "      \"save_date\": \"" << jsonEscape(candidate.saveDate) << "\",\n";
         json << "      \"content_hash\": \"" << jsonEscape(candidate.contentHash) << "\",\n";
+        json << "      \"parse_status\": \"" << jsonEscape(candidate.parseStatus) << "\",\n";
+        json << "      \"player_country_id\": \"" << jsonEscape(candidate.playerCountryId) << "\",\n";
+        json << "      \"empire_name\": \"" << jsonEscape(candidate.empireName) << "\",\n";
+        json << "      \"empire_state_summary\": ";
+        writeEmpireStateSummary(json, candidate.empireState, 6);
+        json << ",\n";
         json << "      \"candidate_source\": \"" << jsonEscape(candidate.candidateSource) << "\",\n";
         json << "      \"recommended_action\": \"" << jsonEscape(candidate.recommendedAction) << "\",\n";
         json << "      \"military_posture\": \"" << jsonEscape(candidate.militaryPosture) << "\",\n";

@@ -130,6 +130,11 @@ int main()
     requireCondition(json.find("\"validator_passed\": true") != std::string::npos, "JSON should expose validator gate");
     requireCondition(json.find("\"candidate_source\": \"deterministic_v0_stub\"") != std::string::npos, "JSON should expose candidate source");
     requireCondition(json.find("\"recommended_action\": \"observe_only\"") != std::string::npos, "JSON should expose observe-only action");
+    requireCondition(json.find("\"empire_state_summary\": {") != std::string::npos, "JSON should include bounded empire state summary");
+    requireCondition(json.find("\"parsed\": false") != std::string::npos, "JSON should expose unavailable parser state for non-save fixtures");
+    requireCondition(
+        json.find("\"candidate_empire_state_summary_unavailable\"") != std::string::npos,
+        "JSON should keep empire-state unavailability as uncertainty, not a crash");
     requireCondition(json.find("\"model_output_used\": false") != std::string::npos, "JSON should expose model output boundary");
     requireCondition(json.find("\"publishes_overlay\": true") == std::string::npos, "JSON must never publish overlay in this slice");
     requireCondition(json.find("\"candidate_decisions\": [") != std::string::npos, "JSON should include candidate decisions");

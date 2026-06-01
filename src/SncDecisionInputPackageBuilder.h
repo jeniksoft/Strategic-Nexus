@@ -26,6 +26,10 @@ struct SncDecisionInput {
     std::string saveName;
     std::string saveDate;
     std::string contentHash;
+    std::string parseStatus;
+    std::string playerCountryId;
+    std::string empireName;
+    SaveEmpireStateSummary empireState;
     std::string evidencePolicy;
     bool modelOutputTrusted = false;
     bool validationRequired = true;

@@ -117,6 +117,10 @@ int main()
     requireCondition(json.find("\"blocked_entry_count\": 1") != std::string::npos, "JSON should expose blocked count");
     requireCondition(json.find("\"model_output_trusted\": false") != std::string::npos, "JSON should expose trust boundary");
     requireCondition(json.find("\"validation_required\": true") != std::string::npos, "JSON should expose validation gate");
+    requireCondition(json.find("\"empire_state_parsed\": false") != std::string::npos, "JSON should expose empire state parse gate");
+    requireCondition(
+        json.find("\"empire_state_parser_reason\": \"save archive extraction failed\"") != std::string::npos,
+        "JSON should expose bounded parser failure reason for non-save fixtures");
     requireCondition(json.find("\"publishes_overlay\": true") == std::string::npos, "JSON must never publish overlay in this slice");
     requireCondition(json.find("\"decision_inputs\": [") != std::string::npos, "JSON should include decision inputs");
     requireCondition(json.find("\"blocked_entries\": [") != std::string::npos, "JSON should include blocked entries");
