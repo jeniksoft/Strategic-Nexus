@@ -1,6 +1,5 @@
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$SaveRoot,
+    [string]$SaveRoot = "auto",
     [Parameter(Mandatory = $true)]
     [string]$ArchiveRoot,
     [Parameter(Mandatory = $true)]
@@ -219,6 +218,93 @@ function Get-NextActionSummary {
     }
 }
 
+function Resolve-SaveRootFromDiscovery {
+    param(
+        [Parameter(Mandatory = $true)][string]$ExePath,
+        [Parameter(Mandatory = $true)][string]$DefaultRunRootPath
+    )
+
+    $discoveryOutputPath = Join-Path $DefaultRunRootPath "save_root_discovery.json"
+    $scanDir = Join-Path $DefaultRunRootPath "save_root_scans"
+    Remove-Item -LiteralPath $discoveryOutputPath -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $scanDir | Out-Null
+
+    $discoveryLines = & $ExePath --discover-stellaris-save-roots $discoveryOutputPath
+    Assert-LastExitCodeOk -StepName "discover stellaris save roots"
+    if (-not (Test-Path -LiteralPath $discoveryOutputPath)) {
+        throw "Save root discovery output is missing: $discoveryOutputPath"
+    }
+
+    $discoveryJson = (Get-Content -Raw -LiteralPath $discoveryOutputPath) | ConvertFrom-Json
+    $best = $null
+    $candidateIndex = 0
+    foreach ($candidate in @($discoveryJson.candidates)) {
+        if ($null -eq $candidate -or $candidate.exists -ne $true -or [string]::IsNullOrWhiteSpace([string]$candidate.path)) {
+            continue
+        }
+
+        $candidatePath = [string]$candidate.path
+        $candidateSource = [string]$candidate.source
+        $scanOutputPath = Join-Path $scanDir ("scan_" + $candidateIndex + ".json")
+        $candidateIndex += 1
+        Remove-Item -LiteralPath $scanOutputPath -Force -ErrorAction SilentlyContinue
+
+        & $ExePath --scan-save-campaigns $candidatePath $scanOutputPath | Out-Null
+        Assert-LastExitCodeOk -StepName ("scan save campaigns for " + $candidateSource)
+        if (-not (Test-Path -LiteralPath $scanOutputPath)) {
+            continue
+        }
+
+        $scanJson = (Get-Content -Raw -LiteralPath $scanOutputPath) | ConvertFrom-Json
+        $campaignCount = 0
+        if ($null -ne $scanJson.campaign_count) {
+            $campaignCount = [int]$scanJson.campaign_count
+        }
+        $saveFileCount = 0
+        $autosaveAnchorCount = 0
+        foreach ($campaign in @($scanJson.campaigns)) {
+            if ($null -ne $campaign.save_file_count) {
+                $saveFileCount += [int]$campaign.save_file_count
+            }
+            $anchorName = ""
+            if ($null -ne $campaign.anchor_save_name) {
+                $anchorName = [string]$campaign.anchor_save_name
+            }
+            if ($anchorName -match '^(?i:autosave).*\.sav$' -or $anchorName -ieq "ironman.sav") {
+                $autosaveAnchorCount += 1
+            }
+        }
+
+        $sourceWeight = 0
+        switch ($candidateSource) {
+            "user_profile_documents" { $sourceWeight = 4 }
+            "steam_cloud_userdata" { $sourceWeight = 3 }
+            "onedrive_dokumenty" { $sourceWeight = 2 }
+            "onedrive_documents" { $sourceWeight = 1 }
+            default { $sourceWeight = 0 }
+        }
+
+        $score = ($autosaveAnchorCount * 1000000000) + ($sourceWeight * 10000000) + ($campaignCount * 100000) + $saveFileCount
+        $candidateResult = [ordered]@{
+            path = [string]$scanJson.root_path
+            source = $candidateSource
+            autosave_anchor_count = $autosaveAnchorCount
+            campaign_count = $campaignCount
+            save_file_count = $saveFileCount
+            score = $score
+        }
+        if ($null -eq $best -or $candidateResult.score -gt $best.score) {
+            $best = $candidateResult
+        }
+    }
+
+    if ($null -eq $best -or [string]::IsNullOrWhiteSpace([string]$best.path)) {
+        throw "SaveRoot=auto could not find any existing Stellaris save root."
+    }
+
+    return $best
+}
+
 function Get-VariableOrDefault {
     param(
         [Parameter(Mandatory = $true)][string]$Name,
@@ -255,6 +341,7 @@ if ([string]::IsNullOrWhiteSpace($SessionId)) {
 $realSessionLoopRunId = "real-session-v0-loop-" + [DateTime]::UtcNow.ToString("yyyyMMddTHHmmssfffZ")
 
 $defaultRunRoot = Join-Path $repoRoot ("dist/real_session_v0_loop/" + $SessionId)
+New-Item -ItemType Directory -Force -Path $defaultRunRoot | Out-Null
 if ([string]::IsNullOrWhiteSpace($WorkDir)) {
     $WorkDir = Join-Path $defaultRunRoot "work"
 }
@@ -275,6 +362,21 @@ if ([string]::IsNullOrWhiteSpace($MpPackageOutputDir)) {
 $exe = Resolve-ExePath -RelativePath "dist/strategic_nexus_app_test.exe"
 if (-not $exe) {
     throw "Missing strategic_nexus_app_test.exe. Tip: run cmd /c tools/run_v0_pipeline_tests.cmd once to build and verify first."
+}
+
+$saveRootResolution = "explicit"
+$saveRootSource = "user_input"
+$saveRootAutoAutosaveAnchorCount = ""
+$saveRootAutoCampaignCount = ""
+$saveRootAutoSaveFileCount = ""
+if ($SaveRoot -eq "auto") {
+    $resolvedSaveRoot = Resolve-SaveRootFromDiscovery -ExePath $exe -DefaultRunRootPath $defaultRunRoot
+    $SaveRoot = [string]$resolvedSaveRoot.path
+    $saveRootResolution = "auto_discovery"
+    $saveRootSource = [string]$resolvedSaveRoot.source
+    $saveRootAutoAutosaveAnchorCount = [string]$resolvedSaveRoot.autosave_anchor_count
+    $saveRootAutoCampaignCount = [string]$resolvedSaveRoot.campaign_count
+    $saveRootAutoSaveFileCount = [string]$resolvedSaveRoot.save_file_count
 }
 
 $saveRootFull = [System.IO.Path]::GetFullPath($SaveRoot)
@@ -309,6 +411,18 @@ Remove-Item -LiteralPath $sessionEvidenceJsonFull -Force -ErrorAction SilentlyCo
 Remove-Item -LiteralPath $statusWithMpOutputJsonFull -Force -ErrorAction SilentlyContinue
 
 Write-Host "==> archive stable saves"
+Write-Host ("real_session_v0_loop_save_root_resolution=" + $saveRootResolution)
+Write-Host ("real_session_v0_loop_save_root_source=" + $saveRootSource)
+Write-Host ("real_session_v0_loop_save_root_path=" + $saveRootFull)
+if (-not [string]::IsNullOrWhiteSpace($saveRootAutoCampaignCount)) {
+    Write-Host ("real_session_v0_loop_save_root_campaign_count=" + $saveRootAutoCampaignCount)
+}
+if (-not [string]::IsNullOrWhiteSpace($saveRootAutoSaveFileCount)) {
+    Write-Host ("real_session_v0_loop_save_root_save_file_count=" + $saveRootAutoSaveFileCount)
+}
+if (-not [string]::IsNullOrWhiteSpace($saveRootAutoAutosaveAnchorCount)) {
+    Write-Host ("real_session_v0_loop_save_root_autosave_anchor_count=" + $saveRootAutoAutosaveAnchorCount)
+}
 & $exe --archive-stable-saves $saveRootFull $archiveRootFull $SessionId $StabilityDelayMs
 Assert-LastExitCodeOk -StepName "archive stable saves"
 
