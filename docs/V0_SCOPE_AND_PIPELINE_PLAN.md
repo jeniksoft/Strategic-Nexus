@@ -309,6 +309,8 @@ Current progress:
 * A campaign folder is a stable save boundary for one campaign, but not a stable preselected active target. Only one campaign is played at a time, but SNC must rescan the whole `save games` tree because the user can switch campaigns or create new campaigns while `stellaris.exe` and SNC are already running.
 * SNC app lifetime is not the capture-session boundary. SNC is expected to run as a tray app; autosave capture sessions are tied to observed `stellaris.exe` play activity.
 * A live capture session may contain sequential autosave segments from multiple campaign folders. V0 analysis must avoid treating the capture session id as the campaign id.
+* A live capture session may contain branch/reload segments inside the same campaign. V0 analysis must avoid treating the latest captured autosave as the only valid future entry point.
+* Post-play v0 must evolve toward entry-point-scoped rules for every currently loadable save in the campaign, using captured autosaves as historical evidence only when compatible with that entry point.
 * During active `stellaris.exe` play, V0 should capture only. After `stellaris.exe` exits, SNC verifies the capture archive, analyzes archived autosaves, and generates/stages new mod rules for the next launch.
 * V0 CLI harnesses may still accept explicit `campaign_id`, `empire_id`, ministry, or `input.dsl` values for testing, but final SNC behavior must derive or confirm campaign/empire identity and construct the bounded decision/DSL path internally.
 * Observed live-relevant save names include `autosave_YYYY.MM.DD.sav` and `ironman.sav`; `continue_game.json` is only a hint and can point at a save stem that is not currently present on disk.

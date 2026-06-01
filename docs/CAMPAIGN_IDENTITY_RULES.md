@@ -64,7 +64,13 @@ The companion app may combine those markers with external archived-save metadata
 Campaign-specific generated rules must be gated by marker checks.
 If the loaded save does not expose the expected marker, the generated campaign rules must be ignored and the base mod must use fallback behavior.
 
+Campaign-specific generated rules are not enough by themselves.
+Rules should also be scoped to a known save entry point or compatible save-state range.
+The user can load an older manual save, autosave, or ironman save after SNC generated new rules.
+If the loaded save does not match the expected entry-point fingerprint, in-game date/state, or marker facts, rules produced from a later branch must remain inert.
+
 The active generated mod overlay may contain rules for multiple known campaigns, but each ruleset must remain marker-guarded.
+It may also contain multiple rulesets for different known entry points within the same campaign, as long as each ruleset is bounded and clearly gated.
 The companion app should remove campaign rules from the active generated overlay when the corresponding local Stellaris save campaign is no longer present.
 This cleanup must not delete archived Strategic Nexus memory unless explicitly requested.
 Strategic Nexus campaign memory is durable on-disk app state; the active generated mod overlay is only a rebuildable projection of that memory.

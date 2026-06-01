@@ -32,6 +32,8 @@ Use `MULTIPLAYER_SEASON_ORCHESTRATOR.md` as the target release direction for low
 
 Use `STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md` for verified Stellaris provider surfaces and the provider-neutral save-root contract.
 
+Use `SAVE_ENTRY_POINT_AND_BRANCH_RULES.md` for entry-point-scoped generated rules, rollback/reload handling, and branch-aware autosave interpretation.
+
 Use `META_RULE_LANGUAGE_AND_COMPILER.md` for the bounded DSL and deterministic compiler that converts LLM proposals into generated mod overlays.
 
 Use `LOCAL_LLM_INTEGRATION_CONTRACT.md` for the model-weights, local runtime, companion Model Manager, validation, reduced-mode, and mod boundary contract.
@@ -213,6 +215,9 @@ Required:
 * read-only Stellaris `.sav` ZIP container reader for `meta` and `gamestate`
 * offline worker skeleton
 * latest-session-only analysis by default
+* loadable save entry-point discovery
+* branch/reload-aware autosave partitioning
+* entry-point-scoped generated rules for every known loadable save
 * payload schema
 * Strategic Nexus DSL parser/validator/compiler skeleton
 * payload validation
@@ -258,6 +263,7 @@ The generated overlay verifier also fails closed on unknown v0 generated overlay
 Live session capture treats campaign folders as dynamic children of `save games`; each pass rescans the whole tree instead of trying to preselect the active campaign folder.
 SNC is planned as a long-running tray app; live capture session boundaries must be derived from observed `stellaris.exe` play activity, not from SNC process lifetime.
 During active `stellaris.exe` play, SNC should only preserve stable autosaves and status. After `stellaris.exe` exits, SNC can verify the archive, analyze captured autosaves, and generate/stage new mod rules for the next launch.
+Post-play analysis must treat captured autosaves as historical evidence and currently loadable saves as possible next-session entry points. If the user can load an older save, autosave, or ironman save, generated rules must either include a safe entry-point-scoped ruleset for it or fall back.
 `tools/build_snc_tray.ps1` builds the first native `StrategicNexusCompanionTray.exe` into `dist/private_tools`; `tools/run_snc_tray.ps1` starts it as a single-instance tray process. The tray app writes `dist/private_reports/snc_tray_status.json` and mirrors the live capture heartbeat to `dist/private_reports/snc_live_autosave_monitor_status.json`.
 `Strategic Nexus.exe --snc-live-autosave-monitor <save_root|auto> <archive_root> <session_id> [poll_ms] [stability_delay_ms] [max_iterations] [use_detected_stellaris_state] [stellaris_running_override] [capture_when_not_running]` provides the native SNC-owned live monitor loop. Production SNC should call this native logic internally so the user only runs the companion app.
 `Strategic Nexus.exe --run-snc-session-capture [archive_root] [status_output.json] [session_id] [poll_ms] [stability_delay_ms] [max_iterations] [capture_when_not_running]` provides the first owner-testable SNC session capture mode with auto save-root discovery, default archive/status paths, and heartbeat JSON.
@@ -273,6 +279,7 @@ Stellaris `.sav` files should be read as ZIP containers with `meta` and `gamesta
 `Strategic Nexus.exe --run-offline-spine <session_archive_dir> <campaign_id> <empire_id> <input.dsl> <work_dir> <overlay_output_dir> <status_output_json>` verifies one archive session, writes season delta ledger and empire brief with optional bounded parsed latest-save headline facts, compiles an explicit validated DSL into a generated overlay, verifies the overlay manifest, and emits an SNC status snapshot.
 The explicit `campaign_id`, `empire_id`, ministry, and `input.dsl` parameters in current commands are development harness controls. Production SNC owns campaign identity resolution, empire identity resolution, bounded decision-input construction, and DSL candidate generation/selection after `stellaris.exe` exits.
 This is the first tested vertical product spine for `verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility`.
+Current gap: the spine is not yet entry-point-scoped. It must be extended so one capture archive plus current save-root inventory can produce separate safe inputs/rules for each loadable save entry point, including autosaves still on disk.
 `tools/run_real_session_v0_loop.ps1` / `.cmd` now provide a single-command owner test loop for real saves (`archive-stable-saves -> verify-autosave-archive -> summarize-autosave-archive -> run-offline-spine`) and emit concrete output paths for the next in-game validation session.
 `tools/run_real_session_v0_loop.ps1` now accepts `SaveRoot=auto` and resolves the best existing Stellaris save root candidate from `--discover-stellaris-save-roots` + `--scan-save-campaigns` (with autosave-anchor preference), then emits structured selected-root fields (`real_session_v0_loop_save_root_*`) for owner/release-companion visibility.
 The same loop now also stores selected save-root contract fields (`resolution`, `source`, `path`, `campaign_count`, `save_file_count`, `autosave_anchor_count`) under `save_root` in `real_session_v0_loop_evidence.json`, so release-companion one-file parsing does not need CLI line scraping for save-root provenance.

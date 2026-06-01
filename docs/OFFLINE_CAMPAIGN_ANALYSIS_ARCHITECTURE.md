@@ -51,7 +51,8 @@ The release companion app should be understood as a campaign orchestrator:
 
 # Session Delta Analysis Rule
 
-Offline analysis should normally process only autosaves archived during the most recent play session.
+Offline analysis should normally process only autosaves archived during the most recent play session as the newest historical evidence.
+However, generated rules must be prepared for every currently loadable save entry point the user may choose next, not only the final observed captured autosave.
 
 Older campaign history should already be represented by durable Strategic Nexus memory summaries, personality state, relationship state, and audit records.
 
@@ -59,9 +60,10 @@ Correct model:
 
 ```text
 previous durable memory
-+ autosaves from latest play session
++ autosaves from latest play session as historical evidence
++ currently loadable campaign saves as possible entry points
 -> updated durable memory
--> regenerated active overlay snapshot
+-> entry-point-scoped generated overlay snapshot
 ```
 
 Incorrect model:
@@ -89,6 +91,9 @@ verified archived autosaves from latest session
 ```
 
 The LLM should interpret bounded briefs, not raw full saves, in the normal path.
+
+Entry-point and branch rules are canonical in [SAVE_ENTRY_POINT_AND_BRANCH_RULES.md](SAVE_ENTRY_POINT_AND_BRANCH_RULES.md).
+If this document and that document appear to conflict, the entry-point document wins for save/load safety.
 
 ---
 
@@ -434,8 +439,10 @@ Observed save-folder rule:
 * SNC must not rely on knowing the active campaign folder. Each live pass scans the whole `save games` tree so newly created or manually added campaign folders are included.
 * SNC itself is a long-running tray app. Its process lifetime is not a capture-session boundary; capture sessions are derived from observed Stellaris play activity because autosaves are produced only by `stellaris.exe`.
 * A live capture session is a Stellaris play-activity collection window, not a campaign identity boundary. It may include sequential play segments from more than one campaign folder, so later analysis must group archived entries by source campaign folder before creating campaign ledgers, empire briefs, or generated overlay updates.
+* A live capture session is also not guaranteed to be a single linear timeline for one campaign. The user can load an older save and replay a different branch during the same `stellaris.exe` run.
+* Captured autosaves are historical evidence. Currently loadable saves in active save roots are possible next-session entry points.
 * While `stellaris.exe` is running, the companion capture responsibility is read-only archive preservation and status reporting. Analysis and generated overlay refresh happen after the game exits.
-* After `stellaris.exe` exits, SNC should verify the completed capture archive, partition entries by source campaign folder, analyze those autosaves, and generate/stage new mod rules for the next launch.
+* After `stellaris.exe` exits, SNC should verify the completed capture archive, scan all active save roots for currently loadable entry points, partition archived entries by source campaign folder and branch/segment where possible, and generate/stage rules for each loadable entry point.
 * SNC owns the post-play identity and decision-input flow. In normal product use, the owner must not have to provide `campaign_id`, `empire_id`, ministry input, or DSL by hand.
 * Development CLI commands may still accept explicit identity or `input.dsl` arguments as harness controls, but those arguments are not the final companion workflow.
 * The archive is the long history. The active save folder is only the game's short rolling buffer.
@@ -445,6 +452,8 @@ Post-play SNC ownership:
 ```text
 verified capture archive
 -> partition by source campaign folder
+-> scan current save roots for loadable entry points
+-> detect branch/reload ambiguity where possible
 -> resolve campaign identity from marker, save metadata, hashes, path, and durable memory
 -> resolve player/empire identity from parsed save facts and durable memory
 -> build bounded decision input
@@ -508,6 +517,7 @@ This is the first contract step for the `verified archive -> season delta ledger
 It does not extract wars, borders, alliances, economy, fleets, empire state, or personality evidence yet.
 Now that the narrow save parser exists, this ledger should be enriched from parser summaries before broader strategic memory or LLM interpretation is added.
 The explicit `<campaign_id>` parameter is a development harness input. Production SNC should derive or confirm it during post-play archive analysis.
+Production SNC must eventually build ledgers per loadable entry point, not only per capture session, because a user can load an older save or autosave after the post-play analysis has finished.
 
 The current local harness for producing the first empire brief skeleton is:
 
