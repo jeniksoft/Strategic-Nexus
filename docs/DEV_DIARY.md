@@ -64,6 +64,41 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-01
+
+Projekt dnes posunul hlavne praktickou cestu k robustnejsimu nalezeni kampanovych save rootu a k presnejsimu vykladu multiplayer package readiness na integration boundary mezi autosave archivem, offline analyzou a dalsi host-authoritative session pripravenou pres generated overlay artefakty.
+
+Co pribylo v repozitari:
+
+* Dnesni commit sada doplnila detekci Steam Cloud save rootu, nasledne i registry-based vyhledani Steam userdata, a navazala tyto signaly do `StellarisSavePathResolver` i do real-session v0 loopu pres auto save-root discovery.
+* `Fix live autosave multi-root manifest` opravil manifest/logiku kolem vice soubeznych save rootu, takze autosave archivace a companion status vrstva lepe rozlisuji, odkud byl skutecny session vstup prevzat.
+* Dokumentace byla rozsahle doplnena o cloud save behavior, non-Steam distribuce a auto-resolve pravidla, aby runtime interoperability research kolem ruznych instalacnich variant zustal auditovatelny a srozumitelny i pro dalsi revize.
+* Nejnovnejsi lokalni commit `Add explicit MP mismatch warnings to next-session brief` rozsiril owner-facing brief o explicitni mismatch warning polozky pro MP package cestu, tedy o citelnejsi vystup na scripted event/effect path navazujici na verify/import workflow.
+* V ramci tohoto denikoveho behu byl navic opraven drobny drift v `tools/run_v0_pipeline_tests.ps1`: case bez `-ExportMpPackage` uz spravne overuje, ze MP package sekce v briefu chybi, misto aby cekal host/client readiness radky.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt se posunul od jedne predpokladane save cesty k robustnejsimu discovery modelu, ktery lepe respektuje hranici mezi ruznymi distribucemi, cloud ulozisti a lokalni archivacni vrstvou bez rozsireni produkcni pravomoci v aktivnim runtime.
+* Auto-resolve save rootu zmensuje operacni treni pro real-session v0 loop a zlepsuje spolehlivost vstupu pro dalsi offline analyzu, season delta ledger a generated overlay staging.
+* Explicitni MP mismatch warnings v next-session briefu delaji z owner-facing vystupu presnejsi rozhodovaci rozhrani pro to, jestli je MP package pripraveny jen k dalsi kontrole, nebo zda na integration boundary pretrvava konkretni drift, ktery je potreba resit pred dalsi session.
+
+Testy a stav overeni:
+
+* Verejny GitHub Actions `Windows Tests` je v tomto behu potvrzen jako uspesny pro dnes pushnute commity az po `Document non-Steam Stellaris distribution support` (`5df93b7`); dostupne push behy z 1.6.2026 pro `09f49d4`, `4a2aba6`, `e5d7fe3` a `5df93b7` vsechny skoncily `success`.
+* Pro aktualni lokalni head nad `origin/master` jeste neexistuje verejny CI vysledek, protoze obsahuje nepushnuty commit s explicitnimi MP mismatch warnings a navazujici test contract fix z tohoto behu.
+* Lokalni `powershell -ExecutionPolicy Bypass -File tools/run_v0_pipeline_tests.ps1` byl dnes po oprave testoveho driftu znovu spusten a probehl uspesne, vcetne save-path resolver testu, autosave archive testu, companion testu i real-session loop kontraktu.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe generated overlay packaging a distribucni workflow pro multiplayer ucastniky.
+* Save-root discovery je vyrazne robustnejsi, ale stale jde o citlivou interoperabilni hranici mezi ruznymi distribucemi a ulozisti; rizikem zustava dalsi edge-case drift u mene beznych instalacnich topologii nebo necekanych uzivatelskych presunu save adresaru.
+* Explicitni mismatch warnings zlepsuji rozhodovani, ale samy o sobe jeste neuzaviraji finalni export contract, campaign marker handshake ani empire identity resolver.
+
+Doporuceny dalsi krok:
+
+* Pushnout aktualni lokalni head spolu s timto denikovym zapisem a potvrdit navazujici verejny `Windows Tests` signal pro novy stav.
+* Potom navazat cilenym end-to-end overenim generated overlay export contractu pres auto-discovered save root, multi-root archivaci a MP package verify/import cestu, aby se nova discovery a warning vrstva potvrdila i v plnem session-to-session toku.
+
 ## 2026-05-31
 
 Projekt dnes pokracoval hlavne ve dvou podpurnych, ale pro dalsi real-session validaci dulezitych smerrech: v presnejsim rizeni Free Work cadence a v rozsirovani observability pro real-session v0 compare loop. Nejde o novy runtime zasah do bezici session; jde o dalsi zpevneni integration boundary mezi offline analyzou, status-center signaly a dalsim host-authoritative rozhodovanim mezi sezenimi.
