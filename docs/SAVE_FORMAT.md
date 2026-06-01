@@ -83,10 +83,16 @@ The companion app should explain this tradeoff to the user instead of changing g
 
 Observed local save layout, 31.5.2026:
 
+Distribution note:
+
+* Stellaris is not Steam-only. The canonical provider-neutral distribution/save-root contract is [STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md](STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md).
+* Save-root discovery must treat store/launcher identity as diagnostic context only. The active save root is discovered from filesystem evidence and live file changes, not from assuming Steam, GOG, Microsoft Store/Xbox app, or Paradox Launcher.
+
 * Stellaris may have more than one plausible Windows save root, for example local `Documents/Paradox Interactive/Stellaris/save games`, synced `OneDrive/Dokumenty/Paradox Interactive/Stellaris/save games`, and Steam Cloud local cache paths such as `Steam/userdata/<steam_user_id>/281990/remote/save games`.
 * Steam itself may be installed on any drive or folder. Save-root discovery should prefer the Windows registry Steam install path (`HKCU/HKLM Software/Valve/Steam`, including `SteamPath`, `InstallPath`, and `SteamExe`) before falling back to common `ProgramFiles*` locations.
 * The in-game/cloud-save checkbox can change where the active campaign writes saves. When cloud saving is enabled, the active files may appear in Steam Cloud's local synchronization cache instead of the ordinary local `save games` directory.
 * The Steam Cloud path is still a local filesystem cache that SNC can monitor read-only; it must not be treated as durable archive history because Steam/Stellaris can still rotate or synchronize it.
+* For GOG, Microsoft Store/Xbox app, and Paradox Launcher/direct installs, v0 must still monitor the provider-neutral Documents roots unless real filesystem evidence proves an additional provider-specific root.
 * Campaigns are stored as subdirectories below `save games`, commonly with a readable slug plus an id suffix.
 * A campaign folder is the storage boundary for that campaign's saves. SNC must not assume it can know the active campaign folder before observing file changes.
 * Campaign folder names appear stable during normal use. Only one campaign is actively played at a time, but the user can switch campaigns or start a new campaign within the same `stellaris.exe` process/play window.

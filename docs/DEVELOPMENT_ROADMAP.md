@@ -30,6 +30,8 @@ Use `CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md` as the target release UX/automation 
 
 Use `MULTIPLAYER_SEASON_ORCHESTRATOR.md` as the target release direction for low-friction host-coordinated MP seasons.
 
+Use `STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md` for verified Stellaris provider surfaces and the provider-neutral save-root contract.
+
 Use `META_RULE_LANGUAGE_AND_COMPILER.md` for the bounded DSL and deterministic compiler that converts LLM proposals into generated mod overlays.
 
 Use `LOCAL_LLM_INTEGRATION_CONTRACT.md` for the model-weights, local runtime, companion Model Manager, validation, reduced-mode, and mod boundary contract.
@@ -591,6 +593,7 @@ Inventory entries include a local anchor save fingerprint: selected `.sav` name,
 `--discover-stellaris-save-roots <output.json>` reports likely Windows Stellaris save roots from user Documents, OneDrive Documents/Dokumenty, and Steam Cloud userdata candidates without creating or modifying directories.
 Steam Cloud userdata discovery prefers Steam's Windows registry install path so custom Steam locations on any drive are covered, then falls back to common `ProgramFiles*` paths.
 Cloud-save-enabled Stellaris campaigns may actively write into the Steam Cloud local cache; this cache is monitorable read-only but is still only a rotating/synchronized active-save source, not Strategic Nexus durable history.
+The save-root contract is now explicitly provider-neutral: Steam is not required, and GOG/Galaxy, Microsoft Store/Xbox app, and Paradox Launcher/direct installs should be covered by Documents roots unless a distinct provider-specific cache is later verified.
 The local harness can compare two read-only save roots with `--diff-save-campaigns <previous_save_root> <current_save_root> <diff_output.json>` and report added, removed, changed, and unchanged entries.
 The local harness can plan a bounded active generated campaign library with `--plan-campaign-library <save_root> <max_campaigns> <plan_output.json>`.
 The planner includes only locally present campaigns with anchor fingerprints and skips overflow entries with auditable reasons.

@@ -419,9 +419,11 @@ It is a one-shot archive skeleton for testing the safety contract, not the final
 
 Observed save-folder rule:
 
+* Stellaris is distributed through multiple PC provider surfaces, not only Steam. The canonical distribution/save-root contract is [STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md](STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md).
 * Stellaris save roots can exist in local Documents, synced Documents/Dokumenty, and Steam Cloud local cache locations such as `Steam/userdata/<steam_user_id>/281990/remote/save games`.
 * Steam may be installed outside default program directories. SNC should discover the Steam Cloud userdata root from the Windows registry Steam install path first, then keep `ProgramFiles*` probing as fallback.
 * The game's cloud-save option can make the Steam Cloud local cache the active save root for a campaign. With cloud saving disabled, the campaign may write to the ordinary local save-game root instead.
+* GOG, Microsoft Store/Xbox app, and Paradox Launcher/direct installs must not be treated as unsupported just because no Steam root exists. In v0, SNC should monitor provider-neutral Documents roots for those installs unless a distinct provider-specific cache is later verified.
 * SNC should treat both locations as normal active roots and monitor them read-only; neither should be treated as a durable long-history archive.
 * Campaign directories contain normal date-named saves, `ironman.sav`, or autosaves such as `autosave_YYYY.MM.DD.sav`.
 * Campaign directory names are expected to be stable for a campaign. Only one campaign is actively played at a time, but the active campaign can change while `stellaris.exe` and SNC are still running.
@@ -930,6 +932,8 @@ Strategic Nexus.exe --discover-stellaris-save-roots <output.json>
 ```
 
 It checks common user Documents, OneDrive Documents/Dokumenty, and Steam Cloud userdata locations. Steam Cloud lookup uses the Steam registry install path when available and reports candidate paths with an `exists` flag.
+
+The command is intentionally provider-neutral. It must remain useful for Steam, GOG/Galaxy, Microsoft Store/Xbox app, and Paradox Launcher/direct installs by preserving Documents-based roots even when no Steam installation is found.
 It does not create directories, move saves, or assume that a missing candidate is an error.
 
 The current local harness for comparing two read-only save inventories is:

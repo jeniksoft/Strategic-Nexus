@@ -76,6 +76,7 @@ Core documents:
 * [V0_SCOPE_AND_PIPELINE_PLAN.md](V0_SCOPE_AND_PIPELINE_PLAN.md) - bounded v0 scope and offline validator pipeline boundary
 * [OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md](OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md) - revised session-to-session architecture, autosave archiving, campaign analysis, and next-session mod refresh
 * [CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md](CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md) - target release orchestrator architecture for minimal mandatory user interaction
+* [STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md](STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md) - verified non-Steam distribution surfaces and provider-neutral save-root contract
 * [LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md) - local model weights, runtime, companion, validation, reduced-mode, and mod boundary contract
 * [META_RULE_LANGUAGE_AND_COMPILER.md](META_RULE_LANGUAGE_AND_COMPILER.md) - bounded DSL and deterministic compiler from LLM proposals to generated mod overlay
 * [GENERATED_OVERLAY_LAYOUT_CONTRACT.md](GENERATED_OVERLAY_LAYOUT_CONTRACT.md) - v0 generated overlay file layout and staging contract
@@ -102,6 +103,7 @@ Core rule:
 Vanilla Stellaris AI executes gameplay.
 Strategic Nexus influences bounded strategic state.
 Strategic Nexus Companion (SNC) archives autosaves with read-only access.
+SNC is provider-neutral: it detects Stellaris and save roots, not Steam as a required runtime.
 SNC acts as a campaign orchestrator and should automate safe staging decisions where confidence is high.
 Local analysis updates campaign-scoped memory between play sessions.
 The generated mod overlay applies bounded strategic state on the next launch.
