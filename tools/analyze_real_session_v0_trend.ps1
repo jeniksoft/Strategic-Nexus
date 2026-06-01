@@ -230,6 +230,24 @@ if ($sessionCount -ge 2) {
     $compareStatusCenterSummaryTextCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_summary_text_current=*" } | Select-Object -First 1
     $compareStatusCenterSummaryTextPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_summary_text_previous=*" } | Select-Object -First 1
     $compareStatusCenterSummaryTextChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_status_center_summary_text_changed=*" } | Select-Object -First 1
+    $compareSaveRootResolutionCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_resolution_current=*" } | Select-Object -First 1
+    $compareSaveRootResolutionPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_resolution_previous=*" } | Select-Object -First 1
+    $compareSaveRootResolutionChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_resolution_changed=*" } | Select-Object -First 1
+    $compareSaveRootSourceCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_source_current=*" } | Select-Object -First 1
+    $compareSaveRootSourcePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_source_previous=*" } | Select-Object -First 1
+    $compareSaveRootSourceChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_source_changed=*" } | Select-Object -First 1
+    $compareSaveRootPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_path_current=*" } | Select-Object -First 1
+    $compareSaveRootPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_path_previous=*" } | Select-Object -First 1
+    $compareSaveRootPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_path_changed=*" } | Select-Object -First 1
+    $compareSaveRootCampaignCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_campaign_count_current=*" } | Select-Object -First 1
+    $compareSaveRootCampaignCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_campaign_count_previous=*" } | Select-Object -First 1
+    $compareSaveRootCampaignCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_campaign_count_changed=*" } | Select-Object -First 1
+    $compareSaveRootSaveFileCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_save_file_count_current=*" } | Select-Object -First 1
+    $compareSaveRootSaveFileCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_save_file_count_previous=*" } | Select-Object -First 1
+    $compareSaveRootSaveFileCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_save_file_count_changed=*" } | Select-Object -First 1
+    $compareSaveRootAutosaveAnchorCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_autosave_anchor_count_current=*" } | Select-Object -First 1
+    $compareSaveRootAutosaveAnchorCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_autosave_anchor_count_previous=*" } | Select-Object -First 1
+    $compareSaveRootAutosaveAnchorCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_save_root_autosave_anchor_count_changed=*" } | Select-Object -First 1
     $compareNextActionCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_current=*" } | Select-Object -First 1
     $compareNextActionPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_previous=*" } | Select-Object -First 1
     $compareNextActionChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_changed=*" } | Select-Object -First 1
@@ -421,6 +439,60 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareStatusCenterSummaryTextChangedLine)) {
         $latestStatusCenterSummaryTextChanged = $compareStatusCenterSummaryTextChangedLine.Substring("real_session_v0_compare_status_center_summary_text_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootResolutionCurrentLine)) {
+        $latestSaveRootResolutionCurrent = $compareSaveRootResolutionCurrentLine.Substring("real_session_v0_compare_save_root_resolution_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootResolutionPreviousLine)) {
+        $latestSaveRootResolutionPrevious = $compareSaveRootResolutionPreviousLine.Substring("real_session_v0_compare_save_root_resolution_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootResolutionChangedLine)) {
+        $latestSaveRootResolutionChanged = $compareSaveRootResolutionChangedLine.Substring("real_session_v0_compare_save_root_resolution_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootSourceCurrentLine)) {
+        $latestSaveRootSourceCurrent = $compareSaveRootSourceCurrentLine.Substring("real_session_v0_compare_save_root_source_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootSourcePreviousLine)) {
+        $latestSaveRootSourcePrevious = $compareSaveRootSourcePreviousLine.Substring("real_session_v0_compare_save_root_source_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootSourceChangedLine)) {
+        $latestSaveRootSourceChanged = $compareSaveRootSourceChangedLine.Substring("real_session_v0_compare_save_root_source_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootPathCurrentLine)) {
+        $latestSaveRootPathCurrent = $compareSaveRootPathCurrentLine.Substring("real_session_v0_compare_save_root_path_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootPathPreviousLine)) {
+        $latestSaveRootPathPrevious = $compareSaveRootPathPreviousLine.Substring("real_session_v0_compare_save_root_path_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootPathChangedLine)) {
+        $latestSaveRootPathChanged = $compareSaveRootPathChangedLine.Substring("real_session_v0_compare_save_root_path_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootCampaignCountCurrentLine)) {
+        $latestSaveRootCampaignCountCurrent = $compareSaveRootCampaignCountCurrentLine.Substring("real_session_v0_compare_save_root_campaign_count_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootCampaignCountPreviousLine)) {
+        $latestSaveRootCampaignCountPrevious = $compareSaveRootCampaignCountPreviousLine.Substring("real_session_v0_compare_save_root_campaign_count_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootCampaignCountChangedLine)) {
+        $latestSaveRootCampaignCountChanged = $compareSaveRootCampaignCountChangedLine.Substring("real_session_v0_compare_save_root_campaign_count_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootSaveFileCountCurrentLine)) {
+        $latestSaveRootSaveFileCountCurrent = $compareSaveRootSaveFileCountCurrentLine.Substring("real_session_v0_compare_save_root_save_file_count_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootSaveFileCountPreviousLine)) {
+        $latestSaveRootSaveFileCountPrevious = $compareSaveRootSaveFileCountPreviousLine.Substring("real_session_v0_compare_save_root_save_file_count_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootSaveFileCountChangedLine)) {
+        $latestSaveRootSaveFileCountChanged = $compareSaveRootSaveFileCountChangedLine.Substring("real_session_v0_compare_save_root_save_file_count_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootAutosaveAnchorCountCurrentLine)) {
+        $latestSaveRootAutosaveAnchorCountCurrent = $compareSaveRootAutosaveAnchorCountCurrentLine.Substring("real_session_v0_compare_save_root_autosave_anchor_count_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootAutosaveAnchorCountPreviousLine)) {
+        $latestSaveRootAutosaveAnchorCountPrevious = $compareSaveRootAutosaveAnchorCountPreviousLine.Substring("real_session_v0_compare_save_root_autosave_anchor_count_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareSaveRootAutosaveAnchorCountChangedLine)) {
+        $latestSaveRootAutosaveAnchorCountChanged = $compareSaveRootAutosaveAnchorCountChangedLine.Substring("real_session_v0_compare_save_root_autosave_anchor_count_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareNextActionCurrentLine)) {
         $latestNextActionCurrent = $compareNextActionCurrentLine.Substring("real_session_v0_compare_next_action_current=".Length)
@@ -748,6 +820,26 @@ $result = [ordered]@{
         summary_text_previous = $latestStatusCenterSummaryTextPrevious
         summary_text_changed = $latestStatusCenterSummaryTextChanged
     }
+    latest_save_root = [ordered]@{
+        resolution_current = $latestSaveRootResolutionCurrent
+        resolution_previous = $latestSaveRootResolutionPrevious
+        resolution_changed = $latestSaveRootResolutionChanged
+        source_current = $latestSaveRootSourceCurrent
+        source_previous = $latestSaveRootSourcePrevious
+        source_changed = $latestSaveRootSourceChanged
+        path_current = $latestSaveRootPathCurrent
+        path_previous = $latestSaveRootPathPrevious
+        path_changed = $latestSaveRootPathChanged
+        campaign_count_current = $latestSaveRootCampaignCountCurrent
+        campaign_count_previous = $latestSaveRootCampaignCountPrevious
+        campaign_count_changed = $latestSaveRootCampaignCountChanged
+        save_file_count_current = $latestSaveRootSaveFileCountCurrent
+        save_file_count_previous = $latestSaveRootSaveFileCountPrevious
+        save_file_count_changed = $latestSaveRootSaveFileCountChanged
+        autosave_anchor_count_current = $latestSaveRootAutosaveAnchorCountCurrent
+        autosave_anchor_count_previous = $latestSaveRootAutosaveAnchorCountPrevious
+        autosave_anchor_count_changed = $latestSaveRootAutosaveAnchorCountChanged
+    }
     latest_next_action = [ordered]@{
         action_current = $latestNextActionCurrent
         action_previous = $latestNextActionPrevious
@@ -884,6 +976,24 @@ Write-Host ("real_session_v0_trend_status_center_reason_changed=" + $latestStatu
 Write-Host ("real_session_v0_trend_status_center_summary_text_current=" + $latestStatusCenterSummaryTextCurrent)
 Write-Host ("real_session_v0_trend_status_center_summary_text_previous=" + $latestStatusCenterSummaryTextPrevious)
 Write-Host ("real_session_v0_trend_status_center_summary_text_changed=" + $latestStatusCenterSummaryTextChanged)
+Write-Host ("real_session_v0_trend_save_root_resolution_current=" + $latestSaveRootResolutionCurrent)
+Write-Host ("real_session_v0_trend_save_root_resolution_previous=" + $latestSaveRootResolutionPrevious)
+Write-Host ("real_session_v0_trend_save_root_resolution_changed=" + $latestSaveRootResolutionChanged)
+Write-Host ("real_session_v0_trend_save_root_source_current=" + $latestSaveRootSourceCurrent)
+Write-Host ("real_session_v0_trend_save_root_source_previous=" + $latestSaveRootSourcePrevious)
+Write-Host ("real_session_v0_trend_save_root_source_changed=" + $latestSaveRootSourceChanged)
+Write-Host ("real_session_v0_trend_save_root_path_current=" + $latestSaveRootPathCurrent)
+Write-Host ("real_session_v0_trend_save_root_path_previous=" + $latestSaveRootPathPrevious)
+Write-Host ("real_session_v0_trend_save_root_path_changed=" + $latestSaveRootPathChanged)
+Write-Host ("real_session_v0_trend_save_root_campaign_count_current=" + $latestSaveRootCampaignCountCurrent)
+Write-Host ("real_session_v0_trend_save_root_campaign_count_previous=" + $latestSaveRootCampaignCountPrevious)
+Write-Host ("real_session_v0_trend_save_root_campaign_count_changed=" + $latestSaveRootCampaignCountChanged)
+Write-Host ("real_session_v0_trend_save_root_save_file_count_current=" + $latestSaveRootSaveFileCountCurrent)
+Write-Host ("real_session_v0_trend_save_root_save_file_count_previous=" + $latestSaveRootSaveFileCountPrevious)
+Write-Host ("real_session_v0_trend_save_root_save_file_count_changed=" + $latestSaveRootSaveFileCountChanged)
+Write-Host ("real_session_v0_trend_save_root_autosave_anchor_count_current=" + $latestSaveRootAutosaveAnchorCountCurrent)
+Write-Host ("real_session_v0_trend_save_root_autosave_anchor_count_previous=" + $latestSaveRootAutosaveAnchorCountPrevious)
+Write-Host ("real_session_v0_trend_save_root_autosave_anchor_count_changed=" + $latestSaveRootAutosaveAnchorCountChanged)
 Write-Host ("real_session_v0_trend_next_action_current=" + $latestNextActionCurrent)
 Write-Host ("real_session_v0_trend_next_action_previous=" + $latestNextActionPrevious)
 Write-Host ("real_session_v0_trend_next_action_changed=" + $latestNextActionChanged)

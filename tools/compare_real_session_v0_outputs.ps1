@@ -178,8 +178,28 @@ $previousMpPackageZipPath = ""
 $currentMpPackageZipPath = ""
 $previousMpPackageZipBytes = ""
 $currentMpPackageZipBytes = ""
+$previousSaveRootResolution = ""
+$currentSaveRootResolution = ""
+$previousSaveRootSource = ""
+$currentSaveRootSource = ""
+$previousSaveRootPath = ""
+$currentSaveRootPath = ""
+$previousSaveRootCampaignCount = ""
+$currentSaveRootCampaignCount = ""
+$previousSaveRootSaveFileCount = ""
+$currentSaveRootSaveFileCount = ""
+$previousSaveRootAutosaveAnchorCount = ""
+$currentSaveRootAutosaveAnchorCount = ""
 if (Test-Path -LiteralPath $previousEvidencePath) {
     $previousEvidence = Read-JsonFile -Path $previousEvidencePath
+    if ($null -ne $previousEvidence.save_root) {
+        $previousSaveRootResolution = Get-OptionalString -Object $previousEvidence.save_root -Property "resolution"
+        $previousSaveRootSource = Get-OptionalString -Object $previousEvidence.save_root -Property "source"
+        $previousSaveRootPath = Get-OptionalString -Object $previousEvidence.save_root -Property "path"
+        $previousSaveRootCampaignCount = Get-OptionalString -Object $previousEvidence.save_root -Property "campaign_count"
+        $previousSaveRootSaveFileCount = Get-OptionalString -Object $previousEvidence.save_root -Property "save_file_count"
+        $previousSaveRootAutosaveAnchorCount = Get-OptionalString -Object $previousEvidence.save_root -Property "autosave_anchor_count"
+    }
     if ($null -ne $previousEvidence.next_action) {
         $previousNextAction = Get-OptionalString -Object $previousEvidence.next_action -Property "action"
         $previousNextActionReason = Get-OptionalString -Object $previousEvidence.next_action -Property "reason"
@@ -196,6 +216,14 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
 }
 if (Test-Path -LiteralPath $currentEvidencePath) {
     $currentEvidence = Read-JsonFile -Path $currentEvidencePath
+    if ($null -ne $currentEvidence.save_root) {
+        $currentSaveRootResolution = Get-OptionalString -Object $currentEvidence.save_root -Property "resolution"
+        $currentSaveRootSource = Get-OptionalString -Object $currentEvidence.save_root -Property "source"
+        $currentSaveRootPath = Get-OptionalString -Object $currentEvidence.save_root -Property "path"
+        $currentSaveRootCampaignCount = Get-OptionalString -Object $currentEvidence.save_root -Property "campaign_count"
+        $currentSaveRootSaveFileCount = Get-OptionalString -Object $currentEvidence.save_root -Property "save_file_count"
+        $currentSaveRootAutosaveAnchorCount = Get-OptionalString -Object $currentEvidence.save_root -Property "autosave_anchor_count"
+    }
     if ($null -ne $currentEvidence.next_action) {
         $currentNextAction = Get-OptionalString -Object $currentEvidence.next_action -Property "action"
         $currentNextActionReason = Get-OptionalString -Object $currentEvidence.next_action -Property "reason"
@@ -416,6 +444,36 @@ $result = [ordered]@{
         current = $currentStatusCenterSummaryText
         changed = ($previousStatusCenterSummaryText -ne $currentStatusCenterSummaryText)
     }
+    save_root_resolution = [ordered]@{
+        previous = $previousSaveRootResolution
+        current = $currentSaveRootResolution
+        changed = ($previousSaveRootResolution -ne $currentSaveRootResolution)
+    }
+    save_root_source = [ordered]@{
+        previous = $previousSaveRootSource
+        current = $currentSaveRootSource
+        changed = ($previousSaveRootSource -ne $currentSaveRootSource)
+    }
+    save_root_path = [ordered]@{
+        previous = $previousSaveRootPath
+        current = $currentSaveRootPath
+        changed = ($previousSaveRootPath -ne $currentSaveRootPath)
+    }
+    save_root_campaign_count = [ordered]@{
+        previous = $previousSaveRootCampaignCount
+        current = $currentSaveRootCampaignCount
+        changed = ($previousSaveRootCampaignCount -ne $currentSaveRootCampaignCount)
+    }
+    save_root_save_file_count = [ordered]@{
+        previous = $previousSaveRootSaveFileCount
+        current = $currentSaveRootSaveFileCount
+        changed = ($previousSaveRootSaveFileCount -ne $currentSaveRootSaveFileCount)
+    }
+    save_root_autosave_anchor_count = [ordered]@{
+        previous = $previousSaveRootAutosaveAnchorCount
+        current = $currentSaveRootAutosaveAnchorCount
+        changed = ($previousSaveRootAutosaveAnchorCount -ne $currentSaveRootAutosaveAnchorCount)
+    }
     next_action = [ordered]@{
         previous = $previousNextAction
         current = $currentNextAction
@@ -635,6 +693,24 @@ Write-Host ("real_session_v0_compare_status_center_reason_changed=" + ((($previo
 Write-Host ("real_session_v0_compare_status_center_summary_text_current=" + $currentStatusCenterSummaryText)
 Write-Host ("real_session_v0_compare_status_center_summary_text_previous=" + $previousStatusCenterSummaryText)
 Write-Host ("real_session_v0_compare_status_center_summary_text_changed=" + ((($previousStatusCenterSummaryText -ne $currentStatusCenterSummaryText).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_save_root_resolution_current=" + $currentSaveRootResolution)
+Write-Host ("real_session_v0_compare_save_root_resolution_previous=" + $previousSaveRootResolution)
+Write-Host ("real_session_v0_compare_save_root_resolution_changed=" + ((($previousSaveRootResolution -ne $currentSaveRootResolution).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_save_root_source_current=" + $currentSaveRootSource)
+Write-Host ("real_session_v0_compare_save_root_source_previous=" + $previousSaveRootSource)
+Write-Host ("real_session_v0_compare_save_root_source_changed=" + ((($previousSaveRootSource -ne $currentSaveRootSource).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_save_root_path_current=" + $currentSaveRootPath)
+Write-Host ("real_session_v0_compare_save_root_path_previous=" + $previousSaveRootPath)
+Write-Host ("real_session_v0_compare_save_root_path_changed=" + ((($previousSaveRootPath -ne $currentSaveRootPath).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_save_root_campaign_count_current=" + $currentSaveRootCampaignCount)
+Write-Host ("real_session_v0_compare_save_root_campaign_count_previous=" + $previousSaveRootCampaignCount)
+Write-Host ("real_session_v0_compare_save_root_campaign_count_changed=" + ((($previousSaveRootCampaignCount -ne $currentSaveRootCampaignCount).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_save_root_save_file_count_current=" + $currentSaveRootSaveFileCount)
+Write-Host ("real_session_v0_compare_save_root_save_file_count_previous=" + $previousSaveRootSaveFileCount)
+Write-Host ("real_session_v0_compare_save_root_save_file_count_changed=" + ((($previousSaveRootSaveFileCount -ne $currentSaveRootSaveFileCount).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_save_root_autosave_anchor_count_current=" + $currentSaveRootAutosaveAnchorCount)
+Write-Host ("real_session_v0_compare_save_root_autosave_anchor_count_previous=" + $previousSaveRootAutosaveAnchorCount)
+Write-Host ("real_session_v0_compare_save_root_autosave_anchor_count_changed=" + ((($previousSaveRootAutosaveAnchorCount -ne $currentSaveRootAutosaveAnchorCount).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_next_action_current=" + $currentNextAction)
 Write-Host ("real_session_v0_compare_next_action_previous=" + $previousNextAction)
 Write-Host ("real_session_v0_compare_next_action_changed=" + ((($previousNextAction -ne $currentNextAction).ToString().ToLowerInvariant())))
