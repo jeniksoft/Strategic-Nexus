@@ -194,6 +194,16 @@ $saveParserSourceFiles = @(
     (Join-Path $repoRoot "src/SaveParser.cpp"),
     (Join-Path $repoRoot "src/common/FileUtil.cpp")
 )
+$saveEntryPointAnalyzerExePath = Join-Path $repoRoot "dist/save_entry_point_analyzer_test.exe"
+$saveEntryPointAnalyzerSourceFiles = @(
+    (Join-Path $repoRoot "tests/save_entry_point_analyzer_test.cpp"),
+    (Join-Path $repoRoot "src/SaveEntryPointAnalyzer.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiveVerifier.cpp"),
+    (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),
+    (Join-Path $repoRoot "src/SaveParser.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
 $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_companion_test.exe"
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
@@ -248,6 +258,7 @@ try {
     Invoke-ClCompile -Name "stellaris_save_path_resolver_test" -SourceFiles $stellarisSavePathResolverSourceFiles -OutputPath $stellarisSavePathResolverExePath
     Invoke-ClCompile -Name "stellaris_process_detector_test" -SourceFiles $stellarisProcessDetectorSourceFiles -OutputPath $stellarisProcessDetectorExePath
     Invoke-ClCompile -Name "save_parser_test" -SourceFiles $saveParserSourceFiles -OutputPath $saveParserExePath
+    Invoke-ClCompile -Name "save_entry_point_analyzer_test" -SourceFiles $saveEntryPointAnalyzerSourceFiles -OutputPath $saveEntryPointAnalyzerExePath
     Invoke-ClCompile -Name "strategic_nexus_companion_test" -SourceFiles $strategicNexusCompanionSourceFiles -OutputPath $strategicNexusCompanionExePath
 } finally {
     Pop-Location
@@ -2824,6 +2835,11 @@ if ($LASTEXITCODE -ne 0) {
 & $saveParserExePath
 if ($LASTEXITCODE -ne 0) {
     throw "save parser tests failed."
+}
+
+& $saveEntryPointAnalyzerExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "save entry point analyzer tests failed."
 }
 
 & $strategicNexusCompanionExePath

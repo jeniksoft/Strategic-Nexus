@@ -7,12 +7,18 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstdlib>
 #include <filesystem>
 #include <regex>
 #include <sstream>
 #include <string>
 #include <system_error>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else
+#include <cstdlib>
+#endif
 
 namespace strategic_nexus {
 namespace {
@@ -113,6 +119,59 @@ std::string shellQuote(const std::filesystem::path& path)
     return "\"" + value + "\"";
 }
 
+bool runTarExtractQuietly(
+    const std::filesystem::path& savePath,
+    const std::filesystem::path& destination)
+{
+#ifdef _WIN32
+    const auto archive = savePath.wstring();
+    const auto output = destination.wstring();
+    if (archive.find(L'"') != std::wstring::npos ||
+        output.find(L'"') != std::wstring::npos) {
+        return false;
+    }
+
+    std::wstring command = L"tar -xf \"" + archive + L"\" -C \"" + output + L"\" meta gamestate";
+    STARTUPINFOW startup{};
+    startup.cb = sizeof(startup);
+    PROCESS_INFORMATION process{};
+    if (CreateProcessW(
+            nullptr,
+            command.data(),
+            nullptr,
+            nullptr,
+            FALSE,
+            CREATE_NO_WINDOW,
+            nullptr,
+            nullptr,
+            &startup,
+            &process) == 0) {
+        return false;
+    }
+
+    const DWORD waitResult = WaitForSingleObject(process.hProcess, 60000);
+    DWORD exitCode = 1;
+    if (waitResult == WAIT_OBJECT_0) {
+        GetExitCodeProcess(process.hProcess, &exitCode);
+    } else {
+        TerminateProcess(process.hProcess, 1);
+    }
+
+    CloseHandle(process.hThread);
+    CloseHandle(process.hProcess);
+    return waitResult == WAIT_OBJECT_0 && exitCode == 0;
+#else
+    const std::string archive = shellQuote(savePath);
+    const std::string output = shellQuote(destination);
+    if (archive.empty() || output.empty()) {
+        return false;
+    }
+
+    const std::string command = "tar -xf " + archive + " -C " + output + " meta gamestate >/dev/null 2>/dev/null";
+    return std::system(command.c_str()) == 0;
+#endif
+}
+
 SavePayload preparePayloadRoot(const std::filesystem::path& savePath)
 {
     SavePayload payload;
@@ -149,16 +208,7 @@ SavePayload preparePayloadRoot(const std::filesystem::path& savePath)
         return payload;
     }
 
-    const std::string archive = shellQuote(savePath);
-    const std::string destination = shellQuote(payload.cleanupRoot);
-    if (archive.empty() || destination.empty()) {
-        payload.reason = "save path contains unsupported quote character";
-        return payload;
-    }
-
-    const std::string command = "tar -xf " + archive + " -C " + destination + " meta gamestate >NUL 2>NUL";
-    const int exitCode = std::system(command.c_str());
-    if (exitCode != 0) {
+    if (!runTarExtractQuietly(savePath, payload.cleanupRoot)) {
         std::filesystem::remove_all(payload.cleanupRoot, ec);
         payload.cleanupRoot.clear();
         payload.reason = "save archive extraction failed";

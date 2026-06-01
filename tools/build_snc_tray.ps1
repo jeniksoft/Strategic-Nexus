@@ -49,6 +49,8 @@ $sourceFiles = @(
     (Join-Path $repoRoot "src\AutosaveArchiver.cpp"),
     (Join-Path $repoRoot "src\AutosaveArchiveVerifier.cpp"),
     (Join-Path $repoRoot "src\AutosaveArchiveSummarizer.cpp"),
+    (Join-Path $repoRoot "src\SaveEntryPointAnalyzer.cpp"),
+    (Join-Path $repoRoot "src\SaveParser.cpp"),
     (Join-Path $repoRoot "src\StellarisProcessDetector.cpp"),
     (Join-Path $repoRoot "src\StellarisSavePathResolver.cpp"),
     (Join-Path $repoRoot "src\common\FileUtil.cpp"),

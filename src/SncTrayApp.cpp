@@ -14,6 +14,7 @@
 #include "AutosaveArchiveSummarizer.h"
 #include "AutosaveArchiveVerifier.h"
 #include "AutosaveArchiver.h"
+#include "SaveEntryPointAnalyzer.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "common/FileUtil.h"
@@ -51,6 +52,7 @@ std::filesystem::path g_archiveRoot;
 std::filesystem::path g_trayStatusPath;
 std::filesystem::path g_liveStatusPath;
 std::filesystem::path g_lastSummaryPath;
+std::filesystem::path g_entryPointAnalysisPath;
 NOTIFYICONDATAW g_trayIcon{};
 UINT g_taskbarCreatedMessage = 0;
 
@@ -204,7 +206,11 @@ void writeStatus(
     const std::size_t copiedTotal,
     const std::size_t skippedTotal,
     const std::string& postPlayState,
-    const bool archiveVerified)
+    const bool archiveVerified,
+    const std::filesystem::path& entryPointAnalysisPath = std::filesystem::path(),
+    const std::size_t entryPointCount = 0,
+    const bool branchAmbiguityDetected = false,
+    const std::string& entryPointReadiness = std::string())
 {
     std::ostringstream json;
     json << "{\n";
@@ -223,7 +229,11 @@ void writeStatus(
     json << "  \"copied_count_total\": " << copiedTotal << ",\n";
     json << "  \"skipped_count_total\": " << skippedTotal << ",\n";
     json << "  \"post_play_state\": \"" << jsonEscape(postPlayState) << "\",\n";
-    json << "  \"archive_verified\": " << (archiveVerified ? "true" : "false") << "\n";
+    json << "  \"archive_verified\": " << (archiveVerified ? "true" : "false") << ",\n";
+    json << "  \"entry_point_analysis_path\": \"" << jsonEscape(pathString(entryPointAnalysisPath)) << "\",\n";
+    json << "  \"entry_point_count\": " << entryPointCount << ",\n";
+    json << "  \"branch_ambiguity_detected\": " << (branchAmbiguityDetected ? "true" : "false") << ",\n";
+    json << "  \"entry_point_readiness\": \"" << jsonEscape(entryPointReadiness) << "\"\n";
     json << "}\n";
 
     const auto text = json.str();
@@ -265,6 +275,7 @@ void workerLoop(HWND hwnd)
     const strategic_nexus::AutosaveArchiver archiver;
     const strategic_nexus::AutosaveArchiveVerifier verifier;
     const strategic_nexus::AutosaveArchiveSummarizer summarizer;
+    const strategic_nexus::SaveEntryPointAnalyzer entryPointAnalyzer;
 
     bool wasRunning = false;
     std::string sessionId;
@@ -272,6 +283,11 @@ void workerLoop(HWND hwnd)
     std::size_t copiedTotal = 0;
     std::size_t skippedTotal = 0;
     bool archiveVerified = false;
+    std::string postPlayState = "not_started";
+    std::filesystem::path lastEntryPointAnalysisPath;
+    std::size_t lastEntryPointCount = 0;
+    bool lastBranchAmbiguityDetected = false;
+    std::string lastEntryPointReadiness;
 
     writeStatus(
         hwnd,
@@ -297,6 +313,11 @@ void workerLoop(HWND hwnd)
             copiedTotal = 0;
             skippedTotal = 0;
             archiveVerified = false;
+            postPlayState = "not_started";
+            lastEntryPointAnalysisPath.clear();
+            lastEntryPointCount = 0;
+            lastBranchAmbiguityDetected = false;
+            lastEntryPointReadiness.clear();
             writeStatus(
                 hwnd,
                 "capturing",
@@ -308,7 +329,7 @@ void workerLoop(HWND hwnd)
                 0,
                 copiedTotal,
                 skippedTotal,
-                "not_started",
+                postPlayState,
                 archiveVerified);
         }
 
@@ -345,15 +366,42 @@ void workerLoop(HWND hwnd)
                 existingRootCount,
                 copiedTotal,
                 skippedTotal,
-                "not_started",
+                postPlayState,
                 archiveVerified);
         } else if (wasRunning) {
             const auto verification = verifier.verify(sessionDirectory);
             const auto summary = summarizer.summarize(sessionDirectory);
             writeLastSummary(summary);
             archiveVerified = verification.ok;
+            std::size_t entryPointCandidateRootCount = 0;
+            const auto entryPointRoots = discoverExistingSaveRoots(entryPointCandidateRootCount);
+            const auto entryPointAnalysis = archiveVerified
+                ? entryPointAnalyzer.analyze(sessionDirectory, entryPointRoots)
+                : strategic_nexus::SaveEntryPointAnalysis{};
+            const bool entryPointAnalysisWritten = archiveVerified && strategic_nexus::common::writeTextFileAtomically(
+                g_entryPointAnalysisPath,
+                strategic_nexus::serializeSaveEntryPointAnalysis(entryPointAnalysis));
+            postPlayState = "blocked_by_archive_verification";
+            lastEntryPointAnalysisPath.clear();
+            lastEntryPointCount = entryPointAnalysis.entryPointCount;
+            lastBranchAmbiguityDetected = entryPointAnalysis.branchAmbiguityDetected;
+            lastEntryPointReadiness = entryPointAnalysis.readiness;
+            if (archiveVerified) {
+                if (!entryPointAnalysisWritten) {
+                    postPlayState = "entry_point_analysis_write_failed";
+                } else if (entryPointAnalysis.branchAmbiguityDetected) {
+                    postPlayState = "entry_points_ambiguous";
+                } else if (entryPointAnalysis.ok) {
+                    postPlayState = "entry_points_ready";
+                } else {
+                    postPlayState = "entry_point_analysis_blocked";
+                }
+                if (entryPointAnalysisWritten) {
+                    lastEntryPointAnalysisPath = g_entryPointAnalysisPath;
+                }
+            }
             const std::string reason = verification.ok
-                ? "Stellaris skoncil; archiv je overeny a pripraveny pro post-play analyzu."
+                ? "Stellaris skoncil; archiv je overeny a vstupni body jsou zanalyzovane."
                 : "Stellaris skoncil; archiv vyzaduje pozornost: " + verification.reason;
 
             writeStatus(
@@ -363,12 +411,16 @@ void workerLoop(HWND hwnd)
                 false,
                 sessionId,
                 sessionDirectory,
-                0,
-                0,
+                entryPointCandidateRootCount,
+                entryPointRoots.size(),
                 copiedTotal,
                 skippedTotal,
-                verification.ok ? "analysis_pending" : "blocked_by_archive_verification",
-                archiveVerified);
+                postPlayState,
+                archiveVerified,
+                lastEntryPointAnalysisPath,
+                lastEntryPointCount,
+                lastBranchAmbiguityDetected,
+                lastEntryPointReadiness);
         } else {
             writeStatus(
                 hwnd,
@@ -381,8 +433,12 @@ void workerLoop(HWND hwnd)
                 0,
                 copiedTotal,
                 skippedTotal,
-                archiveVerified ? "analysis_pending" : "not_started",
-                archiveVerified);
+                postPlayState,
+                archiveVerified,
+                lastEntryPointAnalysisPath,
+                lastEntryPointCount,
+                lastBranchAmbiguityDetected,
+                lastEntryPointReadiness);
         }
 
         wasRunning = running;
@@ -400,8 +456,12 @@ void workerLoop(HWND hwnd)
         0,
         copiedTotal,
         skippedTotal,
-        archiveVerified ? "analysis_pending" : "not_started",
-        archiveVerified);
+        postPlayState,
+        archiveVerified,
+        lastEntryPointAnalysisPath,
+        lastEntryPointCount,
+        lastBranchAmbiguityDetected,
+        lastEntryPointReadiness);
 }
 
 bool addTrayIcon(HWND hwnd)
@@ -531,6 +591,7 @@ void initializePaths()
     g_trayStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_tray_status.json";
     g_liveStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_live_autosave_monitor_status.json";
     g_lastSummaryPath = g_repoRoot / "dist" / "private_reports" / "snc_last_capture_summary.json";
+    g_entryPointAnalysisPath = g_repoRoot / "dist" / "private_reports" / "snc_entry_point_analysis.json";
 }
 
 } // namespace

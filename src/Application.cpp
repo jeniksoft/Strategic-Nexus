@@ -14,6 +14,7 @@
 #include "SeasonDeltaLedgerBuilder.h"
 #include "SeasonEmpireBriefBuilder.h"
 #include "SaveParser.h"
+#include "SaveEntryPointAnalyzer.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "StrategicNexusCompanion.h"
@@ -493,6 +494,21 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         if (argc > 3) {
             config.stellarisSaveParseOutputPath = argv[3];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--analyze-save-entry-points") {
+        config.analyzeSaveEntryPointsMode = true;
+
+        if (argc > 2) {
+            config.saveEntryPointArchiveDirectory = argv[2];
+        }
+        if (argc > 3) {
+            config.saveEntryPointAnalysisOutputPath = argv[3];
+        }
+        for (int index = 4; index < argc; ++index) {
+            config.saveEntryPointRoots.push_back(argv[index]);
         }
         return config;
     }
@@ -2360,6 +2376,46 @@ int Application::run(const RunConfig& config) const
             std::cout << "stellaris_save_parse_empire_name=" << sanitizeCliValue(summary.empireName) << "\n";
             std::cout << "stellaris_save_parse_save_date=" << sanitizeCliValue(summary.saveDate) << "\n";
             std::cout << "stellaris_save_parse_output_written=" << (written ? "true" : "false") << "\n";
+            return success ? 0 : 1;
+        }
+
+        if (config.analyzeSaveEntryPointsMode) {
+            if (config.saveEntryPointArchiveDirectory.empty() ||
+                config.saveEntryPointAnalysisOutputPath.empty()) {
+                std::cout << "save_entry_point_analysis_success=false\n";
+                std::cout << "save_entry_point_analysis_reason=missing archive directory or output path\n";
+                return 1;
+            }
+
+            std::vector<std::filesystem::path> roots = config.saveEntryPointRoots;
+            if (roots.empty()) {
+                const StellarisSavePathResolver resolver;
+                const auto discovery = resolver.discoverFromEnvironment();
+                for (const auto& candidate : discovery.candidates) {
+                    if (candidate.exists) {
+                        roots.push_back(candidate.path);
+                    }
+                }
+            }
+
+            const SaveEntryPointAnalyzer analyzer;
+            const auto analysis = analyzer.analyze(config.saveEntryPointArchiveDirectory, roots);
+            const bool written = common::writeTextFileAtomically(
+                config.saveEntryPointAnalysisOutputPath,
+                serializeSaveEntryPointAnalysis(analysis));
+            const bool success = analysis.ok && written;
+
+            std::cout << "save_entry_point_analysis_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "save_entry_point_analysis_reason=" << sanitizeCliValue(analysis.reason) << "\n";
+            std::cout << "save_entry_point_analysis_readiness=" << sanitizeCliValue(analysis.readiness) << "\n";
+            std::cout << "save_entry_point_analysis_entry_points=" << analysis.entryPointCount << "\n";
+            std::cout << "save_entry_point_analysis_archived_evidence=" << analysis.archivedEvidenceCount << "\n";
+            std::cout << "save_entry_point_analysis_branch_ambiguity="
+                      << (analysis.branchAmbiguityDetected ? "true" : "false") << "\n";
+            std::cout << "save_entry_point_analysis_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "save_entry_point_analysis_write_reason=failed to write entry point analysis\n";
+            }
             return success ? 0 : 1;
         }
 

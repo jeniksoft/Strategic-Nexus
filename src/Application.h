@@ -42,6 +42,7 @@ struct RunConfig {
     bool sncSessionCaptureMode = false;
     bool offlineSpineMode = false;
     bool parseStellarisSaveMode = false;
+    bool analyzeSaveEntryPointsMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -111,6 +112,9 @@ struct RunConfig {
     std::filesystem::path offlineSpineStatusOutputPath;
     std::filesystem::path stellarisSaveParseInputPath;
     std::filesystem::path stellarisSaveParseOutputPath;
+    std::filesystem::path saveEntryPointArchiveDirectory;
+    std::filesystem::path saveEntryPointAnalysisOutputPath;
+    std::vector<std::filesystem::path> saveEntryPointRoots;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;
