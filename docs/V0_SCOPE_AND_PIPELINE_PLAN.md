@@ -313,6 +313,9 @@ Current progress:
 * Post-play v0 must evolve toward entry-point-scoped rules for every currently loadable save in the campaign, using captured autosaves as historical evidence only when compatible with that entry point.
 * During active `stellaris.exe` play, V0 should capture only. After `stellaris.exe` exits, SNC verifies the capture archive, analyzes archived autosaves, and generates/stages new mod rules for the next launch.
 * V0 CLI harnesses may still accept explicit `campaign_id`, `empire_id`, ministry, or `input.dsl` values for testing, but final SNC behavior must derive or confirm campaign/empire identity and construct the bounded decision/DSL path internally.
+* `Strategic Nexus.exe --build-snc-dsl-draft-package <candidate_package.json> <draft.dsl> <audit.json>` builds the first validated dry-run DSL draft from candidate decisions that have parsed entry-point identity.
+* The DSL draft slice remains conservative: it emits only marker/fingerprint/date-gated `doctrine_inertia high` proposals, writes an audit package, and explicitly keeps overlay compile/publish disabled.
+* SNC tray now updates `snc_dsl_draft_package.json` and `snc_validated_dsl_draft.dsl` after post-play candidate generation when enough parsed identity is available.
 * Observed live-relevant save names include `autosave_YYYY.MM.DD.sav` and `ironman.sav`; `continue_game.json` is only a hint and can point at a save stem that is not currently present on disk.
 * `tools/build_snc_tray.ps1`, `tools/run_snc_tray.ps1`, and `tools/smoke_snc_tray.ps1` provide the first native tray companion slice for owner validation before a real Stellaris session test.
 * `Strategic Nexus.exe --archive-live-saves <save_games_root> <archive_root> <session_id> [stability_delay_ms]` recursively captures stable `autosave*.sav` and `ironman.sav` revisions from a whole save-games root, deduplicated by source identity and content hash.

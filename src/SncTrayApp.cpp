@@ -18,6 +18,7 @@
 #include "SaveEntryPointAnalyzer.h"
 #include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
+#include "SncDslDraftPackageBuilder.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "common/FileUtil.h"
@@ -59,6 +60,8 @@ std::filesystem::path g_entryPointAnalysisPath;
 std::filesystem::path g_postPlayPackagePath;
 std::filesystem::path g_decisionInputPackagePath;
 std::filesystem::path g_candidateDecisionPackagePath;
+std::filesystem::path g_dslDraftPath;
+std::filesystem::path g_dslDraftAuditPath;
 NOTIFYICONDATAW g_trayIcon{};
 UINT g_taskbarCreatedMessage = 0;
 
@@ -226,7 +229,12 @@ void writeStatus(
     const std::filesystem::path& candidateDecisionPackagePath = std::filesystem::path(),
     const std::string& candidateDecisionPackageReadiness = std::string(),
     const std::size_t candidateDecisionCount = 0,
-    const bool candidateDecisionValidatorPassed = false)
+    const bool candidateDecisionValidatorPassed = false,
+    const std::filesystem::path& dslDraftPath = std::filesystem::path(),
+    const std::filesystem::path& dslDraftAuditPath = std::filesystem::path(),
+    const std::string& dslDraftReadiness = std::string(),
+    const std::size_t dslDraftRuleCount = 0,
+    const bool dslDraftValidatorPassed = false)
 {
     std::ostringstream json;
     json << "{\n";
@@ -260,7 +268,13 @@ void writeStatus(
     json << "  \"candidate_decision_package_readiness\": \"" << jsonEscape(candidateDecisionPackageReadiness) << "\",\n";
     json << "  \"candidate_decision_count\": " << candidateDecisionCount << ",\n";
     json << "  \"candidate_decision_validator_passed\": "
-         << (candidateDecisionValidatorPassed ? "true" : "false") << "\n";
+         << (candidateDecisionValidatorPassed ? "true" : "false") << ",\n";
+    json << "  \"dsl_draft_path\": \"" << jsonEscape(pathString(dslDraftPath)) << "\",\n";
+    json << "  \"dsl_draft_audit_path\": \"" << jsonEscape(pathString(dslDraftAuditPath)) << "\",\n";
+    json << "  \"dsl_draft_readiness\": \"" << jsonEscape(dslDraftReadiness) << "\",\n";
+    json << "  \"dsl_draft_rule_count\": " << dslDraftRuleCount << ",\n";
+    json << "  \"dsl_draft_validator_passed\": "
+         << (dslDraftValidatorPassed ? "true" : "false") << "\n";
     json << "}\n";
 
     const auto text = json.str();
@@ -306,6 +320,7 @@ void workerLoop(HWND hwnd)
     const strategic_nexus::PostPlayPackageBuilder postPlayPackageBuilder;
     const strategic_nexus::SncDecisionInputPackageBuilder decisionInputPackageBuilder;
     const strategic_nexus::SncCandidateDecisionPackageBuilder candidateDecisionPackageBuilder;
+    const strategic_nexus::SncDslDraftPackageBuilder dslDraftPackageBuilder;
 
     bool wasRunning = false;
     std::string sessionId;
@@ -328,6 +343,11 @@ void workerLoop(HWND hwnd)
     std::string lastCandidateDecisionPackageReadiness;
     std::size_t lastCandidateDecisionCount = 0;
     bool lastCandidateDecisionValidatorPassed = false;
+    std::filesystem::path lastDslDraftPath;
+    std::filesystem::path lastDslDraftAuditPath;
+    std::string lastDslDraftReadiness;
+    std::size_t lastDslDraftRuleCount = 0;
+    bool lastDslDraftValidatorPassed = false;
 
     writeStatus(
         hwnd,
@@ -368,6 +388,11 @@ void workerLoop(HWND hwnd)
             lastCandidateDecisionPackageReadiness.clear();
             lastCandidateDecisionCount = 0;
             lastCandidateDecisionValidatorPassed = false;
+            lastDslDraftPath.clear();
+            lastDslDraftAuditPath.clear();
+            lastDslDraftReadiness.clear();
+            lastDslDraftRuleCount = 0;
+            lastDslDraftValidatorPassed = false;
             writeStatus(
                 hwnd,
                 "capturing",
@@ -449,6 +474,15 @@ void workerLoop(HWND hwnd)
             const bool candidateDecisionPackageWritten = decisionInputPackageWritten && strategic_nexus::common::writeTextFileAtomically(
                 g_candidateDecisionPackagePath,
                 strategic_nexus::serializeSncCandidateDecisionPackage(candidateDecisionPackage));
+            const auto dslDraftPackage = candidateDecisionPackageWritten
+                ? dslDraftPackageBuilder.build(candidateDecisionPackage, g_candidateDecisionPackagePath)
+                : strategic_nexus::SncDslDraftPackage{};
+            const bool dslDraftAuditWritten = candidateDecisionPackageWritten && strategic_nexus::common::writeTextFileAtomically(
+                g_dslDraftAuditPath,
+                strategic_nexus::serializeSncDslDraftPackage(dslDraftPackage));
+            const bool dslDraftWritten = dslDraftPackage.ok && strategic_nexus::common::writeTextFileAtomically(
+                g_dslDraftPath,
+                dslDraftPackage.dslText);
             postPlayState = "blocked_by_archive_verification";
             lastEntryPointAnalysisPath.clear();
             lastEntryPointCount = entryPointAnalysis.entryPointCount;
@@ -464,6 +498,11 @@ void workerLoop(HWND hwnd)
             lastCandidateDecisionPackageReadiness = candidateDecisionPackage.readiness;
             lastCandidateDecisionCount = candidateDecisionPackage.candidateDecisionCount;
             lastCandidateDecisionValidatorPassed = candidateDecisionPackage.validatorPassed;
+            lastDslDraftPath.clear();
+            lastDslDraftAuditPath.clear();
+            lastDslDraftReadiness = dslDraftPackage.readiness;
+            lastDslDraftRuleCount = dslDraftPackage.dslRuleCount;
+            lastDslDraftValidatorPassed = dslDraftPackage.validatorPassed;
             if (archiveVerified) {
                 if (!entryPointAnalysisWritten) {
                     postPlayState = "entry_point_analysis_write_failed";
@@ -473,6 +512,14 @@ void workerLoop(HWND hwnd)
                     postPlayState = "decision_input_package_write_failed";
                 } else if (!candidateDecisionPackageWritten) {
                     postPlayState = "candidate_decision_package_write_failed";
+                } else if (!dslDraftAuditWritten) {
+                    postPlayState = "dsl_draft_audit_write_failed";
+                } else if (dslDraftPackage.ok && !dslDraftWritten) {
+                    postPlayState = "dsl_draft_write_failed";
+                } else if (dslDraftPackage.ok && dslDraftPackage.readiness.rfind("ready", 0) == 0) {
+                    postPlayState = "dsl_draft_ready";
+                } else if (dslDraftPackage.readiness == "needs_identity") {
+                    postPlayState = "dsl_draft_needs_identity";
                 } else if (candidateDecisionPackage.ok && candidateDecisionPackage.readiness.rfind("ready", 0) == 0) {
                     postPlayState = "candidate_decision_package_ready";
                 } else if (candidateDecisionPackage.ok) {
@@ -504,9 +551,15 @@ void workerLoop(HWND hwnd)
                 if (candidateDecisionPackageWritten) {
                     lastCandidateDecisionPackagePath = g_candidateDecisionPackagePath;
                 }
+                if (dslDraftAuditWritten) {
+                    lastDslDraftAuditPath = g_dslDraftAuditPath;
+                }
+                if (dslDraftWritten) {
+                    lastDslDraftPath = g_dslDraftPath;
+                }
             }
             const std::string reason = verification.ok
-                ? "Stellaris skoncil; archiv je overeny a candidate decision balicek je pripraveny."
+                ? "Stellaris skoncil; archiv je overeny a SNC post-play balicky jsou aktualizovane."
                 : "Stellaris skoncil; archiv vyzaduje pozornost: " + verification.reason;
 
             writeStatus(
@@ -535,7 +588,12 @@ void workerLoop(HWND hwnd)
                 lastCandidateDecisionPackagePath,
                 lastCandidateDecisionPackageReadiness,
                 lastCandidateDecisionCount,
-                lastCandidateDecisionValidatorPassed);
+                lastCandidateDecisionValidatorPassed,
+                lastDslDraftPath,
+                lastDslDraftAuditPath,
+                lastDslDraftReadiness,
+                lastDslDraftRuleCount,
+                lastDslDraftValidatorPassed);
         } else {
             writeStatus(
                 hwnd,
@@ -563,7 +621,12 @@ void workerLoop(HWND hwnd)
                 lastCandidateDecisionPackagePath,
                 lastCandidateDecisionPackageReadiness,
                 lastCandidateDecisionCount,
-                lastCandidateDecisionValidatorPassed);
+                lastCandidateDecisionValidatorPassed,
+                lastDslDraftPath,
+                lastDslDraftAuditPath,
+                lastDslDraftReadiness,
+                lastDslDraftRuleCount,
+                lastDslDraftValidatorPassed);
         }
 
         wasRunning = running;
@@ -596,7 +659,12 @@ void workerLoop(HWND hwnd)
         lastCandidateDecisionPackagePath,
         lastCandidateDecisionPackageReadiness,
         lastCandidateDecisionCount,
-        lastCandidateDecisionValidatorPassed);
+        lastCandidateDecisionValidatorPassed,
+        lastDslDraftPath,
+        lastDslDraftAuditPath,
+        lastDslDraftReadiness,
+        lastDslDraftRuleCount,
+        lastDslDraftValidatorPassed);
 }
 
 bool addTrayIcon(HWND hwnd)
@@ -730,6 +798,8 @@ void initializePaths()
     g_postPlayPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_post_play_package.json";
     g_decisionInputPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_decision_input_package.json";
     g_candidateDecisionPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_candidate_decision_package.json";
+    g_dslDraftPath = g_repoRoot / "dist" / "private_reports" / "snc_validated_dsl_draft.dsl";
+    g_dslDraftAuditPath = g_repoRoot / "dist" / "private_reports" / "snc_dsl_draft_package.json";
 }
 
 } // namespace

@@ -18,6 +18,7 @@
 #include "SaveEntryPointAnalyzer.h"
 #include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
+#include "SncDslDraftPackageBuilder.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "StrategicNexusCompanion.h"
@@ -551,6 +552,21 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         if (argc > 3) {
             config.sncCandidateDecisionOutputPath = argv[3];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--build-snc-dsl-draft-package") {
+        config.buildSncDslDraftPackageMode = true;
+
+        if (argc > 2) {
+            config.sncDslDraftCandidatePackagePath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncDslDraftOutputPath = argv[3];
+        }
+        if (argc > 4) {
+            config.sncDslDraftAuditOutputPath = argv[4];
         }
         return config;
     }
@@ -2593,6 +2609,63 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_candidate_decision_package_output_written=" << (written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "snc_candidate_decision_package_write_reason=failed to write candidate decision package\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.buildSncDslDraftPackageMode) {
+            if (config.sncDslDraftCandidatePackagePath.empty() ||
+                config.sncDslDraftOutputPath.empty() ||
+                config.sncDslDraftAuditOutputPath.empty()) {
+                std::cout << "snc_dsl_draft_package_success=false\n";
+                std::cout << "snc_dsl_draft_package_reason=missing candidate package path, DSL output path, or audit output path\n";
+                return 1;
+            }
+
+            std::string candidatePackageJson;
+            if (!common::tryReadTextFile(config.sncDslDraftCandidatePackagePath, candidatePackageJson)) {
+                std::cout << "snc_dsl_draft_package_success=false\n";
+                std::cout << "snc_dsl_draft_package_reason=failed to read candidate decision package\n";
+                return 1;
+            }
+
+            const auto readResult = parseSncCandidateDecisionPackageJson(candidatePackageJson);
+            if (!readResult.ok) {
+                std::cout << "snc_dsl_draft_package_success=false\n";
+                std::cout << "snc_dsl_draft_package_reason=" << sanitizeCliValue(readResult.reason) << "\n";
+                return 1;
+            }
+
+            const SncDslDraftPackageBuilder builder;
+            const auto package = builder.build(
+                readResult.package,
+                config.sncDslDraftCandidatePackagePath);
+            const bool dslWritten = package.ok && common::writeTextFileAtomically(
+                config.sncDslDraftOutputPath,
+                package.dslText);
+            const bool auditWritten = common::writeTextFileAtomically(
+                config.sncDslDraftAuditOutputPath,
+                serializeSncDslDraftPackage(package));
+            const bool success = package.ok && dslWritten && auditWritten;
+
+            std::cout << "snc_dsl_draft_package_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_dsl_draft_package_reason=" << sanitizeCliValue(package.reason) << "\n";
+            std::cout << "snc_dsl_draft_package_readiness=" << sanitizeCliValue(package.readiness) << "\n";
+            std::cout << "snc_dsl_draft_package_candidate_decisions=" << package.candidateDecisionCount << "\n";
+            std::cout << "snc_dsl_draft_package_eligible_candidates=" << package.eligibleCandidateCount << "\n";
+            std::cout << "snc_dsl_draft_package_skipped_candidates=" << package.skippedCandidateCount << "\n";
+            std::cout << "snc_dsl_draft_package_dsl_rules=" << package.dslRuleCount << "\n";
+            std::cout << "snc_dsl_draft_package_validator_passed=" << (package.validatorPassed ? "true" : "false") << "\n";
+            std::cout << "snc_dsl_draft_package_dry_run_only=" << (package.dryRunOnly ? "true" : "false") << "\n";
+            std::cout << "snc_dsl_draft_package_publishes_overlay=" << (package.publishesOverlay ? "true" : "false") << "\n";
+            std::cout << "snc_dsl_draft_package_overlay_compile_allowed=" << (package.overlayCompileAllowed ? "true" : "false") << "\n";
+            std::cout << "snc_dsl_draft_package_dsl_output_written=" << (dslWritten ? "true" : "false") << "\n";
+            std::cout << "snc_dsl_draft_package_audit_output_written=" << (auditWritten ? "true" : "false") << "\n";
+            if (package.ok && !dslWritten) {
+                std::cout << "snc_dsl_draft_package_write_reason=failed to write DSL draft\n";
+            }
+            if (!auditWritten) {
+                std::cout << "snc_dsl_draft_package_audit_write_reason=failed to write DSL draft audit\n";
             }
             return success ? 0 : 1;
         }

@@ -54,11 +54,14 @@ $sourceFiles = @(
     (Join-Path $repoRoot "src\SaveParser.cpp"),
     (Join-Path $repoRoot "src\SncCandidateDecisionPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\SncDecisionInputPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src\SncDslDraftPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\StellarisProcessDetector.cpp"),
     (Join-Path $repoRoot "src\StellarisSavePathResolver.cpp"),
     (Join-Path $repoRoot "src\common\FileUtil.cpp"),
     (Join-Path $repoRoot "src\common\JsonExtract.cpp"),
-    (Join-Path $repoRoot "src\common\JsonSanity.cpp")
+    (Join-Path $repoRoot "src\common\JsonSanity.cpp"),
+    (Join-Path $repoRoot "src\generated_overlay\DslParser.cpp"),
+    (Join-Path $repoRoot "src\generated_overlay\DslValidator.cpp")
 )
 
 & cl.exe `
