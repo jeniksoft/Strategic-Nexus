@@ -1623,6 +1623,14 @@ $sessionEvidence = [ordered]@{
     evidence_schema_version = 1
     generated_at_utc = [DateTime]::UtcNow.ToString("o")
     run_id = $realSessionLoopRunId
+    save_root = [ordered]@{
+        resolution = $saveRootResolution
+        source = $saveRootSource
+        path = $saveRootFull
+        campaign_count = $saveRootAutoCampaignCount
+        save_file_count = $saveRootAutoSaveFileCount
+        autosave_anchor_count = $saveRootAutoAutosaveAnchorCount
+    }
     session_id = $SessionId
     session_archive_dir = $sessionArchiveDir
     archive_summary_path = $archiveSummaryPath
