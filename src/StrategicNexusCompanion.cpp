@@ -1179,6 +1179,13 @@ CompanionLiveAutosaveMonitorResult runCompanionLiveAutosaveMonitor(const Compani
                 result.copiedCount += archiveResult.copiedCount;
                 result.skippedCount += archiveResult.skippedCount;
             }
+            if (existingRootsThisIteration > 1) {
+                archiver.writeLiveArchiveManifest(
+                    config.archiveRoot,
+                    config.sessionId,
+                    std::filesystem::path("multiple_stellaris_save_roots"),
+                    true);
+            }
             result.existingRootCount = existingRootsThisIteration;
             if (existingRootsThisIteration == 0) {
                 lastWaitingReason = autoDiscoverSaveRoots

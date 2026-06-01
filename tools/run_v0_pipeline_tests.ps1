@@ -1301,11 +1301,17 @@ war={
     $oldOneDrive = $env:OneDrive
     $oldOneDriveConsumer = $env:OneDriveConsumer
     $oldOneDriveCommercial = $env:OneDriveCommercial
+    $oldProgramFilesX86 = ${env:ProgramFiles(x86)}
+    $oldProgramFiles = $env:ProgramFiles
+    $oldProgramW6432 = $env:ProgramW6432
     try {
         $env:USERPROFILE = $sncCaptureUserProfile
         $env:OneDrive = ""
         $env:OneDriveConsumer = ""
         $env:OneDriveCommercial = ""
+        ${env:ProgramFiles(x86)} = Join-Path $sncCaptureUserProfile "Program Files (x86)"
+        $env:ProgramFiles = Join-Path $sncCaptureUserProfile "Program Files"
+        $env:ProgramW6432 = Join-Path $sncCaptureUserProfile "ProgramW6432"
 
         $sncCaptureOutput = & $exePath `
             --run-snc-session-capture `
@@ -1322,6 +1328,9 @@ war={
         $env:OneDrive = $oldOneDrive
         $env:OneDriveConsumer = $oldOneDriveConsumer
         $env:OneDriveCommercial = $oldOneDriveCommercial
+        ${env:ProgramFiles(x86)} = $oldProgramFilesX86
+        $env:ProgramFiles = $oldProgramFiles
+        $env:ProgramW6432 = $oldProgramW6432
     }
     $sncCaptureText = $sncCaptureOutput -join "`n"
 

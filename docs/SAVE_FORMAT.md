@@ -53,6 +53,7 @@ Strategic Nexus.exe --run-snc-session-capture [archive_root] [status_output.json
 
 `--archive-live-saves` recursively scans a whole `save games` root, captures stable `autosave*.sav` and `ironman.sav` revisions, and names archived copies by source identity plus content hash.
 Repeating the command is idempotent for unchanged files, but a changed autosave with the same active filename becomes a new archived revision.
+When SNC watches multiple discovered roots in one session, the aggregate live manifest must use the source-root label `multiple_stellaris_save_roots` rather than pretending all archived copies came from whichever root was scanned last.
 `--snc-live-autosave-monitor` is the native SNC-owned monitor loop. It can use `auto` to discover Stellaris save roots, polls for stable autosave/ironman revisions, and should be called internally by the companion app so the user only has to run SNC.
 `--run-snc-session-capture` is the first owner-testable SNC runtime mode. It auto-discovers save roots, creates or uses a session id, writes a heartbeat/status JSON, and uses `dist/snc_live_autosave_archive` plus `dist/private_reports/snc_live_autosave_monitor_status.json` by default.
 `tools/watch_stellaris_live_autosaves.ps1` may exist as a manual development harness, but production startup capture must not depend on hidden PowerShell, HKCU Run, or scheduled-task persistence.

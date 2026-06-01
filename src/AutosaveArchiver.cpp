@@ -447,16 +447,27 @@ AutosaveArchiveResult AutosaveArchiver::archiveLiveSaves(
         result.entries.push_back(archiveEntry);
     }
 
+    writeLiveArchiveManifest(archiveRoot, sessionId, saveGamesRoot, result.sourceExists);
+
+    return result;
+}
+
+AutosaveArchiveResult AutosaveArchiver::writeLiveArchiveManifest(
+    const std::filesystem::path& archiveRoot,
+    const std::string& sessionId,
+    const std::filesystem::path& sourceRootLabel,
+    const bool sourceExists) const
+{
+    const auto archiveDirectory = archiveRoot / sessionId / "saves";
     const auto manifestResult = buildManifestResultFromArchivedFiles(
-        saveGamesRoot,
-        result.archiveDirectory,
+        sourceRootLabel,
+        archiveDirectory,
         sessionId,
-        result.sourceExists);
+        sourceExists);
     common::writeTextFileAtomically(
         archiveRoot / sessionId / "manifest.json",
         serializeAutosaveArchiveManifest(manifestResult));
-
-    return result;
+    return manifestResult;
 }
 
 std::string serializeAutosaveArchiveManifest(const AutosaveArchiveResult& result)

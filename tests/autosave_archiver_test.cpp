@@ -110,11 +110,21 @@ int main()
     requireCondition(newCampaignLiveResult.copiedCount == 1, "live archiver should detect newly added campaign folders");
     requireCondition(countSavFiles(liveArchiveRoot / "live_session" / "saves") == 4, "live archiver should archive autosaves from new campaign folders");
 
+    const auto aggregateManifestResult = archiver.writeLiveArchiveManifest(
+        liveArchiveRoot,
+        "live_session",
+        std::filesystem::path("multiple_stellaris_save_roots"),
+        true);
+    requireCondition(aggregateManifestResult.copiedCount == 4, "aggregate live manifest should describe all archived revisions");
+
     const auto liveManifestText = [&]() {
         std::ifstream input(liveArchiveRoot / "live_session" / "manifest.json");
         return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
     }();
     requireCondition(liveManifestText.find("\"copied_count\": 4") != std::string::npos, "live manifest should describe all archived revisions");
+    requireCondition(
+        liveManifestText.find("\"source_root\": \"multiple_stellaris_save_roots\"") != std::string::npos,
+        "aggregate live manifest should avoid claiming a single source root");
     requireCondition(liveManifestText.find("\"reason\": \"live_archive_copy\"") != std::string::npos, "live manifest should mark aggregate live copies");
 
     std::cout << "autosave archiver tests passed.\n";

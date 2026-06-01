@@ -326,6 +326,13 @@ void workerLoop(HWND hwnd)
                 copiedTotal += archiveResult.copiedCount;
                 skippedTotal += archiveResult.skippedCount;
             }
+            if (existingRootCount > 1) {
+                archiver.writeLiveArchiveManifest(
+                    g_archiveRoot,
+                    sessionId,
+                    std::filesystem::path("multiple_stellaris_save_roots"),
+                    true);
+            }
 
             writeStatus(
                 hwnd,
