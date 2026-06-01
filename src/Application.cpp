@@ -16,6 +16,7 @@
 #include "SeasonEmpireBriefBuilder.h"
 #include "SaveParser.h"
 #include "SaveEntryPointAnalyzer.h"
+#include "SncDecisionInputPackageBuilder.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "StrategicNexusCompanion.h"
@@ -525,6 +526,18 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         for (int index = 4; index < argc; ++index) {
             config.postPlayPackageSaveRoots.push_back(argv[index]);
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--build-snc-decision-input-package") {
+        config.buildSncDecisionInputPackageMode = true;
+
+        if (argc > 2) {
+            config.sncDecisionInputPostPlayPackagePath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncDecisionInputOutputPath = argv[3];
         }
         return config;
     }
@@ -2475,6 +2488,51 @@ int Application::run(const RunConfig& config) const
             std::cout << "post_play_package_output_written=" << (written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "post_play_package_write_reason=failed to write post-play package\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.buildSncDecisionInputPackageMode) {
+            if (config.sncDecisionInputPostPlayPackagePath.empty() ||
+                config.sncDecisionInputOutputPath.empty()) {
+                std::cout << "snc_decision_input_package_success=false\n";
+                std::cout << "snc_decision_input_package_reason=missing post-play package path or output path\n";
+                return 1;
+            }
+
+            std::string postPlayJson;
+            if (!common::tryReadTextFile(config.sncDecisionInputPostPlayPackagePath, postPlayJson)) {
+                std::cout << "snc_decision_input_package_success=false\n";
+                std::cout << "snc_decision_input_package_reason=failed to read post-play package\n";
+                return 1;
+            }
+
+            const auto readResult = parsePostPlayPackageJson(postPlayJson);
+            if (!readResult.ok) {
+                std::cout << "snc_decision_input_package_success=false\n";
+                std::cout << "snc_decision_input_package_reason=" << sanitizeCliValue(readResult.reason) << "\n";
+                return 1;
+            }
+
+            const SncDecisionInputPackageBuilder builder;
+            const auto package = builder.build(
+                readResult.package,
+                config.sncDecisionInputPostPlayPackagePath);
+            const bool written = common::writeTextFileAtomically(
+                config.sncDecisionInputOutputPath,
+                serializeSncDecisionInputPackage(package));
+            const bool success = package.ok && written;
+
+            std::cout << "snc_decision_input_package_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_decision_input_package_reason=" << sanitizeCliValue(package.reason) << "\n";
+            std::cout << "snc_decision_input_package_readiness=" << sanitizeCliValue(package.readiness) << "\n";
+            std::cout << "snc_decision_input_package_entry_points=" << package.entryPointCount << "\n";
+            std::cout << "snc_decision_input_package_decision_inputs=" << package.decisionInputCount << "\n";
+            std::cout << "snc_decision_input_package_blocked_entries=" << package.blockedEntryCount << "\n";
+            std::cout << "snc_decision_input_package_dry_run_only=" << (package.dryRunOnly ? "true" : "false") << "\n";
+            std::cout << "snc_decision_input_package_output_written=" << (written ? "true" : "false") << "\n";
+            if (!written) {
+                std::cout << "snc_decision_input_package_write_reason=failed to write decision input package\n";
             }
             return success ? 0 : 1;
         }

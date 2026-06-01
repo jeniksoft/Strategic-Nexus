@@ -52,9 +52,11 @@ $sourceFiles = @(
     (Join-Path $repoRoot "src\PostPlayPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\SaveEntryPointAnalyzer.cpp"),
     (Join-Path $repoRoot "src\SaveParser.cpp"),
+    (Join-Path $repoRoot "src\SncDecisionInputPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\StellarisProcessDetector.cpp"),
     (Join-Path $repoRoot "src\StellarisSavePathResolver.cpp"),
     (Join-Path $repoRoot "src\common\FileUtil.cpp"),
+    (Join-Path $repoRoot "src\common\JsonExtract.cpp"),
     (Join-Path $repoRoot "src\common\JsonSanity.cpp")
 )
 

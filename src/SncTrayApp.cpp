@@ -16,6 +16,7 @@
 #include "AutosaveArchiver.h"
 #include "PostPlayPackageBuilder.h"
 #include "SaveEntryPointAnalyzer.h"
+#include "SncDecisionInputPackageBuilder.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "common/FileUtil.h"
@@ -55,6 +56,7 @@ std::filesystem::path g_liveStatusPath;
 std::filesystem::path g_lastSummaryPath;
 std::filesystem::path g_entryPointAnalysisPath;
 std::filesystem::path g_postPlayPackagePath;
+std::filesystem::path g_decisionInputPackagePath;
 NOTIFYICONDATAW g_trayIcon{};
 UINT g_taskbarCreatedMessage = 0;
 
@@ -215,7 +217,10 @@ void writeStatus(
     const std::string& entryPointReadiness = std::string(),
     const std::filesystem::path& postPlayPackagePath = std::filesystem::path(),
     const std::string& postPlayPackageReadiness = std::string(),
-    const std::size_t postPlayDecisionReadyEntryCount = 0)
+    const std::size_t postPlayDecisionReadyEntryCount = 0,
+    const std::filesystem::path& decisionInputPackagePath = std::filesystem::path(),
+    const std::string& decisionInputPackageReadiness = std::string(),
+    const std::size_t decisionInputCount = 0)
 {
     std::ostringstream json;
     json << "{\n";
@@ -241,7 +246,10 @@ void writeStatus(
     json << "  \"entry_point_readiness\": \"" << jsonEscape(entryPointReadiness) << "\",\n";
     json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(postPlayPackagePath)) << "\",\n";
     json << "  \"post_play_package_readiness\": \"" << jsonEscape(postPlayPackageReadiness) << "\",\n";
-    json << "  \"post_play_decision_ready_entry_count\": " << postPlayDecisionReadyEntryCount << "\n";
+    json << "  \"post_play_decision_ready_entry_count\": " << postPlayDecisionReadyEntryCount << ",\n";
+    json << "  \"decision_input_package_path\": \"" << jsonEscape(pathString(decisionInputPackagePath)) << "\",\n";
+    json << "  \"decision_input_package_readiness\": \"" << jsonEscape(decisionInputPackageReadiness) << "\",\n";
+    json << "  \"decision_input_count\": " << decisionInputCount << "\n";
     json << "}\n";
 
     const auto text = json.str();
@@ -285,6 +293,7 @@ void workerLoop(HWND hwnd)
     const strategic_nexus::AutosaveArchiveSummarizer summarizer;
     const strategic_nexus::SaveEntryPointAnalyzer entryPointAnalyzer;
     const strategic_nexus::PostPlayPackageBuilder postPlayPackageBuilder;
+    const strategic_nexus::SncDecisionInputPackageBuilder decisionInputPackageBuilder;
 
     bool wasRunning = false;
     std::string sessionId;
@@ -300,6 +309,9 @@ void workerLoop(HWND hwnd)
     std::filesystem::path lastPostPlayPackagePath;
     std::string lastPostPlayPackageReadiness;
     std::size_t lastPostPlayDecisionReadyEntryCount = 0;
+    std::filesystem::path lastDecisionInputPackagePath;
+    std::string lastDecisionInputPackageReadiness;
+    std::size_t lastDecisionInputCount = 0;
 
     writeStatus(
         hwnd,
@@ -333,6 +345,9 @@ void workerLoop(HWND hwnd)
             lastPostPlayPackagePath.clear();
             lastPostPlayPackageReadiness.clear();
             lastPostPlayDecisionReadyEntryCount = 0;
+            lastDecisionInputPackagePath.clear();
+            lastDecisionInputPackageReadiness.clear();
+            lastDecisionInputCount = 0;
             writeStatus(
                 hwnd,
                 "capturing",
@@ -402,6 +417,12 @@ void workerLoop(HWND hwnd)
             const bool postPlayPackageWritten = entryPointAnalysisWritten && strategic_nexus::common::writeTextFileAtomically(
                 g_postPlayPackagePath,
                 strategic_nexus::serializePostPlayPackage(postPlayPackage));
+            const auto decisionInputPackage = postPlayPackageWritten
+                ? decisionInputPackageBuilder.build(postPlayPackage, g_postPlayPackagePath)
+                : strategic_nexus::SncDecisionInputPackage{};
+            const bool decisionInputPackageWritten = postPlayPackageWritten && strategic_nexus::common::writeTextFileAtomically(
+                g_decisionInputPackagePath,
+                strategic_nexus::serializeSncDecisionInputPackage(decisionInputPackage));
             postPlayState = "blocked_by_archive_verification";
             lastEntryPointAnalysisPath.clear();
             lastEntryPointCount = entryPointAnalysis.entryPointCount;
@@ -410,11 +431,20 @@ void workerLoop(HWND hwnd)
             lastPostPlayPackagePath.clear();
             lastPostPlayPackageReadiness = postPlayPackage.readiness;
             lastPostPlayDecisionReadyEntryCount = postPlayPackage.decisionReadyEntryCount;
+            lastDecisionInputPackagePath.clear();
+            lastDecisionInputPackageReadiness = decisionInputPackage.readiness;
+            lastDecisionInputCount = decisionInputPackage.decisionInputCount;
             if (archiveVerified) {
                 if (!entryPointAnalysisWritten) {
                     postPlayState = "entry_point_analysis_write_failed";
                 } else if (!postPlayPackageWritten) {
                     postPlayState = "post_play_package_write_failed";
+                } else if (!decisionInputPackageWritten) {
+                    postPlayState = "decision_input_package_write_failed";
+                } else if (decisionInputPackage.ok && decisionInputPackage.readiness.rfind("ready", 0) == 0) {
+                    postPlayState = "decision_input_package_ready";
+                } else if (decisionInputPackage.ok) {
+                    postPlayState = "decision_input_package_attention";
                 } else if (postPlayPackage.ok && postPlayPackage.readiness.rfind("ready", 0) == 0) {
                     postPlayState = "post_play_package_ready";
                 } else if (postPlayPackage.ok) {
@@ -432,9 +462,12 @@ void workerLoop(HWND hwnd)
                 if (postPlayPackageWritten) {
                     lastPostPlayPackagePath = g_postPlayPackagePath;
                 }
+                if (decisionInputPackageWritten) {
+                    lastDecisionInputPackagePath = g_decisionInputPackagePath;
+                }
             }
             const std::string reason = verification.ok
-                ? "Stellaris skoncil; archiv je overeny a post-play balicek je pripraveny."
+                ? "Stellaris skoncil; archiv je overeny a decision input balicek je pripraveny."
                 : "Stellaris skoncil; archiv vyzaduje pozornost: " + verification.reason;
 
             writeStatus(
@@ -456,7 +489,10 @@ void workerLoop(HWND hwnd)
                 lastEntryPointReadiness,
                 lastPostPlayPackagePath,
                 lastPostPlayPackageReadiness,
-                lastPostPlayDecisionReadyEntryCount);
+                lastPostPlayDecisionReadyEntryCount,
+                lastDecisionInputPackagePath,
+                lastDecisionInputPackageReadiness,
+                lastDecisionInputCount);
         } else {
             writeStatus(
                 hwnd,
@@ -477,7 +513,10 @@ void workerLoop(HWND hwnd)
                 lastEntryPointReadiness,
                 lastPostPlayPackagePath,
                 lastPostPlayPackageReadiness,
-                lastPostPlayDecisionReadyEntryCount);
+                lastPostPlayDecisionReadyEntryCount,
+                lastDecisionInputPackagePath,
+                lastDecisionInputPackageReadiness,
+                lastDecisionInputCount);
         }
 
         wasRunning = running;
@@ -503,7 +542,10 @@ void workerLoop(HWND hwnd)
         lastEntryPointReadiness,
         lastPostPlayPackagePath,
         lastPostPlayPackageReadiness,
-        lastPostPlayDecisionReadyEntryCount);
+        lastPostPlayDecisionReadyEntryCount,
+        lastDecisionInputPackagePath,
+        lastDecisionInputPackageReadiness,
+        lastDecisionInputCount);
 }
 
 bool addTrayIcon(HWND hwnd)
@@ -635,6 +677,7 @@ void initializePaths()
     g_lastSummaryPath = g_repoRoot / "dist" / "private_reports" / "snc_last_capture_summary.json";
     g_entryPointAnalysisPath = g_repoRoot / "dist" / "private_reports" / "snc_entry_point_analysis.json";
     g_postPlayPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_post_play_package.json";
+    g_decisionInputPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_decision_input_package.json";
 }
 
 } // namespace
