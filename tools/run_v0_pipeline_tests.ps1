@@ -1304,6 +1304,7 @@ war={
     $oldProgramFilesX86 = ${env:ProgramFiles(x86)}
     $oldProgramFiles = $env:ProgramFiles
     $oldProgramW6432 = $env:ProgramW6432
+    $oldDisableSteamRegistryDiscovery = $env:STRATEGIC_NEXUS_DISABLE_STEAM_REGISTRY_DISCOVERY
     try {
         $env:USERPROFILE = $sncCaptureUserProfile
         $env:OneDrive = ""
@@ -1312,6 +1313,7 @@ war={
         ${env:ProgramFiles(x86)} = Join-Path $sncCaptureUserProfile "Program Files (x86)"
         $env:ProgramFiles = Join-Path $sncCaptureUserProfile "Program Files"
         $env:ProgramW6432 = Join-Path $sncCaptureUserProfile "ProgramW6432"
+        $env:STRATEGIC_NEXUS_DISABLE_STEAM_REGISTRY_DISCOVERY = "1"
 
         $sncCaptureOutput = & $exePath `
             --run-snc-session-capture `
@@ -1331,6 +1333,7 @@ war={
         ${env:ProgramFiles(x86)} = $oldProgramFilesX86
         $env:ProgramFiles = $oldProgramFiles
         $env:ProgramW6432 = $oldProgramW6432
+        $env:STRATEGIC_NEXUS_DISABLE_STEAM_REGISTRY_DISCOVERY = $oldDisableSteamRegistryDiscovery
     }
     $sncCaptureText = $sncCaptureOutput -join "`n"
 

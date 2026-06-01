@@ -84,6 +84,7 @@ The companion app should explain this tradeoff to the user instead of changing g
 Observed local save layout, 31.5.2026:
 
 * Stellaris may have more than one plausible Windows save root, for example local `Documents/Paradox Interactive/Stellaris/save games`, synced `OneDrive/Dokumenty/Paradox Interactive/Stellaris/save games`, and Steam Cloud local cache paths such as `Steam/userdata/<steam_user_id>/281990/remote/save games`.
+* Steam itself may be installed on any drive or folder. Save-root discovery should prefer the Windows registry Steam install path (`HKCU/HKLM Software/Valve/Steam`, including `SteamPath`, `InstallPath`, and `SteamExe`) before falling back to common `ProgramFiles*` locations.
 * The in-game/cloud-save checkbox can change where the active campaign writes saves. When cloud saving is enabled, the active files may appear in Steam Cloud's local synchronization cache instead of the ordinary local `save games` directory.
 * The Steam Cloud path is still a local filesystem cache that SNC can monitor read-only; it must not be treated as durable archive history because Steam/Stellaris can still rotate or synchronize it.
 * Campaigns are stored as subdirectories below `save games`, commonly with a readable slug plus an id suffix.

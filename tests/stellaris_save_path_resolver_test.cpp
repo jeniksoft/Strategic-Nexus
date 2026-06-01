@@ -29,9 +29,12 @@ int main()
         root / "Steam" / "userdata" / "123456" / "281990" / "remote" / "save games");
 
     const strategic_nexus::StellarisSavePathResolver resolver;
-    const auto discovery = resolver.buildCandidates(root / "User", {root / "OneDrive"}, {root / "Steam" / "userdata"});
+    const auto discovery = resolver.buildCandidates(
+        root / "User",
+        {root / "OneDrive"},
+        {root / "Steam" / "userdata", root / "STEAM" / "userdata"});
 
-    requireCondition(discovery.candidates.size() == 4, "resolver should emit user, OneDrive, and Steam Cloud candidates");
+    requireCondition(discovery.candidates.size() == 4, "resolver should emit user, OneDrive, and deduplicated Steam Cloud candidates");
     requireCondition(discovery.candidates[0].exists, "resolver should mark existing user Documents save root");
     requireCondition(!discovery.candidates[1].exists, "resolver should mark missing OneDrive Documents save root");
     requireCondition(discovery.candidates[2].source == "onedrive_dokumenty", "resolver should include localized OneDrive Dokumenty candidate");

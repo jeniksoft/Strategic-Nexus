@@ -3,11 +3,18 @@
 
 #include "StellarisSavePathResolver.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <cctype>
 #include <set>
 #include <sstream>
 #include <system_error>
+
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#pragma comment(lib, "Advapi32.lib")
+#endif
 
 namespace strategic_nexus {
 namespace {
@@ -40,6 +47,12 @@ std::filesystem::path getenvPath(const char* name)
     return value == nullptr ? std::filesystem::path() : std::filesystem::path(value);
 }
 
+bool envFlagEnabled(const char* name)
+{
+    const char* value = std::getenv(name);
+    return value != nullptr && std::string(value) == "1";
+}
+
 std::filesystem::path stellarisSaveRootUnderDocuments(const std::filesystem::path& documentsRoot)
 {
     return documentsRoot / "Paradox Interactive" / "Stellaris" / "save games";
@@ -56,6 +69,17 @@ bool directoryExists(const std::filesystem::path& path)
     return std::filesystem::exists(path, error) && std::filesystem::is_directory(path, error);
 }
 
+std::string candidateKey(const std::filesystem::path& path)
+{
+    auto key = path.lexically_normal().generic_string();
+#ifdef _WIN32
+    std::transform(key.begin(), key.end(), key.begin(), [](const unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+#endif
+    return key;
+}
+
 void addCandidate(
     StellarisSaveRootDiscovery& discovery,
     std::set<std::string>& seen,
@@ -66,7 +90,7 @@ void addCandidate(
         return;
     }
 
-    const auto key = path.lexically_normal().generic_string();
+    const auto key = candidateKey(path);
     if (!seen.insert(key).second) {
         return;
     }
@@ -107,6 +131,85 @@ std::vector<std::filesystem::path> steamAccountRootsFromUserDataRoot(const std::
     return accountRoots;
 }
 
+#ifdef _WIN32
+std::filesystem::path expandRegistryPath(const std::wstring& value)
+{
+    if (value.empty()) {
+        return {};
+    }
+
+    std::vector<wchar_t> expanded(32768);
+    const DWORD written = ExpandEnvironmentStringsW(value.c_str(), expanded.data(), static_cast<DWORD>(expanded.size()));
+    if (written > 0 && written < expanded.size()) {
+        return std::filesystem::path(std::wstring(expanded.data()));
+    }
+    return std::filesystem::path(value);
+}
+
+std::filesystem::path readRegistryPathValue(
+    const HKEY root,
+    const wchar_t* subKey,
+    const wchar_t* valueName)
+{
+    DWORD type = 0;
+    DWORD byteCount = 0;
+    const DWORD flags = RRF_RT_REG_SZ | RRF_RT_REG_EXPAND_SZ;
+    LSTATUS status = RegGetValueW(root, subKey, valueName, flags, &type, nullptr, &byteCount);
+    if (status != ERROR_SUCCESS || byteCount == 0) {
+        return {};
+    }
+
+    std::vector<wchar_t> buffer((byteCount / sizeof(wchar_t)) + 1, L'\0');
+    status = RegGetValueW(root, subKey, valueName, flags, &type, buffer.data(), &byteCount);
+    if (status != ERROR_SUCCESS) {
+        return {};
+    }
+
+    return expandRegistryPath(std::wstring(buffer.data()));
+}
+
+std::vector<std::filesystem::path> discoverSteamUserDataRootsFromRegistry()
+{
+    struct RegistryKey {
+        HKEY root;
+        const wchar_t* subKey;
+    };
+
+    const RegistryKey keys[] = {
+        {HKEY_CURRENT_USER, L"Software\\Valve\\Steam"},
+        {HKEY_LOCAL_MACHINE, L"Software\\Valve\\Steam"},
+        {HKEY_LOCAL_MACHINE, L"Software\\WOW6432Node\\Valve\\Steam"},
+    };
+    const wchar_t* values[] = {L"SteamPath", L"InstallPath", L"SteamExe"};
+
+    std::vector<std::filesystem::path> roots;
+    std::set<std::string> seen;
+    for (const auto& key : keys) {
+        for (const auto* value : values) {
+            auto path = readRegistryPathValue(key.root, key.subKey, value);
+            if (path.empty()) {
+                continue;
+            }
+            std::error_code error;
+            if (std::filesystem::is_regular_file(path, error) && !error) {
+                path = path.parent_path();
+            }
+            const auto userDataRoot = path / "userdata";
+            const auto normalized = candidateKey(userDataRoot);
+            if (seen.insert(normalized).second) {
+                roots.push_back(userDataRoot);
+            }
+        }
+    }
+    return roots;
+}
+#else
+std::vector<std::filesystem::path> discoverSteamUserDataRootsFromRegistry()
+{
+    return {};
+}
+#endif
+
 } // namespace
 
 StellarisSaveRootDiscovery StellarisSavePathResolver::discoverFromEnvironment() const
@@ -120,6 +223,12 @@ StellarisSaveRootDiscovery StellarisSavePathResolver::discoverFromEnvironment() 
     }
 
     std::vector<std::filesystem::path> steamUserDataRoots;
+    if (!envFlagEnabled("STRATEGIC_NEXUS_DISABLE_STEAM_REGISTRY_DISCOVERY")) {
+        for (const auto& root : discoverSteamUserDataRootsFromRegistry()) {
+            steamUserDataRoots.push_back(root);
+        }
+    }
+
     const auto addProgramFilesSteamRoot = [&](const char* envName) {
         const auto programFilesRoot = getenvPath(envName);
         if (!programFilesRoot.empty()) {
