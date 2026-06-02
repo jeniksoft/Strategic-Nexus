@@ -64,6 +64,39 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-02
+
+Dnes nepribyl novy implementacni commit nad verejnym headem; denikovy update proto slouzi jako kratke konsolidovane shrnuti posledni pushnute SNC pracovni vlny z 1.6.2026 a aktualniho overeneho stavu repozitare.
+
+Co je nove potvrzene v repozitari:
+
+* Posledni pushnuta commit sada rozsirila Strategic Nexus Companion o navazujici offline rozhodovaci retezec `post-play package -> decision input package -> candidate decision package -> validated DSL draft -> generated overlay staging gate`.
+* Soucasne pribyla save-entry-point branch analyza a doplneni empire state summaries, takze runtime interoperability research ma presnejsi vstupni kontext pro rozhodovani na integration boundary mezi archivovanym campaign stavem, offline analyzou a staged overlay artefaktem.
+* `docs/MASTER_ARCHITECTURE_INDEX.md` byl upraven tak, aby nova SNC vrstva zustala dohledatelna v hlavni architekturni mape a nebyla jen implicitne rozprostrena mezi jednotlivymi implementacnimi soubory.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt se posunul od jednotlivych podpurnych builderu k soudrznejsimu host-authoritative rozhodovacimu toku, ktery pripravuje bounded podklady pro scripted event/effect path bez rozsireni pravomoci do aktivniho runtime.
+* Validated DSL draft builder a generated overlay staging gate jsou dulezite hlavne tim, ze zmensuji mezeru mezi analytickym vystupem a checksum-citlivou generated overlay pripravenosti; stale ale jde o kontrolovanou pripravu artefaktu, ne o finalni distribucni uzaver.
+* Save-entry-point branch analyza dale zpesnuje, odkud se ma brat autoritativni kampanovy vstup, coz pomaha omezit drift na integration boundary mezi autosave archivem, companion vrstvou a dalsi session pripravenou mezi sezenimi.
+
+Testy a stav overeni:
+
+* Verejny GitHub Actions `Windows Tests` je pro celou tuto SNC commit radu potvrzen jako uspesny. Dostupne push behy pro commity od `Implement save entry point branch analysis` po `Add SNC generated overlay staging gate` vsechny skoncily `success` dne 1.6.2026.
+* Lokalni pracovni strom je v okamziku tohoto zapisu ve shode s `origin/master`; pred denikovou upravou nebyly pritomne dalsi nepushed implementacni commity.
+* Tento denikovy beh nespoustel novy plny lokalni test run, protoze neshrnuje novou produkcni implementaci, ale potvrzeny stav jiz pushnuteho headu a dostupneho verejneho CI signalu.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe generated overlay packaging a distribucni workflow pro multiplayer ucastniky.
+* Nova SNC builder a staging vrstva zlepsuje pripravu podkladu, ale sama o sobe jeste neuzavira finalni export contract, campaign marker handshake ani empire identity resolver.
+* Rizikem zustava, ze rozhodovaci a observability vrstva poroste rychleji nez posledni interoperabilni krok doruceni generated overlay artefaktu mezi realnymi session.
+
+Doporuceny dalsi krok:
+
+* Navazat prvnim explicitnim end-to-end overenim export contractu od save-entry-point analyzy pres SNC decision chain az po generated overlay staging gate.
+* Pri tomto overeni se soustredit hlavne na checksum-safe packaging boundary a na to, zda staged artefakt opravdu dava jednoznacny podklad pro dalsi host-authoritative session.
+
 ## 2026-06-01
 
 Projekt dnes posunul hlavne praktickou cestu k robustnejsimu nalezeni kampanovych save rootu a k presnejsimu vykladu multiplayer package readiness na integration boundary mezi autosave archivem, offline analyzou a dalsi host-authoritative session pripravenou pres generated overlay artefakty.
