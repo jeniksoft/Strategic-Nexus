@@ -321,10 +321,10 @@ function Get-RRuleForHours {
 function Get-RRuleForMinutes {
     param([int]$Minutes)
 
-    if ($Minutes -lt 60 -or ($Minutes % 60) -ne 0) {
-        return "FREQ=MINUTELY;INTERVAL=$Minutes"
-    }
-    $hours = [Math]::Max(1, [int]($Minutes / 60))
+    # Codex cron automations are UI/scheduler-visible only on hourly or
+    # weekly schedules. Keep sub-hour budget math as a signal, but emit a
+    # scheduler-safe hourly RRULE for the actual automation.
+    $hours = [Math]::Max(1, [int][Math]::Ceiling($Minutes / 60.0))
     return Get-RRuleForHours -Hours $hours
 }
 
@@ -486,7 +486,7 @@ $adaptiveCadence = if ($null -ne $resetAnchor) {
 } else {
     Get-RecentUsageBudgetPair -Path $usageLogPath -ResetAnchor ([DateTime]::MinValue) -TargetReservePercent $targetReserve -CurrentHoursToReset $hoursToReset
 }
-$adaptiveInputIntervalMinutes = if ($null -ne $currentIntervalMinutes) { $currentIntervalMinutes } else { $fallbackIntervalMinutes }
+$adaptiveInputIntervalMinutes = $fallbackIntervalMinutes
 $adaptiveUnclampedIntervalMinutes = $null
 $adaptiveApplied = $false
 
@@ -507,7 +507,7 @@ if (
     } else {
         "adaptive-on-target-bounded"
     }
-    $reason = "adaptive cadence: actual budget spend D=$($adaptiveCadence.actual_spend_percent)% versus expected K=$($adaptiveCadence.expected_spend_percent)% over I=$($adaptiveCadence.interval_hours)h; applying S=$($adaptiveCadence.scale) to current Free Work interval"
+    $reason = "adaptive cadence: actual budget spend D=$($adaptiveCadence.actual_spend_percent)% versus expected K=$($adaptiveCadence.expected_spend_percent)% over I=$($adaptiveCadence.interval_hours)h; applying S=$($adaptiveCadence.scale) to baseline Free Work interval"
 }
 
 $nearResetCapMinutes = $null
@@ -543,7 +543,12 @@ if ($null -ne $nearResetCapMinutes -and $intervalMinutes -gt $nearResetCapMinute
     $reason = "$reason; $nearResetCapReason lowers maximum interval to $nearResetCapMinutes minutes"
 }
 
+$calculatedIntervalMinutes = $intervalMinutes
 $recommendedRRule = Get-RRuleForMinutes -Minutes $intervalMinutes
+$recommendedIntervalMinutes = Get-RRuleIntervalMinutes -RRule $recommendedRRule
+if ($null -ne $recommendedIntervalMinutes -and $recommendedIntervalMinutes -ne $calculatedIntervalMinutes) {
+    $reason = "$reason; Codex cron scheduler supports hourly cadence, so calculated $calculatedIntervalMinutes minute interval is represented as $recommendedIntervalMinutes minutes"
+}
 $shouldUpdateAutomation = $currentRRule -and ($currentRRule -ne $recommendedRRule)
 
 $directory = Split-Path -Parent $outputResolvedPath
@@ -583,8 +588,9 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
     remaining_project_complexity_points = $remainingPoints
     has_useful_project_work = $hasUsefulProjectWork
     recommended_freework_rrule = $recommendedRRule
-    recommended_interval_hours = [Math]::Round($intervalMinutes / 60.0, 2)
-    recommended_interval_minutes = $intervalMinutes
+    calculated_interval_minutes_before_cron_clamp = $calculatedIntervalMinutes
+    recommended_interval_hours = if ($null -ne $recommendedIntervalMinutes) { [Math]::Round($recommendedIntervalMinutes / 60.0, 2) } else { [Math]::Round($intervalMinutes / 60.0, 2) }
+    recommended_interval_minutes = if ($null -ne $recommendedIntervalMinutes) { $recommendedIntervalMinutes } else { $intervalMinutes }
     recommended_chunk_mode = $chunkMode
     current_freework_rrule = $currentRRule
     should_update_freework_automation = [bool]$shouldUpdateAutomation
