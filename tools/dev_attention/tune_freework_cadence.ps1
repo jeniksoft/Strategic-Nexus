@@ -3,7 +3,7 @@ param(
     [string]$UsageBudgetLogPath = ".codex_local/usage_budget_log.csv",
     [string]$BudgetRulesPath = "docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md",
     [string]$ProjectProgressPath = "dist/private_reports/project_progress_estimate.json",
-    [string]$FreeworkAutomationPath = "$env:USERPROFILE\.codex\automations\sn-bounded-free-work-execution\automation.toml",
+    [string]$FreeworkAutomationPath = "",
     [string]$OutputPath = "dist/private_reports/freework_cadence_recommendation.json",
     [int]$TargetReservePercent = 5
 )
@@ -295,6 +295,77 @@ function Get-ProjectRemainingPoints {
     return $null
 }
 
+function Get-TomlStringValue {
+    param(
+        [string]$Path,
+        [string]$Name
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return ""
+    }
+
+    $pattern = "^\s*$([regex]::Escape($Name))\s*=\s*`"(?<value>[^`"]*)`""
+    $match = Select-String -LiteralPath $Path -Pattern $pattern | Select-Object -First 1
+    if ($match) {
+        return [string]$match.Matches[0].Groups["value"].Value
+    }
+    return ""
+}
+
+function Resolve-FreeworkAutomationPath {
+    param([string]$Path)
+
+    if (-not [string]::IsNullOrWhiteSpace($Path)) {
+        $explicitPath = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Resolve-ProjectPath $Path }
+        if (Test-Path -LiteralPath $explicitPath) {
+            return $explicitPath
+        }
+    }
+
+    $automationRoot = Join-Path $env:USERPROFILE ".codex\automations"
+    if (-not (Test-Path -LiteralPath $automationRoot)) {
+        return ""
+    }
+
+    $candidates = New-Object System.Collections.Generic.List[object]
+    foreach ($toml in Get-ChildItem -LiteralPath $automationRoot -Directory | ForEach-Object { Join-Path $_.FullName "automation.toml" }) {
+        if (-not (Test-Path -LiteralPath $toml)) {
+            continue
+        }
+
+        $id = Get-TomlStringValue -Path $toml -Name "id"
+        $name = Get-TomlStringValue -Path $toml -Name "name"
+        $status = Get-TomlStringValue -Path $toml -Name "status"
+        if ($status -ne "ACTIVE") {
+            continue
+        }
+        if ($id -notlike "sn-bounded-free-work-execution*" -and $name -ne "SN Bounded Free Work Execution") {
+            continue
+        }
+
+        $item = Get-Item -LiteralPath $toml
+        $candidates.Add([pscustomobject]@{
+            path = $item.FullName
+            id = $id
+            name = $name
+            last_write_time = $item.LastWriteTime
+        }) | Out-Null
+    }
+
+    $selected = $candidates |
+        Sort-Object `
+            @{ Expression = { if ($_.id -ne "sn-bounded-free-work-execution") { 0 } else { 1 } }; Ascending = $true },
+            @{ Expression = { $_.last_write_time }; Descending = $true } |
+        Select-Object -First 1
+
+    if ($selected) {
+        return [string]$selected.path
+    }
+
+    return ""
+}
+
 function Get-CurrentFreeworkRRule {
     param([string]$Path)
 
@@ -370,6 +441,9 @@ $usageLogPath = Resolve-ProjectPath $UsageBudgetLogPath
 $budgetRulesResolvedPath = Resolve-ProjectPath $BudgetRulesPath
 $progressPath = Resolve-ProjectPath $ProjectProgressPath
 $outputResolvedPath = Resolve-ProjectPath $OutputPath
+$freeworkAutomationResolvedPath = Resolve-FreeworkAutomationPath -Path $FreeworkAutomationPath
+$freeworkAutomationId = if ($freeworkAutomationResolvedPath) { Get-TomlStringValue -Path $freeworkAutomationResolvedPath -Name "id" } else { "" }
+$freeworkAutomationName = if ($freeworkAutomationResolvedPath) { Get-TomlStringValue -Path $freeworkAutomationResolvedPath -Name "name" } else { "" }
 
 if (-not (Test-Path -LiteralPath $budgetRulesResolvedPath)) {
     throw "Budget rules file not found: $budgetRulesResolvedPath"
@@ -477,7 +551,7 @@ if ($hasUsefulProjectWork -and $null -ne $hoursToReset) {
     }
 }
 
-$currentRRule = Get-CurrentFreeworkRRule -Path $FreeworkAutomationPath
+$currentRRule = Get-CurrentFreeworkRRule -Path $freeworkAutomationResolvedPath
 $currentIntervalMinutes = Get-RRuleIntervalMinutes -RRule $currentRRule
 $intervalMinutes = $intervalHours * 60
 $fallbackIntervalMinutes = $intervalMinutes
@@ -582,6 +656,9 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
     adaptive_applied = [bool]$adaptiveApplied
     remaining_project_complexity_points = $remainingPoints
     has_useful_project_work = $hasUsefulProjectWork
+    freework_automation_id = $freeworkAutomationId
+    freework_automation_name = $freeworkAutomationName
+    freework_automation_path = $freeworkAutomationResolvedPath
     recommended_freework_rrule = $recommendedRRule
     recommended_interval_hours = [Math]::Round($intervalMinutes / 60.0, 2)
     recommended_interval_minutes = $intervalMinutes
@@ -594,6 +671,8 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
 
 Write-Host "freework_cadence_recommendation_written=$outputResolvedPath"
 Write-Host "budget_rules_path=$budgetRulesResolvedPath"
+Write-Host "freework_automation_id=$freeworkAutomationId"
+Write-Host "freework_automation_path=$freeworkAutomationResolvedPath"
 Write-Host "recommended_freework_rrule=$recommendedRRule"
 Write-Host "current_freework_rrule=$currentRRule"
 Write-Host "should_update_freework_automation=$shouldUpdateAutomation"
