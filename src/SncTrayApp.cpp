@@ -19,6 +19,7 @@
 #include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
 #include "SncDslDraftPackageBuilder.h"
+#include "SncGeneratedOverlayPublishGate.h"
 #include "SncGeneratedOverlayStager.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
@@ -46,6 +47,7 @@ constexpr UINT WM_SNC_TASKBAR_CREATED = WM_APP + 11;
 constexpr UINT ID_TRAY_STATUS = 101;
 constexpr UINT ID_TRAY_OPEN_ARCHIVE = 102;
 constexpr UINT ID_TRAY_EXIT = 103;
+constexpr UINT ID_TRAY_PUBLISH_GENERATED_OVERLAY = 104;
 
 std::atomic_bool g_stopRequested{false};
 std::thread g_worker;
@@ -65,6 +67,9 @@ std::filesystem::path g_dslDraftPath;
 std::filesystem::path g_dslDraftAuditPath;
 std::filesystem::path g_generatedOverlayStagingDirectory;
 std::filesystem::path g_generatedOverlayStagingStatusPath;
+std::filesystem::path g_generatedOverlayActiveDirectory;
+std::filesystem::path g_generatedOverlayPublishStatusPath;
+std::filesystem::path g_generatedOverlayPublishBackupRootDirectory;
 NOTIFYICONDATAW g_trayIcon{};
 UINT g_taskbarCreatedMessage = 0;
 
@@ -289,6 +294,12 @@ void writeStatus(
          << jsonEscape(pathString(generatedOverlayStagingDirectory)) << "\",\n";
     json << "  \"generated_overlay_staging_status_path\": \""
          << jsonEscape(pathString(generatedOverlayStagingStatusPath)) << "\",\n";
+    json << "  \"generated_overlay_active_directory\": \""
+         << jsonEscape(pathString(g_generatedOverlayActiveDirectory)) << "\",\n";
+    json << "  \"generated_overlay_publish_status_path\": \""
+         << jsonEscape(pathString(g_generatedOverlayPublishStatusPath)) << "\",\n";
+    json << "  \"generated_overlay_publish_backup_root_directory\": \""
+         << jsonEscape(pathString(g_generatedOverlayPublishBackupRootDirectory)) << "\",\n";
     json << "  \"generated_overlay_staging_readiness\": \""
          << jsonEscape(generatedOverlayStagingReadiness) << "\",\n";
     json << "  \"generated_overlay_staging_rule_count\": " << generatedOverlayStagingRuleCount << ",\n";
@@ -791,6 +802,10 @@ void showStatusDialog(HWND hwnd)
     text += g_trayStatusPath.wstring();
     text += L"\n\nArchiv:\n";
     text += g_archiveRoot.wstring();
+    text += L"\n\nStaged overlay status:\n";
+    text += g_generatedOverlayStagingStatusPath.wstring();
+    text += L"\n\nActive overlay snapshot:\n";
+    text += g_generatedOverlayActiveDirectory.wstring();
 
     MessageBoxW(hwnd, text.c_str(), g_statusTitle.c_str(), MB_OK | MB_ICONINFORMATION);
 }
@@ -802,6 +817,77 @@ void openArchiveDirectory()
     ShellExecuteW(nullptr, L"open", g_archiveRoot.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
+void publishStagedGeneratedOverlay(HWND hwnd)
+{
+    if (!std::filesystem::exists(g_generatedOverlayStagingStatusPath)) {
+        MessageBoxW(
+            hwnd,
+            L"Staged generated overlay status zatim neexistuje.\n\nNejdriv nech SNC dokoncit post-play pipeline po ukonceni Stellaris.",
+            L"Strategic Nexus Companion",
+            MB_OK | MB_ICONWARNING);
+        return;
+    }
+
+    const int confirmation = MessageBoxW(
+        hwnd,
+        L"Publikovat staged generated overlay do active snapshotu?\n\nSNC zkontroluje, ze Stellaris nebezi, vytvori zalohu existujiciho active snapshotu a zapise audit status.",
+        L"Strategic Nexus Companion",
+        MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
+    if (confirmation != IDYES) {
+        return;
+    }
+
+    bool stellarisRunning = true;
+    std::string processReason = "Stellaris process detection unavailable";
+    {
+        const strategic_nexus::StellarisProcessDetector detector;
+        const auto processStatus = detector.detectFromSystem();
+        processReason = processStatus.reason;
+        if (processStatus.detectionAvailable) {
+            stellarisRunning = processStatus.running;
+        }
+    }
+
+    strategic_nexus::SncGeneratedOverlayPublishGateRequest request;
+    request.stagingStatusPath = g_generatedOverlayStagingStatusPath;
+    request.activeOverlayDirectory = g_generatedOverlayActiveDirectory;
+    request.backupRootDirectory = g_generatedOverlayPublishBackupRootDirectory;
+    request.ownerApprovalToken = "owner-approved";
+    request.stellarisRunning = stellarisRunning;
+
+    const strategic_nexus::SncGeneratedOverlayPublishGate gate;
+    const auto result = gate.publish(request);
+    const bool statusWritten = strategic_nexus::common::writeTextFileAtomically(
+        g_generatedOverlayPublishStatusPath,
+        strategic_nexus::serializeSncGeneratedOverlayPublishGateResult(result));
+
+    {
+        std::lock_guard<std::mutex> lock(g_statusMutex);
+        g_statusText = utf8ToWide(result.reason);
+    }
+    updateTrayTip(hwnd, utf8ToWide(result.reason));
+
+    std::wstring message = L"Vysledek: ";
+    message += utf8ToWide(result.reason);
+    message += L"\n\nStellaris: ";
+    message += stellarisRunning ? L"bezi nebo nebylo mozne bezpecne overit" : L"nebezi";
+    if (!processReason.empty()) {
+        message += L"\nDetekce: ";
+        message += utf8ToWide(processReason);
+    }
+    message += L"\n\nActive overlay:\n";
+    message += g_generatedOverlayActiveDirectory.wstring();
+    message += L"\n\nStatus:\n";
+    message += g_generatedOverlayPublishStatusPath.wstring();
+    message += statusWritten ? L"\n\nAudit status zapsan." : L"\n\nAudit status se nepodarilo zapsat.";
+
+    MessageBoxW(
+        hwnd,
+        message.c_str(),
+        L"Strategic Nexus Companion",
+        MB_OK | (result.ok && statusWritten ? MB_ICONINFORMATION : MB_ICONWARNING));
+}
+
 void showTrayMenu(HWND hwnd)
 {
     POINT point{};
@@ -809,6 +895,7 @@ void showTrayMenu(HWND hwnd)
     HMENU menu = CreatePopupMenu();
     AppendMenuW(menu, MF_STRING, ID_TRAY_STATUS, L"Stav");
     AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_ARCHIVE, L"Otevrit archiv");
+    AppendMenuW(menu, MF_STRING, ID_TRAY_PUBLISH_GENERATED_OVERLAY, L"Publikovat staged overlay");
     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(menu, MF_STRING, ID_TRAY_EXIT, L"Konec");
 
@@ -838,6 +925,9 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
             return 0;
         case ID_TRAY_OPEN_ARCHIVE:
             openArchiveDirectory();
+            return 0;
+        case ID_TRAY_PUBLISH_GENERATED_OVERLAY:
+            publishStagedGeneratedOverlay(hwnd);
             return 0;
         case ID_TRAY_EXIT:
             DestroyWindow(hwnd);
@@ -887,6 +977,9 @@ void initializePaths()
     g_dslDraftAuditPath = g_repoRoot / "dist" / "private_reports" / "snc_dsl_draft_package.json";
     g_generatedOverlayStagingDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staged";
     g_generatedOverlayStagingStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staging_status.json";
+    g_generatedOverlayActiveDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_active";
+    g_generatedOverlayPublishStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_publish_status.json";
+    g_generatedOverlayPublishBackupRootDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_backups";
 }
 
 } // namespace

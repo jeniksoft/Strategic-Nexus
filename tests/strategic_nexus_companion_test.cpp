@@ -343,6 +343,105 @@ int main()
     requireCondition(directArchiveSession.archive.state == "ready", "archive session root with manifest should be ready");
     requireCondition(directArchiveSession.statusCenter.state == "ready", "status center should be ready when archive session and overlay are ready");
 
+    const auto stagedOverlayRoot = root / "staged_generated_overlay";
+    const auto activeOverlayRoot = root / "active_generated_overlay";
+    const auto stagedOverlayStatusPath = root / "snc_generated_overlay_staging_status.json";
+    const auto publishStatusPath = root / "snc_generated_overlay_publish_status.json";
+    const auto publishBackupRoot = root / "snc_generated_overlay_backups";
+    std::filesystem::copy(overlayRoot, stagedOverlayRoot, std::filesystem::copy_options::recursive);
+    std::filesystem::copy(overlayRoot, activeOverlayRoot, std::filesystem::copy_options::recursive);
+    writeTextFileAtomically(
+        stagedOverlayStatusPath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"ok\": true,\n"
+        "  \"reason\": \"validated generated overlay staged\",\n"
+        "  \"readiness\": \"staged_verified\",\n"
+        "  \"dry_run_only\": true,\n"
+        "  \"publish_allowed\": false,\n"
+        "  \"publishes_overlay\": false,\n"
+        "  \"staged_overlay_directory\": \"" + stagedOverlayRoot.generic_string() + "\",\n"
+        "  \"dsl_rule_count\": 10,\n"
+        "  \"manifest_verified\": true,\n"
+        "  \"manifest_hash\": \"" + directArchiveSession.generatedOverlay.manifestHash + "\"\n"
+        "}\n");
+    const auto stagedPublishReady = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        activeOverlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport,
+        stagedOverlayStatusPath,
+        activeOverlayRoot,
+        publishStatusPath,
+        publishBackupRoot
+    });
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.state == "ready",
+        "staged publish gate should be ready when Stellaris is not running");
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.reason ==
+            "staged generated overlay ready; owner approval required before publish",
+        "staged publish gate should explain owner approval requirement");
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.stagingStatusPath == stagedOverlayStatusPath,
+        "staged publish gate should expose staging status path");
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.stagedOverlayDirectory == stagedOverlayRoot,
+        "staged publish gate should expose staged overlay directory");
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.activeOverlayDirectory == activeOverlayRoot,
+        "staged publish gate should expose active overlay directory");
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.publishStatusPath == publishStatusPath,
+        "staged publish gate should expose publish status output path");
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.backupRootDirectory == publishBackupRoot,
+        "staged publish gate should expose backup root");
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.manifestHash == directArchiveSession.generatedOverlay.manifestHash,
+        "staged publish gate should expose manifest hash");
+    requireCondition(stagedPublishReady.generatedOverlayPublishGate.dslRuleCount == 10, "staged publish gate should expose rule count");
+    requireCondition(stagedPublishReady.generatedOverlayPublishGate.ownerApprovalRequired, "staged publish gate should require owner approval");
+    requireCondition(stagedPublishReady.generatedOverlayPublishGate.canPublish, "staged publish gate should expose publish readiness");
+    requireCondition(stagedPublishReady.generatedOverlayPublishGate.activeOverlayExists, "staged publish gate should detect existing active overlay");
+    requireCondition(stagedPublishReady.generatedOverlayPublishGate.backupBeforeReplace, "staged publish gate should plan backup before replace");
+    requireCondition(
+        stagedPublishReady.generatedOverlayPublishGate.publishCommand.find(
+            "Strategic Nexus.exe --publish-snc-generated-overlay ") == 0,
+        "staged publish gate should expose owner-approved publish command");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find("publish_gate_owner_approval_required: true") != std::string::npos,
+        "status center summary should expose owner approval requirement");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find("publish_gate_can_publish: true") != std::string::npos,
+        "status center summary should expose can_publish");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find("publish_gate_backup_before_replace: true") != std::string::npos,
+        "status center summary should expose backup-before-replace state");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find("publish_gate_command: Strategic Nexus.exe --publish-snc-generated-overlay ") != std::string::npos,
+        "status center summary should expose publish command");
+
+    const auto stagedPublishBlocked = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        activeOverlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        true,
+        missingGameplayAcceptanceReport,
+        stagedOverlayStatusPath,
+        activeOverlayRoot,
+        publishStatusPath,
+        publishBackupRoot
+    });
+    requireCondition(stagedPublishBlocked.generatedOverlayPublishGate.state == "blocked", "staged publish gate should block while Stellaris is running");
+    requireCondition(!stagedPublishBlocked.generatedOverlayPublishGate.canPublish, "blocked staged publish gate should not expose can_publish");
+    requireCondition(stagedPublishBlocked.generatedOverlayPublishGate.publishCommand.empty(), "blocked staged publish gate should not expose publish command");
+
     const auto blockedPublishGate = companion.buildStatusSnapshot({
         archiveSessionRoot,
         overlayRoot,
@@ -502,6 +601,29 @@ int main()
     requireCondition(
         json.find("mp_identity_mismatch_warning: false") != std::string::npos,
         "ready status center summary should include false identity mismatch warning");
+
+    const auto stagedPublishJson = strategic_nexus::serializeCompanionStatusSnapshot(stagedPublishReady);
+    requireCondition(
+        stagedPublishJson.find("\"staging_status_path\": \"") != std::string::npos,
+        "staged publish JSON should include staging status path");
+    requireCondition(
+        stagedPublishJson.find("\"active_overlay_directory\": \"") != std::string::npos,
+        "staged publish JSON should include active overlay directory");
+    requireCondition(
+        stagedPublishJson.find("\"publish_status_path\": \"") != std::string::npos,
+        "staged publish JSON should include publish status path");
+    requireCondition(
+        stagedPublishJson.find("\"owner_approval_required\": true") != std::string::npos,
+        "staged publish JSON should include owner approval requirement");
+    requireCondition(
+        stagedPublishJson.find("\"can_publish\": true") != std::string::npos,
+        "staged publish JSON should include can_publish");
+    requireCondition(
+        stagedPublishJson.find("\"backup_before_replace\": true") != std::string::npos,
+        "staged publish JSON should include backup-before-replace state");
+    requireCondition(
+        stagedPublishJson.find("\"publish_command\": \"Strategic Nexus.exe --publish-snc-generated-overlay ") != std::string::npos,
+        "staged publish JSON should include publish command");
 
     const auto gameplayAcceptanceReport = root / "gameplay_acceptance_v0.json";
     {

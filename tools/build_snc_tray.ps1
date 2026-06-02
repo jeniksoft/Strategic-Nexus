@@ -55,6 +55,7 @@ $sourceFiles = @(
     (Join-Path $repoRoot "src\SncCandidateDecisionPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\SncDecisionInputPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\SncDslDraftPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src\SncGeneratedOverlayPublishGate.cpp"),
     (Join-Path $repoRoot "src\SncGeneratedOverlayStager.cpp"),
     (Join-Path $repoRoot "src\StellarisProcessDetector.cpp"),
     (Join-Path $repoRoot "src\StellarisSavePathResolver.cpp"),
@@ -63,6 +64,7 @@ $sourceFiles = @(
     (Join-Path $repoRoot "src\common\JsonSanity.cpp"),
     (Join-Path $repoRoot "src\generated_overlay\DslParser.cpp"),
     (Join-Path $repoRoot "src\generated_overlay\DslValidator.cpp"),
+    (Join-Path $repoRoot "src\generated_overlay\GeneratedOverlayPublisher.cpp"),
     (Join-Path $repoRoot "src\generated_overlay\ManifestVerifier.cpp"),
     (Join-Path $repoRoot "src\generated_overlay\OverlayCompiler.cpp")
 )

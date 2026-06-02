@@ -20,6 +20,10 @@ struct CompanionStatusConfig {
     bool stellarisRunningOverride = false;
     std::filesystem::path gameplayAcceptanceReportPath =
         "dist/private_reports/generated_overlay_gameplay_acceptance_v0.json";
+    std::filesystem::path generatedOverlayStagingStatusPath;
+    std::filesystem::path generatedOverlayActiveDirectory;
+    std::filesystem::path generatedOverlayPublishStatusPath;
+    std::filesystem::path generatedOverlayPublishBackupRootDirectory;
 };
 
 struct CompanionStatusLoopConfig {
@@ -94,6 +98,24 @@ struct CompanionMpOverlayPackageStatus {
     std::vector<std::string> identityMismatchWarningCodes;
 };
 
+struct CompanionGeneratedOverlayPublishGateStatus {
+    std::string state;
+    std::string reason;
+    std::filesystem::path path;
+    std::filesystem::path stagingStatusPath;
+    std::filesystem::path stagedOverlayDirectory;
+    std::filesystem::path activeOverlayDirectory;
+    std::filesystem::path publishStatusPath;
+    std::filesystem::path backupRootDirectory;
+    std::string manifestHash;
+    std::string publishCommand;
+    std::size_t dslRuleCount = 0;
+    bool ownerApprovalRequired = false;
+    bool canPublish = false;
+    bool activeOverlayExists = false;
+    bool backupBeforeReplace = false;
+};
+
 struct CompanionLifecycleStatus {
     bool startWithWindowsEnabled = false;
     std::string windowCloseBehavior = "minimize_to_tray";
@@ -109,7 +131,7 @@ struct CompanionStatusSnapshot {
     CompanionSubsystemStatus saveDiscovery;
     CompanionSubsystemStatus archive;
     CompanionSubsystemStatus generatedOverlay;
-    CompanionSubsystemStatus generatedOverlayPublishGate;
+    CompanionGeneratedOverlayPublishGateStatus generatedOverlayPublishGate;
     CompanionMpOverlayPackageStatus mpOverlayPackage;
     CompanionSubsystemStatus gameplayAcceptance;
     CompanionSubsystemStatus statusCenter;

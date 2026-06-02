@@ -15,6 +15,8 @@
 #include <cctype>
 #include <iomanip>
 #include <ctime>
+#include <optional>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <system_error>
@@ -241,6 +243,81 @@ std::string quoteCliPathArg(const std::filesystem::path& path)
         escaped.push_back(ch);
     }
     return "\"" + escaped + "\"";
+}
+
+std::optional<bool> extractJsonBool(const std::string& json, const char* key)
+{
+    const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*(true|false)");
+    std::smatch match;
+    if (!std::regex_search(json, match, pattern)) {
+        return std::nullopt;
+    }
+    return match[1].str() == "true";
+}
+
+std::optional<std::size_t> extractJsonSize(const std::string& json, const char* key)
+{
+    const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*([0-9]+)");
+    std::smatch match;
+    if (!std::regex_search(json, match, pattern)) {
+        return std::nullopt;
+    }
+
+    try {
+        return static_cast<std::size_t>(std::stoull(match[1].str()));
+    }
+    catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::string buildGeneratedOverlayPublishCommand(const CompanionGeneratedOverlayPublishGateStatus& status)
+{
+    if (status.stagingStatusPath.empty() || status.activeOverlayDirectory.empty() ||
+        status.publishStatusPath.empty()) {
+        return std::string();
+    }
+
+    std::ostringstream command;
+    command << "Strategic Nexus.exe --publish-snc-generated-overlay "
+            << quoteCliPathArg(status.stagingStatusPath) << " "
+            << quoteCliPathArg(status.activeOverlayDirectory) << " "
+            << quoteCliPathArg(status.publishStatusPath) << " owner-approved";
+    if (!status.backupRootDirectory.empty()) {
+        command << " " << quoteCliPathArg(status.backupRootDirectory);
+    }
+    return command.str();
+}
+
+void populatePublishGateProcessStatus(
+    CompanionGeneratedOverlayPublishGateStatus& status,
+    const CompanionStatusConfig& config)
+{
+    StellarisProcessStatus processStatus;
+    if (config.useDetectedStellarisState) {
+        const StellarisProcessDetector detector;
+        processStatus = detector.detectFromSystem();
+    } else {
+        processStatus.detectionAvailable = true;
+        processStatus.running = config.stellarisRunningOverride;
+        processStatus.reason =
+            config.stellarisRunningOverride ? "explicit Stellaris running override" : "explicit Stellaris not running override";
+    }
+
+    if (!processStatus.detectionAvailable) {
+        status.state = "needs_attention";
+        status.reason = "Stellaris process detection unavailable; generated overlay publish blocked";
+        return;
+    }
+
+    if (processStatus.running) {
+        status.state = "blocked";
+        status.reason = "Stellaris is running; generated overlay publish deferred";
+        return;
+    }
+
+    status.state = "ready";
+    status.reason = "Stellaris is not running; generated overlay publish allowed";
 }
 
 std::string formatLocalTimestamp(std::chrono::system_clock::time_point now)
@@ -657,11 +734,110 @@ CompanionSubsystemStatus buildGameplayAcceptanceStatus(const std::filesystem::pa
     return status;
 }
 
-CompanionSubsystemStatus buildGeneratedOverlayPublishGateStatus(
+CompanionGeneratedOverlayPublishGateStatus buildGeneratedOverlayPublishGateStatus(
     const CompanionSubsystemStatus& generatedOverlay,
     const CompanionStatusConfig& config)
 {
-    CompanionSubsystemStatus status;
+    CompanionGeneratedOverlayPublishGateStatus status;
+
+    if (!config.generatedOverlayStagingStatusPath.empty()) {
+        status.stagingStatusPath = config.generatedOverlayStagingStatusPath;
+        status.activeOverlayDirectory = config.generatedOverlayActiveDirectory.empty()
+            ? config.generatedOverlayDirectory
+            : config.generatedOverlayActiveDirectory;
+        status.publishStatusPath = config.generatedOverlayPublishStatusPath;
+        status.backupRootDirectory = config.generatedOverlayPublishBackupRootDirectory;
+        status.path = status.activeOverlayDirectory;
+        status.ownerApprovalRequired = true;
+
+        if (status.activeOverlayDirectory.empty()) {
+            status.state = "needs_setup";
+            status.reason = "active generated overlay directory not configured";
+            return status;
+        }
+        if (status.publishStatusPath.empty()) {
+            status.state = "needs_setup";
+            status.reason = "generated overlay publish status path not configured";
+            return status;
+        }
+
+        std::error_code activeError;
+        status.activeOverlayExists =
+            std::filesystem::exists(status.activeOverlayDirectory, activeError) &&
+            !activeError &&
+            std::filesystem::is_directory(status.activeOverlayDirectory, activeError) &&
+            !activeError;
+        status.backupBeforeReplace = status.activeOverlayExists;
+
+        std::string stagingStatusJson;
+        if (!common::tryReadTextFile(status.stagingStatusPath, stagingStatusJson)) {
+            status.state = "starting";
+            status.reason = "waiting for staged generated overlay status";
+            return status;
+        }
+
+        const auto ok = extractJsonBool(stagingStatusJson, "ok");
+        if (!ok.has_value() || !*ok) {
+            status.state = "needs_attention";
+            status.reason = "staged generated overlay status is not successful";
+            return status;
+        }
+
+        const auto readiness = common::extractJsonString(stagingStatusJson, "readiness");
+        if (!readiness.has_value() || *readiness != "staged_verified") {
+            status.state = "needs_attention";
+            status.reason = "staged generated overlay is not staged_verified";
+            return status;
+        }
+
+        const auto manifestVerified = extractJsonBool(stagingStatusJson, "manifest_verified");
+        if (!manifestVerified.has_value() || !*manifestVerified) {
+            status.state = "needs_attention";
+            status.reason = "staged generated overlay manifest is not verified";
+            return status;
+        }
+
+        const auto publishAllowed = extractJsonBool(stagingStatusJson, "publish_allowed");
+        const auto publishesOverlay = extractJsonBool(stagingStatusJson, "publishes_overlay");
+        if (publishAllowed.value_or(false) || publishesOverlay.value_or(false)) {
+            status.state = "needs_attention";
+            status.reason = "staged generated overlay unexpectedly claims direct publish";
+            return status;
+        }
+
+        const auto stagedOverlayDirectory = common::extractJsonString(stagingStatusJson, "staged_overlay_directory");
+        if (!stagedOverlayDirectory.has_value() || stagedOverlayDirectory->empty()) {
+            status.state = "needs_attention";
+            status.reason = "staged generated overlay directory missing from status";
+            return status;
+        }
+        status.stagedOverlayDirectory = *stagedOverlayDirectory;
+
+        const auto manifestHash = common::extractJsonString(stagingStatusJson, "manifest_hash");
+        if (!manifestHash.has_value() || manifestHash->empty()) {
+            status.state = "needs_attention";
+            status.reason = "staged generated overlay manifest hash missing";
+            return status;
+        }
+        status.manifestHash = *manifestHash;
+        status.dslRuleCount = extractJsonSize(stagingStatusJson, "dsl_rule_count").value_or(0);
+
+        std::error_code stagedError;
+        if (!std::filesystem::is_directory(status.stagedOverlayDirectory, stagedError) || stagedError) {
+            status.state = "needs_attention";
+            status.reason = "staged generated overlay directory is missing";
+            return status;
+        }
+
+        populatePublishGateProcessStatus(status, config);
+        if (status.state == "ready") {
+            status.reason = "staged generated overlay ready; owner approval required before publish";
+            status.canPublish = true;
+            status.publishCommand = buildGeneratedOverlayPublishCommand(status);
+        }
+        return status;
+    }
+
     status.path = generatedOverlay.path;
 
     if (generatedOverlay.state == "needs_setup" || generatedOverlay.state == "needs_attention") {
@@ -676,31 +852,7 @@ CompanionSubsystemStatus buildGeneratedOverlayPublishGateStatus(
         return status;
     }
 
-    StellarisProcessStatus processStatus;
-    if (config.useDetectedStellarisState) {
-        const StellarisProcessDetector detector;
-        processStatus = detector.detectFromSystem();
-    } else {
-        processStatus.detectionAvailable = true;
-        processStatus.running = config.stellarisRunningOverride;
-        processStatus.reason =
-            config.stellarisRunningOverride ? "explicit Stellaris running override" : "explicit Stellaris not running override";
-    }
-
-    if (!processStatus.detectionAvailable) {
-        status.state = "needs_attention";
-        status.reason = "Stellaris process detection unavailable; generated overlay publish blocked";
-        return status;
-    }
-
-    if (processStatus.running) {
-        status.state = "blocked";
-        status.reason = "Stellaris is running; generated overlay publish deferred";
-        return status;
-    }
-
-    status.state = "ready";
-    status.reason = "Stellaris is not running; generated overlay publish allowed";
+    populatePublishGateProcessStatus(status, config);
     return status;
 }
 
@@ -708,7 +860,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay,
-    const CompanionSubsystemStatus& generatedOverlayPublishGate,
+    const CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage)
 {
     CompanionSubsystemStatus status;
@@ -820,7 +972,7 @@ std::string buildStatusCenterSummaryText(
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay,
-    const CompanionSubsystemStatus& generatedOverlayPublishGate,
+    const CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const CompanionSubsystemStatus& gameplayAcceptance,
     const CompanionSubsystemStatus& statusCenter)
@@ -846,6 +998,35 @@ std::string buildStatusCenterSummaryText(
     text << "publish_gate: " << generatedOverlayPublishGate.state << " - " << generatedOverlayPublishGate.reason << "\n";
     if (!generatedOverlayPublishGate.path.empty()) {
         text << "publish_gate_cesta: " << pathString(generatedOverlayPublishGate.path) << "\n";
+    }
+    if (!generatedOverlayPublishGate.stagingStatusPath.empty()) {
+        text << "publish_gate_staging_status: " << pathString(generatedOverlayPublishGate.stagingStatusPath) << "\n";
+    }
+    if (!generatedOverlayPublishGate.stagedOverlayDirectory.empty()) {
+        text << "publish_gate_staged_overlay: " << pathString(generatedOverlayPublishGate.stagedOverlayDirectory) << "\n";
+    }
+    if (!generatedOverlayPublishGate.activeOverlayDirectory.empty()) {
+        text << "publish_gate_active_overlay: " << pathString(generatedOverlayPublishGate.activeOverlayDirectory) << "\n";
+    }
+    if (!generatedOverlayPublishGate.publishStatusPath.empty()) {
+        text << "publish_gate_status_output: " << pathString(generatedOverlayPublishGate.publishStatusPath) << "\n";
+    }
+    if (!generatedOverlayPublishGate.backupRootDirectory.empty()) {
+        text << "publish_gate_backup_root: " << pathString(generatedOverlayPublishGate.backupRootDirectory) << "\n";
+    }
+    if (!generatedOverlayPublishGate.manifestHash.empty()) {
+        text << "publish_gate_manifest_hash: " << generatedOverlayPublishGate.manifestHash << "\n";
+    }
+    text << "publish_gate_rule_count: " << generatedOverlayPublishGate.dslRuleCount << "\n";
+    text << "publish_gate_owner_approval_required: "
+         << (generatedOverlayPublishGate.ownerApprovalRequired ? "true" : "false") << "\n";
+    text << "publish_gate_can_publish: " << (generatedOverlayPublishGate.canPublish ? "true" : "false") << "\n";
+    text << "publish_gate_active_overlay_exists: "
+         << (generatedOverlayPublishGate.activeOverlayExists ? "true" : "false") << "\n";
+    text << "publish_gate_backup_before_replace: "
+         << (generatedOverlayPublishGate.backupBeforeReplace ? "true" : "false") << "\n";
+    if (!generatedOverlayPublishGate.publishCommand.empty()) {
+        text << "publish_gate_command: " << generatedOverlayPublishGate.publishCommand << "\n";
     }
     text << "mp_overlay_balicek: " << mpOverlayPackage.state << " - " << mpOverlayPackage.reason << "\n";
     if (!mpOverlayPackage.path.empty()) {
@@ -937,6 +1118,37 @@ void writeSubsystemJson(
     } else {
         output << "\n";
     }
+    output << indent << "}";
+}
+
+void writeGeneratedOverlayPublishGateJson(
+    std::ostringstream& output,
+    const CompanionGeneratedOverlayPublishGateStatus& status,
+    const std::string& indent)
+{
+    output << indent << "{\n";
+    output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
+    output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
+    output << indent << "  \"path\": " << jsonString(pathString(status.path)) << ",\n";
+    output << indent << "  \"staging_status_path\": " << jsonString(pathString(status.stagingStatusPath)) << ",\n";
+    output << indent << "  \"staged_overlay_directory\": "
+           << jsonString(pathString(status.stagedOverlayDirectory)) << ",\n";
+    output << indent << "  \"active_overlay_directory\": "
+           << jsonString(pathString(status.activeOverlayDirectory)) << ",\n";
+    output << indent << "  \"publish_status_path\": "
+           << jsonString(pathString(status.publishStatusPath)) << ",\n";
+    output << indent << "  \"backup_root_directory\": "
+           << jsonString(pathString(status.backupRootDirectory)) << ",\n";
+    output << indent << "  \"manifest_hash\": " << jsonString(status.manifestHash) << ",\n";
+    output << indent << "  \"dsl_rule_count\": " << status.dslRuleCount << ",\n";
+    output << indent << "  \"owner_approval_required\": "
+           << (status.ownerApprovalRequired ? "true" : "false") << ",\n";
+    output << indent << "  \"can_publish\": " << (status.canPublish ? "true" : "false") << ",\n";
+    output << indent << "  \"active_overlay_exists\": "
+           << (status.activeOverlayExists ? "true" : "false") << ",\n";
+    output << indent << "  \"backup_before_replace\": "
+           << (status.backupBeforeReplace ? "true" : "false") << ",\n";
+    output << indent << "  \"publish_command\": " << jsonString(status.publishCommand) << "\n";
     output << indent << "}";
 }
 
@@ -1043,7 +1255,7 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     writeSubsystemJson(output, snapshot.generatedOverlay, "  ", true);
     output << ",\n";
     output << "  \"generated_overlay_publish_gate_status\": ";
-    writeSubsystemJson(output, snapshot.generatedOverlayPublishGate, "  ");
+    writeGeneratedOverlayPublishGateJson(output, snapshot.generatedOverlayPublishGate, "  ");
     output << ",\n";
     output << "  \"mp_overlay_package_status\": ";
     writeMpOverlayPackageJson(output, snapshot.mpOverlayPackage, "  ");
