@@ -546,6 +546,23 @@ int main()
             "mp_identity_mismatch_alert: package identity mismatch detected (campaign/version/mod/hash); run strict verify/import before MP join") !=
             std::string::npos,
         "status center summary should include explicit owner-facing identity mismatch alert");
+    requireCondition(
+        tamperedMpPackage.mpOverlayPackage.warningCount == 1,
+        "tampered mp package should expose structured warning count");
+    requireCondition(
+        tamperedMpPackage.mpOverlayPackage.mismatchWarningState == "warning",
+        "tampered mp package should expose mismatch warning state");
+    requireCondition(
+        tamperedMpPackage.mpOverlayPackage.mismatchWarningReason == "package_identity_mismatch_detected",
+        "tampered mp package should expose mismatch warning reason");
+    requireCondition(
+        tamperedMpPackage.mpOverlayPackage.identityMismatchAlert ==
+            "package identity mismatch detected (campaign/version/mod/hash); run strict verify/import before MP join",
+        "tampered mp package should expose explicit identity mismatch alert text");
+    requireCondition(
+        tamperedMpPackage.mpOverlayPackage.mismatchWarningCodes.size() == 1 &&
+            tamperedMpPackage.mpOverlayPackage.mismatchWarningCodes.front() == "mp_overlay_package_files_mismatch_manifest",
+        "tampered mp package should expose structured mismatch warning codes");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
@@ -590,9 +607,19 @@ int main()
         json.find("\"strict_import_command\": \"Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
         "JSON should include mp overlay package strict import command");
     requireCondition(json.find("\"warning_codes\": []") != std::string::npos, "ready MP package JSON should include empty warning codes array");
+    requireCondition(json.find("\"warning_count\": 0") != std::string::npos, "ready MP package JSON should include warning_count");
     requireCondition(
         json.find("\"identity_mismatch_warning\": false") != std::string::npos,
         "ready MP package JSON should include false identity mismatch warning");
+    requireCondition(
+        json.find("\"mismatch_warning_state\": \"no_mismatch\"") != std::string::npos,
+        "ready MP package JSON should include mismatch warning state");
+    requireCondition(
+        json.find("\"mismatch_warning_reason\": \"no_identity_mismatch_detected\"") != std::string::npos,
+        "ready MP package JSON should include mismatch warning reason");
+    requireCondition(
+        json.find("\"identity_mismatch_alert\": \"\"") != std::string::npos,
+        "ready MP package JSON should include empty mismatch alert");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");

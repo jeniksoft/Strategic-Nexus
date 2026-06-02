@@ -1727,7 +1727,7 @@ int Application::run(const RunConfig& config) const
             if (mpWarningCodes.empty()) {
                 mpWarningCodes = readStatusTextFields(snapshot.mpOverlayPackage.statusText, "warning_code");
             }
-            std::cout << "snc_mp_overlay_package_warning_count=" << mpWarningCodes.size() << "\n";
+            std::cout << "snc_mp_overlay_package_warning_count=" << snapshot.mpOverlayPackage.warningCount << "\n";
             for (const auto& warningCode : mpWarningCodes) {
                 std::cout << "snc_mp_overlay_package_warning=" << sanitizeCliValue(warningCode) << "\n";
                 std::cout << "snc_mp_overlay_package_warning_code=" << sanitizeCliValue(warningCode) << "\n";
@@ -1737,6 +1737,17 @@ int Application::run(const RunConfig& config) const
             for (const auto& warningCode : snapshot.mpOverlayPackage.identityMismatchWarningCodes) {
                 std::cout << "snc_mp_overlay_package_identity_mismatch_warning_code="
                           << sanitizeCliValue(warningCode) << "\n";
+            }
+            std::cout << "snc_mp_overlay_package_mismatch_warning_state="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.mismatchWarningState) << "\n";
+            std::cout << "snc_mp_overlay_package_mismatch_warning_reason="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.mismatchWarningReason) << "\n";
+            for (const auto& warningCode : snapshot.mpOverlayPackage.mismatchWarningCodes) {
+                std::cout << "snc_mp_overlay_package_mismatch_warning_code=" << sanitizeCliValue(warningCode) << "\n";
+            }
+            if (!snapshot.mpOverlayPackage.identityMismatchAlert.empty()) {
+                std::cout << "snc_mp_overlay_package_identity_mismatch_alert="
+                          << sanitizeCliValue(snapshot.mpOverlayPackage.identityMismatchAlert) << "\n";
             }
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";

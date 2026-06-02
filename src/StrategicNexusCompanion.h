@@ -94,8 +94,13 @@ struct CompanionMpOverlayPackageStatus {
     std::string strictImportCommand;
     std::string statusText;
     std::vector<std::string> warningCodes;
+    std::size_t warningCount = 0;
     bool identityMismatchWarning = false;
     std::vector<std::string> identityMismatchWarningCodes;
+    std::string mismatchWarningState = "no_mismatch";
+    std::string mismatchWarningReason = "no_identity_mismatch_detected";
+    std::vector<std::string> mismatchWarningCodes;
+    std::string identityMismatchAlert;
 };
 
 struct CompanionGeneratedOverlayPublishGateStatus {

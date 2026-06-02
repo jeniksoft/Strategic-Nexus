@@ -146,6 +146,34 @@ bool isIdentityMismatchWarningCode(const std::string& warningCode)
            warningCode == "mp_overlay_package_files_mismatch_manifest";
 }
 
+void finalizeMpOverlayPackageWarnings(CompanionMpOverlayPackageStatus& status)
+{
+    status.warningCount = status.warningCodes.size();
+    status.identityMismatchWarningCodes.clear();
+    status.mismatchWarningCodes.clear();
+    status.identityMismatchWarning = false;
+    status.identityMismatchAlert.clear();
+
+    for (const auto& warningCode : status.warningCodes) {
+        if (!isIdentityMismatchWarningCode(warningCode)) {
+            continue;
+        }
+        status.identityMismatchWarning = true;
+        status.identityMismatchWarningCodes.push_back(warningCode);
+        status.mismatchWarningCodes.push_back(warningCode);
+    }
+
+    if (status.identityMismatchWarning) {
+        status.mismatchWarningState = "warning";
+        status.mismatchWarningReason = "package_identity_mismatch_detected";
+        status.identityMismatchAlert =
+            "package identity mismatch detected (campaign/version/mod/hash); run strict verify/import before MP join";
+    } else {
+        status.mismatchWarningState = "no_mismatch";
+        status.mismatchWarningReason = "no_identity_mismatch_detected";
+    }
+}
+
 std::string readStatusTextField(const std::string& statusText, const std::string& key)
 {
     if (key.empty()) {
@@ -575,6 +603,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.state = "disabled";
         status.reason = "mp overlay package directory not configured";
         status.warningCodes.push_back(toWarningCode(status.reason));
+        finalizeMpOverlayPackageWarnings(status);
         return status;
     }
     status.verifyCommand = "Strategic Nexus.exe --verify-mp-overlay-package " + quoteCliPathArg(packageDirectory);
@@ -589,6 +618,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.reason = "mp overlay package directory inaccessible";
         status.warningCodes.push_back(toWarningCode(status.reason));
         setFailureStatusText();
+        finalizeMpOverlayPackageWarnings(status);
         return status;
     }
 
@@ -597,6 +627,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.reason = "mp overlay package directory missing";
         status.warningCodes.push_back(toWarningCode(status.reason));
         setFailureStatusText();
+        finalizeMpOverlayPackageWarnings(status);
         return status;
     }
 
@@ -606,6 +637,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.reason = "mp overlay package directory inaccessible";
         status.warningCodes.push_back(toWarningCode(status.reason));
         setFailureStatusText();
+        finalizeMpOverlayPackageWarnings(status);
         return status;
     }
 
@@ -614,6 +646,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.reason = "mp overlay package path is not a directory";
         status.warningCodes.push_back(toWarningCode(status.reason));
         setFailureStatusText();
+        finalizeMpOverlayPackageWarnings(status);
         return status;
     }
 
@@ -643,6 +676,11 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.state = "ready";
         status.reason = "mp overlay package verified";
         status.statusText = verification.statusText;
+        const auto warningCodes = extractWarningCodesFromStatusText(status.statusText);
+        if (!warningCodes.empty()) {
+            status.warningCodes = warningCodes;
+        }
+        finalizeMpOverlayPackageWarnings(status);
         return status;
     }
 
@@ -658,13 +696,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (!warningCodes.empty()) {
         status.warningCodes = warningCodes;
     }
-    for (const auto& warningCode : status.warningCodes) {
-        if (!isIdentityMismatchWarningCode(warningCode)) {
-            continue;
-        }
-        status.identityMismatchWarning = true;
-        status.identityMismatchWarningCodes.push_back(warningCode);
-    }
+    finalizeMpOverlayPackageWarnings(status);
     return status;
 }
 
@@ -1084,7 +1116,7 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.statusText.empty()) {
         text << "mp_overlay_package_status_text: " << mpOverlayPackage.statusText << "\n";
     }
-    text << "mp_warning_count: " << mpOverlayPackage.warningCodes.size() << "\n";
+    text << "mp_warning_count: " << mpOverlayPackage.warningCount << "\n";
     for (const auto& warningCode : mpOverlayPackage.warningCodes) {
         text << "mp_warning_code: " << warningCode << "\n";
     }
@@ -1092,8 +1124,13 @@ std::string buildStatusCenterSummaryText(
     for (const auto& warningCode : mpOverlayPackage.identityMismatchWarningCodes) {
         text << "mp_identity_mismatch_warning_code: " << warningCode << "\n";
     }
-    if (mpOverlayPackage.identityMismatchWarning) {
-        text << "mp_identity_mismatch_alert: package identity mismatch detected (campaign/version/mod/hash); run strict verify/import before MP join\n";
+    text << "mp_mismatch_warning_state: " << mpOverlayPackage.mismatchWarningState << "\n";
+    text << "mp_mismatch_warning_reason: " << mpOverlayPackage.mismatchWarningReason << "\n";
+    for (const auto& warningCode : mpOverlayPackage.mismatchWarningCodes) {
+        text << "mp_mismatch_warning_code: " << warningCode << "\n";
+    }
+    if (!mpOverlayPackage.identityMismatchAlert.empty()) {
+        text << "mp_identity_mismatch_alert: " << mpOverlayPackage.identityMismatchAlert << "\n";
     }
     text << "gameplay_acceptance: " << gameplayAcceptance.state << " - " << gameplayAcceptance.reason << "\n";
     if (!gameplayAcceptance.path.empty()) {
@@ -1174,6 +1211,7 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"strict_verify_command\": " << jsonString(status.strictVerifyCommand) << ",\n";
     output << indent << "  \"strict_import_command\": " << jsonString(status.strictImportCommand) << ",\n";
     output << indent << "  \"status_text\": " << jsonString(status.statusText) << ",\n";
+    output << indent << "  \"warning_count\": " << status.warningCount << ",\n";
     output << indent << "  \"warning_codes\": [";
     for (std::size_t index = 0; index < status.warningCodes.size(); ++index) {
         if (index > 0) {
@@ -1191,7 +1229,18 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
         }
         output << jsonString(status.identityMismatchWarningCodes[index]);
     }
-    output << "]\n";
+    output << "],\n";
+    output << indent << "  \"mismatch_warning_state\": " << jsonString(status.mismatchWarningState) << ",\n";
+    output << indent << "  \"mismatch_warning_reason\": " << jsonString(status.mismatchWarningReason) << ",\n";
+    output << indent << "  \"mismatch_warning_codes\": [";
+    for (std::size_t index = 0; index < status.mismatchWarningCodes.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << jsonString(status.mismatchWarningCodes[index]);
+    }
+    output << "],\n";
+    output << indent << "  \"identity_mismatch_alert\": " << jsonString(status.identityMismatchAlert) << "\n";
     output << indent << "}";
 }
 
