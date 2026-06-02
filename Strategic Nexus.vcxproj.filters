@@ -90,6 +90,9 @@
     <ClCompile Include="src\generated_overlay\DslValidator.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\generated_overlay\GeneratedOverlayPublisher.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\generated_overlay\ManifestVerifier.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -156,6 +159,9 @@
     <ClCompile Include="src\SncDslDraftPackageBuilder.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\SncGeneratedOverlayPublishGate.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\SncGeneratedOverlayStager.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -163,6 +169,9 @@
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
     <ClCompile Include="src\SeasonEmpireBriefBuilder.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StellarisProcessDetector.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
     <ClCompile Include="src\StellarisSavePathResolver.cpp">
@@ -257,6 +266,9 @@
     <ClInclude Include="src\generated_overlay\DslValidator.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
+    <ClInclude Include="src\generated_overlay\GeneratedOverlayPublisher.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
     <ClInclude Include="src\generated_overlay\ManifestVerifier.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
@@ -329,6 +341,9 @@
     <ClInclude Include="src\SncDslDraftPackageBuilder.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
+    <ClInclude Include="src\SncGeneratedOverlayPublishGate.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
     <ClInclude Include="src\SncGeneratedOverlayStager.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
@@ -336,6 +351,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\SeasonEmpireBriefBuilder.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StellarisProcessDetector.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\StellarisSavePathResolver.h">

@@ -19,6 +19,7 @@
 #include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
 #include "SncDslDraftPackageBuilder.h"
+#include "SncGeneratedOverlayPublishGate.h"
 #include "SncGeneratedOverlayStager.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
@@ -583,6 +584,36 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         if (argc > 4) {
             config.sncGeneratedOverlayStagingStatusOutputPath = argv[4];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--publish-snc-generated-overlay") {
+        config.publishSncGeneratedOverlayMode = true;
+
+        if (argc > 2) {
+            config.sncGeneratedOverlayPublishStagingStatusPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncGeneratedOverlayPublishActiveDirectory = argv[3];
+        }
+        if (argc > 4) {
+            config.sncGeneratedOverlayPublishStatusOutputPath = argv[4];
+        }
+        if (argc > 5) {
+            config.sncGeneratedOverlayOwnerApprovalToken = argv[5];
+        }
+        if (argc > 6) {
+            const std::string value = argv[6];
+            if (value == "true" || value == "false") {
+                config.sncGeneratedOverlayPublishUseDetectedStellarisState = false;
+                config.sncGeneratedOverlayPublishStellarisRunning = value == "true";
+            } else {
+                config.sncGeneratedOverlayPublishBackupRootDirectory = argv[6];
+            }
+        }
+        if (argc > 7) {
+            config.sncGeneratedOverlayPublishBackupRootDirectory = argv[7];
         }
         return config;
     }
@@ -2716,6 +2747,80 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_generated_overlay_stage_status_output_written=" << (statusWritten ? "true" : "false") << "\n";
             if (!statusWritten) {
                 std::cout << "snc_generated_overlay_stage_status_write_reason=failed to write staging status\n";
+            }
+            return success ? 0 : 1;
+        }
+
+        if (config.publishSncGeneratedOverlayMode) {
+            if (config.sncGeneratedOverlayPublishStagingStatusPath.empty() ||
+                config.sncGeneratedOverlayPublishActiveDirectory.empty() ||
+                config.sncGeneratedOverlayPublishStatusOutputPath.empty()) {
+                std::cout << "snc_generated_overlay_publish_success=false\n";
+                std::cout << "snc_generated_overlay_publish_reason=missing staging status path, active directory, or status output path\n";
+                return 1;
+            }
+
+            bool stellarisRunning = config.sncGeneratedOverlayPublishStellarisRunning;
+            bool detectionAvailable = false;
+            std::string stellarisRunningReason =
+                config.sncGeneratedOverlayPublishStellarisRunning ? "explicit true" : "explicit false";
+            if (config.sncGeneratedOverlayPublishUseDetectedStellarisState) {
+                const StellarisProcessDetector detector;
+                const auto processStatus = detector.detectFromSystem();
+                stellarisRunning = processStatus.running;
+                detectionAvailable = processStatus.detectionAvailable;
+                stellarisRunningReason = processStatus.reason;
+                if (!processStatus.detectionAvailable) {
+                    stellarisRunning = true;
+                    stellarisRunningReason += "; SNC generated overlay publish blocked because process detection is unavailable";
+                }
+            }
+
+            SncGeneratedOverlayPublishGateRequest request;
+            request.stagingStatusPath = config.sncGeneratedOverlayPublishStagingStatusPath;
+            request.activeOverlayDirectory = config.sncGeneratedOverlayPublishActiveDirectory;
+            request.backupRootDirectory = config.sncGeneratedOverlayPublishBackupRootDirectory;
+            request.ownerApprovalToken = config.sncGeneratedOverlayOwnerApprovalToken;
+            request.stellarisRunning = stellarisRunning;
+
+            const SncGeneratedOverlayPublishGate gate;
+            const auto result = gate.publish(request);
+            const bool statusWritten = common::writeTextFileAtomically(
+                config.sncGeneratedOverlayPublishStatusOutputPath,
+                serializeSncGeneratedOverlayPublishGateResult(result));
+            const bool success = result.ok && statusWritten;
+
+            std::cout << "snc_generated_overlay_publish_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_publish_reason=" << sanitizeCliValue(result.reason) << "\n";
+            std::cout << "snc_generated_overlay_publish_readiness=" << sanitizeCliValue(result.readiness) << "\n";
+            std::cout << "snc_generated_overlay_publish_owner_approved=" << (result.ownerApproved ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_publish_published=" << (result.published ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_publish_backup_created=" << (result.backupCreated ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_publish_stellaris_detection_available="
+                      << (detectionAvailable ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_publish_stellaris_running=" << (stellarisRunning ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_publish_stellaris_reason="
+                      << sanitizeCliValue(stellarisRunningReason) << "\n";
+            std::cout << "snc_generated_overlay_publish_staging_status_path="
+                      << sanitizeCliValue(result.stagingStatusPath.generic_string()) << "\n";
+            std::cout << "snc_generated_overlay_publish_staged_overlay_path="
+                      << sanitizeCliValue(result.stagedOverlayDirectory.generic_string()) << "\n";
+            std::cout << "snc_generated_overlay_publish_active_overlay_path="
+                      << sanitizeCliValue(result.activeOverlayDirectory.generic_string()) << "\n";
+            std::cout << "snc_generated_overlay_publish_backup_path="
+                      << sanitizeCliValue(result.backupDirectory.generic_string()) << "\n";
+            if (!result.sourceManifestHash.empty()) {
+                std::cout << "snc_generated_overlay_publish_source_manifest_hash="
+                          << sanitizeCliValue(result.sourceManifestHash) << "\n";
+            }
+            if (!result.publishedManifestHash.empty()) {
+                std::cout << "snc_generated_overlay_publish_manifest_hash="
+                          << sanitizeCliValue(result.publishedManifestHash) << "\n";
+            }
+            std::cout << "snc_generated_overlay_publish_file_count=" << result.publishedFileCount << "\n";
+            std::cout << "snc_generated_overlay_publish_status_output_written=" << (statusWritten ? "true" : "false") << "\n";
+            if (!statusWritten) {
+                std::cout << "snc_generated_overlay_publish_status_write_reason=failed to write publish status\n";
             }
             return success ? 0 : 1;
         }

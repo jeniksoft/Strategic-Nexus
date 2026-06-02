@@ -48,6 +48,7 @@ struct RunConfig {
     bool buildSncCandidateDecisionPackageMode = false;
     bool buildSncDslDraftPackageMode = false;
     bool stageSncGeneratedOverlayMode = false;
+    bool publishSncGeneratedOverlayMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -133,6 +134,10 @@ struct RunConfig {
     std::filesystem::path sncGeneratedOverlayDslPath;
     std::filesystem::path sncGeneratedOverlayStagingDirectory;
     std::filesystem::path sncGeneratedOverlayStagingStatusOutputPath;
+    std::filesystem::path sncGeneratedOverlayPublishStagingStatusPath;
+    std::filesystem::path sncGeneratedOverlayPublishActiveDirectory;
+    std::filesystem::path sncGeneratedOverlayPublishStatusOutputPath;
+    std::filesystem::path sncGeneratedOverlayPublishBackupRootDirectory;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;
@@ -145,6 +150,7 @@ struct RunConfig {
     std::string offlineSpineCampaignId;
     std::string offlineSpineEmpireId;
     std::string sncLiveAutosaveSessionId;
+    std::string sncGeneratedOverlayOwnerApprovalToken;
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
     bool sncUseDetectedStellarisState = true;
@@ -154,6 +160,8 @@ struct RunConfig {
     bool sncLiveAutosaveCaptureWhenStellarisNotRunning = false;
     bool generatedOverlayPublishStellarisRunning = false;
     bool generatedOverlayPublishUseDetectedStellarisState = true;
+    bool sncGeneratedOverlayPublishStellarisRunning = false;
+    bool sncGeneratedOverlayPublishUseDetectedStellarisState = true;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;
     std::int64_t v0SequenceId = 1;
     std::int64_t v0CreatedUnixMs = 0;

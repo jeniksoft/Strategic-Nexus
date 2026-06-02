@@ -168,6 +168,7 @@
     <ClCompile Include="src\GalaxyAnalyzer.cpp" />
     <ClCompile Include="src\generated_overlay\DslParser.cpp" />
     <ClCompile Include="src\generated_overlay\DslValidator.cpp" />
+    <ClCompile Include="src\generated_overlay\GeneratedOverlayPublisher.cpp" />
     <ClCompile Include="src\generated_overlay\ManifestVerifier.cpp" />
     <ClCompile Include="src\generated_overlay\MpOverlayPackage.cpp" />
     <ClCompile Include="src\generated_overlay\OverlayCompiler.cpp" />
@@ -190,9 +191,11 @@
     <ClCompile Include="src\SncCandidateDecisionPackageBuilder.cpp" />
     <ClCompile Include="src\SncDecisionInputPackageBuilder.cpp" />
     <ClCompile Include="src\SncDslDraftPackageBuilder.cpp" />
+    <ClCompile Include="src\SncGeneratedOverlayPublishGate.cpp" />
     <ClCompile Include="src\SncGeneratedOverlayStager.cpp" />
     <ClCompile Include="src\SeasonDeltaLedgerBuilder.cpp" />
     <ClCompile Include="src\SeasonEmpireBriefBuilder.cpp" />
+    <ClCompile Include="src\StellarisProcessDetector.cpp" />
     <ClCompile Include="src\StellarisSavePathResolver.cpp" />
     <ClCompile Include="src\StrategicNexusCompanion.cpp" />
     <ClCompile Include="src\StrategicRequest.cpp" />
@@ -225,6 +228,7 @@
     <ClInclude Include="src\generated_overlay\DslParser.h" />
     <ClInclude Include="src\generated_overlay\DslRule.h" />
     <ClInclude Include="src\generated_overlay\DslValidator.h" />
+    <ClInclude Include="src\generated_overlay\GeneratedOverlayPublisher.h" />
     <ClInclude Include="src\generated_overlay\ManifestVerifier.h" />
     <ClInclude Include="src\generated_overlay\MpOverlayPackage.h" />
     <ClInclude Include="src\generated_overlay\OverlayCompiler.h" />
@@ -249,9 +253,11 @@
     <ClInclude Include="src\SncCandidateDecisionPackageBuilder.h" />
     <ClInclude Include="src\SncDecisionInputPackageBuilder.h" />
     <ClInclude Include="src\SncDslDraftPackageBuilder.h" />
+    <ClInclude Include="src\SncGeneratedOverlayPublishGate.h" />
     <ClInclude Include="src\SncGeneratedOverlayStager.h" />
     <ClInclude Include="src\SeasonDeltaLedgerBuilder.h" />
     <ClInclude Include="src\SeasonEmpireBriefBuilder.h" />
+    <ClInclude Include="src\StellarisProcessDetector.h" />
     <ClInclude Include="src\StellarisSavePathResolver.h" />
     <ClInclude Include="src\StrategicNexusCompanion.h" />
     <ClInclude Include="src\StrategicRequest.h" />
