@@ -525,6 +525,7 @@ std::string buildNextAction(
     const std::string& state,
     const std::string& postPlayState,
     const std::string& generatedOverlayPublishGateState,
+    const bool generatedOverlayPublishGateCanPublish,
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayStagingReadiness,
     const std::string& dslDraftReadiness,
@@ -533,7 +534,7 @@ std::string buildNextAction(
     if (state == "capturing") {
         return "keep_playing_capture_active";
     }
-    if (generatedOverlayPublishAllowed) {
+    if (generatedOverlayPublishAllowed || generatedOverlayPublishGateCanPublish) {
         return "review_staged_overlay_and_publish_if_desired";
     }
     if (generatedOverlayPublishGateState == "published") {
@@ -564,6 +565,7 @@ std::string buildNextActionReason(
     const std::string& state,
     const std::string& postPlayState,
     const std::string& generatedOverlayPublishGateState,
+    const bool generatedOverlayPublishGateCanPublish,
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayStagingReadiness,
     const std::string& dslDraftReadiness,
@@ -572,7 +574,7 @@ std::string buildNextActionReason(
     if (state == "capturing") {
         return "stellaris_running_capture_window_active";
     }
-    if (generatedOverlayPublishAllowed) {
+    if (generatedOverlayPublishAllowed || generatedOverlayPublishGateCanPublish) {
         return "staged_overlay_ready_owner_gate_available";
     }
     if (generatedOverlayPublishGateState == "published") {
@@ -951,6 +953,7 @@ void writeStatus(
         state,
         postPlayState,
         companionSnapshot.generatedOverlayPublishGate.state,
+        companionSnapshot.generatedOverlayPublishGate.canPublish,
         generatedOverlayPublishAllowed,
         generatedOverlayStagingReadiness,
         dslDraftReadiness,
@@ -959,6 +962,7 @@ void writeStatus(
         state,
         postPlayState,
         companionSnapshot.generatedOverlayPublishGate.state,
+        companionSnapshot.generatedOverlayPublishGate.canPublish,
         generatedOverlayPublishAllowed,
         generatedOverlayStagingReadiness,
         dslDraftReadiness,

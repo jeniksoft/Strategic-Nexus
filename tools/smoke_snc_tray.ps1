@@ -36,6 +36,11 @@ try {
                 $null -ne $json.mp_overlay_package_directory -and
                 $null -ne $json.mp_overlay_package_state
             ) {
+                if ($json.generated_overlay_publish_gate_can_publish -eq $true -and
+                    $json.next_action -ne "review_staged_overlay_and_publish_if_desired") {
+                    throw "SNC tray publish-ready status did not surface the publish/review next action."
+                }
+
                 Write-Host "snc_tray_smoke_success=true"
                 Write-Host ("snc_tray_smoke_state=" + $json.state)
                 Write-Host ("snc_tray_smoke_next_action=" + $json.next_action)
