@@ -29,6 +29,9 @@ try {
                 $null -ne $json.status_center_summary_text -and
                 $null -ne $json.next_action -and
                 $null -ne $json.next_steps_brief_path -and
+                $null -ne $json.generated_overlay_publish_gate_state -and
+                $null -ne $json.generated_overlay_publish_gate_reason -and
+                $null -ne $json.generated_overlay_publish_gate_published -and
                 $null -ne $json.mp_package_refresh_state -and
                 $null -ne $json.mp_overlay_package_directory -and
                 $null -ne $json.mp_overlay_package_state

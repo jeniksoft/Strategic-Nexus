@@ -511,9 +511,20 @@ void updateTrayTip(HWND hwnd, const std::wstring& text)
     Shell_NotifyIconW(NIM_MODIFY, &g_trayIcon);
 }
 
+bool isReadyReadiness(const std::string& readiness)
+{
+    return readiness.rfind("ready", 0) == 0;
+}
+
+bool isGeneratedOverlayStagingReviewable(const bool publishAllowed, const std::string& readiness)
+{
+    return publishAllowed || readiness == "staged_verified" || isReadyReadiness(readiness);
+}
+
 std::string buildNextAction(
     const std::string& state,
     const std::string& postPlayState,
+    const std::string& generatedOverlayPublishGateState,
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayStagingReadiness,
     const std::string& dslDraftReadiness,
@@ -522,19 +533,19 @@ std::string buildNextAction(
     if (state == "capturing") {
         return "keep_playing_capture_active";
     }
-    if (state == "waiting_for_stellaris") {
-        return "wait_for_stellaris_launch";
-    }
     if (generatedOverlayPublishAllowed) {
         return "review_staged_overlay_and_publish_if_desired";
     }
-    if (generatedOverlayStagingReadiness.rfind("ready", 0) == 0) {
+    if (generatedOverlayPublishGateState == "published") {
+        return "review_tray_status";
+    }
+    if (isGeneratedOverlayStagingReviewable(generatedOverlayPublishAllowed, generatedOverlayStagingReadiness)) {
         return "review_staged_overlay_status";
     }
-    if (dslDraftReadiness.rfind("ready", 0) == 0) {
+    if (isReadyReadiness(dslDraftReadiness)) {
         return "review_dsl_draft";
     }
-    if (candidateDecisionPackageReadiness.rfind("ready", 0) == 0) {
+    if (isReadyReadiness(candidateDecisionPackageReadiness)) {
         return "review_candidate_decision_package";
     }
     if (postPlayState == "entry_points_ambiguous") {
@@ -543,12 +554,16 @@ std::string buildNextAction(
     if (postPlayState == "entry_point_analysis_blocked") {
         return "review_entry_point_analysis_failure";
     }
+    if (state == "waiting_for_stellaris") {
+        return "wait_for_stellaris_launch";
+    }
     return "review_tray_status";
 }
 
 std::string buildNextActionReason(
     const std::string& state,
     const std::string& postPlayState,
+    const std::string& generatedOverlayPublishGateState,
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayStagingReadiness,
     const std::string& dslDraftReadiness,
@@ -557,19 +572,19 @@ std::string buildNextActionReason(
     if (state == "capturing") {
         return "stellaris_running_capture_window_active";
     }
-    if (state == "waiting_for_stellaris") {
-        return "stellaris_not_running";
-    }
     if (generatedOverlayPublishAllowed) {
         return "staged_overlay_ready_owner_gate_available";
     }
-    if (generatedOverlayStagingReadiness.rfind("ready", 0) == 0) {
+    if (generatedOverlayPublishGateState == "published") {
+        return "current_staged_overlay_already_published";
+    }
+    if (isGeneratedOverlayStagingReviewable(generatedOverlayPublishAllowed, generatedOverlayStagingReadiness)) {
         return "staged_overlay_written_but_publish_gate_not_ready";
     }
-    if (dslDraftReadiness.rfind("ready", 0) == 0) {
+    if (isReadyReadiness(dslDraftReadiness)) {
         return "dsl_draft_ready_before_overlay_stage";
     }
-    if (candidateDecisionPackageReadiness.rfind("ready", 0) == 0) {
+    if (isReadyReadiness(candidateDecisionPackageReadiness)) {
         return "candidate_decisions_ready_before_dsl_draft";
     }
     if (postPlayState == "entry_points_ambiguous") {
@@ -577,6 +592,9 @@ std::string buildNextActionReason(
     }
     if (postPlayState == "entry_point_analysis_blocked") {
         return "entry_point_analysis_not_ready";
+    }
+    if (state == "waiting_for_stellaris") {
+        return "stellaris_not_running";
     }
     return "see_status_summary";
 }
@@ -635,6 +653,7 @@ std::string buildStatusCenterSummaryText(
     const bool generatedOverlayManifestVerified,
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayManifestHash,
+    const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason)
@@ -713,6 +732,25 @@ std::string buildStatusCenterSummaryText(
     if (!generatedOverlayManifestHash.empty()) {
         summary << "generated_overlay_manifest_hash: " << generatedOverlayManifestHash << "\n";
     }
+    summary << "generated_overlay_publish_gate_state: " << generatedOverlayPublishGate.state << "\n";
+    summary << "generated_overlay_publish_gate_reason: " << generatedOverlayPublishGate.reason << "\n";
+    summary << "generated_overlay_publish_gate_published: "
+            << (generatedOverlayPublishGate.published ? "true" : "false") << "\n";
+    summary << "generated_overlay_publish_gate_can_publish: "
+            << (generatedOverlayPublishGate.canPublish ? "true" : "false") << "\n";
+    summary << "generated_overlay_publish_gate_owner_approval_required: "
+            << (generatedOverlayPublishGate.ownerApprovalRequired ? "true" : "false") << "\n";
+    if (!generatedOverlayPublishGate.manifestHash.empty()) {
+        summary << "generated_overlay_publish_gate_manifest_hash: " << generatedOverlayPublishGate.manifestHash << "\n";
+    }
+    if (!generatedOverlayPublishGate.publishedManifestHash.empty()) {
+        summary << "generated_overlay_publish_gate_published_manifest_hash: "
+                << generatedOverlayPublishGate.publishedManifestHash << "\n";
+    }
+    if (!generatedOverlayPublishGate.backupDirectory.empty()) {
+        summary << "generated_overlay_publish_gate_backup_directory: "
+                << pathString(generatedOverlayPublishGate.backupDirectory) << "\n";
+    }
     summary << "generated_overlay_active_directory: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
     summary << "generated_overlay_publish_status_path: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     summary << "generated_overlay_publish_backup_root_directory: "
@@ -737,6 +775,7 @@ void writeNextStepsBrief(
     const std::filesystem::path& generatedOverlayStagingStatusPath,
     const std::string& generatedOverlayStagingReadiness,
     const bool generatedOverlayPublishAllowed,
+    const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason,
@@ -780,9 +819,24 @@ void writeNextStepsBrief(
         brief << " (" << generatedOverlayStagingReadiness << ")";
     }
     brief << "\n";
+    brief << "- Publish gate state: " << generatedOverlayPublishGate.state;
+    if (!generatedOverlayPublishGate.reason.empty()) {
+        brief << " (" << generatedOverlayPublishGate.reason << ")";
+    }
+    brief << "\n";
     brief << "- Publish gate available: " << (generatedOverlayPublishAllowed ? "ano" : "ne") << "\n";
+    brief << "- Current staged overlay already published: " << (generatedOverlayPublishGate.published ? "ano" : "ne") << "\n";
     brief << "- Active overlay snapshot: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
     brief << "- Publish status output: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
+    if (!generatedOverlayPublishGate.manifestHash.empty()) {
+        brief << "- Staged overlay manifest hash: " << generatedOverlayPublishGate.manifestHash << "\n";
+    }
+    if (!generatedOverlayPublishGate.publishedManifestHash.empty()) {
+        brief << "- Published overlay manifest hash: " << generatedOverlayPublishGate.publishedManifestHash << "\n";
+    }
+    if (!generatedOverlayPublishGate.backupDirectory.empty()) {
+        brief << "- Publish backup directory: " << pathString(generatedOverlayPublishGate.backupDirectory) << "\n";
+    }
     brief << "- MP package refresh: " << mpPackageRefreshState << " (" << mpPackageRefreshReason << ")\n";
     brief << "- MP overlay package directory: " << pathString(g_mpOverlayPackageDirectory) << "\n";
     brief << "- MP package zip path: " << pathString(g_mpOverlayPackageZipPath) << "\n";
@@ -896,6 +950,7 @@ void writeStatus(
     const auto nextAction = buildNextAction(
         state,
         postPlayState,
+        companionSnapshot.generatedOverlayPublishGate.state,
         generatedOverlayPublishAllowed,
         generatedOverlayStagingReadiness,
         dslDraftReadiness,
@@ -903,6 +958,7 @@ void writeStatus(
     const auto nextActionReason = buildNextActionReason(
         state,
         postPlayState,
+        companionSnapshot.generatedOverlayPublishGate.state,
         generatedOverlayPublishAllowed,
         generatedOverlayStagingReadiness,
         dslDraftReadiness,
@@ -946,6 +1002,7 @@ void writeStatus(
         generatedOverlayManifestVerified,
         generatedOverlayPublishAllowed,
         generatedOverlayManifestHash,
+        companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
         mpPackageRefreshState,
         mpPackageRefreshReason);
@@ -965,6 +1022,7 @@ void writeStatus(
         generatedOverlayStagingStatusPath,
         generatedOverlayStagingReadiness,
         generatedOverlayPublishAllowed,
+        companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
         mpPackageRefreshState,
         mpPackageRefreshReason,
@@ -1041,6 +1099,24 @@ void writeStatus(
          << (generatedOverlayPublishAllowed ? "true" : "false") << ",\n";
     json << "  \"generated_overlay_manifest_hash\": \""
          << jsonEscape(generatedOverlayManifestHash) << "\",\n";
+    json << "  \"generated_overlay_publish_gate_state\": \""
+         << jsonEscape(companionSnapshot.generatedOverlayPublishGate.state) << "\",\n";
+    json << "  \"generated_overlay_publish_gate_reason\": \""
+         << jsonEscape(companionSnapshot.generatedOverlayPublishGate.reason) << "\",\n";
+    json << "  \"generated_overlay_publish_gate_published\": "
+         << (companionSnapshot.generatedOverlayPublishGate.published ? "true" : "false") << ",\n";
+    json << "  \"generated_overlay_publish_gate_can_publish\": "
+         << (companionSnapshot.generatedOverlayPublishGate.canPublish ? "true" : "false") << ",\n";
+    json << "  \"generated_overlay_publish_gate_owner_approval_required\": "
+         << (companionSnapshot.generatedOverlayPublishGate.ownerApprovalRequired ? "true" : "false") << ",\n";
+    json << "  \"generated_overlay_publish_gate_manifest_hash\": \""
+         << jsonEscape(companionSnapshot.generatedOverlayPublishGate.manifestHash) << "\",\n";
+    json << "  \"generated_overlay_publish_gate_published_manifest_hash\": \""
+         << jsonEscape(companionSnapshot.generatedOverlayPublishGate.publishedManifestHash) << "\",\n";
+    json << "  \"generated_overlay_publish_gate_backup_directory\": \""
+         << jsonEscape(pathString(companionSnapshot.generatedOverlayPublishGate.backupDirectory)) << "\",\n";
+    json << "  \"generated_overlay_publish_gate_publish_command\": \""
+         << jsonEscape(companionSnapshot.generatedOverlayPublishGate.publishCommand) << "\",\n";
     json << "  \"mp_package_refresh_state\": \"" << jsonEscape(mpPackageRefreshState) << "\",\n";
     json << "  \"mp_package_refresh_reason\": \"" << jsonEscape(mpPackageRefreshReason) << "\",\n";
     json << "  \"mp_overlay_package_directory\": \"" << jsonEscape(pathString(g_mpOverlayPackageDirectory)) << "\",\n";
