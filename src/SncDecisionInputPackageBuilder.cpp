@@ -192,6 +192,37 @@ std::string stringOrEmpty(const std::string& json, const char* key)
     return common::extractJsonString(json, key).value_or("");
 }
 
+ArchivedSaveEvidenceReference parseArchivedEvidenceReference(const std::string& json)
+{
+    ArchivedSaveEvidenceReference reference;
+    reference.archivedPath = stringOrEmpty(json, "archived_path");
+    reference.saveName = stringOrEmpty(json, "save_name");
+    reference.saveDate = stringOrEmpty(json, "save_date");
+    reference.contentHash = stringOrEmpty(json, "content_hash");
+    reference.byteCount = extractJsonSize(json, "byte_count").value_or(0);
+    return reference;
+}
+
+std::vector<ArchivedSaveEvidenceReference> extractArchivedEvidenceReferences(
+    const std::string& json,
+    const char* key)
+{
+    std::vector<ArchivedSaveEvidenceReference> references;
+    const auto arrayBody = extractArrayBody(json, key);
+    if (!arrayBody.has_value()) {
+        return references;
+    }
+
+    for (const auto& object : extractObjectBodies(*arrayBody)) {
+        auto reference = parseArchivedEvidenceReference(object);
+        if (reference.archivedPath.empty() || reference.contentHash.empty()) {
+            continue;
+        }
+        references.push_back(std::move(reference));
+    }
+    return references;
+}
+
 PostPlayPackageEntry parseEntry(const std::string& json)
 {
     PostPlayPackageEntry entry;
@@ -228,6 +259,8 @@ PostPlayPackageEntry parseEntry(const std::string& json)
     entry.futureEvidenceExcluded = extractJsonBool(json, "future_evidence_excluded").value_or(false);
     entry.compatibleArchivedEvidenceCount = extractJsonSize(json, "compatible_archived_evidence_count").value_or(0);
     entry.laterArchivedEvidenceCount = extractJsonSize(json, "later_archived_evidence_count").value_or(0);
+    entry.compatibleArchivedEvidenceSamples = extractArchivedEvidenceReferences(json, "compatible_archived_evidence_samples");
+    entry.laterArchivedEvidenceSamples = extractArchivedEvidenceReferences(json, "later_archived_evidence_samples");
     entry.warningCodes = common::extractJsonStringArray(json, "warning_codes");
     return entry;
 }
@@ -251,6 +284,8 @@ SncDecisionInput buildDecisionInput(const PostPlayPackageEntry& entry)
     input.futureEvidenceExcluded = entry.futureEvidenceExcluded;
     input.compatibleArchivedEvidenceCount = entry.compatibleArchivedEvidenceCount;
     input.laterArchivedEvidenceCount = entry.laterArchivedEvidenceCount;
+    input.compatibleArchivedEvidenceSamples = entry.compatibleArchivedEvidenceSamples;
+    input.laterArchivedEvidenceSamples = entry.laterArchivedEvidenceSamples;
 
     input.knownFacts.push_back("decision_input_source:snc_post_play_package");
     input.knownFacts.push_back("rule_scope:" + entry.ruleScope);
@@ -311,6 +346,32 @@ void writeStringArray(std::ostringstream& output, const std::vector<std::string>
                 output << ",";
             }
             output << "\n";
+        }
+        output << indent;
+    }
+    output << "]";
+}
+
+void writeArchivedEvidenceReferences(
+    std::ostringstream& output,
+    const std::vector<ArchivedSaveEvidenceReference>& references,
+    const int indentSpaces)
+{
+    const std::string indent(indentSpaces, ' ');
+    const std::string itemIndent(indentSpaces + 2, ' ');
+    const std::string fieldIndent(indentSpaces + 4, ' ');
+    output << "[";
+    if (!references.empty()) {
+        output << "\n";
+        for (std::size_t index = 0; index < references.size(); ++index) {
+            const auto& reference = references[index];
+            output << itemIndent << "{\n";
+            output << fieldIndent << "\"archived_path\": \"" << jsonEscape(reference.archivedPath) << "\",\n";
+            output << fieldIndent << "\"save_name\": \"" << jsonEscape(reference.saveName) << "\",\n";
+            output << fieldIndent << "\"save_date\": \"" << jsonEscape(reference.saveDate) << "\",\n";
+            output << fieldIndent << "\"content_hash\": \"" << jsonEscape(reference.contentHash) << "\",\n";
+            output << fieldIndent << "\"byte_count\": " << reference.byteCount << "\n";
+            output << itemIndent << "}" << (index + 1 < references.size() ? "," : "") << "\n";
         }
         output << indent;
     }
@@ -485,6 +546,12 @@ std::string serializeSncDecisionInputPackage(const SncDecisionInputPackage& pack
         json << "      \"future_evidence_excluded\": " << (input.futureEvidenceExcluded ? "true" : "false") << ",\n";
         json << "      \"compatible_archived_evidence_count\": " << input.compatibleArchivedEvidenceCount << ",\n";
         json << "      \"later_archived_evidence_count\": " << input.laterArchivedEvidenceCount << ",\n";
+        json << "      \"compatible_archived_evidence_samples\": ";
+        writeArchivedEvidenceReferences(json, input.compatibleArchivedEvidenceSamples, 6);
+        json << ",\n";
+        json << "      \"later_archived_evidence_samples\": ";
+        writeArchivedEvidenceReferences(json, input.laterArchivedEvidenceSamples, 6);
+        json << ",\n";
         json << "      \"known_facts\": ";
         writeStringArray(json, input.knownFacts, 6);
         json << ",\n";

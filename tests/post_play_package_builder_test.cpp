@@ -84,6 +84,12 @@ int main()
             entry.evidencePolicy == "compatible_history_only_future_excluded" &&
             entry.decisionInputAllowed) {
             foundFutureExcludedEntry = true;
+            requireCondition(
+                !entry.compatibleArchivedEvidenceSamples.empty(),
+                "future-excluded entry should keep bounded compatible evidence samples");
+            requireCondition(
+                !entry.laterArchivedEvidenceSamples.empty(),
+                "future-excluded entry should keep bounded later evidence samples");
         }
         if (entry.campaignKey == "beta_campaign" &&
             entry.decisionInputState == "insufficient_history" &&
@@ -100,6 +106,12 @@ int main()
     requireCondition(json.find("\"decision_ready_entry_count\": 2") != std::string::npos, "JSON should expose ready count");
     requireCondition(json.find("\"post_play_no_compatible_history\"") != std::string::npos, "JSON should expose history warning");
     requireCondition(json.find("\"compatible_history_only_future_excluded\"") != std::string::npos, "JSON should expose future evidence policy");
+    requireCondition(
+        json.find("\"compatible_archived_evidence_samples\":") != std::string::npos,
+        "JSON should expose bounded compatible evidence samples");
+    requireCondition(
+        json.find("\"later_archived_evidence_samples\":") != std::string::npos,
+        "JSON should expose bounded later evidence samples");
 
     std::cout << "post-play package builder tests passed.\n";
     return 0;

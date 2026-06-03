@@ -140,5 +140,5 @@ Avoid storing full local usernames or absolute paths in durable shared artifacts
 
 Current v0 gap:
 
-The live archive can already preserve multiple campaign folders and repeated autosave revisions, but post-play analysis does not yet build entry-point-scoped rule bundles or explicit branch timelines.
+The live archive can already preserve multiple campaign folders and repeated autosave revisions, and post-play analysis now carries bounded compatible/later archived-evidence samples per loadable entry point. Full entry-point-scoped rule bundles and explicit branch timelines are still future work.
 This is now a required architecture slice before generated rules can be considered safe for arbitrary user load choices.

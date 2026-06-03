@@ -68,12 +68,20 @@ int main()
 
     bool foundConservativeAlphaEntry = false;
     bool foundAmbiguousAlphaEntry = false;
+    bool foundEvidenceSamples = false;
     for (const auto& entry : analysis.entryPoints) {
         if (entry.campaignKey != "alpha_campaign") {
             continue;
         }
         if (entry.laterArchivedEvidenceCount > 0) {
             foundConservativeAlphaEntry = true;
+            requireCondition(
+                !entry.compatibleArchivedEvidenceSamples.empty(),
+                "older alpha entry should retain bounded compatible evidence samples");
+            requireCondition(
+                !entry.laterArchivedEvidenceSamples.empty(),
+                "older alpha entry should retain bounded later evidence samples");
+            foundEvidenceSamples = true;
         }
         if (entry.analysisState == "ambiguous") {
             foundAmbiguousAlphaEntry = true;
@@ -81,11 +89,18 @@ int main()
     }
     requireCondition(foundConservativeAlphaEntry, "older alpha entry point should exclude later archived evidence");
     requireCondition(foundAmbiguousAlphaEntry, "alpha entry point should be marked ambiguous");
+    requireCondition(foundEvidenceSamples, "analysis should keep bounded evidence samples for conservative entry points");
 
     const auto json = strategic_nexus::serializeSaveEntryPointAnalysis(analysis);
     requireCondition(json.find("\"branch_ambiguity_detected\": true") != std::string::npos, "JSON should expose branch ambiguity");
     requireCondition(json.find("\"entry_point_count\": 3") != std::string::npos, "JSON should expose entry point count");
     requireCondition(json.find("\"later_archived_evidence_count\":") != std::string::npos, "JSON should expose later evidence counts");
+    requireCondition(
+        json.find("\"compatible_archived_evidence_samples\":") != std::string::npos,
+        "JSON should expose bounded compatible evidence samples");
+    requireCondition(
+        json.find("\"later_archived_evidence_samples\":") != std::string::npos,
+        "JSON should expose bounded later evidence samples");
     requireCondition(json.find("\"campaign_branch_ambiguity_detected\"") != std::string::npos, "JSON should expose warning code");
     requireCondition(json.find("\"source_kind\": \"ironman\"") != std::string::npos, "JSON should classify ironman entry points");
 

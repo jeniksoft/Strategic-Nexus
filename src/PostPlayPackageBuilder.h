@@ -33,6 +33,8 @@ struct PostPlayPackageEntry {
     bool futureEvidenceExcluded = false;
     std::size_t compatibleArchivedEvidenceCount = 0;
     std::size_t laterArchivedEvidenceCount = 0;
+    std::vector<ArchivedSaveEvidenceReference> compatibleArchivedEvidenceSamples;
+    std::vector<ArchivedSaveEvidenceReference> laterArchivedEvidenceSamples;
     std::vector<std::string> warningCodes;
 };
 

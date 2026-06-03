@@ -103,6 +103,12 @@ int main()
             requireCondition(
                 containsValue(input.uncertainties, "future_evidence_excluded_for_entry_point"),
                 "future-excluded decision input should carry explicit uncertainty");
+            requireCondition(
+                !input.compatibleArchivedEvidenceSamples.empty(),
+                "future-excluded decision input should retain bounded compatible evidence samples");
+            requireCondition(
+                !input.laterArchivedEvidenceSamples.empty(),
+                "future-excluded decision input should retain bounded later evidence samples");
         }
     }
     requireCondition(foundFutureExclusion, "older alpha entry should preserve future evidence exclusion");
@@ -124,6 +130,12 @@ int main()
     requireCondition(json.find("\"publishes_overlay\": true") == std::string::npos, "JSON must never publish overlay in this slice");
     requireCondition(json.find("\"decision_inputs\": [") != std::string::npos, "JSON should include decision inputs");
     requireCondition(json.find("\"blocked_entries\": [") != std::string::npos, "JSON should include blocked entries");
+    requireCondition(
+        json.find("\"compatible_archived_evidence_samples\":") != std::string::npos,
+        "JSON should expose bounded compatible evidence samples");
+    requireCondition(
+        json.find("\"later_archived_evidence_samples\":") != std::string::npos,
+        "JSON should expose bounded later evidence samples");
 
     std::cout << "SNC decision input package builder tests passed.\n";
     return 0;

@@ -22,6 +22,8 @@
 namespace strategic_nexus {
 namespace {
 
+constexpr std::size_t kMaxEvidenceSamplesPerEntry = 8;
+
 bool isSavFile(const std::filesystem::path& path)
 {
     std::string extension = path.extension().string();
@@ -255,6 +257,23 @@ std::string campaignKeyFromArchivedFilename(const std::filesystem::path& archive
 
 void addWarning(std::vector<std::string>& warnings, const std::string& warning);
 
+void appendEvidenceSample(
+    std::vector<ArchivedSaveEvidenceReference>& samples,
+    const ArchivedSaveEvidence& evidence)
+{
+    if (samples.size() >= kMaxEvidenceSamplesPerEntry) {
+        return;
+    }
+
+    ArchivedSaveEvidenceReference sample;
+    sample.archivedPath = evidence.archivedPath;
+    sample.saveName = evidence.saveName;
+    sample.saveDate = evidence.saveDate;
+    sample.contentHash = evidence.contentHash;
+    sample.byteCount = evidence.byteCount;
+    samples.push_back(std::move(sample));
+}
+
 SaveEntryPoint makeEntryPoint(
     const std::filesystem::path& saveRoot,
     const std::filesystem::path& savePath)
@@ -448,13 +467,16 @@ void evaluateEntryPointAgainstEvidence(
 
         if (!entry.contentHash.empty() && item.contentHash == entry.contentHash) {
             ++entry.compatibleArchivedEvidenceCount;
+            appendEvidenceSample(entry.compatibleArchivedEvidenceSamples, item);
             continue;
         }
 
         if (dateLessOrEqual(item.saveDate, entry.saveDate)) {
             ++entry.compatibleArchivedEvidenceCount;
+            appendEvidenceSample(entry.compatibleArchivedEvidenceSamples, item);
         } else if (dateGreater(item.saveDate, entry.saveDate)) {
             ++entry.laterArchivedEvidenceCount;
+            appendEvidenceSample(entry.laterArchivedEvidenceSamples, item);
         }
     }
 
@@ -474,6 +496,12 @@ void evaluateEntryPointAgainstEvidence(
     if (entry.compatibleArchivedEvidenceCount == 0) {
         addWarning(entry.warningCodes, "no_compatible_archived_evidence");
     }
+    if (entry.compatibleArchivedEvidenceCount > entry.compatibleArchivedEvidenceSamples.size()) {
+        addWarning(entry.warningCodes, "compatible_archived_evidence_samples_truncated");
+    }
+    if (entry.laterArchivedEvidenceCount > entry.laterArchivedEvidenceSamples.size()) {
+        addWarning(entry.warningCodes, "later_archived_evidence_samples_truncated");
+    }
 }
 
 void writeStringArray(std::ostringstream& output, const std::vector<std::string>& values)
@@ -486,6 +514,24 @@ void writeStringArray(std::ostringstream& output, const std::vector<std::string>
         output << "\"" << jsonEscape(values[index]) << "\"";
     }
     output << "]";
+}
+
+void writeArchivedEvidenceReferences(
+    std::ostringstream& output,
+    const std::vector<ArchivedSaveEvidenceReference>& references)
+{
+    output << "[\n";
+    for (std::size_t index = 0; index < references.size(); ++index) {
+        const auto& reference = references[index];
+        output << "        {\n";
+        output << "          \"archived_path\": \"" << jsonEscape(reference.archivedPath) << "\",\n";
+        output << "          \"save_name\": \"" << jsonEscape(reference.saveName) << "\",\n";
+        output << "          \"save_date\": \"" << jsonEscape(reference.saveDate) << "\",\n";
+        output << "          \"content_hash\": \"" << jsonEscape(reference.contentHash) << "\",\n";
+        output << "          \"byte_count\": " << reference.byteCount << "\n";
+        output << "        }" << (index + 1 < references.size() ? "," : "") << "\n";
+    }
+    output << "      ]";
 }
 
 } // namespace
@@ -630,6 +676,12 @@ std::string serializeSaveEntryPointAnalysis(const SaveEntryPointAnalysis& analys
         json << ",\n";
         json << "      \"compatible_archived_evidence_count\": " << entry.compatibleArchivedEvidenceCount << ",\n";
         json << "      \"later_archived_evidence_count\": " << entry.laterArchivedEvidenceCount << ",\n";
+        json << "      \"compatible_archived_evidence_samples\": ";
+        writeArchivedEvidenceReferences(json, entry.compatibleArchivedEvidenceSamples);
+        json << ",\n";
+        json << "      \"later_archived_evidence_samples\": ";
+        writeArchivedEvidenceReferences(json, entry.laterArchivedEvidenceSamples);
+        json << ",\n";
         json << "      \"analysis_state\": \"" << jsonEscape(entry.analysisState) << "\",\n";
         json << "      \"warning_codes\": ";
         writeStringArray(json, entry.warningCodes);

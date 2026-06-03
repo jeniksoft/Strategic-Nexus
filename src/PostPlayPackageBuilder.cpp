@@ -108,6 +108,9 @@ PostPlayPackageEntry buildEntry(const SaveEntryPoint& entry)
         packageEntry.decisionInputAllowed = true;
     }
 
+    packageEntry.compatibleArchivedEvidenceSamples = entry.compatibleArchivedEvidenceSamples;
+    packageEntry.laterArchivedEvidenceSamples = entry.laterArchivedEvidenceSamples;
+
     return packageEntry;
 }
 
@@ -119,6 +122,32 @@ void writeStringArray(std::ostringstream& output, const std::vector<std::string>
             output << ", ";
         }
         output << "\"" << jsonEscape(values[index]) << "\"";
+    }
+    output << "]";
+}
+
+void writeArchivedEvidenceReferences(
+    std::ostringstream& output,
+    const std::vector<ArchivedSaveEvidenceReference>& references,
+    const int indentSpaces)
+{
+    const std::string indent(indentSpaces, ' ');
+    const std::string itemIndent(indentSpaces + 2, ' ');
+    const std::string fieldIndent(indentSpaces + 4, ' ');
+    output << "[";
+    if (!references.empty()) {
+        output << "\n";
+        for (std::size_t index = 0; index < references.size(); ++index) {
+            const auto& reference = references[index];
+            output << itemIndent << "{\n";
+            output << fieldIndent << "\"archived_path\": \"" << jsonEscape(reference.archivedPath) << "\",\n";
+            output << fieldIndent << "\"save_name\": \"" << jsonEscape(reference.saveName) << "\",\n";
+            output << fieldIndent << "\"save_date\": \"" << jsonEscape(reference.saveDate) << "\",\n";
+            output << fieldIndent << "\"content_hash\": \"" << jsonEscape(reference.contentHash) << "\",\n";
+            output << fieldIndent << "\"byte_count\": " << reference.byteCount << "\n";
+            output << itemIndent << "}" << (index + 1 < references.size() ? "," : "") << "\n";
+        }
+        output << indent;
     }
     output << "]";
 }
@@ -304,6 +333,12 @@ std::string serializePostPlayPackage(const PostPlayPackage& package)
         json << "      \"future_evidence_excluded\": " << (entry.futureEvidenceExcluded ? "true" : "false") << ",\n";
         json << "      \"compatible_archived_evidence_count\": " << entry.compatibleArchivedEvidenceCount << ",\n";
         json << "      \"later_archived_evidence_count\": " << entry.laterArchivedEvidenceCount << ",\n";
+        json << "      \"compatible_archived_evidence_samples\": ";
+        writeArchivedEvidenceReferences(json, entry.compatibleArchivedEvidenceSamples, 6);
+        json << ",\n";
+        json << "      \"later_archived_evidence_samples\": ";
+        writeArchivedEvidenceReferences(json, entry.laterArchivedEvidenceSamples, 6);
+        json << ",\n";
         json << "      \"warning_codes\": ";
         writeStringArray(json, entry.warningCodes);
         json << "\n";

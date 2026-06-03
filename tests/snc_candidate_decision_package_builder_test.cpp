@@ -125,6 +125,12 @@ int main()
             "candidate should state it is not a mod rule");
         if (containsValue(candidate.uncertainties, "future_evidence_excluded_for_entry_point")) {
             foundFutureExclusion = true;
+            requireCondition(
+                !candidate.compatibleArchivedEvidenceSamples.empty(),
+                "future-excluded candidate should retain bounded compatible evidence samples");
+            requireCondition(
+                !candidate.laterArchivedEvidenceSamples.empty(),
+                "future-excluded candidate should retain bounded later evidence samples");
         }
     }
     requireCondition(foundFutureExclusion, "older alpha candidate should preserve future evidence exclusion");
@@ -147,6 +153,12 @@ int main()
     requireCondition(json.find("\"publishes_overlay\": true") == std::string::npos, "JSON must never publish overlay in this slice");
     requireCondition(json.find("\"candidate_decisions\": [") != std::string::npos, "JSON should include candidate decisions");
     requireCondition(json.find("\"blocked_source_entries\": [") != std::string::npos, "JSON should include blocked source entries");
+    requireCondition(
+        json.find("\"compatible_archived_evidence_samples\":") != std::string::npos,
+        "JSON should expose bounded compatible evidence samples");
+    requireCondition(
+        json.find("\"later_archived_evidence_samples\":") != std::string::npos,
+        "JSON should expose bounded later evidence samples");
 
     std::cout << "SNC candidate decision package builder tests passed.\n";
     return 0;

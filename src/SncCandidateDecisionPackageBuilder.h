@@ -42,6 +42,8 @@ struct SncCandidateDecision {
     bool modelOutputTrusted = false;
     bool validationRequired = true;
     bool publishesOverlay = false;
+    std::vector<ArchivedSaveEvidenceReference> compatibleArchivedEvidenceSamples;
+    std::vector<ArchivedSaveEvidenceReference> laterArchivedEvidenceSamples;
     std::vector<std::string> knownFacts;
     std::vector<std::string> uncertainties;
     std::vector<std::string> validationWarnings;

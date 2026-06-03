@@ -27,6 +27,14 @@ struct SaveEmpireStateSummary {
     std::vector<std::string> uncertainties;
 };
 
+struct ArchivedSaveEvidenceReference {
+    std::string archivedPath;
+    std::string saveName;
+    std::string saveDate;
+    std::string contentHash;
+    std::uintmax_t byteCount = 0;
+};
+
 struct SaveEntryPoint {
     std::string id;
     std::string campaignKey;
@@ -44,6 +52,8 @@ struct SaveEntryPoint {
     SaveEmpireStateSummary empireState;
     std::size_t compatibleArchivedEvidenceCount = 0;
     std::size_t laterArchivedEvidenceCount = 0;
+    std::vector<ArchivedSaveEvidenceReference> compatibleArchivedEvidenceSamples;
+    std::vector<ArchivedSaveEvidenceReference> laterArchivedEvidenceSamples;
     std::string analysisState;
     std::vector<std::string> warningCodes;
 };
