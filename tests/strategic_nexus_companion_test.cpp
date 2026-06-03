@@ -55,6 +55,10 @@ int main()
     const auto overlayEmptyRoot = root / "overlay_empty";
     const auto overlayNoManifestNonEmptyRoot = root / "overlay_no_manifest_non_empty";
     const auto mpPackageRoot = root / "mp_overlay_package";
+    const auto entryPointAnalysisPath = root / "snc_entry_point_analysis.json";
+    const auto postPlayPackagePath = root / "snc_post_play_package.json";
+    const auto decisionInputPackagePath = root / "snc_decision_input_package.json";
+    const auto candidateDecisionPackagePath = root / "snc_candidate_decision_package.json";
     const auto missingGameplayAcceptanceReport = root / "missing_gameplay_acceptance_v0.json";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
@@ -143,6 +147,37 @@ int main()
         requireCondition(exportResult.ok, "MP overlay package export should succeed for companion test fixture");
     }
 
+    writeTextFileAtomically(
+        entryPointAnalysisPath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"readiness\": \"ready\",\n"
+        "  \"entry_point_count\": 3,\n"
+        "  \"branch_ambiguity_detected\": false\n"
+        "}\n");
+    writeTextFileAtomically(
+        postPlayPackagePath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"readiness\": \"ready_partial\",\n"
+        "  \"decision_ready_entry_count\": 2\n"
+        "}\n");
+    writeTextFileAtomically(
+        decisionInputPackagePath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"readiness\": \"ready_partial\",\n"
+        "  \"decision_input_count\": 2\n"
+        "}\n");
+    writeTextFileAtomically(
+        candidateDecisionPackagePath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"readiness\": \"ready\",\n"
+        "  \"candidate_decision_count\": 2,\n"
+        "  \"validator_passed\": true\n"
+        "}\n");
+
     const strategic_nexus::StrategicNexusCompanion companion;
     const auto ready = companion.buildStatusSnapshot({
         archiveRoot,
@@ -151,7 +186,15 @@ int main()
         true,
         false,
         false,
-        missingGameplayAcceptanceReport
+        missingGameplayAcceptanceReport,
+        std::filesystem::path(),
+        std::filesystem::path(),
+        std::filesystem::path(),
+        std::filesystem::path(),
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath
     });
 
     requireCondition(ready.appName == "Strategic Nexus Companion", "SNC app name should be stable");
@@ -169,6 +212,19 @@ int main()
         ready.generatedOverlayPublishGate.reason == "Stellaris is not running; generated overlay publish allowed",
         "publish gate should explain publish readiness");
     requireCondition(ready.mpOverlayPackage.state == "ready", "mp overlay package should be ready when verified");
+    requireCondition(ready.postPlayPipeline.state == "ready", "post-play pipeline should be ready when candidate decisions are ready");
+    requireCondition(
+        ready.postPlayPipeline.reason == "candidate decision package ready",
+        "post-play pipeline should summarize candidate decision readiness");
+    requireCondition(ready.postPlayPipeline.entryPointCount == 3, "post-play pipeline should expose entry point count");
+    requireCondition(
+        ready.postPlayPipeline.postPlayDecisionReadyEntryCount == 2,
+        "post-play pipeline should expose decision-ready entry count");
+    requireCondition(ready.postPlayPipeline.decisionInputCount == 2, "post-play pipeline should expose decision input count");
+    requireCondition(ready.postPlayPipeline.candidateDecisionCount == 2, "post-play pipeline should expose candidate decision count");
+    requireCondition(
+        ready.postPlayPipeline.candidateDecisionValidatorPassed,
+        "post-play pipeline should expose candidate validator result");
     requireCondition(ready.mpOverlayPackage.campaignId == "campaign_mp_001", "mp overlay package should expose campaign id");
     requireCondition(ready.mpOverlayPackage.overlayVersion == "overlay_v1", "mp overlay package should expose overlay version");
     requireCondition(ready.mpOverlayPackage.gameVersion == "stellaris_4.x", "mp overlay package should expose game version");
@@ -229,6 +285,18 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_overlay_balicek: ready - mp overlay package verified") != std::string::npos,
         "status center summary should include mp overlay package state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("post_play_pipeline: ready - candidate decision package ready") != std::string::npos,
+        "status center summary should include post-play pipeline state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("entry_point_count: 3") != std::string::npos,
+        "status center summary should include entry point count");
+    requireCondition(
+        ready.statusCenterSummaryText.find("decision_input_count: 2") != std::string::npos,
+        "status center summary should include decision input count");
+    requireCondition(
+        ready.statusCenterSummaryText.find("candidate_decision_validator_passed: true") != std::string::npos,
+        "status center summary should include candidate validator result");
     requireCondition(
         ready.statusCenterSummaryText.find("publish_gate: ready - Stellaris is not running; generated overlay publish allowed") != std::string::npos,
         "status center summary should include publish gate state");
@@ -574,7 +642,14 @@ int main()
     requireCondition(json.find("\"manifest_hash\": \"") != std::string::npos, "JSON should include generated overlay manifest hash");
     requireCondition(json.find("\"generated_overlay_publish_gate_status\"") != std::string::npos, "JSON should include generated overlay publish gate status");
     requireCondition(json.find("\"mp_overlay_package_status\"") != std::string::npos, "JSON should include mp overlay package status");
+    requireCondition(json.find("\"post_play_pipeline_status\"") != std::string::npos, "JSON should include post-play pipeline status");
     requireCondition(json.find("\"gameplay_acceptance_status\"") != std::string::npos, "JSON should include gameplay acceptance status");
+    requireCondition(
+        json.find("\"candidate_decision_package_readiness\": \"ready\"") != std::string::npos,
+        "JSON should include candidate decision package readiness");
+    requireCondition(
+        json.find("\"candidate_decision_validator_passed\": true") != std::string::npos,
+        "JSON should include candidate validator state");
     requireCondition(json.find("\"campaign_id\": \"campaign_mp_001\"") != std::string::npos, "JSON should include mp overlay package campaign id");
     requireCondition(json.find("\"overlay_version\": \"overlay_v1\"") != std::string::npos, "JSON should include mp overlay package overlay version");
     requireCondition(json.find("\"game_version\": \"stellaris_4.x\"") != std::string::npos, "JSON should include mp overlay package game version");

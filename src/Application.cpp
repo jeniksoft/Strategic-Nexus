@@ -1749,6 +1749,33 @@ int Application::run(const RunConfig& config) const
                 std::cout << "snc_mp_overlay_package_identity_mismatch_alert="
                           << sanitizeCliValue(snapshot.mpOverlayPackage.identityMismatchAlert) << "\n";
             }
+            std::cout << "snc_post_play_pipeline_state=" << sanitizeCliValue(snapshot.postPlayPipeline.state) << "\n";
+            std::cout << "snc_post_play_pipeline_reason=" << sanitizeCliValue(snapshot.postPlayPipeline.reason) << "\n";
+            std::cout << "snc_post_play_entry_point_analysis_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.entryPointAnalysisPath)) << "\n";
+            std::cout << "snc_post_play_entry_point_readiness="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.entryPointReadiness) << "\n";
+            std::cout << "snc_post_play_entry_point_count=" << snapshot.postPlayPipeline.entryPointCount << "\n";
+            std::cout << "snc_post_play_branch_ambiguity_detected="
+                      << (snapshot.postPlayPipeline.branchAmbiguityDetected ? "true" : "false") << "\n";
+            std::cout << "snc_post_play_package_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.postPlayPackagePath)) << "\n";
+            std::cout << "snc_post_play_package_readiness="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.postPlayPackageReadiness) << "\n";
+            std::cout << "snc_post_play_decision_ready_entry_count="
+                      << snapshot.postPlayPipeline.postPlayDecisionReadyEntryCount << "\n";
+            std::cout << "snc_decision_input_package_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.decisionInputPackagePath)) << "\n";
+            std::cout << "snc_decision_input_package_readiness="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.decisionInputPackageReadiness) << "\n";
+            std::cout << "snc_decision_input_count=" << snapshot.postPlayPipeline.decisionInputCount << "\n";
+            std::cout << "snc_candidate_decision_package_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.candidateDecisionPackagePath)) << "\n";
+            std::cout << "snc_candidate_decision_package_readiness="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.candidateDecisionPackageReadiness) << "\n";
+            std::cout << "snc_candidate_decision_count=" << snapshot.postPlayPipeline.candidateDecisionCount << "\n";
+            std::cout << "snc_candidate_decision_validator_passed="
+                      << (snapshot.postPlayPipeline.candidateDecisionValidatorPassed ? "true" : "false") << "\n";
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
             std::cout << "snc_gameplay_acceptance_path=" << sanitizeCliValue(stdoutPath(snapshot.gameplayAcceptance.path)) << "\n";

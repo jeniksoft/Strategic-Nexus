@@ -24,6 +24,14 @@ struct CompanionStatusConfig {
     std::filesystem::path generatedOverlayActiveDirectory;
     std::filesystem::path generatedOverlayPublishStatusPath;
     std::filesystem::path generatedOverlayPublishBackupRootDirectory;
+    std::filesystem::path entryPointAnalysisPath =
+        "dist/private_reports/snc_entry_point_analysis.json";
+    std::filesystem::path postPlayPackagePath =
+        "dist/private_reports/snc_post_play_package.json";
+    std::filesystem::path decisionInputPackagePath =
+        "dist/private_reports/snc_decision_input_package.json";
+    std::filesystem::path candidateDecisionPackagePath =
+        "dist/private_reports/snc_candidate_decision_package.json";
 };
 
 struct CompanionStatusLoopConfig {
@@ -121,6 +129,25 @@ struct CompanionGeneratedOverlayPublishGateStatus {
     bool backupBeforeReplace = false;
 };
 
+struct CompanionPostPlayPipelineStatus {
+    std::string state;
+    std::string reason;
+    std::filesystem::path entryPointAnalysisPath;
+    std::string entryPointReadiness;
+    std::size_t entryPointCount = 0;
+    bool branchAmbiguityDetected = false;
+    std::filesystem::path postPlayPackagePath;
+    std::string postPlayPackageReadiness;
+    std::size_t postPlayDecisionReadyEntryCount = 0;
+    std::filesystem::path decisionInputPackagePath;
+    std::string decisionInputPackageReadiness;
+    std::size_t decisionInputCount = 0;
+    std::filesystem::path candidateDecisionPackagePath;
+    std::string candidateDecisionPackageReadiness;
+    std::size_t candidateDecisionCount = 0;
+    bool candidateDecisionValidatorPassed = false;
+};
+
 struct CompanionLifecycleStatus {
     bool startWithWindowsEnabled = false;
     std::string windowCloseBehavior = "minimize_to_tray";
@@ -138,6 +165,7 @@ struct CompanionStatusSnapshot {
     CompanionSubsystemStatus generatedOverlay;
     CompanionGeneratedOverlayPublishGateStatus generatedOverlayPublishGate;
     CompanionMpOverlayPackageStatus mpOverlayPackage;
+    CompanionPostPlayPipelineStatus postPlayPipeline;
     CompanionSubsystemStatus gameplayAcceptance;
     CompanionSubsystemStatus statusCenter;
     std::string statusCenterSummaryText;

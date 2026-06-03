@@ -299,6 +299,30 @@ std::optional<std::size_t> extractJsonSize(const std::string& json, const char* 
     }
 }
 
+bool startsWith(const std::string& value, const std::string& prefix)
+{
+    return value.rfind(prefix, 0) == 0;
+}
+
+std::string stateFromReadiness(const std::string& readiness)
+{
+    if (startsWith(readiness, "ready")) {
+        return "ready";
+    }
+    if (startsWith(readiness, "needs") || startsWith(readiness, "blocked") || startsWith(readiness, "failed")) {
+        return "needs_attention";
+    }
+    return "starting";
+}
+
+std::string reasonFromReadiness(const std::string& label, const std::string& readiness)
+{
+    if (readiness.empty()) {
+        return "waiting for " + label;
+    }
+    return label + " " + readiness;
+}
+
 std::string buildGeneratedOverlayPublishCommand(const CompanionGeneratedOverlayPublishGateStatus& status)
 {
     if (status.stagingStatusPath.empty() || status.activeOverlayDirectory.empty() ||
@@ -888,6 +912,122 @@ CompanionGeneratedOverlayPublishGateStatus buildGeneratedOverlayPublishGateStatu
     return status;
 }
 
+CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatusConfig& config)
+{
+    CompanionPostPlayPipelineStatus status;
+    status.entryPointAnalysisPath = config.entryPointAnalysisPath;
+    status.postPlayPackagePath = config.postPlayPackagePath;
+    status.decisionInputPackagePath = config.decisionInputPackagePath;
+    status.candidateDecisionPackagePath = config.candidateDecisionPackagePath;
+
+    auto inspectJsonFile = [](const std::filesystem::path& path, std::string& json, std::string& errorReason) {
+        if (path.empty()) {
+            errorReason = "path not configured";
+            return false;
+        }
+
+        std::error_code error;
+        const bool exists = std::filesystem::exists(path, error);
+        if (error) {
+            errorReason = "path inaccessible";
+            return false;
+        }
+        if (!exists) {
+            errorReason = "missing";
+            return false;
+        }
+        const bool isRegularFile = std::filesystem::is_regular_file(path, error);
+        if (error || !isRegularFile) {
+            errorReason = "path is not a file";
+            return false;
+        }
+        if (!common::tryReadTextFile(path, json)) {
+            errorReason = "unreadable";
+            return false;
+        }
+        errorReason.clear();
+        return true;
+    };
+
+    std::string json;
+    std::string fileError;
+    bool candidateAvailable = false;
+    bool decisionInputAvailable = false;
+    bool postPlayAvailable = false;
+    bool entryPointAvailable = false;
+    if (inspectJsonFile(status.candidateDecisionPackagePath, json, fileError)) {
+        candidateAvailable = true;
+        status.candidateDecisionPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.candidateDecisionCount = extractJsonSize(json, "candidate_decision_count").value_or(0);
+        status.candidateDecisionValidatorPassed = extractJsonBool(json, "validator_passed").value_or(false);
+    } else if (!status.candidateDecisionPackagePath.empty() && fileError != "missing") {
+        status.state = "needs_attention";
+        status.reason = "candidate decision package " + fileError;
+        return status;
+    }
+
+    if (inspectJsonFile(status.decisionInputPackagePath, json, fileError)) {
+        decisionInputAvailable = true;
+        status.decisionInputPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.decisionInputCount = extractJsonSize(json, "decision_input_count").value_or(0);
+    } else if (!status.decisionInputPackagePath.empty() && fileError != "missing") {
+        status.state = "needs_attention";
+        status.reason = "decision input package " + fileError;
+        return status;
+    }
+
+    if (inspectJsonFile(status.postPlayPackagePath, json, fileError)) {
+        postPlayAvailable = true;
+        status.postPlayPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.postPlayDecisionReadyEntryCount = extractJsonSize(json, "decision_ready_entry_count").value_or(0);
+    } else if (!status.postPlayPackagePath.empty() && fileError != "missing") {
+        status.state = "needs_attention";
+        status.reason = "post-play package " + fileError;
+        return status;
+    }
+
+    if (inspectJsonFile(status.entryPointAnalysisPath, json, fileError)) {
+        entryPointAvailable = true;
+        status.entryPointReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.entryPointCount = extractJsonSize(json, "entry_point_count").value_or(0);
+        status.branchAmbiguityDetected = extractJsonBool(json, "branch_ambiguity_detected").value_or(false);
+    } else if (!status.entryPointAnalysisPath.empty() && fileError != "missing") {
+        status.state = "needs_attention";
+        status.reason = "entry point analysis " + fileError;
+        return status;
+    }
+
+    if (candidateAvailable) {
+        status.state = stateFromReadiness(status.candidateDecisionPackageReadiness);
+        status.reason = reasonFromReadiness("candidate decision package", status.candidateDecisionPackageReadiness);
+        return status;
+    }
+    if (decisionInputAvailable) {
+        status.state = stateFromReadiness(status.decisionInputPackageReadiness);
+        status.reason = reasonFromReadiness("decision input package", status.decisionInputPackageReadiness);
+        return status;
+    }
+    if (postPlayAvailable) {
+        status.state = stateFromReadiness(status.postPlayPackageReadiness);
+        status.reason = reasonFromReadiness("post-play package", status.postPlayPackageReadiness);
+        return status;
+    }
+    if (entryPointAvailable) {
+        if (status.branchAmbiguityDetected) {
+            status.state = "needs_attention";
+            status.reason = "entry point analysis branch ambiguity detected";
+        } else {
+            status.state = stateFromReadiness(status.entryPointReadiness);
+            status.reason = reasonFromReadiness("entry point analysis", status.entryPointReadiness);
+        }
+        return status;
+    }
+
+    status.state = "starting";
+    status.reason = "waiting for post-play pipeline artifacts";
+    return status;
+}
+
 CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
@@ -1006,6 +1146,7 @@ std::string buildStatusCenterSummaryText(
     const CompanionSubsystemStatus& generatedOverlay,
     const CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const CompanionPostPlayPipelineStatus& postPlayPipeline,
     const CompanionSubsystemStatus& gameplayAcceptance,
     const CompanionSubsystemStatus& statusCenter)
 {
@@ -1064,6 +1205,38 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.path.empty()) {
         text << "mp_overlay_balicek_cesta: " << pathString(mpOverlayPackage.path) << "\n";
     }
+    text << "post_play_pipeline: " << postPlayPipeline.state << " - " << postPlayPipeline.reason << "\n";
+    if (!postPlayPipeline.entryPointAnalysisPath.empty()) {
+        text << "entry_point_analysis_path: " << pathString(postPlayPipeline.entryPointAnalysisPath) << "\n";
+    }
+    if (!postPlayPipeline.entryPointReadiness.empty()) {
+        text << "entry_point_readiness: " << postPlayPipeline.entryPointReadiness << "\n";
+    }
+    text << "entry_point_count: " << postPlayPipeline.entryPointCount << "\n";
+    text << "branch_ambiguity_detected: " << (postPlayPipeline.branchAmbiguityDetected ? "true" : "false") << "\n";
+    if (!postPlayPipeline.postPlayPackagePath.empty()) {
+        text << "post_play_package_path: " << pathString(postPlayPipeline.postPlayPackagePath) << "\n";
+    }
+    if (!postPlayPipeline.postPlayPackageReadiness.empty()) {
+        text << "post_play_package_readiness: " << postPlayPipeline.postPlayPackageReadiness << "\n";
+    }
+    text << "post_play_decision_ready_entry_count: " << postPlayPipeline.postPlayDecisionReadyEntryCount << "\n";
+    if (!postPlayPipeline.decisionInputPackagePath.empty()) {
+        text << "decision_input_package_path: " << pathString(postPlayPipeline.decisionInputPackagePath) << "\n";
+    }
+    if (!postPlayPipeline.decisionInputPackageReadiness.empty()) {
+        text << "decision_input_package_readiness: " << postPlayPipeline.decisionInputPackageReadiness << "\n";
+    }
+    text << "decision_input_count: " << postPlayPipeline.decisionInputCount << "\n";
+    if (!postPlayPipeline.candidateDecisionPackagePath.empty()) {
+        text << "candidate_decision_package_path: " << pathString(postPlayPipeline.candidateDecisionPackagePath) << "\n";
+    }
+    if (!postPlayPipeline.candidateDecisionPackageReadiness.empty()) {
+        text << "candidate_decision_package_readiness: " << postPlayPipeline.candidateDecisionPackageReadiness << "\n";
+    }
+    text << "candidate_decision_count: " << postPlayPipeline.candidateDecisionCount << "\n";
+    text << "candidate_decision_validator_passed: "
+         << (postPlayPipeline.candidateDecisionValidatorPassed ? "true" : "false") << "\n";
 
     if (!generatedOverlay.manifestHash.empty()) {
         text << "generated_overlay_manifest_hash: " << generatedOverlay.manifestHash << "\n";
@@ -1244,6 +1417,35 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "}";
 }
 
+void writePostPlayPipelineJson(
+    std::ostringstream& output,
+    const CompanionPostPlayPipelineStatus& status,
+    const std::string& indent)
+{
+    output << indent << "{\n";
+    output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
+    output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
+    output << indent << "  \"entry_point_analysis_path\": " << jsonString(pathString(status.entryPointAnalysisPath)) << ",\n";
+    output << indent << "  \"entry_point_readiness\": " << jsonString(status.entryPointReadiness) << ",\n";
+    output << indent << "  \"entry_point_count\": " << status.entryPointCount << ",\n";
+    output << indent << "  \"branch_ambiguity_detected\": "
+           << (status.branchAmbiguityDetected ? "true" : "false") << ",\n";
+    output << indent << "  \"post_play_package_path\": " << jsonString(pathString(status.postPlayPackagePath)) << ",\n";
+    output << indent << "  \"post_play_package_readiness\": " << jsonString(status.postPlayPackageReadiness) << ",\n";
+    output << indent << "  \"post_play_decision_ready_entry_count\": " << status.postPlayDecisionReadyEntryCount << ",\n";
+    output << indent << "  \"decision_input_package_path\": " << jsonString(pathString(status.decisionInputPackagePath)) << ",\n";
+    output << indent << "  \"decision_input_package_readiness\": " << jsonString(status.decisionInputPackageReadiness) << ",\n";
+    output << indent << "  \"decision_input_count\": " << status.decisionInputCount << ",\n";
+    output << indent << "  \"candidate_decision_package_path\": "
+           << jsonString(pathString(status.candidateDecisionPackagePath)) << ",\n";
+    output << indent << "  \"candidate_decision_package_readiness\": "
+           << jsonString(status.candidateDecisionPackageReadiness) << ",\n";
+    output << indent << "  \"candidate_decision_count\": " << status.candidateDecisionCount << ",\n";
+    output << indent << "  \"candidate_decision_validator_passed\": "
+           << (status.candidateDecisionValidatorPassed ? "true" : "false") << "\n";
+    output << indent << "}";
+}
+
 } // namespace
 
 CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const CompanionStatusConfig& config) const
@@ -1256,6 +1458,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
     snapshot.generatedOverlayPublishGate = buildGeneratedOverlayPublishGateStatus(snapshot.generatedOverlay, config);
     snapshot.mpOverlayPackage = buildMpOverlayPackageStatus(config.mpOverlayPackageDirectory);
+    snapshot.postPlayPipeline = buildPostPlayPipelineStatus(config);
     snapshot.gameplayAcceptance = buildGameplayAcceptanceStatus(config.gameplayAcceptanceReportPath);
     snapshot.statusCenter =
         buildStatusCenterStatus(
@@ -1271,6 +1474,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
         snapshot.generatedOverlay,
         snapshot.generatedOverlayPublishGate,
         snapshot.mpOverlayPackage,
+        snapshot.postPlayPipeline,
         snapshot.gameplayAcceptance,
         snapshot.statusCenter);
     return snapshot;
@@ -1308,6 +1512,9 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << ",\n";
     output << "  \"mp_overlay_package_status\": ";
     writeMpOverlayPackageJson(output, snapshot.mpOverlayPackage, "  ");
+    output << ",\n";
+    output << "  \"post_play_pipeline_status\": ";
+    writePostPlayPipelineJson(output, snapshot.postPlayPipeline, "  ");
     output << ",\n";
     output << "  \"gameplay_acceptance_status\": ";
     writeSubsystemJson(output, snapshot.gameplayAcceptance, "  ");
