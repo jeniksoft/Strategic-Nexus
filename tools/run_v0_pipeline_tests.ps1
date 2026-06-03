@@ -2532,6 +2532,66 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Write-Host "[PASS] real_session_loop_mp_snapshot_contract"
 }
 
+function Invoke-RealSessionLoopAutoResolutionCase {
+    $saveRoot = Join-Path $repoRoot "dist/real_session_loop_fixture_saves"
+    $archiveRoot = Join-Path $repoRoot "dist/test_real_session_loop_archive"
+    $sessionId = "session_test_auto_resolution_" + [DateTime]::UtcNow.ToString("yyyyMMdd_HHmmss")
+
+    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "run_real_session_v0_loop.ps1") `
+        $saveRoot `
+        $archiveRoot `
+        "" `
+        "" `
+        "" `
+        -SessionId $sessionId
+    if ($LASTEXITCODE -ne 0) {
+        throw "real session loop auto resolution case failed (exit code $LASTEXITCODE)."
+    }
+
+    $text = $output -join "`n"
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_campaign_id="
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_campaign_id_source=auto_"
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_empire_id=player_country_"
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_empire_id_source=auto_player_country_id"
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_dsl_input_path="
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_dsl_input_source=auto_generated_dsl_draft"
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected 'real_session_v0_loop_next_session_command_hint=cmd /c tools\run_real_session_v0_loop.cmd "'
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected '" "" "" "" -PreviousSessionDirForCompare "'
+
+    $evidencePathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_evidence_json=*" } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($evidencePathLine)) {
+        throw "real session loop auto resolution case missing evidence path."
+    }
+    $evidencePath = $evidencePathLine.Substring("real_session_v0_loop_evidence_json=".Length)
+    if (-not (Test-Path -LiteralPath $evidencePath)) {
+        throw "real session loop auto resolution evidence json missing: $evidencePath"
+    }
+    $evidenceText = Get-Content -Raw -LiteralPath $evidencePath
+    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"resolved_identity":'
+    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"campaign_id_source":'
+    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected 'auto_decision_input_campaign_key'
+    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"empire_id_source":'
+    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected 'auto_player_country_id'
+    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"dsl_input":'
+    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"source":'
+    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected 'auto_generated_dsl_draft'
+
+    $nextStepsBriefPathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_next_steps_brief=*" } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($nextStepsBriefPathLine)) {
+        throw "real session loop auto resolution case missing next-steps brief path."
+    }
+    $nextStepsBriefPath = $nextStepsBriefPathLine.Substring("real_session_v0_loop_next_steps_brief=".Length)
+    if (-not (Test-Path -LiteralPath $nextStepsBriefPath)) {
+        throw "real session loop auto resolution next-steps brief missing: $nextStepsBriefPath"
+    }
+    $nextStepsBriefText = Get-Content -Raw -LiteralPath $nextStepsBriefPath
+    Assert-Contains -Name "real session loop auto resolution brief" -Text $nextStepsBriefText -Expected "Campaign ID source: auto_"
+    Assert-Contains -Name "real session loop auto resolution brief" -Text $nextStepsBriefText -Expected "Empire ID source: auto_player_country_id"
+    Assert-Contains -Name "real session loop auto resolution brief" -Text $nextStepsBriefText -Expected "DSL input source: auto_generated_dsl_draft"
+
+    Write-Host "[PASS] real_session_loop_auto_resolution"
+}
+
 Invoke-V0PipelineCase `
     -Name "v0_defensive" `
     -InputFixture "resources/ministry_context_military_defensive.json" `
@@ -2837,6 +2897,7 @@ Invoke-AutosaveArchiveVerifyMismatchCase
 Invoke-RealSessionTrendIdentityRiskPriorityCase
 Invoke-RealSessionWarningCodeDriftSurfaceCase
 Invoke-RealSessionLoopMpSnapshotContractCase
+Invoke-RealSessionLoopAutoResolutionCase
 Invoke-RealSessionLoopMismatchForwardingCase
 Write-Host "Running generated overlay gameplay acceptance cases..."
 $gameplayAcceptanceOutput = & cmd /c (Join-Path $repoRoot "tools\\run_generated_overlay_gameplay_acceptance.cmd")

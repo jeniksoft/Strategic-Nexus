@@ -2,12 +2,9 @@ param(
     [string]$SaveRoot = "auto",
     [Parameter(Mandatory = $true)]
     [string]$ArchiveRoot,
-    [Parameter(Mandatory = $true)]
-    [string]$CampaignId,
-    [Parameter(Mandatory = $true)]
-    [string]$EmpireId,
-    [Parameter(Mandatory = $true)]
-    [string]$DslInput,
+    [string]$CampaignId = "",
+    [string]$EmpireId = "",
+    [string]$DslInput = "",
     [string]$PreviousSessionDirForCompare,
     [string]$SessionId,
     [string]$WorkDir,
@@ -160,6 +157,38 @@ function Get-SafeFileToken {
     $safe = $Value -replace '[^A-Za-z0-9._-]', "_"
     if ([string]::IsNullOrWhiteSpace($safe)) {
         return "session"
+    }
+    return $safe
+}
+
+function Get-UniqueNonEmptyValues {
+    param([object[]]$Values)
+
+    $result = New-Object System.Collections.Generic.List[string]
+    foreach ($value in @($Values)) {
+        $text = [string]$value
+        if ([string]::IsNullOrWhiteSpace($text)) {
+            continue
+        }
+        if (-not $result.Contains($text)) {
+            [void]$result.Add($text)
+        }
+    }
+
+    return @($result)
+}
+
+function Convert-ToStableIdentityToken {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value,
+        [string]$Fallback = "identity"
+    )
+
+    $safe = $Value.ToLowerInvariant() -replace '[^a-z0-9._-]', "_"
+    $safe = $safe.Trim('_', '.', '-')
+    if ([string]::IsNullOrWhiteSpace($safe)) {
+        return $Fallback
     }
     return $safe
 }
@@ -381,7 +410,7 @@ if ($SaveRoot -eq "auto") {
 
 $saveRootFull = [System.IO.Path]::GetFullPath($SaveRoot)
 $archiveRootFull = [System.IO.Path]::GetFullPath($ArchiveRoot)
-$dslInputFull = [System.IO.Path]::GetFullPath($DslInput)
+$dslInputFull = ""
 $workDirFull = [System.IO.Path]::GetFullPath($WorkDir)
 $overlayOutputDirFull = [System.IO.Path]::GetFullPath($OverlayOutputDir)
 $statusOutputJsonFull = [System.IO.Path]::GetFullPath($StatusOutputJson)
@@ -401,9 +430,6 @@ $sncGeneratedOverlayStagingStatusPath = Join-Path $workDirFull "snc_generated_ov
 
 if (-not (Test-Path -LiteralPath $saveRootFull)) {
     throw "SaveRoot does not exist: $saveRootFull"
-}
-if (-not (Test-Path -LiteralPath $dslInputFull)) {
-    throw "DslInput does not exist: $dslInputFull"
 }
 if (Test-Path -LiteralPath $sessionArchiveDir) {
     throw "Session archive directory already exists: $sessionArchiveDir. Use a different SessionId."
@@ -587,8 +613,66 @@ if ($sncGeneratedOverlayDraftEligible) {
     $sncGeneratedOverlayStagingReason = "dsl draft not generated because parsed entry-point identity was missing"
 }
 
+$effectiveCampaignId = $CampaignId
+$campaignIdSource = "explicit"
+if ([string]::IsNullOrWhiteSpace($effectiveCampaignId)) {
+    $decisionInputCampaignKeys = Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.campaign_key }))
+    if ($decisionInputCampaignKeys.Count -eq 1) {
+        $effectiveCampaignId = $decisionInputCampaignKeys[0]
+        $campaignIdSource = "auto_decision_input_campaign_key"
+    } elseif ($decisionInputCampaignKeys.Count -gt 1) {
+        throw "CampaignId not provided and decision inputs span multiple campaign keys: $([string]::Join(', ', $decisionInputCampaignKeys))"
+    } else {
+        $postPlayCampaignKeys = Get-UniqueNonEmptyValues (@($postPlayPackageJson.campaigns | ForEach-Object { $_.campaign_key }))
+        if ($postPlayCampaignKeys.Count -eq 1) {
+            $effectiveCampaignId = $postPlayCampaignKeys[0]
+            $campaignIdSource = "auto_post_play_campaign_key"
+        } elseif ($postPlayCampaignKeys.Count -gt 1) {
+            throw "CampaignId not provided and post-play package spans multiple campaigns: $([string]::Join(', ', $postPlayCampaignKeys))"
+        } else {
+            throw "CampaignId not provided and no bounded campaign key could be derived from post-play artifacts."
+        }
+    }
+}
+
+$effectiveEmpireId = $EmpireId
+$empireIdSource = "explicit"
+if ([string]::IsNullOrWhiteSpace($effectiveEmpireId)) {
+    $decisionInputPlayerCountryIds = Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.player_country_id }))
+    if ($decisionInputPlayerCountryIds.Count -eq 1) {
+        $effectiveEmpireId = "player_country_" + (Convert-ToStableIdentityToken -Value $decisionInputPlayerCountryIds[0] -Fallback "player_country")
+        $empireIdSource = "auto_player_country_id"
+    } elseif ($decisionInputPlayerCountryIds.Count -gt 1) {
+        throw "EmpireId not provided and decision inputs span multiple player_country_id values: $([string]::Join(', ', $decisionInputPlayerCountryIds))"
+    } else {
+        $decisionInputEmpireNames = Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.empire_name }))
+        if ($decisionInputEmpireNames.Count -eq 1) {
+            $effectiveEmpireId = "empire_" + (Convert-ToStableIdentityToken -Value $decisionInputEmpireNames[0] -Fallback "empire")
+            $empireIdSource = "auto_empire_name"
+        } elseif ($decisionInputEmpireNames.Count -gt 1) {
+            throw "EmpireId not provided and decision inputs span multiple empire names: $([string]::Join(', ', $decisionInputEmpireNames))"
+        } else {
+            throw "EmpireId not provided and no bounded player empire identity could be derived from decision inputs."
+        }
+    }
+}
+
+$effectiveDslInputFull = ""
+$dslInputSource = "explicit"
+if (-not [string]::IsNullOrWhiteSpace($DslInput)) {
+    $effectiveDslInputFull = [System.IO.Path]::GetFullPath($DslInput)
+    if (-not (Test-Path -LiteralPath $effectiveDslInputFull)) {
+        throw "DslInput does not exist: $effectiveDslInputFull"
+    }
+} elseif (Test-Path -LiteralPath $dslDraftPath) {
+    $effectiveDslInputFull = [System.IO.Path]::GetFullPath($dslDraftPath)
+    $dslInputSource = "auto_generated_dsl_draft"
+} else {
+    throw "DslInput not provided and no validated SNC DSL draft is available for offline spine."
+}
+
 Write-Host "==> run offline spine"
-& $exe --run-offline-spine $sessionArchiveDir $CampaignId $EmpireId $dslInputFull $workDirFull $overlayOutputDirFull $statusOutputJsonFull
+& $exe --run-offline-spine $sessionArchiveDir $effectiveCampaignId $effectiveEmpireId $effectiveDslInputFull $workDirFull $overlayOutputDirFull $statusOutputJsonFull
 Assert-LastExitCodeOk -StepName "run offline spine"
 $seasonDeltaLedgerPath = Join-Path $workDirFull "season_delta_ledger.json"
 $empireBriefPath = Join-Path $workDirFull "empire_brief.json"
@@ -633,7 +717,7 @@ if ($ExportMpPackage) {
         throw "MpPackageOutputDir must not already exist: $mpPackageOutputDirFull"
     }
     Write-Host "==> export mp overlay package"
-    $mpExportLines = & $exe --export-mp-overlay-package $overlayOutputDirFull $CampaignId $MpOverlayVersion $MpGameVersion $MpModVersion $mpPackageOutputDirFull
+    $mpExportLines = & $exe --export-mp-overlay-package $overlayOutputDirFull $effectiveCampaignId $MpOverlayVersion $MpGameVersion $MpModVersion $mpPackageOutputDirFull
     Assert-LastExitCodeOk -StepName "export mp overlay package"
     if ($null -eq $mpExportLines) {
         throw "MP package export returned no output."
@@ -760,6 +844,12 @@ if ([string]::IsNullOrWhiteSpace($statusCenterReason)) {
 
 Write-Host "real_session_v0_loop_ok=true"
 Write-Host ("real_session_v0_loop_session_id=" + $SessionId)
+Write-Host ("real_session_v0_loop_campaign_id=" + $effectiveCampaignId)
+Write-Host ("real_session_v0_loop_campaign_id_source=" + $campaignIdSource)
+Write-Host ("real_session_v0_loop_empire_id=" + $effectiveEmpireId)
+Write-Host ("real_session_v0_loop_empire_id_source=" + $empireIdSource)
+Write-Host ("real_session_v0_loop_dsl_input_path=" + $effectiveDslInputFull)
+Write-Host ("real_session_v0_loop_dsl_input_source=" + $dslInputSource)
 Write-Host ("real_session_v0_loop_session_archive_dir=" + $sessionArchiveDir)
 Write-Host ("real_session_v0_loop_archive_summary_path=" + $archiveSummaryPath)
 Write-Host ("real_session_v0_loop_season_delta_ledger_path=" + $seasonDeltaLedgerPath)
@@ -828,7 +918,10 @@ Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
 Write-Host "real_session_v0_loop_trend_sessions_root_hint=dist\\real_session_v0_loop"
 $trendCommandHint = 'cmd /c tools\analyze_real_session_v0_trend.cmd "dist\real_session_v0_loop" "dist\private_reports\real_session_v0_trend.json"'
 Write-Host ("real_session_v0_loop_trend_command_hint=" + $trendCommandHint)
-$nextSessionCommandHint = 'cmd /c tools\run_real_session_v0_loop.cmd "' + $saveRootFull + '" "' + $archiveRootFull + '" "' + $CampaignId + '" "' + $EmpireId + '" "' + $dslInputFull + '"'
+$nextSessionCampaignIdHint = if ($campaignIdSource -eq "explicit") { $CampaignId } else { "" }
+$nextSessionEmpireIdHint = if ($empireIdSource -eq "explicit") { $EmpireId } else { "" }
+$nextSessionDslInputHint = if ($dslInputSource -eq "explicit") { $effectiveDslInputFull } else { "" }
+$nextSessionCommandHint = 'cmd /c tools\run_real_session_v0_loop.cmd "' + $saveRootFull + '" "' + $archiveRootFull + '" "' + $nextSessionCampaignIdHint + '" "' + $nextSessionEmpireIdHint + '" "' + $nextSessionDslInputHint + '"'
 if ($ExportMpPackage) {
     $nextSessionCommandHint += " -ExportMpPackage"
 }
@@ -1805,6 +1898,12 @@ $sessionBriefLines = @(
     "Session ID: $SessionId"
     "Run ID: $realSessionLoopRunId"
     "Generated UTC: $([DateTime]::UtcNow.ToString("o"))"
+    "Campaign ID: $effectiveCampaignId"
+    "Campaign ID source: $campaignIdSource"
+    "Empire ID: $effectiveEmpireId"
+    "Empire ID source: $empireIdSource"
+    "DSL input path: $effectiveDslInputFull"
+    "DSL input source: $dslInputSource"
     ""
     "## Current Outputs"
     "- Session archive: $sessionArchiveDir"
@@ -1892,6 +1991,16 @@ $sessionEvidence = [ordered]@{
         campaign_count = $saveRootAutoCampaignCount
         save_file_count = $saveRootAutoSaveFileCount
         autosave_anchor_count = $saveRootAutoAutosaveAnchorCount
+    }
+    resolved_identity = [ordered]@{
+        campaign_id = $effectiveCampaignId
+        campaign_id_source = $campaignIdSource
+        empire_id = $effectiveEmpireId
+        empire_id_source = $empireIdSource
+    }
+    dsl_input = [ordered]@{
+        path = $effectiveDslInputFull
+        source = $dslInputSource
     }
     session_id = $SessionId
     session_archive_dir = $sessionArchiveDir
