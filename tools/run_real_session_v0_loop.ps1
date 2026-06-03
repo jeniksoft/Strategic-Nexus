@@ -178,6 +178,52 @@ function Get-UniqueNonEmptyValues {
     return @($result)
 }
 
+function New-CommandHintChoice {
+    param(
+        [string]$CommandHint,
+        [string]$Source
+    )
+
+    return [ordered]@{
+        command_hint = $CommandHint
+        command_hint_source = $Source
+    }
+}
+
+function Get-FirstCommandHintChoice {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Choices
+    )
+
+    foreach ($choice in @($Choices)) {
+        if ($null -eq $choice) {
+            continue
+        }
+
+        $commandHint = ""
+        $commandHintSource = "none"
+        if ($null -ne $choice.command_hint) {
+            $commandHint = [string]$choice.command_hint
+        }
+        if ($null -ne $choice.command_hint_source -and -not [string]::IsNullOrWhiteSpace([string]$choice.command_hint_source)) {
+            $commandHintSource = [string]$choice.command_hint_source
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($commandHint)) {
+            return [ordered]@{
+                command_hint = $commandHint
+                command_hint_source = $commandHintSource
+            }
+        }
+    }
+
+    return [ordered]@{
+        command_hint = ""
+        command_hint_source = "none"
+    }
+}
+
 function Convert-ToStableIdentityToken {
     param(
         [Parameter(Mandatory = $true)]
@@ -198,26 +244,39 @@ function Get-NextActionSummary {
         [string]$MpMismatchWarningState,
         [string]$CompareRecommendation,
         [string]$TrendRecommendation,
+        [string]$MpExportStrictVerifyCommand,
+        [string]$CompareMpStrictVerifyCommandCurrent,
+        [string]$TrendMpStrictVerifyCommandCurrent,
         [string]$CompareCommandHint,
         [string]$TrendNextSessionCommandHint,
         [string]$DefaultNextSessionCommandHint
     )
 
     if ($MpMismatchWarningState -eq "warning") {
+        $preferredStrictVerifyHint = Get-FirstCommandHintChoice -Choices @(
+            (New-CommandHintChoice -CommandHint $MpExportStrictVerifyCommand -Source "mp_export_strict_verify"),
+            (New-CommandHintChoice -CommandHint $CompareMpStrictVerifyCommandCurrent -Source "compare_current_mp_strict_verify"),
+            (New-CommandHintChoice -CommandHint $TrendMpStrictVerifyCommandCurrent -Source "trend_current_mp_strict_verify")
+        )
         return [ordered]@{
             action = "review_mp_package_mismatch_warning"
             reason = "mp_export_mismatch_warning_active"
-            command_hint = ""
-            command_hint_source = "none"
+            command_hint = $preferredStrictVerifyHint.command_hint
+            command_hint_source = $preferredStrictVerifyHint.command_hint_source
         }
     }
 
     if ($CompareRecommendation -eq "review_identity_risk_warning" -or $TrendRecommendation -eq "review_identity_risk_warning") {
+        $preferredIdentityRiskHint = Get-FirstCommandHintChoice -Choices @(
+            (New-CommandHintChoice -CommandHint $CompareMpStrictVerifyCommandCurrent -Source "compare_current_mp_strict_verify"),
+            (New-CommandHintChoice -CommandHint $TrendMpStrictVerifyCommandCurrent -Source "trend_current_mp_strict_verify"),
+            (New-CommandHintChoice -CommandHint $MpExportStrictVerifyCommand -Source "mp_export_strict_verify")
+        )
         return [ordered]@{
             action = "review_identity_risk_warning"
             reason = "identity_risk_warning_active"
-            command_hint = ""
-            command_hint_source = "none"
+            command_hint = $preferredIdentityRiskHint.command_hint
+            command_hint_source = $preferredIdentityRiskHint.command_hint_source
         }
     }
 
@@ -1880,6 +1939,9 @@ $nextActionSummary = Get-NextActionSummary `
     -MpMismatchWarningState $mpPackageMismatchWarningState `
     -CompareRecommendation (Get-VariableOrDefault -Name "compareRecommendation") `
     -TrendRecommendation (Get-VariableOrDefault -Name "trendRecommendation") `
+    -MpExportStrictVerifyCommand $mpExportStrictVerifyCommand `
+    -CompareMpStrictVerifyCommandCurrent (Get-VariableOrDefault -Name "compareMpStrictVerifyCommandCurrent") `
+    -TrendMpStrictVerifyCommandCurrent (Get-VariableOrDefault -Name "trendMpStrictVerifyCommandCurrent") `
     -CompareCommandHint (Get-VariableOrDefault -Name "compareCommandHintLine") `
     -TrendNextSessionCommandHint (Get-VariableOrDefault -Name "trendNextSessionCommandHint") `
     -DefaultNextSessionCommandHint $nextSessionCommandHint

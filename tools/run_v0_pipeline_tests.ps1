@@ -2266,6 +2266,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_reason="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source=loop_next_session"
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected 'real_session_v0_loop_next_action_command_hint=cmd /c tools\run_real_session_v0_loop.cmd "'
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_steps_brief="
     $runIdLine = ($output | Where-Object { $_ -like "real_session_v0_loop_run_id=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($runIdLine)) {
@@ -2409,6 +2411,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"generated_overlay_staging_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"next_action"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"command_hint_source"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"loop_next_session"'
     if ($evidenceText -match [regex]::Escape("System.Object[]")) {
         throw "real session loop mismatch forwarding evidence arrays contains serialized System.Object[] placeholder."
     }
@@ -2466,7 +2469,8 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_status_center_reason="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_reason="
-    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source=loop_next_session"
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected 'real_session_v0_loop_next_action_command_hint=cmd /c tools\run_real_session_v0_loop.cmd "'
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_analysis_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_readiness="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_path="
@@ -2511,6 +2515,7 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"summary_present":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"next_action":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"command_hint_source":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"loop_next_session"'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"next_steps_brief":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"mismatch_warning_state":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"mismatch_warning_reason":'
@@ -2540,6 +2545,17 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "- Client readiness gate:"
 
     Write-Host "[PASS] real_session_loop_mp_snapshot_contract"
+}
+
+function Invoke-RealSessionLoopNextActionStrictVerifySourceContractCase {
+    $scriptPath = Join-Path $PSScriptRoot "run_real_session_v0_loop.ps1"
+    $scriptText = Get-Content -Raw -LiteralPath $scriptPath
+
+    Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'mp_export_strict_verify'
+    Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'compare_current_mp_strict_verify'
+    Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'trend_current_mp_strict_verify'
+
+    Write-Host "[PASS] real_session_loop_next_action_strict_verify_source_contract"
 }
 
 function Invoke-RealSessionLoopAutoResolutionCase {
@@ -2907,6 +2923,7 @@ Invoke-AutosaveArchiveVerifyMismatchCase
 Invoke-RealSessionTrendIdentityRiskPriorityCase
 Invoke-RealSessionWarningCodeDriftSurfaceCase
 Invoke-RealSessionLoopMpSnapshotContractCase
+Invoke-RealSessionLoopNextActionStrictVerifySourceContractCase
 Invoke-RealSessionLoopAutoResolutionCase
 Invoke-RealSessionLoopMismatchForwardingCase
 Write-Host "Running generated overlay gameplay acceptance cases..."
