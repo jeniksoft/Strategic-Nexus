@@ -24,6 +24,7 @@
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "common/FileUtil.h"
+#include "common/JsonExtract.h"
 
 #include <windows.h>
 #include <shellapi.h>
@@ -34,6 +35,8 @@
 #include <ctime>
 #include <filesystem>
 #include <mutex>
+#include <optional>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <system_error>
@@ -127,6 +130,164 @@ std::string formatSessionToken()
     char buffer[32]{};
     std::strftime(buffer, sizeof(buffer), "%Y%m%dT%H%M%S", &localTime);
     return buffer;
+}
+
+std::optional<std::string> extractArrayBody(const std::string& json, const char* key)
+{
+    const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*\\[");
+    std::smatch match;
+    if (!std::regex_search(json, match, pattern)) {
+        return std::nullopt;
+    }
+
+    const std::size_t start = static_cast<std::size_t>(match.position()) + match.length();
+    int depth = 1;
+    bool inString = false;
+    bool escaped = false;
+
+    for (std::size_t index = start; index < json.size(); ++index) {
+        const char ch = json[index];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                inString = false;
+            }
+            continue;
+        }
+
+        if (ch == '"') {
+            inString = true;
+        } else if (ch == '[') {
+            ++depth;
+        } else if (ch == ']') {
+            --depth;
+            if (depth == 0) {
+                return json.substr(start, index - start);
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::vector<std::string> extractObjectBodies(const std::string& arrayBody)
+{
+    std::vector<std::string> objects;
+    bool inString = false;
+    bool escaped = false;
+    int depth = 0;
+    std::size_t objectStart = std::string::npos;
+
+    for (std::size_t index = 0; index < arrayBody.size(); ++index) {
+        const char ch = arrayBody[index];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                inString = false;
+            }
+            continue;
+        }
+
+        if (ch == '"') {
+            inString = true;
+        } else if (ch == '{') {
+            if (depth == 0) {
+                objectStart = index;
+            }
+            ++depth;
+        } else if (ch == '}') {
+            --depth;
+            if (depth == 0 && objectStart != std::string::npos) {
+                objects.push_back(arrayBody.substr(objectStart, index - objectStart + 1));
+                objectStart = std::string::npos;
+            }
+        }
+    }
+
+    return objects;
+}
+
+std::optional<std::size_t> extractJsonSize(const std::string& json, const char* key)
+{
+    const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*([0-9]+)");
+    std::smatch match;
+    if (!std::regex_search(json, match, pattern)) {
+        return std::nullopt;
+    }
+
+    try {
+        return static_cast<std::size_t>(std::stoull(match[1].str()));
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::optional<bool> extractJsonBool(const std::string& json, const char* key)
+{
+    const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*(true|false)");
+    std::smatch match;
+    if (!std::regex_search(json, match, pattern)) {
+        return std::nullopt;
+    }
+    return match[1].str() == "true";
+}
+
+void parsePostPlayCampaignSummaries(
+    const std::string& json,
+    std::size_t& campaignCount,
+    std::size_t& readyCampaignCount,
+    std::size_t& partialCampaignCount,
+    std::size_t& blockedCampaignCount,
+    std::vector<std::string>& campaignSummaries)
+{
+    campaignCount = 0;
+    readyCampaignCount = 0;
+    partialCampaignCount = 0;
+    blockedCampaignCount = 0;
+    campaignSummaries.clear();
+
+    const auto campaignsBody = extractArrayBody(json, "campaigns");
+    if (!campaignsBody.has_value()) {
+        return;
+    }
+
+    for (const auto& object : extractObjectBodies(*campaignsBody)) {
+        const auto campaignKey = strategic_nexus::common::extractJsonString(object, "campaign_key").value_or("");
+        const auto readiness = strategic_nexus::common::extractJsonString(object, "readiness").value_or("");
+        const auto entryPointCount = extractJsonSize(object, "entry_point_count").value_or(0);
+        const auto decisionReadyEntryCount = extractJsonSize(object, "decision_ready_entry_count").value_or(0);
+        const auto branchAmbiguityDetected = extractJsonBool(object, "branch_ambiguity_detected").value_or(false);
+
+        if (campaignKey.empty() && readiness.empty() && entryPointCount == 0 && decisionReadyEntryCount == 0 &&
+            !branchAmbiguityDetected) {
+            continue;
+        }
+
+        ++campaignCount;
+        if (readiness.rfind("ready_partial", 0) == 0) {
+            ++partialCampaignCount;
+        } else if (readiness.rfind("ready", 0) == 0) {
+            ++readyCampaignCount;
+        } else {
+            ++blockedCampaignCount;
+        }
+
+        std::ostringstream summary;
+        summary << (campaignKey.empty() ? "unknown_campaign" : campaignKey)
+                << ": " << (readiness.empty() ? "unknown" : readiness)
+                << " (" << decisionReadyEntryCount << "/" << entryPointCount << " ready";
+        if (branchAmbiguityDetected) {
+            summary << ", ambiguous";
+        }
+        summary << ")";
+        campaignSummaries.push_back(summary.str());
+    }
 }
 
 std::wstring utf8ToWide(const std::string& value)
@@ -315,6 +476,11 @@ std::string buildStatusCenterSummaryText(
     const std::filesystem::path& postPlayPackagePath,
     const std::string& postPlayPackageReadiness,
     const std::size_t postPlayDecisionReadyEntryCount,
+    const std::size_t postPlayCampaignCount,
+    const std::size_t postPlayReadyCampaignCount,
+    const std::size_t postPlayPartialCampaignCount,
+    const std::size_t postPlayBlockedCampaignCount,
+    const std::vector<std::string>& postPlayCampaignSummaries,
     const std::filesystem::path& decisionInputPackagePath,
     const std::string& decisionInputPackageReadiness,
     const std::size_t decisionInputCount,
@@ -363,6 +529,13 @@ std::string buildStatusCenterSummaryText(
         summary << "post_play_package_readiness: " << postPlayPackageReadiness << "\n";
     }
     summary << "post_play_decision_ready_entry_count: " << postPlayDecisionReadyEntryCount << "\n";
+    summary << "post_play_campaign_count: " << postPlayCampaignCount << "\n";
+    summary << "post_play_ready_campaign_count: " << postPlayReadyCampaignCount << "\n";
+    summary << "post_play_partial_campaign_count: " << postPlayPartialCampaignCount << "\n";
+    summary << "post_play_blocked_campaign_count: " << postPlayBlockedCampaignCount << "\n";
+    for (const auto& campaignSummary : postPlayCampaignSummaries) {
+        summary << "post_play_campaign_summary: " << campaignSummary << "\n";
+    }
     if (!decisionInputPackagePath.empty()) {
         summary << "decision_input_package_path: " << pathString(decisionInputPackagePath) << "\n";
     }
@@ -489,6 +662,11 @@ void writeStatus(
     const std::filesystem::path& postPlayPackagePath = std::filesystem::path(),
     const std::string& postPlayPackageReadiness = std::string(),
     const std::size_t postPlayDecisionReadyEntryCount = 0,
+    const std::size_t postPlayCampaignCount = 0,
+    const std::size_t postPlayReadyCampaignCount = 0,
+    const std::size_t postPlayPartialCampaignCount = 0,
+    const std::size_t postPlayBlockedCampaignCount = 0,
+    const std::vector<std::string>& postPlayCampaignSummaries = {},
     const std::filesystem::path& decisionInputPackagePath = std::filesystem::path(),
     const std::string& decisionInputPackageReadiness = std::string(),
     const std::size_t decisionInputCount = 0,
@@ -541,6 +719,11 @@ void writeStatus(
         postPlayPackagePath,
         postPlayPackageReadiness,
         postPlayDecisionReadyEntryCount,
+        postPlayCampaignCount,
+        postPlayReadyCampaignCount,
+        postPlayPartialCampaignCount,
+        postPlayBlockedCampaignCount,
+        postPlayCampaignSummaries,
         decisionInputPackagePath,
         decisionInputPackageReadiness,
         decisionInputCount,
@@ -601,6 +784,18 @@ void writeStatus(
     json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(postPlayPackagePath)) << "\",\n";
     json << "  \"post_play_package_readiness\": \"" << jsonEscape(postPlayPackageReadiness) << "\",\n";
     json << "  \"post_play_decision_ready_entry_count\": " << postPlayDecisionReadyEntryCount << ",\n";
+    json << "  \"post_play_campaign_count\": " << postPlayCampaignCount << ",\n";
+    json << "  \"post_play_ready_campaign_count\": " << postPlayReadyCampaignCount << ",\n";
+    json << "  \"post_play_partial_campaign_count\": " << postPlayPartialCampaignCount << ",\n";
+    json << "  \"post_play_blocked_campaign_count\": " << postPlayBlockedCampaignCount << ",\n";
+    json << "  \"post_play_campaign_summaries\": [";
+    for (std::size_t index = 0; index < postPlayCampaignSummaries.size(); ++index) {
+        if (index > 0) {
+            json << ", ";
+        }
+        json << "\"" << jsonEscape(postPlayCampaignSummaries[index]) << "\"";
+    }
+    json << "],\n";
     json << "  \"decision_input_package_path\": \"" << jsonEscape(pathString(decisionInputPackagePath)) << "\",\n";
     json << "  \"decision_input_package_readiness\": \"" << jsonEscape(decisionInputPackageReadiness) << "\",\n";
     json << "  \"decision_input_count\": " << decisionInputCount << ",\n";
@@ -703,6 +898,11 @@ void workerLoop(HWND hwnd)
     std::filesystem::path lastPostPlayPackagePath;
     std::string lastPostPlayPackageReadiness;
     std::size_t lastPostPlayDecisionReadyEntryCount = 0;
+    std::size_t lastPostPlayCampaignCount = 0;
+    std::size_t lastPostPlayReadyCampaignCount = 0;
+    std::size_t lastPostPlayPartialCampaignCount = 0;
+    std::size_t lastPostPlayBlockedCampaignCount = 0;
+    std::vector<std::string> lastPostPlayCampaignSummaries;
     std::filesystem::path lastDecisionInputPackagePath;
     std::string lastDecisionInputPackageReadiness;
     std::size_t lastDecisionInputCount = 0;
@@ -755,6 +955,11 @@ void workerLoop(HWND hwnd)
             lastPostPlayPackagePath.clear();
             lastPostPlayPackageReadiness.clear();
             lastPostPlayDecisionReadyEntryCount = 0;
+            lastPostPlayCampaignCount = 0;
+            lastPostPlayReadyCampaignCount = 0;
+            lastPostPlayPartialCampaignCount = 0;
+            lastPostPlayBlockedCampaignCount = 0;
+            lastPostPlayCampaignSummaries.clear();
             lastDecisionInputPackagePath.clear();
             lastDecisionInputPackageReadiness.clear();
             lastDecisionInputCount = 0;
@@ -879,6 +1084,18 @@ void workerLoop(HWND hwnd)
             lastPostPlayPackagePath.clear();
             lastPostPlayPackageReadiness = postPlayPackage.readiness;
             lastPostPlayDecisionReadyEntryCount = postPlayPackage.decisionReadyEntryCount;
+            lastPostPlayCampaignCount = 0;
+            lastPostPlayReadyCampaignCount = 0;
+            lastPostPlayPartialCampaignCount = 0;
+            lastPostPlayBlockedCampaignCount = 0;
+            lastPostPlayCampaignSummaries.clear();
+            parsePostPlayCampaignSummaries(
+                strategic_nexus::serializePostPlayPackage(postPlayPackage),
+                lastPostPlayCampaignCount,
+                lastPostPlayReadyCampaignCount,
+                lastPostPlayPartialCampaignCount,
+                lastPostPlayBlockedCampaignCount,
+                lastPostPlayCampaignSummaries);
             lastDecisionInputPackagePath.clear();
             lastDecisionInputPackageReadiness = decisionInputPackage.readiness;
             lastDecisionInputCount = decisionInputPackage.decisionInputCount;
@@ -989,6 +1206,11 @@ void workerLoop(HWND hwnd)
                 lastPostPlayPackagePath,
                 lastPostPlayPackageReadiness,
                 lastPostPlayDecisionReadyEntryCount,
+                lastPostPlayCampaignCount,
+                lastPostPlayReadyCampaignCount,
+                lastPostPlayPartialCampaignCount,
+                lastPostPlayBlockedCampaignCount,
+                lastPostPlayCampaignSummaries,
                 lastDecisionInputPackagePath,
                 lastDecisionInputPackageReadiness,
                 lastDecisionInputCount,
@@ -1029,6 +1251,11 @@ void workerLoop(HWND hwnd)
                 lastPostPlayPackagePath,
                 lastPostPlayPackageReadiness,
                 lastPostPlayDecisionReadyEntryCount,
+                lastPostPlayCampaignCount,
+                lastPostPlayReadyCampaignCount,
+                lastPostPlayPartialCampaignCount,
+                lastPostPlayBlockedCampaignCount,
+                lastPostPlayCampaignSummaries,
                 lastDecisionInputPackagePath,
                 lastDecisionInputPackageReadiness,
                 lastDecisionInputCount,
@@ -1074,6 +1301,11 @@ void workerLoop(HWND hwnd)
         lastPostPlayPackagePath,
         lastPostPlayPackageReadiness,
         lastPostPlayDecisionReadyEntryCount,
+        lastPostPlayCampaignCount,
+        lastPostPlayReadyCampaignCount,
+        lastPostPlayPartialCampaignCount,
+        lastPostPlayBlockedCampaignCount,
+        lastPostPlayCampaignSummaries,
         lastDecisionInputPackagePath,
         lastDecisionInputPackageReadiness,
         lastDecisionInputCount,
