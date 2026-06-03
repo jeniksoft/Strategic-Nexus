@@ -154,6 +154,7 @@ int main()
         entryPointAnalysisPath,
         "{\n"
         "  \"schema_version\": 1,\n"
+        "  \"reason\": \"entry points scanned\",\n"
         "  \"readiness\": \"ready\",\n"
         "  \"entry_point_count\": 3,\n"
         "  \"branch_ambiguity_detected\": false\n"
@@ -162,6 +163,7 @@ int main()
         postPlayPackagePath,
         "{\n"
         "  \"schema_version\": 1,\n"
+        "  \"reason\": \"post-play package built; some entry points need more history or parsing\",\n"
         "  \"readiness\": \"ready_partial\",\n"
         "  \"decision_ready_entry_count\": 2,\n"
         "  \"campaigns\": [\n"
@@ -185,15 +187,19 @@ int main()
         decisionInputPackagePath,
         "{\n"
         "  \"schema_version\": 1,\n"
+        "  \"reason\": \"decision input package built; some entries remain blocked\",\n"
         "  \"readiness\": \"ready_partial\",\n"
-        "  \"decision_input_count\": 2\n"
+        "  \"decision_input_count\": 2,\n"
+        "  \"blocked_entry_count\": 1\n"
         "}\n");
     writeTextFileAtomically(
         candidateDecisionPackagePath,
         "{\n"
         "  \"schema_version\": 1,\n"
+        "  \"reason\": \"candidate decision package built; some source entries remain blocked\",\n"
         "  \"readiness\": \"ready\",\n"
         "  \"candidate_decision_count\": 2,\n"
+        "  \"blocked_source_entry_count\": 1,\n"
         "  \"validator_passed\": true\n"
         "}\n");
     writeTextFileAtomically(
@@ -205,14 +211,18 @@ int main()
         dslDraftAuditPath,
         "{\n"
         "  \"schema_version\": 1,\n"
+        "  \"reason\": \"validated dry-run DSL draft built\",\n"
         "  \"readiness\": \"ready\",\n"
         "  \"dsl_rule_count\": 1,\n"
+        "  \"eligible_candidate_count\": 1,\n"
+        "  \"skipped_candidate_count\": 1,\n"
         "  \"validator_passed\": true\n"
         "}\n");
     writeTextFileAtomically(
         generatedOverlayStagingStatusPath,
         "{\n"
         "  \"schema_version\": 1,\n"
+        "  \"reason\": \"validated generated overlay staged\",\n"
         "  \"readiness\": \"staged_verified\",\n"
         "  \"dsl_rule_count\": 1,\n"
         "  \"manifest_verified\": true,\n"
@@ -262,8 +272,14 @@ int main()
         "post-play pipeline should summarize generated overlay staging readiness");
     requireCondition(ready.postPlayPipeline.entryPointCount == 3, "post-play pipeline should expose entry point count");
     requireCondition(
+        ready.postPlayPipeline.entryPointReason == "entry points scanned",
+        "post-play pipeline should expose entry point analysis reason");
+    requireCondition(
         ready.postPlayPipeline.postPlayDecisionReadyEntryCount == 2,
         "post-play pipeline should expose decision-ready entry count");
+    requireCondition(
+        ready.postPlayPipeline.postPlayPackageReason == "post-play package built; some entry points need more history or parsing",
+        "post-play pipeline should expose post-play package reason");
     requireCondition(ready.postPlayPipeline.postPlayCampaignCount == 2, "post-play pipeline should expose campaign count");
     requireCondition(
         ready.postPlayPipeline.postPlayReadyCampaignCount == 1,
@@ -281,7 +297,20 @@ int main()
         ready.postPlayPipeline.postPlayCampaignReadinessSummaries.front() == "alpha_campaign: ready_partial (1/2 ready)",
         "post-play pipeline should preserve first campaign summary");
     requireCondition(ready.postPlayPipeline.decisionInputCount == 2, "post-play pipeline should expose decision input count");
+    requireCondition(
+        ready.postPlayPipeline.decisionInputPackageReason == "decision input package built; some entries remain blocked",
+        "post-play pipeline should expose decision input package reason");
+    requireCondition(
+        ready.postPlayPipeline.decisionInputBlockedEntryCount == 1,
+        "post-play pipeline should expose blocked decision input count");
     requireCondition(ready.postPlayPipeline.candidateDecisionCount == 2, "post-play pipeline should expose candidate decision count");
+    requireCondition(
+        ready.postPlayPipeline.candidateDecisionPackageReason ==
+            "candidate decision package built; some source entries remain blocked",
+        "post-play pipeline should expose candidate decision package reason");
+    requireCondition(
+        ready.postPlayPipeline.candidateDecisionBlockedSourceEntryCount == 1,
+        "post-play pipeline should expose blocked candidate source count");
     requireCondition(
         ready.postPlayPipeline.candidateDecisionValidatorPassed,
         "post-play pipeline should expose candidate validator result");
@@ -289,14 +318,26 @@ int main()
         ready.postPlayPipeline.dslDraftReadiness == "ready",
         "post-play pipeline should expose DSL draft readiness");
     requireCondition(
+        ready.postPlayPipeline.dslDraftReason == "validated dry-run DSL draft built",
+        "post-play pipeline should expose DSL draft reason");
+    requireCondition(
         ready.postPlayPipeline.dslDraftRuleCount == 1,
         "post-play pipeline should expose DSL draft rule count");
+    requireCondition(
+        ready.postPlayPipeline.dslDraftEligibleCandidateCount == 1,
+        "post-play pipeline should expose DSL draft eligible candidate count");
+    requireCondition(
+        ready.postPlayPipeline.dslDraftSkippedCandidateCount == 1,
+        "post-play pipeline should expose DSL draft skipped candidate count");
     requireCondition(
         ready.postPlayPipeline.dslDraftValidatorPassed,
         "post-play pipeline should expose DSL draft validator result");
     requireCondition(
         ready.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified",
         "post-play pipeline should expose generated overlay staging readiness");
+    requireCondition(
+        ready.postPlayPipeline.generatedOverlayStagingReason == "validated generated overlay staged",
+        "post-play pipeline should expose generated overlay staging reason");
     requireCondition(
         ready.postPlayPipeline.generatedOverlayStagingRuleCount == 1,
         "post-play pipeline should expose generated overlay staging rule count");
@@ -373,6 +414,9 @@ int main()
         ready.statusCenterSummaryText.find("entry_point_count: 3") != std::string::npos,
         "status center summary should include entry point count");
     requireCondition(
+        ready.statusCenterSummaryText.find("entry_point_reason: entry points scanned") != std::string::npos,
+        "status center summary should include entry point reason");
+    requireCondition(
         ready.statusCenterSummaryText.find("post_play_campaign_count: 2") != std::string::npos,
         "status center summary should include post-play campaign count");
     requireCondition(
@@ -382,14 +426,35 @@ int main()
         ready.statusCenterSummaryText.find("decision_input_count: 2") != std::string::npos,
         "status center summary should include decision input count");
     requireCondition(
+        ready.statusCenterSummaryText.find(
+            "decision_input_package_reason: decision input package built; some entries remain blocked") !=
+            std::string::npos,
+        "status center summary should include decision input package reason");
+    requireCondition(
+        ready.statusCenterSummaryText.find("decision_input_blocked_entry_count: 1") != std::string::npos,
+        "status center summary should include blocked decision input count");
+    requireCondition(
         ready.statusCenterSummaryText.find("candidate_decision_validator_passed: true") != std::string::npos,
         "status center summary should include candidate validator result");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "candidate_decision_package_reason: candidate decision package built; some source entries remain blocked") !=
+            std::string::npos,
+        "status center summary should include candidate decision package reason");
     requireCondition(
         ready.statusCenterSummaryText.find("dsl_draft_readiness: ready") != std::string::npos,
         "status center summary should include DSL draft readiness");
     requireCondition(
+        ready.statusCenterSummaryText.find("dsl_draft_reason: validated dry-run DSL draft built") !=
+            std::string::npos,
+        "status center summary should include DSL draft reason");
+    requireCondition(
         ready.statusCenterSummaryText.find("generated_overlay_staging_readiness: staged_verified") != std::string::npos,
         "status center summary should include generated overlay staging readiness");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_staging_reason: validated generated overlay staged") !=
+            std::string::npos,
+        "status center summary should include generated overlay staging reason");
     requireCondition(
         ready.statusCenterSummaryText.find("generated_overlay_manifest_verified: true") != std::string::npos,
         "status center summary should include generated overlay staging manifest verification");
@@ -747,11 +812,32 @@ int main()
         json.find("\"post_play_campaign_count\": 2") != std::string::npos,
         "JSON should include post-play campaign count");
     requireCondition(
+        json.find("\"entry_point_reason\": \"entry points scanned\"") != std::string::npos,
+        "JSON should include entry point reason");
+    requireCondition(
+        json.find("\"post_play_package_reason\": \"post-play package built; some entry points need more history or parsing\"") !=
+            std::string::npos,
+        "JSON should include post-play package reason");
+    requireCondition(
         json.find("\"post_play_campaign_summaries\": [\"alpha_campaign: ready_partial (1/2 ready)\", \"beta_campaign: ready (1/1 ready)\"]") != std::string::npos,
         "JSON should include post-play campaign summaries");
     requireCondition(
+        json.find("\"decision_input_package_reason\": \"decision input package built; some entries remain blocked\"") !=
+            std::string::npos,
+        "JSON should include decision input package reason");
+    requireCondition(
+        json.find("\"decision_input_blocked_entry_count\": 1") != std::string::npos,
+        "JSON should include blocked decision input count");
+    requireCondition(
         json.find("\"candidate_decision_package_readiness\": \"ready\"") != std::string::npos,
         "JSON should include candidate decision package readiness");
+    requireCondition(
+        json.find("\"candidate_decision_package_reason\": \"candidate decision package built; some source entries remain blocked\"") !=
+            std::string::npos,
+        "JSON should include candidate decision package reason");
+    requireCondition(
+        json.find("\"candidate_decision_blocked_source_entry_count\": 1") != std::string::npos,
+        "JSON should include blocked candidate source count");
     requireCondition(
         json.find("\"candidate_decision_validator_passed\": true") != std::string::npos,
         "JSON should include candidate validator state");
@@ -759,8 +845,21 @@ int main()
         json.find("\"dsl_draft_readiness\": \"ready\"") != std::string::npos,
         "JSON should include DSL draft readiness");
     requireCondition(
+        json.find("\"dsl_draft_reason\": \"validated dry-run DSL draft built\"") != std::string::npos,
+        "JSON should include DSL draft reason");
+    requireCondition(
+        json.find("\"dsl_draft_eligible_candidate_count\": 1") != std::string::npos,
+        "JSON should include DSL draft eligible candidate count");
+    requireCondition(
+        json.find("\"dsl_draft_skipped_candidate_count\": 1") != std::string::npos,
+        "JSON should include DSL draft skipped candidate count");
+    requireCondition(
         json.find("\"generated_overlay_staging_readiness\": \"staged_verified\"") != std::string::npos,
         "JSON should include generated overlay staging readiness");
+    requireCondition(
+        json.find("\"generated_overlay_staging_reason\": \"validated generated overlay staged\"") !=
+            std::string::npos,
+        "JSON should include generated overlay staging reason");
     requireCondition(
         json.find("\"generated_overlay_manifest_verified\": true") != std::string::npos,
         "JSON should include generated overlay staging manifest verification");

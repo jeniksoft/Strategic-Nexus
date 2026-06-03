@@ -475,6 +475,7 @@ if (-not (Test-Path -LiteralPath $entryPointAnalysisPath)) {
 $entryPointAnalysisText = Get-Content -Raw -LiteralPath $entryPointAnalysisPath
 $entryPointAnalysisJson = $entryPointAnalysisText | ConvertFrom-Json
 $entryPointReadiness = [string]$entryPointAnalysisJson.readiness
+$entryPointReason = [string]$entryPointAnalysisJson.reason
 $entryPointCount = [string]$entryPointAnalysisJson.entry_point_count
 $entryPointBranchAmbiguity = [string]([bool]$entryPointAnalysisJson.branch_ambiguity_detected).ToString().ToLowerInvariant()
 
@@ -487,7 +488,12 @@ if (-not (Test-Path -LiteralPath $postPlayPackagePath)) {
 $postPlayPackageText = Get-Content -Raw -LiteralPath $postPlayPackagePath
 $postPlayPackageJson = $postPlayPackageText | ConvertFrom-Json
 $postPlayPackageReadiness = [string]$postPlayPackageJson.readiness
+$postPlayPackageReason = [string]$postPlayPackageJson.reason
 $postPlayDecisionReadyEntryCount = [string]$postPlayPackageJson.decision_ready_entry_count
+$postPlayCampaignCount = [string]$postPlayPackageJson.campaigns.Count
+$postPlayReadyCampaignCount = [string](@($postPlayPackageJson.campaigns | Where-Object { $_.readiness -eq "ready" }).Count)
+$postPlayPartialCampaignCount = [string](@($postPlayPackageJson.campaigns | Where-Object { $_.readiness -eq "ready_partial" }).Count)
+$postPlayBlockedCampaignCount = [string](@($postPlayPackageJson.campaigns | Where-Object { $_.readiness -notin @("ready", "ready_partial") }).Count)
 
 Write-Host "==> build snc decision input package"
 & $exe --build-snc-decision-input-package $postPlayPackagePath $decisionInputPackagePath
@@ -498,7 +504,9 @@ if (-not (Test-Path -LiteralPath $decisionInputPackagePath)) {
 $decisionInputPackageText = Get-Content -Raw -LiteralPath $decisionInputPackagePath
 $decisionInputPackageJson = $decisionInputPackageText | ConvertFrom-Json
 $decisionInputPackageReadiness = [string]$decisionInputPackageJson.readiness
+$decisionInputPackageReason = [string]$decisionInputPackageJson.reason
 $decisionInputCount = [string]$decisionInputPackageJson.decision_input_count
+$decisionInputBlockedEntryCount = [string]$decisionInputPackageJson.blocked_entry_count
 
 Write-Host "==> build snc candidate decision package"
 & $exe --build-snc-candidate-decision-package $decisionInputPackagePath $candidateDecisionPackagePath
@@ -509,13 +517,19 @@ if (-not (Test-Path -LiteralPath $candidateDecisionPackagePath)) {
 $candidateDecisionPackageText = Get-Content -Raw -LiteralPath $candidateDecisionPackagePath
 $candidateDecisionPackageJson = $candidateDecisionPackageText | ConvertFrom-Json
 $candidateDecisionPackageReadiness = [string]$candidateDecisionPackageJson.readiness
+$candidateDecisionPackageReason = [string]$candidateDecisionPackageJson.reason
 $candidateDecisionCount = [string]$candidateDecisionPackageJson.candidate_decision_count
+$candidateDecisionBlockedSourceEntryCount = [string]$candidateDecisionPackageJson.blocked_source_entry_count
 $candidateDecisionValidatorPassed = [string]([bool]$candidateDecisionPackageJson.validator_passed).ToString().ToLowerInvariant()
 
 $dslDraftReadiness = "not_attempted"
+$dslDraftReason = "not_attempted"
 $dslDraftRuleCount = "0"
+$dslDraftEligibleCandidateCount = "0"
+$dslDraftSkippedCandidateCount = "0"
 $dslDraftValidatorPassed = "false"
 $sncGeneratedOverlayStagingReadiness = "not_attempted"
+$sncGeneratedOverlayStagingReason = "not_attempted"
 $sncGeneratedOverlayStagingRuleCount = "0"
 $sncGeneratedOverlayManifestVerified = "false"
 $sncGeneratedOverlayPublishAllowed = "false"
@@ -546,7 +560,10 @@ if ($sncGeneratedOverlayDraftEligible) {
     $dslDraftAuditText = Get-Content -Raw -LiteralPath $dslDraftAuditPath
     $dslDraftAuditJson = $dslDraftAuditText | ConvertFrom-Json
     $dslDraftReadiness = [string]$dslDraftAuditJson.readiness
+    $dslDraftReason = [string]$dslDraftAuditJson.reason
     $dslDraftRuleCount = [string]$dslDraftAuditJson.dsl_rule_count
+    $dslDraftEligibleCandidateCount = [string]$dslDraftAuditJson.eligible_candidate_count
+    $dslDraftSkippedCandidateCount = [string]$dslDraftAuditJson.skipped_candidate_count
     $dslDraftValidatorPassed = [string]([bool]$dslDraftAuditJson.validator_passed).ToString().ToLowerInvariant()
 
     Write-Host "==> stage snc generated overlay"
@@ -559,12 +576,15 @@ if ($sncGeneratedOverlayDraftEligible) {
     $sncGeneratedOverlayStagingStatusText = Get-Content -Raw -LiteralPath $sncGeneratedOverlayStagingStatusPath
     $sncGeneratedOverlayStagingStatusJson = $sncGeneratedOverlayStagingStatusText | ConvertFrom-Json
     $sncGeneratedOverlayStagingReadiness = [string]$sncGeneratedOverlayStagingStatusJson.readiness
+    $sncGeneratedOverlayStagingReason = [string]$sncGeneratedOverlayStagingStatusJson.reason
     $sncGeneratedOverlayStagingRuleCount = [string]$sncGeneratedOverlayStagingStatusJson.dsl_rule_count
     $sncGeneratedOverlayManifestVerified = [string]([bool]$sncGeneratedOverlayStagingStatusJson.manifest_verified).ToString().ToLowerInvariant()
     $sncGeneratedOverlayPublishAllowed = [string]([bool]$sncGeneratedOverlayStagingStatusJson.publish_allowed).ToString().ToLowerInvariant()
 } else {
     $dslDraftReadiness = "needs_identity"
+    $dslDraftReason = "no candidate had enough parsed entry-point identity for a DSL draft"
     $sncGeneratedOverlayStagingReadiness = "needs_identity"
+    $sncGeneratedOverlayStagingReason = "dsl draft not generated because parsed entry-point identity was missing"
 }
 
 Write-Host "==> run offline spine"
@@ -747,25 +767,39 @@ Write-Host ("real_session_v0_loop_empire_brief_path=" + $empireBriefPath)
 Write-Host ("real_session_v0_loop_archive_copied_save_count=" + $archiveCopiedSaveCount)
 Write-Host ("real_session_v0_loop_entry_point_analysis_path=" + $entryPointAnalysisPath)
 Write-Host ("real_session_v0_loop_entry_point_readiness=" + $entryPointReadiness)
+Write-Host ("real_session_v0_loop_entry_point_reason=" + $entryPointReason)
 Write-Host ("real_session_v0_loop_entry_point_count=" + $entryPointCount)
 Write-Host ("real_session_v0_loop_entry_point_branch_ambiguity=" + $entryPointBranchAmbiguity)
 Write-Host ("real_session_v0_loop_post_play_package_path=" + $postPlayPackagePath)
 Write-Host ("real_session_v0_loop_post_play_package_readiness=" + $postPlayPackageReadiness)
+Write-Host ("real_session_v0_loop_post_play_package_reason=" + $postPlayPackageReason)
 Write-Host ("real_session_v0_loop_post_play_decision_ready_entry_count=" + $postPlayDecisionReadyEntryCount)
+Write-Host ("real_session_v0_loop_post_play_campaign_count=" + $postPlayCampaignCount)
+Write-Host ("real_session_v0_loop_post_play_ready_campaign_count=" + $postPlayReadyCampaignCount)
+Write-Host ("real_session_v0_loop_post_play_partial_campaign_count=" + $postPlayPartialCampaignCount)
+Write-Host ("real_session_v0_loop_post_play_blocked_campaign_count=" + $postPlayBlockedCampaignCount)
 Write-Host ("real_session_v0_loop_decision_input_package_path=" + $decisionInputPackagePath)
 Write-Host ("real_session_v0_loop_decision_input_package_readiness=" + $decisionInputPackageReadiness)
+Write-Host ("real_session_v0_loop_decision_input_package_reason=" + $decisionInputPackageReason)
 Write-Host ("real_session_v0_loop_decision_input_count=" + $decisionInputCount)
+Write-Host ("real_session_v0_loop_decision_input_blocked_entry_count=" + $decisionInputBlockedEntryCount)
 Write-Host ("real_session_v0_loop_candidate_decision_package_path=" + $candidateDecisionPackagePath)
 Write-Host ("real_session_v0_loop_candidate_decision_package_readiness=" + $candidateDecisionPackageReadiness)
+Write-Host ("real_session_v0_loop_candidate_decision_package_reason=" + $candidateDecisionPackageReason)
 Write-Host ("real_session_v0_loop_candidate_decision_count=" + $candidateDecisionCount)
+Write-Host ("real_session_v0_loop_candidate_decision_blocked_source_entry_count=" + $candidateDecisionBlockedSourceEntryCount)
 Write-Host ("real_session_v0_loop_candidate_decision_validator_passed=" + $candidateDecisionValidatorPassed)
 Write-Host ("real_session_v0_loop_dsl_draft_audit_path=" + $dslDraftAuditPath)
 Write-Host ("real_session_v0_loop_dsl_draft_readiness=" + $dslDraftReadiness)
+Write-Host ("real_session_v0_loop_dsl_draft_reason=" + $dslDraftReason)
 Write-Host ("real_session_v0_loop_dsl_draft_rule_count=" + $dslDraftRuleCount)
+Write-Host ("real_session_v0_loop_dsl_draft_eligible_candidate_count=" + $dslDraftEligibleCandidateCount)
+Write-Host ("real_session_v0_loop_dsl_draft_skipped_candidate_count=" + $dslDraftSkippedCandidateCount)
 Write-Host ("real_session_v0_loop_dsl_draft_validator_passed=" + $dslDraftValidatorPassed)
 Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_dir=" + $sncGeneratedOverlayStagingDir)
 Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_status_path=" + $sncGeneratedOverlayStagingStatusPath)
 Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_readiness=" + $sncGeneratedOverlayStagingReadiness)
+Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_reason=" + $sncGeneratedOverlayStagingReason)
 Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_rule_count=" + $sncGeneratedOverlayStagingRuleCount)
 Write-Host ("real_session_v0_loop_snc_generated_overlay_manifest_verified=" + $sncGeneratedOverlayManifestVerified)
 Write-Host ("real_session_v0_loop_snc_generated_overlay_publish_allowed=" + $sncGeneratedOverlayPublishAllowed)
@@ -1869,26 +1903,40 @@ $sessionEvidence = [ordered]@{
     entry_point_post_play = [ordered]@{
         entry_point_analysis_path = $entryPointAnalysisPath
         entry_point_readiness = $entryPointReadiness
+        entry_point_reason = $entryPointReason
         entry_point_count = $entryPointCount
         entry_point_branch_ambiguity = $entryPointBranchAmbiguity
         post_play_package_path = $postPlayPackagePath
         post_play_package_readiness = $postPlayPackageReadiness
+        post_play_package_reason = $postPlayPackageReason
         post_play_decision_ready_entry_count = $postPlayDecisionReadyEntryCount
+        post_play_campaign_count = $postPlayCampaignCount
+        post_play_ready_campaign_count = $postPlayReadyCampaignCount
+        post_play_partial_campaign_count = $postPlayPartialCampaignCount
+        post_play_blocked_campaign_count = $postPlayBlockedCampaignCount
         decision_input_package_path = $decisionInputPackagePath
         decision_input_package_readiness = $decisionInputPackageReadiness
+        decision_input_package_reason = $decisionInputPackageReason
         decision_input_count = $decisionInputCount
+        decision_input_blocked_entry_count = $decisionInputBlockedEntryCount
         candidate_decision_package_path = $candidateDecisionPackagePath
         candidate_decision_package_readiness = $candidateDecisionPackageReadiness
+        candidate_decision_package_reason = $candidateDecisionPackageReason
         candidate_decision_count = $candidateDecisionCount
+        candidate_decision_blocked_source_entry_count = $candidateDecisionBlockedSourceEntryCount
         candidate_decision_validator_passed = $candidateDecisionValidatorPassed
         dsl_draft_path = $dslDraftPath
         dsl_draft_audit_path = $dslDraftAuditPath
         dsl_draft_readiness = $dslDraftReadiness
+        dsl_draft_reason = $dslDraftReason
         dsl_draft_rule_count = $dslDraftRuleCount
+        dsl_draft_eligible_candidate_count = $dslDraftEligibleCandidateCount
+        dsl_draft_skipped_candidate_count = $dslDraftSkippedCandidateCount
         dsl_draft_validator_passed = $dslDraftValidatorPassed
         generated_overlay_staging_dir = $sncGeneratedOverlayStagingDir
         generated_overlay_staging_status_path = $sncGeneratedOverlayStagingStatusPath
         generated_overlay_staging_readiness = $sncGeneratedOverlayStagingReadiness
+        generated_overlay_staging_reason = $sncGeneratedOverlayStagingReason
         generated_overlay_staging_rule_count = $sncGeneratedOverlayStagingRuleCount
         generated_overlay_manifest_verified = $sncGeneratedOverlayManifestVerified
         generated_overlay_publish_allowed = $sncGeneratedOverlayPublishAllowed

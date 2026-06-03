@@ -1159,6 +1159,7 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
     if (inspectJsonFile(status.generatedOverlayStagingStatusPath, json, fileError)) {
         generatedOverlayStagingAvailable = true;
         status.generatedOverlayStagingReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.generatedOverlayStagingReason = common::extractJsonString(json, "reason").value_or("");
         status.generatedOverlayStagingRuleCount = extractJsonSize(json, "dsl_rule_count").value_or(0);
         status.generatedOverlayManifestVerified = extractJsonBool(json, "manifest_verified").value_or(false);
         status.generatedOverlayPublishAllowed = extractJsonBool(json, "publish_allowed").value_or(false);
@@ -1171,7 +1172,10 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
     if (inspectJsonFile(status.dslDraftAuditPath, json, fileError)) {
         dslDraftAvailable = true;
         status.dslDraftReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.dslDraftReason = common::extractJsonString(json, "reason").value_or("");
         status.dslDraftRuleCount = extractJsonSize(json, "dsl_rule_count").value_or(0);
+        status.dslDraftEligibleCandidateCount = extractJsonSize(json, "eligible_candidate_count").value_or(0);
+        status.dslDraftSkippedCandidateCount = extractJsonSize(json, "skipped_candidate_count").value_or(0);
         status.dslDraftValidatorPassed = extractJsonBool(json, "validator_passed").value_or(false);
     } else if (!status.dslDraftAuditPath.empty() && fileError != "missing") {
         status.state = "needs_attention";
@@ -1182,7 +1186,9 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
     if (inspectJsonFile(status.candidateDecisionPackagePath, json, fileError)) {
         candidateAvailable = true;
         status.candidateDecisionPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.candidateDecisionPackageReason = common::extractJsonString(json, "reason").value_or("");
         status.candidateDecisionCount = extractJsonSize(json, "candidate_decision_count").value_or(0);
+        status.candidateDecisionBlockedSourceEntryCount = extractJsonSize(json, "blocked_source_entry_count").value_or(0);
         status.candidateDecisionValidatorPassed = extractJsonBool(json, "validator_passed").value_or(false);
     } else if (!status.candidateDecisionPackagePath.empty() && fileError != "missing") {
         status.state = "needs_attention";
@@ -1193,7 +1199,9 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
     if (inspectJsonFile(status.decisionInputPackagePath, json, fileError)) {
         decisionInputAvailable = true;
         status.decisionInputPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.decisionInputPackageReason = common::extractJsonString(json, "reason").value_or("");
         status.decisionInputCount = extractJsonSize(json, "decision_input_count").value_or(0);
+        status.decisionInputBlockedEntryCount = extractJsonSize(json, "blocked_entry_count").value_or(0);
     } else if (!status.decisionInputPackagePath.empty() && fileError != "missing") {
         status.state = "needs_attention";
         status.reason = "decision input package " + fileError;
@@ -1203,6 +1211,7 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
     if (inspectJsonFile(status.postPlayPackagePath, json, fileError)) {
         postPlayAvailable = true;
         status.postPlayPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.postPlayPackageReason = common::extractJsonString(json, "reason").value_or("");
         status.postPlayDecisionReadyEntryCount = extractJsonSize(json, "decision_ready_entry_count").value_or(0);
         parsePostPlayCampaignSummaries(json, status);
     } else if (!status.postPlayPackagePath.empty() && fileError != "missing") {
@@ -1214,6 +1223,7 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
     if (inspectJsonFile(status.entryPointAnalysisPath, json, fileError)) {
         entryPointAvailable = true;
         status.entryPointReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.entryPointReason = common::extractJsonString(json, "reason").value_or("");
         status.entryPointCount = extractJsonSize(json, "entry_point_count").value_or(0);
         status.branchAmbiguityDetected = extractJsonBool(json, "branch_ambiguity_detected").value_or(false);
     } else if (!status.entryPointAnalysisPath.empty() && fileError != "missing") {
@@ -1447,6 +1457,9 @@ std::string buildStatusCenterSummaryText(
     if (!postPlayPipeline.entryPointReadiness.empty()) {
         text << "entry_point_readiness: " << postPlayPipeline.entryPointReadiness << "\n";
     }
+    if (!postPlayPipeline.entryPointReason.empty()) {
+        text << "entry_point_reason: " << postPlayPipeline.entryPointReason << "\n";
+    }
     text << "entry_point_count: " << postPlayPipeline.entryPointCount << "\n";
     text << "branch_ambiguity_detected: " << (postPlayPipeline.branchAmbiguityDetected ? "true" : "false") << "\n";
     if (!postPlayPipeline.postPlayPackagePath.empty()) {
@@ -1454,6 +1467,9 @@ std::string buildStatusCenterSummaryText(
     }
     if (!postPlayPipeline.postPlayPackageReadiness.empty()) {
         text << "post_play_package_readiness: " << postPlayPipeline.postPlayPackageReadiness << "\n";
+    }
+    if (!postPlayPipeline.postPlayPackageReason.empty()) {
+        text << "post_play_package_reason: " << postPlayPipeline.postPlayPackageReason << "\n";
     }
     text << "post_play_decision_ready_entry_count: " << postPlayPipeline.postPlayDecisionReadyEntryCount << "\n";
     text << "post_play_campaign_count: " << postPlayPipeline.postPlayCampaignCount << "\n";
@@ -1469,14 +1485,23 @@ std::string buildStatusCenterSummaryText(
     if (!postPlayPipeline.decisionInputPackageReadiness.empty()) {
         text << "decision_input_package_readiness: " << postPlayPipeline.decisionInputPackageReadiness << "\n";
     }
+    if (!postPlayPipeline.decisionInputPackageReason.empty()) {
+        text << "decision_input_package_reason: " << postPlayPipeline.decisionInputPackageReason << "\n";
+    }
     text << "decision_input_count: " << postPlayPipeline.decisionInputCount << "\n";
+    text << "decision_input_blocked_entry_count: " << postPlayPipeline.decisionInputBlockedEntryCount << "\n";
     if (!postPlayPipeline.candidateDecisionPackagePath.empty()) {
         text << "candidate_decision_package_path: " << pathString(postPlayPipeline.candidateDecisionPackagePath) << "\n";
     }
     if (!postPlayPipeline.candidateDecisionPackageReadiness.empty()) {
         text << "candidate_decision_package_readiness: " << postPlayPipeline.candidateDecisionPackageReadiness << "\n";
     }
+    if (!postPlayPipeline.candidateDecisionPackageReason.empty()) {
+        text << "candidate_decision_package_reason: " << postPlayPipeline.candidateDecisionPackageReason << "\n";
+    }
     text << "candidate_decision_count: " << postPlayPipeline.candidateDecisionCount << "\n";
+    text << "candidate_decision_blocked_source_entry_count: "
+         << postPlayPipeline.candidateDecisionBlockedSourceEntryCount << "\n";
     text << "candidate_decision_validator_passed: "
          << (postPlayPipeline.candidateDecisionValidatorPassed ? "true" : "false") << "\n";
     if (!postPlayPipeline.dslDraftPath.empty()) {
@@ -1488,7 +1513,12 @@ std::string buildStatusCenterSummaryText(
     if (!postPlayPipeline.dslDraftReadiness.empty()) {
         text << "dsl_draft_readiness: " << postPlayPipeline.dslDraftReadiness << "\n";
     }
+    if (!postPlayPipeline.dslDraftReason.empty()) {
+        text << "dsl_draft_reason: " << postPlayPipeline.dslDraftReason << "\n";
+    }
     text << "dsl_draft_rule_count: " << postPlayPipeline.dslDraftRuleCount << "\n";
+    text << "dsl_draft_eligible_candidate_count: " << postPlayPipeline.dslDraftEligibleCandidateCount << "\n";
+    text << "dsl_draft_skipped_candidate_count: " << postPlayPipeline.dslDraftSkippedCandidateCount << "\n";
     text << "dsl_draft_validator_passed: "
          << (postPlayPipeline.dslDraftValidatorPassed ? "true" : "false") << "\n";
     if (!postPlayPipeline.generatedOverlayStagingStatusPath.empty()) {
@@ -1498,6 +1528,10 @@ std::string buildStatusCenterSummaryText(
     if (!postPlayPipeline.generatedOverlayStagingReadiness.empty()) {
         text << "generated_overlay_staging_readiness: "
              << postPlayPipeline.generatedOverlayStagingReadiness << "\n";
+    }
+    if (!postPlayPipeline.generatedOverlayStagingReason.empty()) {
+        text << "generated_overlay_staging_reason: "
+             << postPlayPipeline.generatedOverlayStagingReason << "\n";
     }
     text << "generated_overlay_staging_rule_count: "
          << postPlayPipeline.generatedOverlayStagingRuleCount << "\n";
@@ -1695,11 +1729,13 @@ void writePostPlayPipelineJson(
     output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
     output << indent << "  \"entry_point_analysis_path\": " << jsonString(pathString(status.entryPointAnalysisPath)) << ",\n";
     output << indent << "  \"entry_point_readiness\": " << jsonString(status.entryPointReadiness) << ",\n";
+    output << indent << "  \"entry_point_reason\": " << jsonString(status.entryPointReason) << ",\n";
     output << indent << "  \"entry_point_count\": " << status.entryPointCount << ",\n";
     output << indent << "  \"branch_ambiguity_detected\": "
            << (status.branchAmbiguityDetected ? "true" : "false") << ",\n";
     output << indent << "  \"post_play_package_path\": " << jsonString(pathString(status.postPlayPackagePath)) << ",\n";
     output << indent << "  \"post_play_package_readiness\": " << jsonString(status.postPlayPackageReadiness) << ",\n";
+    output << indent << "  \"post_play_package_reason\": " << jsonString(status.postPlayPackageReason) << ",\n";
     output << indent << "  \"post_play_decision_ready_entry_count\": " << status.postPlayDecisionReadyEntryCount << ",\n";
     output << indent << "  \"post_play_campaign_count\": " << status.postPlayCampaignCount << ",\n";
     output << indent << "  \"post_play_ready_campaign_count\": " << status.postPlayReadyCampaignCount << ",\n";
@@ -1715,24 +1751,35 @@ void writePostPlayPipelineJson(
     output << "],\n";
     output << indent << "  \"decision_input_package_path\": " << jsonString(pathString(status.decisionInputPackagePath)) << ",\n";
     output << indent << "  \"decision_input_package_readiness\": " << jsonString(status.decisionInputPackageReadiness) << ",\n";
+    output << indent << "  \"decision_input_package_reason\": " << jsonString(status.decisionInputPackageReason) << ",\n";
     output << indent << "  \"decision_input_count\": " << status.decisionInputCount << ",\n";
+    output << indent << "  \"decision_input_blocked_entry_count\": " << status.decisionInputBlockedEntryCount << ",\n";
     output << indent << "  \"candidate_decision_package_path\": "
            << jsonString(pathString(status.candidateDecisionPackagePath)) << ",\n";
     output << indent << "  \"candidate_decision_package_readiness\": "
            << jsonString(status.candidateDecisionPackageReadiness) << ",\n";
+    output << indent << "  \"candidate_decision_package_reason\": "
+           << jsonString(status.candidateDecisionPackageReason) << ",\n";
     output << indent << "  \"candidate_decision_count\": " << status.candidateDecisionCount << ",\n";
+    output << indent << "  \"candidate_decision_blocked_source_entry_count\": "
+           << status.candidateDecisionBlockedSourceEntryCount << ",\n";
     output << indent << "  \"candidate_decision_validator_passed\": "
            << (status.candidateDecisionValidatorPassed ? "true" : "false") << ",\n";
     output << indent << "  \"dsl_draft_path\": " << jsonString(pathString(status.dslDraftPath)) << ",\n";
     output << indent << "  \"dsl_draft_audit_path\": " << jsonString(pathString(status.dslDraftAuditPath)) << ",\n";
     output << indent << "  \"dsl_draft_readiness\": " << jsonString(status.dslDraftReadiness) << ",\n";
+    output << indent << "  \"dsl_draft_reason\": " << jsonString(status.dslDraftReason) << ",\n";
     output << indent << "  \"dsl_draft_rule_count\": " << status.dslDraftRuleCount << ",\n";
+    output << indent << "  \"dsl_draft_eligible_candidate_count\": " << status.dslDraftEligibleCandidateCount << ",\n";
+    output << indent << "  \"dsl_draft_skipped_candidate_count\": " << status.dslDraftSkippedCandidateCount << ",\n";
     output << indent << "  \"dsl_draft_validator_passed\": "
            << (status.dslDraftValidatorPassed ? "true" : "false") << ",\n";
     output << indent << "  \"generated_overlay_staging_status_path\": "
            << jsonString(pathString(status.generatedOverlayStagingStatusPath)) << ",\n";
     output << indent << "  \"generated_overlay_staging_readiness\": "
            << jsonString(status.generatedOverlayStagingReadiness) << ",\n";
+    output << indent << "  \"generated_overlay_staging_reason\": "
+           << jsonString(status.generatedOverlayStagingReason) << ",\n";
     output << indent << "  \"generated_overlay_staging_rule_count\": "
            << status.generatedOverlayStagingRuleCount << ",\n";
     output << indent << "  \"generated_overlay_manifest_verified\": "
