@@ -92,6 +92,7 @@ Core documents:
 * [ENGINEERING_RULES.md](ENGINEERING_RULES.md) - practical engineering rules for development
 * [CODEX_PROJECT_MEMORY_RULES.md](CODEX_PROJECT_MEMORY_RULES.md) - durable Markdown memory rules for Codex
 * [CODEX_WORK_CONTINUITY_NOTES.md](CODEX_WORK_CONTINUITY_NOTES.md) - lightweight Codex continuity ledger to avoid repeated maintenance work after context loss
+* [DATA_ANALYTICS_CONTEXT.md](DATA_ANALYTICS_CONTEXT.md) - reusable data-source, privacy, provenance, and analysis workflow context for future data work
 * [CODEX_TOOL_INSTALLATION_AUTONOMY_RULES.md](CODEX_TOOL_INSTALLATION_AUTONOMY_RULES.md) - rules for autonomous installation of useful development tools
 * [EMERGENCY_UI_AUTOMATION_RULES.md](EMERGENCY_UI_AUTOMATION_RULES.md) - rules for last-resort mouse/keyboard/screenshot automation
 * [FREE_WORK_AND_USAGE_BUDGET_RULES.md](FREE_WORK_AND_USAGE_BUDGET_RULES.md) - rules for autonomous Codex work based on declared usage budget
