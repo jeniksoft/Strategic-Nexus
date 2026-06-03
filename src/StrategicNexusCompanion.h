@@ -145,6 +145,11 @@ struct CompanionPostPlayPipelineStatus {
     std::filesystem::path postPlayPackagePath;
     std::string postPlayPackageReadiness;
     std::size_t postPlayDecisionReadyEntryCount = 0;
+    std::size_t postPlayCampaignCount = 0;
+    std::size_t postPlayReadyCampaignCount = 0;
+    std::size_t postPlayPartialCampaignCount = 0;
+    std::size_t postPlayBlockedCampaignCount = 0;
+    std::vector<std::string> postPlayCampaignReadinessSummaries;
     std::filesystem::path decisionInputPackagePath;
     std::string decisionInputPackageReadiness;
     std::size_t decisionInputCount = 0;

@@ -322,6 +322,91 @@ std::optional<bool> extractJsonBool(const std::string& json, const char* key)
     return match[1].str() == "true";
 }
 
+std::optional<std::string> extractArrayBody(const std::string& json, const char* key)
+{
+    const std::regex arrayStartPattern("\"" + std::string(key) + "\"\\s*:\\s*\\[");
+    std::smatch match;
+    if (!std::regex_search(json, match, arrayStartPattern)) {
+        return std::nullopt;
+    }
+
+    const std::size_t bodyStart = static_cast<std::size_t>(match.position()) + match.length();
+    int depth = 1;
+    bool inString = false;
+    bool escaped = false;
+
+    for (std::size_t index = bodyStart; index < json.size(); ++index) {
+        const char ch = json[index];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                inString = false;
+            }
+            continue;
+        }
+
+        if (ch == '"') {
+            inString = true;
+        } else if (ch == '[') {
+            ++depth;
+        } else if (ch == ']') {
+            --depth;
+            if (depth == 0) {
+                return json.substr(bodyStart, index - bodyStart);
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::vector<std::string> extractObjectBodies(const std::string& arrayBody)
+{
+    std::vector<std::string> objects;
+    int depth = 0;
+    bool inString = false;
+    bool escaped = false;
+    std::size_t objectStart = std::string::npos;
+
+    for (std::size_t index = 0; index < arrayBody.size(); ++index) {
+        const char ch = arrayBody[index];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                inString = false;
+            }
+            continue;
+        }
+
+        if (ch == '"') {
+            inString = true;
+            continue;
+        }
+        if (ch == '{') {
+            if (depth == 0) {
+                objectStart = index;
+            }
+            ++depth;
+            continue;
+        }
+        if (ch == '}') {
+            --depth;
+            if (depth == 0 && objectStart != std::string::npos) {
+                objects.push_back(arrayBody.substr(objectStart, index - objectStart + 1));
+                objectStart = std::string::npos;
+            }
+        }
+    }
+
+    return objects;
+}
+
 std::optional<std::size_t> extractJsonSize(const std::string& json, const char* key)
 {
     const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*([0-9]+)");
@@ -335,6 +420,46 @@ std::optional<std::size_t> extractJsonSize(const std::string& json, const char* 
     }
     catch (...) {
         return std::nullopt;
+    }
+}
+
+void parsePostPlayCampaignSummaries(const std::string& json, CompanionPostPlayPipelineStatus& status)
+{
+    const auto campaignsBody = extractArrayBody(json, "campaigns");
+    if (!campaignsBody.has_value()) {
+        return;
+    }
+
+    for (const auto& object : extractObjectBodies(*campaignsBody)) {
+        const auto campaignKey = common::extractJsonString(object, "campaign_key").value_or("");
+        const auto readiness = common::extractJsonString(object, "readiness").value_or("");
+        const auto entryPointCount = extractJsonSize(object, "entry_point_count").value_or(0);
+        const auto decisionReadyEntryCount = extractJsonSize(object, "decision_ready_entry_count").value_or(0);
+        const auto branchAmbiguityDetected = extractJsonBool(object, "branch_ambiguity_detected").value_or(false);
+
+        if (campaignKey.empty() && readiness.empty() && entryPointCount == 0 && decisionReadyEntryCount == 0 &&
+            !branchAmbiguityDetected) {
+            continue;
+        }
+
+        ++status.postPlayCampaignCount;
+        if (readiness.rfind("ready_partial", 0) == 0) {
+            ++status.postPlayPartialCampaignCount;
+        } else if (readiness.rfind("ready", 0) == 0) {
+            ++status.postPlayReadyCampaignCount;
+        } else {
+            ++status.postPlayBlockedCampaignCount;
+        }
+
+        std::ostringstream summary;
+        summary << (campaignKey.empty() ? "unknown_campaign" : campaignKey)
+                << ": " << (readiness.empty() ? "unknown" : readiness)
+                << " (" << decisionReadyEntryCount << "/" << entryPointCount << " ready";
+        if (branchAmbiguityDetected) {
+            summary << ", ambiguous";
+        }
+        summary << ")";
+        status.postPlayCampaignReadinessSummaries.push_back(summary.str());
     }
 }
 
@@ -1079,6 +1204,7 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
         postPlayAvailable = true;
         status.postPlayPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
         status.postPlayDecisionReadyEntryCount = extractJsonSize(json, "decision_ready_entry_count").value_or(0);
+        parsePostPlayCampaignSummaries(json, status);
     } else if (!status.postPlayPackagePath.empty() && fileError != "missing") {
         status.state = "needs_attention";
         status.reason = "post-play package " + fileError;
@@ -1330,6 +1456,13 @@ std::string buildStatusCenterSummaryText(
         text << "post_play_package_readiness: " << postPlayPipeline.postPlayPackageReadiness << "\n";
     }
     text << "post_play_decision_ready_entry_count: " << postPlayPipeline.postPlayDecisionReadyEntryCount << "\n";
+    text << "post_play_campaign_count: " << postPlayPipeline.postPlayCampaignCount << "\n";
+    text << "post_play_ready_campaign_count: " << postPlayPipeline.postPlayReadyCampaignCount << "\n";
+    text << "post_play_partial_campaign_count: " << postPlayPipeline.postPlayPartialCampaignCount << "\n";
+    text << "post_play_blocked_campaign_count: " << postPlayPipeline.postPlayBlockedCampaignCount << "\n";
+    for (const auto& summary : postPlayPipeline.postPlayCampaignReadinessSummaries) {
+        text << "post_play_campaign_summary: " << summary << "\n";
+    }
     if (!postPlayPipeline.decisionInputPackagePath.empty()) {
         text << "decision_input_package_path: " << pathString(postPlayPipeline.decisionInputPackagePath) << "\n";
     }
@@ -1568,6 +1701,18 @@ void writePostPlayPipelineJson(
     output << indent << "  \"post_play_package_path\": " << jsonString(pathString(status.postPlayPackagePath)) << ",\n";
     output << indent << "  \"post_play_package_readiness\": " << jsonString(status.postPlayPackageReadiness) << ",\n";
     output << indent << "  \"post_play_decision_ready_entry_count\": " << status.postPlayDecisionReadyEntryCount << ",\n";
+    output << indent << "  \"post_play_campaign_count\": " << status.postPlayCampaignCount << ",\n";
+    output << indent << "  \"post_play_ready_campaign_count\": " << status.postPlayReadyCampaignCount << ",\n";
+    output << indent << "  \"post_play_partial_campaign_count\": " << status.postPlayPartialCampaignCount << ",\n";
+    output << indent << "  \"post_play_blocked_campaign_count\": " << status.postPlayBlockedCampaignCount << ",\n";
+    output << indent << "  \"post_play_campaign_summaries\": [";
+    for (std::size_t index = 0; index < status.postPlayCampaignReadinessSummaries.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << jsonString(status.postPlayCampaignReadinessSummaries[index]);
+    }
+    output << "],\n";
     output << indent << "  \"decision_input_package_path\": " << jsonString(pathString(status.decisionInputPackagePath)) << ",\n";
     output << indent << "  \"decision_input_package_readiness\": " << jsonString(status.decisionInputPackageReadiness) << ",\n";
     output << indent << "  \"decision_input_count\": " << status.decisionInputCount << ",\n";

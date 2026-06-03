@@ -163,7 +163,23 @@ int main()
         "{\n"
         "  \"schema_version\": 1,\n"
         "  \"readiness\": \"ready_partial\",\n"
-        "  \"decision_ready_entry_count\": 2\n"
+        "  \"decision_ready_entry_count\": 2,\n"
+        "  \"campaigns\": [\n"
+        "    {\n"
+        "      \"campaign_key\": \"alpha_campaign\",\n"
+        "      \"readiness\": \"ready_partial\",\n"
+        "      \"branch_ambiguity_detected\": false,\n"
+        "      \"entry_point_count\": 2,\n"
+        "      \"decision_ready_entry_count\": 1\n"
+        "    },\n"
+        "    {\n"
+        "      \"campaign_key\": \"beta_campaign\",\n"
+        "      \"readiness\": \"ready\",\n"
+        "      \"branch_ambiguity_detected\": false,\n"
+        "      \"entry_point_count\": 1,\n"
+        "      \"decision_ready_entry_count\": 1\n"
+        "    }\n"
+        "  ]\n"
         "}\n");
     writeTextFileAtomically(
         decisionInputPackagePath,
@@ -248,6 +264,22 @@ int main()
     requireCondition(
         ready.postPlayPipeline.postPlayDecisionReadyEntryCount == 2,
         "post-play pipeline should expose decision-ready entry count");
+    requireCondition(ready.postPlayPipeline.postPlayCampaignCount == 2, "post-play pipeline should expose campaign count");
+    requireCondition(
+        ready.postPlayPipeline.postPlayReadyCampaignCount == 1,
+        "post-play pipeline should expose ready campaign count");
+    requireCondition(
+        ready.postPlayPipeline.postPlayPartialCampaignCount == 1,
+        "post-play pipeline should expose partial campaign count");
+    requireCondition(
+        ready.postPlayPipeline.postPlayBlockedCampaignCount == 0,
+        "post-play pipeline should expose blocked campaign count");
+    requireCondition(
+        ready.postPlayPipeline.postPlayCampaignReadinessSummaries.size() == 2,
+        "post-play pipeline should expose campaign readiness summaries");
+    requireCondition(
+        ready.postPlayPipeline.postPlayCampaignReadinessSummaries.front() == "alpha_campaign: ready_partial (1/2 ready)",
+        "post-play pipeline should preserve first campaign summary");
     requireCondition(ready.postPlayPipeline.decisionInputCount == 2, "post-play pipeline should expose decision input count");
     requireCondition(ready.postPlayPipeline.candidateDecisionCount == 2, "post-play pipeline should expose candidate decision count");
     requireCondition(
@@ -340,6 +372,12 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("entry_point_count: 3") != std::string::npos,
         "status center summary should include entry point count");
+    requireCondition(
+        ready.statusCenterSummaryText.find("post_play_campaign_count: 2") != std::string::npos,
+        "status center summary should include post-play campaign count");
+    requireCondition(
+        ready.statusCenterSummaryText.find("post_play_campaign_summary: alpha_campaign: ready_partial (1/2 ready)") != std::string::npos,
+        "status center summary should include campaign readiness summary");
     requireCondition(
         ready.statusCenterSummaryText.find("decision_input_count: 2") != std::string::npos,
         "status center summary should include decision input count");
@@ -705,6 +743,12 @@ int main()
     requireCondition(json.find("\"mp_overlay_package_status\"") != std::string::npos, "JSON should include mp overlay package status");
     requireCondition(json.find("\"post_play_pipeline_status\"") != std::string::npos, "JSON should include post-play pipeline status");
     requireCondition(json.find("\"gameplay_acceptance_status\"") != std::string::npos, "JSON should include gameplay acceptance status");
+    requireCondition(
+        json.find("\"post_play_campaign_count\": 2") != std::string::npos,
+        "JSON should include post-play campaign count");
+    requireCondition(
+        json.find("\"post_play_campaign_summaries\": [\"alpha_campaign: ready_partial (1/2 ready)\", \"beta_campaign: ready (1/1 ready)\"]") != std::string::npos,
+        "JSON should include post-play campaign summaries");
     requireCondition(
         json.find("\"candidate_decision_package_readiness\": \"ready\"") != std::string::npos,
         "JSON should include candidate decision package readiness");
