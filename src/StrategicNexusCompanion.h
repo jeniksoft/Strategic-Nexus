@@ -131,13 +131,18 @@ struct CompanionGeneratedOverlayPublishGateStatus {
     std::filesystem::path activeOverlayDirectory;
     std::filesystem::path publishStatusPath;
     std::filesystem::path backupRootDirectory;
+    std::filesystem::path backupDirectory;
     std::string manifestHash;
+    std::string publishedManifestHash;
     std::string publishCommand;
     std::size_t dslRuleCount = 0;
+    std::size_t publishedFileCount = 0;
     bool ownerApprovalRequired = false;
     bool canPublish = false;
     bool activeOverlayExists = false;
     bool backupBeforeReplace = false;
+    bool published = false;
+    bool backupCreated = false;
 };
 
 struct CompanionPostPlayPipelineStatus {

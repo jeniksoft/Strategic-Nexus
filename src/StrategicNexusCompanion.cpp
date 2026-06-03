@@ -423,6 +423,50 @@ std::optional<std::size_t> extractJsonSize(const std::string& json, const char* 
     }
 }
 
+bool tryApplyCurrentPublishedOverlayStatus(
+    const std::string& publishStatusJson,
+    const CompanionSubsystemStatus& generatedOverlay,
+    CompanionGeneratedOverlayPublishGateStatus& status)
+{
+    const auto ok = extractJsonBool(publishStatusJson, "ok");
+    const auto published = extractJsonBool(publishStatusJson, "published");
+    const auto readiness = common::extractJsonString(publishStatusJson, "readiness");
+    const auto sourceManifestHash = common::extractJsonString(publishStatusJson, "source_manifest_hash");
+    const auto publishedManifestHash = common::extractJsonString(publishStatusJson, "published_manifest_hash");
+
+    if (!ok.value_or(false) || !published.value_or(false) || !readiness.has_value() || *readiness != "published" ||
+        !sourceManifestHash.has_value() || sourceManifestHash->empty() || !publishedManifestHash.has_value() ||
+        publishedManifestHash->empty()) {
+        return false;
+    }
+
+    if (status.manifestHash.empty() || generatedOverlay.manifestHash.empty()) {
+        return false;
+    }
+
+    if (*sourceManifestHash != status.manifestHash || *publishedManifestHash != generatedOverlay.manifestHash) {
+        return false;
+    }
+
+    status.state = "published";
+    status.reason = "current staged generated overlay already published";
+    status.path = status.activeOverlayDirectory;
+    status.published = true;
+    status.canPublish = false;
+    status.ownerApprovalRequired = false;
+    status.publishCommand.clear();
+    status.publishedManifestHash = *publishedManifestHash;
+    status.publishedFileCount = extractJsonSize(publishStatusJson, "published_file_count").value_or(0);
+    status.backupCreated = extractJsonBool(publishStatusJson, "backup_created").value_or(false);
+
+    const auto backupDirectory = common::extractJsonString(publishStatusJson, "backup_directory");
+    if (backupDirectory.has_value() && !backupDirectory->empty()) {
+        status.backupDirectory = *backupDirectory;
+    }
+
+    return true;
+}
+
 void parsePostPlayCampaignSummaries(const std::string& json, CompanionPostPlayPipelineStatus& status)
 {
     const auto campaignsBody = extractArrayBody(json, "campaigns");
@@ -1137,6 +1181,14 @@ CompanionGeneratedOverlayPublishGateStatus buildGeneratedOverlayPublishGateStatu
             return status;
         }
 
+        if (!status.publishStatusPath.empty()) {
+            std::string publishStatusJson;
+            if (common::tryReadTextFile(status.publishStatusPath, publishStatusJson) &&
+                tryApplyCurrentPublishedOverlayStatus(publishStatusJson, generatedOverlay, status)) {
+                return status;
+            }
+        }
+
         populatePublishGateProcessStatus(status, config);
         if (status.state == "ready") {
             status.reason = "staged generated overlay ready; owner approval required before publish";
@@ -1488,10 +1540,19 @@ std::string buildStatusCenterSummaryText(
     if (!generatedOverlayPublishGate.backupRootDirectory.empty()) {
         text << "publish_gate_backup_root: " << pathString(generatedOverlayPublishGate.backupRootDirectory) << "\n";
     }
+    if (!generatedOverlayPublishGate.backupDirectory.empty()) {
+        text << "publish_gate_backup_directory: " << pathString(generatedOverlayPublishGate.backupDirectory) << "\n";
+    }
     if (!generatedOverlayPublishGate.manifestHash.empty()) {
         text << "publish_gate_manifest_hash: " << generatedOverlayPublishGate.manifestHash << "\n";
     }
+    if (!generatedOverlayPublishGate.publishedManifestHash.empty()) {
+        text << "publish_gate_published_manifest_hash: " << generatedOverlayPublishGate.publishedManifestHash << "\n";
+    }
     text << "publish_gate_rule_count: " << generatedOverlayPublishGate.dslRuleCount << "\n";
+    text << "publish_gate_published: " << (generatedOverlayPublishGate.published ? "true" : "false") << "\n";
+    text << "publish_gate_backup_created: " << (generatedOverlayPublishGate.backupCreated ? "true" : "false") << "\n";
+    text << "publish_gate_published_file_count: " << generatedOverlayPublishGate.publishedFileCount << "\n";
     text << "publish_gate_owner_approval_required: "
          << (generatedOverlayPublishGate.ownerApprovalRequired ? "true" : "false") << "\n";
     text << "publish_gate_can_publish: " << (generatedOverlayPublishGate.canPublish ? "true" : "false") << "\n";
@@ -1719,8 +1780,14 @@ void writeGeneratedOverlayPublishGateJson(
            << jsonString(pathString(status.publishStatusPath)) << ",\n";
     output << indent << "  \"backup_root_directory\": "
            << jsonString(pathString(status.backupRootDirectory)) << ",\n";
+    output << indent << "  \"backup_directory\": "
+           << jsonString(pathString(status.backupDirectory)) << ",\n";
     output << indent << "  \"manifest_hash\": " << jsonString(status.manifestHash) << ",\n";
+    output << indent << "  \"published_manifest_hash\": " << jsonString(status.publishedManifestHash) << ",\n";
     output << indent << "  \"dsl_rule_count\": " << status.dslRuleCount << ",\n";
+    output << indent << "  \"published_file_count\": " << status.publishedFileCount << ",\n";
+    output << indent << "  \"published\": " << (status.published ? "true" : "false") << ",\n";
+    output << indent << "  \"backup_created\": " << (status.backupCreated ? "true" : "false") << ",\n";
     output << indent << "  \"owner_approval_required\": "
            << (status.ownerApprovalRequired ? "true" : "false") << ",\n";
     output << indent << "  \"can_publish\": " << (status.canPublish ? "true" : "false") << ",\n";

@@ -713,6 +713,90 @@ int main()
         blockedPublishGate.statusCenter.reason == "Stellaris is running; generated overlay publish deferred",
         "status center should surface publish gate block reason");
 
+    const auto publishedBackupDirectory = publishBackupRoot / "snc_generated_overlay_active_20260603T153400000";
+    requireCondition(
+        writeTextFileAtomically(
+            publishStatusPath,
+            "{\n"
+            "  \"schema_version\": 1,\n"
+            "  \"ok\": true,\n"
+            "  \"reason\": \"owner approved generated overlay published\",\n"
+            "  \"readiness\": \"published\",\n"
+            "  \"owner_approved\": true,\n"
+            "  \"published\": true,\n"
+            "  \"backup_created\": true,\n"
+            "  \"stellaris_running\": false,\n"
+            "  \"staging_status_path\": \"" + stagedOverlayStatusPath.generic_string() + "\",\n"
+            "  \"staged_overlay_directory\": \"" + stagedOverlayRoot.generic_string() + "\",\n"
+            "  \"active_overlay_directory\": \"" + activeOverlayRoot.generic_string() + "\",\n"
+            "  \"backup_directory\": \"" + publishedBackupDirectory.generic_string() + "\",\n"
+            "  \"source_manifest_hash\": \"" + directArchiveSession.generatedOverlay.manifestHash + "\",\n"
+            "  \"published_manifest_hash\": \"" + directArchiveSession.generatedOverlay.manifestHash + "\",\n"
+            "  \"published_file_count\": 3,\n"
+            "  \"warning_codes\": [],\n"
+            "  \"validation_errors\": []\n"
+            "}\n"),
+        "publish gate fixture should write publish status");
+
+    const auto publishedSnapshot = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        activeOverlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport,
+        stagedOverlayStatusPath,
+        activeOverlayRoot,
+        publishStatusPath,
+        publishBackupRoot
+    });
+    requireCondition(
+        publishedSnapshot.generatedOverlayPublishGate.state == "published",
+        "published snapshot should surface published state");
+    requireCondition(
+        publishedSnapshot.generatedOverlayPublishGate.reason == "current staged generated overlay already published",
+        "published snapshot should explain current staged publish state");
+    requireCondition(
+        publishedSnapshot.generatedOverlayPublishGate.published,
+        "published snapshot should expose published flag");
+    requireCondition(
+        !publishedSnapshot.generatedOverlayPublishGate.canPublish,
+        "published snapshot should not expose publish action for the current staged overlay");
+    requireCondition(
+        !publishedSnapshot.generatedOverlayPublishGate.ownerApprovalRequired,
+        "published snapshot should not keep owner approval pending after current staged publish");
+    requireCondition(
+        publishedSnapshot.generatedOverlayPublishGate.backupCreated,
+        "published snapshot should expose backup creation");
+    requireCondition(
+        !publishedSnapshot.generatedOverlayPublishGate.backupDirectory.empty(),
+        "published snapshot should expose backup directory");
+    requireCondition(
+        publishedSnapshot.generatedOverlayPublishGate.publishedManifestHash == directArchiveSession.generatedOverlay.manifestHash,
+        "published snapshot should expose published manifest hash");
+    requireCondition(
+        publishedSnapshot.generatedOverlayPublishGate.publishedFileCount == 3,
+        "published snapshot should expose published file count");
+    requireCondition(
+        publishedSnapshot.statusCenterSummaryText.find("publish_gate: published - current staged generated overlay already published") != std::string::npos,
+        "status center summary should expose published publish-gate state");
+    requireCondition(
+        publishedSnapshot.statusCenterSummaryText.find("publish_gate_published: true") != std::string::npos,
+        "status center summary should expose published flag");
+    requireCondition(
+        publishedSnapshot.statusCenterSummaryText.find("publish_gate_backup_created: true") != std::string::npos,
+        "status center summary should expose backup-created flag");
+    requireCondition(
+        publishedSnapshot.statusCenterSummaryText.find("publish_gate_published_file_count: 3") != std::string::npos,
+        "status center summary should expose published file count");
+    requireCondition(
+        publishedSnapshot.statusCenterSummaryText.find("publish_gate_published_manifest_hash: " + directArchiveSession.generatedOverlay.manifestHash) != std::string::npos,
+        "status center summary should expose published manifest hash");
+    requireCondition(
+        publishedSnapshot.statusCenterSummaryText.find("publish_gate_backup_directory: ") != std::string::npos,
+        "status center summary should expose backup directory");
+
     const auto missingMpPackage = companion.buildStatusSnapshot({
         archiveSessionRoot,
         overlayRoot,
@@ -959,6 +1043,12 @@ int main()
         stagedPublishJson.find("\"publish_status_path\": \"") != std::string::npos,
         "staged publish JSON should include publish status path");
     requireCondition(
+        stagedPublishJson.find("\"published\": false") != std::string::npos,
+        "staged publish JSON should include false published state");
+    requireCondition(
+        stagedPublishJson.find("\"backup_created\": false") != std::string::npos,
+        "staged publish JSON should include false backup-created state");
+    requireCondition(
         stagedPublishJson.find("\"owner_approval_required\": true") != std::string::npos,
         "staged publish JSON should include owner approval requirement");
     requireCondition(
@@ -970,6 +1060,20 @@ int main()
     requireCondition(
         stagedPublishJson.find("\"publish_command\": \"Strategic Nexus.exe --publish-snc-generated-overlay ") != std::string::npos,
         "staged publish JSON should include publish command");
+
+    const auto publishedJson = strategic_nexus::serializeCompanionStatusSnapshot(publishedSnapshot);
+    requireCondition(
+        publishedJson.find("\"published\": true") != std::string::npos,
+        "published JSON should include true published state");
+    requireCondition(
+        publishedJson.find("\"backup_created\": true") != std::string::npos,
+        "published JSON should include true backup-created state");
+    requireCondition(
+        publishedJson.find("\"published_file_count\": 3") != std::string::npos,
+        "published JSON should include published file count");
+    requireCondition(
+        publishedJson.find("\"published_manifest_hash\": \"" + directArchiveSession.generatedOverlay.manifestHash + "\"") != std::string::npos,
+        "published JSON should include published manifest hash");
 
     const auto gameplayAcceptanceReport = root / "gameplay_acceptance_v0.json";
     {
