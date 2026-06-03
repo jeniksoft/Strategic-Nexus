@@ -617,6 +617,14 @@ std::string buildNextActionCommandHint(
     return std::string();
 }
 
+std::string buildNextActionCommandHintSource(const std::string& nextActionCommandHint)
+{
+    if (!nextActionCommandHint.empty()) {
+        return "snc_next_steps_brief";
+    }
+    return "none";
+}
+
 std::string buildStatusCenterSummaryText(
     const std::string& state,
     const std::string& reason,
@@ -782,7 +790,9 @@ void writeNextStepsBrief(
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason,
     const std::string& nextAction,
-    const std::string& nextActionReason)
+    const std::string& nextActionReason,
+    const std::string& nextActionCommandHint,
+    const std::string& nextActionCommandHintSource)
 {
     std::ostringstream brief;
     brief << "Strategic Nexus Companion - dalsi kroky\n";
@@ -791,6 +801,10 @@ void writeNextStepsBrief(
     brief << "Post-play stav: " << postPlayState << "\n";
     brief << "Dalsi akce: " << nextAction << "\n";
     brief << "Duvod: " << nextActionReason << "\n\n";
+    if (!nextActionCommandHint.empty()) {
+        brief << "Command hint: " << nextActionCommandHint << "\n";
+        brief << "Command hint source: " << nextActionCommandHintSource << "\n\n";
+    }
     brief << "- Entry point analysis: " << pathString(entryPointAnalysisPath);
     if (!entryPointReadiness.empty()) {
         brief << " (" << entryPointReadiness << ")";
@@ -968,6 +982,7 @@ void writeStatus(
         dslDraftReadiness,
         candidateDecisionPackageReadiness);
     const auto nextActionCommandHint = buildNextActionCommandHint(nextAction, g_nextStepsBriefPath);
+    const auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextActionCommandHint);
     const auto statusCenterSummaryText = buildStatusCenterSummaryText(
         state,
         reason,
@@ -1031,7 +1046,9 @@ void writeStatus(
         mpPackageRefreshState,
         mpPackageRefreshReason,
         nextAction,
-        nextActionReason);
+        nextActionReason,
+        nextActionCommandHint,
+        nextActionCommandHintSource);
 
     std::ostringstream json;
     json << "{\n";
@@ -1168,6 +1185,7 @@ void writeStatus(
     json << "  \"next_action\": \"" << jsonEscape(nextAction) << "\",\n";
     json << "  \"next_action_reason\": \"" << jsonEscape(nextActionReason) << "\",\n";
     json << "  \"next_action_command_hint\": \"" << jsonEscape(nextActionCommandHint) << "\",\n";
+    json << "  \"next_action_command_hint_source\": \"" << jsonEscape(nextActionCommandHintSource) << "\",\n";
     json << "  \"next_steps_brief_path\": \"" << jsonEscape(pathString(g_nextStepsBriefPath)) << "\"\n";
     json << "}\n";
 
