@@ -65,6 +65,7 @@ std::filesystem::path g_decisionInputPackagePath;
 std::filesystem::path g_candidateDecisionPackagePath;
 std::filesystem::path g_dslDraftPath;
 std::filesystem::path g_dslDraftAuditPath;
+std::filesystem::path g_nextStepsBriefPath;
 std::filesystem::path g_generatedOverlayStagingDirectory;
 std::filesystem::path g_generatedOverlayStagingStatusPath;
 std::filesystem::path g_generatedOverlayActiveDirectory;
@@ -110,7 +111,7 @@ std::string formatLocalTimestamp()
     }
 
     char buffer[32]{};
-    std::strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &localTime);
+    std::strftime(buffer, sizeof(buffer), "%d.%m.%Y  %H:%M:%S", &localTime);
     return buffer;
 }
 
@@ -211,6 +212,263 @@ void updateTrayTip(HWND hwnd, const std::wstring& text)
     Shell_NotifyIconW(NIM_MODIFY, &g_trayIcon);
 }
 
+std::string buildNextAction(
+    const std::string& state,
+    const std::string& postPlayState,
+    const bool generatedOverlayPublishAllowed,
+    const std::string& generatedOverlayStagingReadiness,
+    const std::string& dslDraftReadiness,
+    const std::string& candidateDecisionPackageReadiness)
+{
+    if (state == "capturing") {
+        return "keep_playing_capture_active";
+    }
+    if (state == "waiting_for_stellaris") {
+        return "wait_for_stellaris_launch";
+    }
+    if (generatedOverlayPublishAllowed) {
+        return "review_staged_overlay_and_publish_if_desired";
+    }
+    if (generatedOverlayStagingReadiness.rfind("ready", 0) == 0) {
+        return "review_staged_overlay_status";
+    }
+    if (dslDraftReadiness.rfind("ready", 0) == 0) {
+        return "review_dsl_draft";
+    }
+    if (candidateDecisionPackageReadiness.rfind("ready", 0) == 0) {
+        return "review_candidate_decision_package";
+    }
+    if (postPlayState == "entry_points_ambiguous") {
+        return "review_entry_point_ambiguity";
+    }
+    if (postPlayState == "entry_point_analysis_blocked") {
+        return "review_entry_point_analysis_failure";
+    }
+    return "review_tray_status";
+}
+
+std::string buildNextActionReason(
+    const std::string& state,
+    const std::string& postPlayState,
+    const bool generatedOverlayPublishAllowed,
+    const std::string& generatedOverlayStagingReadiness,
+    const std::string& dslDraftReadiness,
+    const std::string& candidateDecisionPackageReadiness)
+{
+    if (state == "capturing") {
+        return "stellaris_running_capture_window_active";
+    }
+    if (state == "waiting_for_stellaris") {
+        return "stellaris_not_running";
+    }
+    if (generatedOverlayPublishAllowed) {
+        return "staged_overlay_ready_owner_gate_available";
+    }
+    if (generatedOverlayStagingReadiness.rfind("ready", 0) == 0) {
+        return "staged_overlay_written_but_publish_gate_not_ready";
+    }
+    if (dslDraftReadiness.rfind("ready", 0) == 0) {
+        return "dsl_draft_ready_before_overlay_stage";
+    }
+    if (candidateDecisionPackageReadiness.rfind("ready", 0) == 0) {
+        return "candidate_decisions_ready_before_dsl_draft";
+    }
+    if (postPlayState == "entry_points_ambiguous") {
+        return "entry_point_branch_ambiguity_detected";
+    }
+    if (postPlayState == "entry_point_analysis_blocked") {
+        return "entry_point_analysis_not_ready";
+    }
+    return "see_status_summary";
+}
+
+std::string buildNextActionCommandHint(
+    const std::string& nextAction,
+    const std::filesystem::path& nextStepsBriefPath)
+{
+    if (nextAction == "review_staged_overlay_and_publish_if_desired" ||
+        nextAction == "review_staged_overlay_status" ||
+        nextAction == "review_dsl_draft" ||
+        nextAction == "review_candidate_decision_package" ||
+        nextAction == "review_entry_point_ambiguity" ||
+        nextAction == "review_entry_point_analysis_failure" ||
+        nextAction == "review_tray_status") {
+        return "open " + pathString(nextStepsBriefPath);
+    }
+    return std::string();
+}
+
+std::string buildStatusCenterSummaryText(
+    const std::string& state,
+    const std::string& reason,
+    const bool stellarisRunning,
+    const std::string& sessionId,
+    const std::filesystem::path& sessionDirectory,
+    const std::size_t copiedTotal,
+    const std::size_t skippedTotal,
+    const std::string& postPlayState,
+    const bool archiveVerified,
+    const std::filesystem::path& entryPointAnalysisPath,
+    const std::size_t entryPointCount,
+    const bool branchAmbiguityDetected,
+    const std::string& entryPointReadiness,
+    const std::filesystem::path& postPlayPackagePath,
+    const std::string& postPlayPackageReadiness,
+    const std::size_t postPlayDecisionReadyEntryCount,
+    const std::filesystem::path& decisionInputPackagePath,
+    const std::string& decisionInputPackageReadiness,
+    const std::size_t decisionInputCount,
+    const std::filesystem::path& candidateDecisionPackagePath,
+    const std::string& candidateDecisionPackageReadiness,
+    const std::size_t candidateDecisionCount,
+    const std::filesystem::path& dslDraftPath,
+    const std::string& dslDraftReadiness,
+    const std::size_t dslDraftRuleCount,
+    const std::filesystem::path& generatedOverlayStagingDirectory,
+    const std::filesystem::path& generatedOverlayStagingStatusPath,
+    const std::string& generatedOverlayStagingReadiness,
+    const std::size_t generatedOverlayStagingRuleCount,
+    const bool generatedOverlayManifestVerified,
+    const bool generatedOverlayPublishAllowed,
+    const std::string& generatedOverlayManifestHash)
+{
+    std::ostringstream summary;
+    summary << "Strategic Nexus Status Center\n";
+    summary << "updated_at_local: " << formatLocalTimestamp() << "\n";
+    summary << "stav: " << state << " - " << reason << "\n";
+    summary << "stellaris_running: " << (stellarisRunning ? "true" : "false") << "\n";
+    if (!sessionId.empty()) {
+        summary << "session_id: " << sessionId << "\n";
+    }
+    if (!sessionDirectory.empty()) {
+        summary << "capture_session_directory: " << pathString(sessionDirectory) << "\n";
+    }
+    summary << "archive_root: " << pathString(g_archiveRoot) << "\n";
+    summary << "archive_verified: " << (archiveVerified ? "true" : "false") << "\n";
+    summary << "copied_count_total: " << copiedTotal << "\n";
+    summary << "skipped_count_total: " << skippedTotal << "\n";
+    summary << "post_play_state: " << postPlayState << "\n";
+    if (!entryPointAnalysisPath.empty()) {
+        summary << "entry_point_analysis_path: " << pathString(entryPointAnalysisPath) << "\n";
+    }
+    summary << "entry_point_count: " << entryPointCount << "\n";
+    summary << "branch_ambiguity_detected: " << (branchAmbiguityDetected ? "true" : "false") << "\n";
+    if (!entryPointReadiness.empty()) {
+        summary << "entry_point_readiness: " << entryPointReadiness << "\n";
+    }
+    if (!postPlayPackagePath.empty()) {
+        summary << "post_play_package_path: " << pathString(postPlayPackagePath) << "\n";
+    }
+    if (!postPlayPackageReadiness.empty()) {
+        summary << "post_play_package_readiness: " << postPlayPackageReadiness << "\n";
+    }
+    summary << "post_play_decision_ready_entry_count: " << postPlayDecisionReadyEntryCount << "\n";
+    if (!decisionInputPackagePath.empty()) {
+        summary << "decision_input_package_path: " << pathString(decisionInputPackagePath) << "\n";
+    }
+    if (!decisionInputPackageReadiness.empty()) {
+        summary << "decision_input_package_readiness: " << decisionInputPackageReadiness << "\n";
+    }
+    summary << "decision_input_count: " << decisionInputCount << "\n";
+    if (!candidateDecisionPackagePath.empty()) {
+        summary << "candidate_decision_package_path: " << pathString(candidateDecisionPackagePath) << "\n";
+    }
+    if (!candidateDecisionPackageReadiness.empty()) {
+        summary << "candidate_decision_package_readiness: " << candidateDecisionPackageReadiness << "\n";
+    }
+    summary << "candidate_decision_count: " << candidateDecisionCount << "\n";
+    if (!dslDraftPath.empty()) {
+        summary << "dsl_draft_path: " << pathString(dslDraftPath) << "\n";
+    }
+    if (!dslDraftReadiness.empty()) {
+        summary << "dsl_draft_readiness: " << dslDraftReadiness << "\n";
+    }
+    summary << "dsl_draft_rule_count: " << dslDraftRuleCount << "\n";
+    if (!generatedOverlayStagingDirectory.empty()) {
+        summary << "generated_overlay_staging_directory: " << pathString(generatedOverlayStagingDirectory) << "\n";
+    }
+    if (!generatedOverlayStagingStatusPath.empty()) {
+        summary << "generated_overlay_staging_status_path: " << pathString(generatedOverlayStagingStatusPath) << "\n";
+    }
+    if (!generatedOverlayStagingReadiness.empty()) {
+        summary << "generated_overlay_staging_readiness: " << generatedOverlayStagingReadiness << "\n";
+    }
+    summary << "generated_overlay_staging_rule_count: " << generatedOverlayStagingRuleCount << "\n";
+    summary << "generated_overlay_manifest_verified: " << (generatedOverlayManifestVerified ? "true" : "false") << "\n";
+    summary << "generated_overlay_publish_allowed: " << (generatedOverlayPublishAllowed ? "true" : "false") << "\n";
+    if (!generatedOverlayManifestHash.empty()) {
+        summary << "generated_overlay_manifest_hash: " << generatedOverlayManifestHash << "\n";
+    }
+    summary << "generated_overlay_active_directory: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
+    summary << "generated_overlay_publish_status_path: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
+    summary << "generated_overlay_publish_backup_root_directory: "
+            << pathString(g_generatedOverlayPublishBackupRootDirectory) << "\n";
+    return summary.str();
+}
+
+void writeNextStepsBrief(
+    const std::string& state,
+    const std::string& postPlayState,
+    const std::filesystem::path& entryPointAnalysisPath,
+    const std::string& entryPointReadiness,
+    const std::filesystem::path& postPlayPackagePath,
+    const std::string& postPlayPackageReadiness,
+    const std::filesystem::path& decisionInputPackagePath,
+    const std::string& decisionInputPackageReadiness,
+    const std::filesystem::path& candidateDecisionPackagePath,
+    const std::string& candidateDecisionPackageReadiness,
+    const std::filesystem::path& dslDraftPath,
+    const std::string& dslDraftReadiness,
+    const std::filesystem::path& generatedOverlayStagingStatusPath,
+    const std::string& generatedOverlayStagingReadiness,
+    const bool generatedOverlayPublishAllowed,
+    const std::string& nextAction,
+    const std::string& nextActionReason)
+{
+    std::ostringstream brief;
+    brief << "Strategic Nexus Companion - dalsi kroky\n";
+    brief << "Aktualizovano: " << formatLocalTimestamp() << "\n";
+    brief << "Stav: " << state << "\n";
+    brief << "Post-play stav: " << postPlayState << "\n";
+    brief << "Dalsi akce: " << nextAction << "\n";
+    brief << "Duvod: " << nextActionReason << "\n\n";
+    brief << "- Entry point analysis: " << pathString(entryPointAnalysisPath);
+    if (!entryPointReadiness.empty()) {
+        brief << " (" << entryPointReadiness << ")";
+    }
+    brief << "\n";
+    brief << "- Post-play package: " << pathString(postPlayPackagePath);
+    if (!postPlayPackageReadiness.empty()) {
+        brief << " (" << postPlayPackageReadiness << ")";
+    }
+    brief << "\n";
+    brief << "- Decision input package: " << pathString(decisionInputPackagePath);
+    if (!decisionInputPackageReadiness.empty()) {
+        brief << " (" << decisionInputPackageReadiness << ")";
+    }
+    brief << "\n";
+    brief << "- Candidate decision package: " << pathString(candidateDecisionPackagePath);
+    if (!candidateDecisionPackageReadiness.empty()) {
+        brief << " (" << candidateDecisionPackageReadiness << ")";
+    }
+    brief << "\n";
+    brief << "- DSL draft: " << pathString(dslDraftPath);
+    if (!dslDraftReadiness.empty()) {
+        brief << " (" << dslDraftReadiness << ")";
+    }
+    brief << "\n";
+    brief << "- SNC staged overlay status: " << pathString(generatedOverlayStagingStatusPath);
+    if (!generatedOverlayStagingReadiness.empty()) {
+        brief << " (" << generatedOverlayStagingReadiness << ")";
+    }
+    brief << "\n";
+    brief << "- Publish gate available: " << (generatedOverlayPublishAllowed ? "ano" : "ne") << "\n";
+    brief << "- Active overlay snapshot: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
+    brief << "- Publish status output: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
+
+    strategic_nexus::common::writeTextFileAtomically(g_nextStepsBriefPath, brief.str());
+}
+
 void writeStatus(
     HWND hwnd,
     const std::string& state,
@@ -251,6 +509,73 @@ void writeStatus(
     const bool generatedOverlayPublishAllowed = false,
     const std::string& generatedOverlayManifestHash = std::string())
 {
+    const auto nextAction = buildNextAction(
+        state,
+        postPlayState,
+        generatedOverlayPublishAllowed,
+        generatedOverlayStagingReadiness,
+        dslDraftReadiness,
+        candidateDecisionPackageReadiness);
+    const auto nextActionReason = buildNextActionReason(
+        state,
+        postPlayState,
+        generatedOverlayPublishAllowed,
+        generatedOverlayStagingReadiness,
+        dslDraftReadiness,
+        candidateDecisionPackageReadiness);
+    const auto nextActionCommandHint = buildNextActionCommandHint(nextAction, g_nextStepsBriefPath);
+    const auto statusCenterSummaryText = buildStatusCenterSummaryText(
+        state,
+        reason,
+        stellarisRunning,
+        sessionId,
+        sessionDirectory,
+        copiedTotal,
+        skippedTotal,
+        postPlayState,
+        archiveVerified,
+        entryPointAnalysisPath,
+        entryPointCount,
+        branchAmbiguityDetected,
+        entryPointReadiness,
+        postPlayPackagePath,
+        postPlayPackageReadiness,
+        postPlayDecisionReadyEntryCount,
+        decisionInputPackagePath,
+        decisionInputPackageReadiness,
+        decisionInputCount,
+        candidateDecisionPackagePath,
+        candidateDecisionPackageReadiness,
+        candidateDecisionCount,
+        dslDraftPath,
+        dslDraftReadiness,
+        dslDraftRuleCount,
+        generatedOverlayStagingDirectory,
+        generatedOverlayStagingStatusPath,
+        generatedOverlayStagingReadiness,
+        generatedOverlayStagingRuleCount,
+        generatedOverlayManifestVerified,
+        generatedOverlayPublishAllowed,
+        generatedOverlayManifestHash);
+    writeNextStepsBrief(
+        state,
+        postPlayState,
+        entryPointAnalysisPath,
+        entryPointReadiness,
+        postPlayPackagePath,
+        postPlayPackageReadiness,
+        decisionInputPackagePath,
+        decisionInputPackageReadiness,
+        candidateDecisionPackagePath,
+        candidateDecisionPackageReadiness,
+        dslDraftPath,
+        dslDraftReadiness,
+        generatedOverlayStagingStatusPath,
+        generatedOverlayStagingReadiness,
+        generatedOverlayPublishAllowed,
+        nextAction,
+        nextActionReason);
+
     std::ostringstream json;
     json << "{\n";
     json << "  \"schema_version\": 1,\n";
@@ -308,7 +633,14 @@ void writeStatus(
     json << "  \"generated_overlay_publish_allowed\": "
          << (generatedOverlayPublishAllowed ? "true" : "false") << ",\n";
     json << "  \"generated_overlay_manifest_hash\": \""
-         << jsonEscape(generatedOverlayManifestHash) << "\"\n";
+         << jsonEscape(generatedOverlayManifestHash) << "\",\n";
+    json << "  \"status_center_state\": \"" << jsonEscape(state) << "\",\n";
+    json << "  \"status_center_reason\": \"" << jsonEscape(reason) << "\",\n";
+    json << "  \"status_center_summary_text\": \"" << jsonEscape(statusCenterSummaryText) << "\",\n";
+    json << "  \"next_action\": \"" << jsonEscape(nextAction) << "\",\n";
+    json << "  \"next_action_reason\": \"" << jsonEscape(nextActionReason) << "\",\n";
+    json << "  \"next_action_command_hint\": \"" << jsonEscape(nextActionCommandHint) << "\",\n";
+    json << "  \"next_steps_brief_path\": \"" << jsonEscape(pathString(g_nextStepsBriefPath)) << "\"\n";
     json << "}\n";
 
     const auto text = json.str();
@@ -806,6 +1138,8 @@ void showStatusDialog(HWND hwnd)
     text += g_generatedOverlayStagingStatusPath.wstring();
     text += L"\n\nActive overlay snapshot:\n";
     text += g_generatedOverlayActiveDirectory.wstring();
+    text += L"\n\nDalsi kroky:\n";
+    text += g_nextStepsBriefPath.wstring();
 
     MessageBoxW(hwnd, text.c_str(), g_statusTitle.c_str(), MB_OK | MB_ICONINFORMATION);
 }
@@ -975,6 +1309,7 @@ void initializePaths()
     g_candidateDecisionPackagePath = g_repoRoot / "dist" / "private_reports" / "snc_candidate_decision_package.json";
     g_dslDraftPath = g_repoRoot / "dist" / "private_reports" / "snc_validated_dsl_draft.dsl";
     g_dslDraftAuditPath = g_repoRoot / "dist" / "private_reports" / "snc_dsl_draft_package.json";
+    g_nextStepsBriefPath = g_repoRoot / "dist" / "private_reports" / "snc_next_steps_brief.txt";
     g_generatedOverlayStagingDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staged";
     g_generatedOverlayStagingStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staging_status.json";
     g_generatedOverlayActiveDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_active";

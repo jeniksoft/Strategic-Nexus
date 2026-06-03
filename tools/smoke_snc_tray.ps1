@@ -23,9 +23,16 @@ try {
         if (Test-Path -LiteralPath $statusPath) {
             $text = Get-Content -Raw -LiteralPath $statusPath
             $json = $text | ConvertFrom-Json
-            if ($json.mode -eq "tray" -and $json.state) {
+            if (
+                $json.mode -eq "tray" -and
+                $json.state -and
+                $null -ne $json.status_center_summary_text -and
+                $null -ne $json.next_action -and
+                $null -ne $json.next_steps_brief_path
+            ) {
                 Write-Host "snc_tray_smoke_success=true"
                 Write-Host ("snc_tray_smoke_state=" + $json.state)
+                Write-Host ("snc_tray_smoke_next_action=" + $json.next_action)
                 Write-Host ("snc_tray_smoke_process_id=" + $process.Id)
                 exit 0
             }
