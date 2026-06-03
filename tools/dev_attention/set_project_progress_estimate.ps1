@@ -52,9 +52,22 @@ function Get-AutomaticProjectProgressEstimate {
 
     return [pscustomobject]@{
         percent = [int]$analysis.percent
+        implemented_percent = [int]$analysis.implemented_percent
+        verified_percent = [int]$analysis.verified_percent
+        implemented_item_percent = [int]$analysis.implemented_item_percent
+        verified_item_percent = [int]$analysis.verified_item_percent
         remaining = [string]$analysis.remaining
         confidence = [string]$analysis.confidence
         basis = [string]$analysis.basis
+        item_count = [int]$analysis.item_count
+        total_complexity_points = [int]$analysis.total_complexity_points
+        completed_complexity_points = [double]$analysis.completed_complexity_points
+        remaining_complexity_points = [double]$analysis.remaining_complexity_points
+        implemented_complexity_points = [double]$analysis.implemented_complexity_points
+        verified_complexity_points = [double]$analysis.verified_complexity_points
+        implemented_item_count = [int]$analysis.implemented_item_count
+        verified_item_count = [int]$analysis.verified_item_count
+        status_breakdown = @($analysis.status_breakdown)
     }
 }
 
@@ -79,9 +92,22 @@ if ($Percent -ge 0) {
     }
     $estimate = [pscustomobject]@{
         percent = $Percent
+        implemented_percent = $null
+        verified_percent = $null
+        implemented_item_percent = $null
+        verified_item_percent = $null
         remaining = $Remaining
         confidence = $Confidence
         basis = $Basis
+        item_count = $null
+        total_complexity_points = $null
+        completed_complexity_points = $null
+        remaining_complexity_points = $null
+        implemented_complexity_points = $null
+        verified_complexity_points = $null
+        implemented_item_count = $null
+        verified_item_count = $null
+        status_breakdown = @()
     }
 } else {
     $estimate = Get-AutomaticProjectProgressEstimate -RoadmapPath $roadmapPath
@@ -92,15 +118,35 @@ if ($directory -and -not (Test-Path -LiteralPath $directory)) {
     New-Item -ItemType Directory -Force -Path $directory | Out-Null
 }
 
-[pscustomobject]@{
+$outputJson = [pscustomobject]@{
     schema_version = 1
     updated_at = (Get-Date).ToString("o")
     percent = $estimate.percent
+    implemented_percent = $estimate.implemented_percent
+    verified_percent = $estimate.verified_percent
+    implemented_item_percent = $estimate.implemented_item_percent
+    verified_item_percent = $estimate.verified_item_percent
     remaining = $estimate.remaining
     confidence = $estimate.confidence
     basis = $estimate.basis
-} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $progressPath -Encoding UTF8
+    item_count = $estimate.item_count
+    total_complexity_points = $estimate.total_complexity_points
+    completed_complexity_points = $estimate.completed_complexity_points
+    remaining_complexity_points = $estimate.remaining_complexity_points
+    implemented_complexity_points = $estimate.implemented_complexity_points
+    verified_complexity_points = $estimate.verified_complexity_points
+    implemented_item_count = $estimate.implemented_item_count
+    verified_item_count = $estimate.verified_item_count
+    status_breakdown = @($estimate.status_breakdown)
+} | ConvertTo-Json -Depth 8
+
+[System.IO.File]::WriteAllText(
+    $progressPath,
+    $outputJson + [Environment]::NewLine,
+    [System.Text.UTF8Encoding]::new($false))
 
 Write-Host "project_progress_estimate_written=$progressPath"
 Write-Host "project_progress_percent=$($estimate.percent)"
+Write-Host "project_progress_implemented_percent=$($estimate.implemented_percent)"
+Write-Host "project_progress_verified_percent=$($estimate.verified_percent)"
 Write-Host "project_progress_basis=$($estimate.basis)"
