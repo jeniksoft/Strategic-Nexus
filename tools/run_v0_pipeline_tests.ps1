@@ -2330,6 +2330,14 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
         throw "real session loop mismatch forwarding next-steps brief missing: $nextStepsBriefPath"
     }
     $nextStepsBriefText = Get-Content -Raw -LiteralPath $nextStepsBriefPath
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "SNC MP status snapshot:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "SNC MP status readiness: ready_for_mp"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Host next step:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Client next step:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Package zip state: ready"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Package zip reason: zip_created"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Package zip SHA256:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Package zip bytes:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Strict verify command:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Strict import command:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Mismatch warning reason:"
@@ -2525,6 +2533,8 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- SNC staged overlay readiness:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Season delta ledger:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Empire brief:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- SNC MP status snapshot:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- SNC MP status readiness: not_exported"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "## MP Package"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "- Host readiness:"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "- Client readiness gate:"
