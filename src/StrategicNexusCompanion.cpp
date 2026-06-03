@@ -550,6 +550,40 @@ std::string reasonFromGeneratedOverlayStagingReadiness(const std::string& readin
     return "generated overlay staging " + readiness;
 }
 
+std::filesystem::path postPlayPipelineFocusPath(const CompanionPostPlayPipelineStatus& status)
+{
+    const auto hasPrefix = [](const std::string& value, const std::string& prefix) {
+        return value.rfind(prefix, 0) == 0;
+    };
+
+    if (hasPrefix(status.reason, "generated overlay staging ") ||
+        !status.generatedOverlayStagingReadiness.empty() ||
+        !status.generatedOverlayStagingReason.empty()) {
+        return status.generatedOverlayStagingStatusPath;
+    }
+    if (hasPrefix(status.reason, "dsl draft ") ||
+        !status.dslDraftReadiness.empty() ||
+        !status.dslDraftReason.empty()) {
+        return status.dslDraftAuditPath;
+    }
+    if (hasPrefix(status.reason, "candidate decision package ") ||
+        !status.candidateDecisionPackageReadiness.empty() ||
+        !status.candidateDecisionPackageReason.empty()) {
+        return status.candidateDecisionPackagePath;
+    }
+    if (hasPrefix(status.reason, "decision input package ") ||
+        !status.decisionInputPackageReadiness.empty() ||
+        !status.decisionInputPackageReason.empty()) {
+        return status.decisionInputPackagePath;
+    }
+    if (hasPrefix(status.reason, "post-play package ") ||
+        !status.postPlayPackageReadiness.empty() ||
+        !status.postPlayPackageReason.empty()) {
+        return status.postPlayPackagePath;
+    }
+    return status.entryPointAnalysisPath;
+}
+
 std::string buildGeneratedOverlayPublishCommand(const CompanionGeneratedOverlayPublishGateStatus& status)
 {
     if (status.stagingStatusPath.empty() || status.activeOverlayDirectory.empty() ||
@@ -1386,7 +1420,9 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay,
     const CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
-    const CompanionMpOverlayPackageStatus& mpOverlayPackage)
+    const CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const CompanionPostPlayPipelineStatus& postPlayPipeline,
+    const CompanionSubsystemStatus& gameplayAcceptance)
 {
     CompanionSubsystemStatus status;
     status.state = "ready";
@@ -1399,8 +1435,11 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const bool publishGateNeedsAttention =
         generatedOverlayPublishGate.state == "needs_setup" || generatedOverlayPublishGate.state == "needs_attention";
     const bool mpNeedsAttention = mpOverlayPackage.state == "needs_attention";
+    const bool postPlayNeedsAttention = postPlayPipeline.state == "needs_attention";
+    const bool gameplayAcceptanceNeedsAttention = gameplayAcceptance.state == "needs_attention";
 
-    if (archiveNeedsAttention || overlayNeedsAttention || publishGateNeedsAttention || mpNeedsAttention) {
+    if (archiveNeedsAttention || overlayNeedsAttention || publishGateNeedsAttention || mpNeedsAttention ||
+        postPlayNeedsAttention || gameplayAcceptanceNeedsAttention) {
         status.state = "attention_required";
         if (archiveNeedsAttention && overlayNeedsAttention && publishGateNeedsAttention && mpNeedsAttention) {
             status.reason = "archive, generated overlay, publish gate, and mp overlay package need attention";
@@ -1440,6 +1479,24 @@ CompanionSubsystemStatus buildStatusCenterStatus(
             status.path = generatedOverlayPublishGate.path;
             return status;
         }
+        if (postPlayNeedsAttention && gameplayAcceptanceNeedsAttention) {
+            status.reason = "post-play pipeline and gameplay acceptance need attention";
+            status.path = postPlayPipelineFocusPath(postPlayPipeline);
+            if (status.path.empty()) {
+                status.path = gameplayAcceptance.path;
+            }
+            return status;
+        }
+        if (postPlayNeedsAttention) {
+            status.reason = "post-play pipeline needs attention";
+            status.path = postPlayPipelineFocusPath(postPlayPipeline);
+            return status;
+        }
+        if (gameplayAcceptanceNeedsAttention) {
+            status.reason = "gameplay acceptance needs attention";
+            status.path = gameplayAcceptance.path;
+            return status;
+        }
         status.reason = "mp overlay package needs attention";
         status.path = mpOverlayPackage.path;
         return status;
@@ -1448,6 +1505,8 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const bool archiveStarting = archive.state == "starting";
     const bool overlayStarting = generatedOverlay.state == "starting";
     const bool publishGateStarting = generatedOverlayPublishGate.state == "starting";
+    const bool postPlayStarting = postPlayPipeline.state == "starting";
+    const bool gameplayAcceptanceStarting = gameplayAcceptance.state == "starting";
 
     if (generatedOverlayPublishGate.state == "blocked") {
         status.state = "waiting";
@@ -1456,7 +1515,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         return status;
     }
 
-    if (archiveStarting || overlayStarting || publishGateStarting) {
+    if (archiveStarting || overlayStarting || publishGateStarting || postPlayStarting || gameplayAcceptanceStarting) {
         status.state = "starting";
         if (archiveStarting && overlayStarting && publishGateStarting) {
             status.reason = "waiting for archive, generated overlay, and publish gate to become ready";
@@ -1482,6 +1541,24 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         if (publishGateStarting) {
             status.reason = "waiting for generated overlay publish gate to become ready";
             status.path = generatedOverlayPublishGate.path;
+            return status;
+        }
+        if (postPlayStarting && gameplayAcceptanceStarting) {
+            status.reason = "waiting for post-play pipeline and gameplay acceptance";
+            status.path = postPlayPipelineFocusPath(postPlayPipeline);
+            if (status.path.empty()) {
+                status.path = gameplayAcceptance.path;
+            }
+            return status;
+        }
+        if (postPlayStarting) {
+            status.reason = "waiting for post-play pipeline";
+            status.path = postPlayPipelineFocusPath(postPlayPipeline);
+            return status;
+        }
+        if (gameplayAcceptanceStarting) {
+            status.reason = "waiting for gameplay acceptance";
+            status.path = gameplayAcceptance.path;
             return status;
         }
         status.reason = "waiting for generated overlay to become ready";
@@ -1949,7 +2026,9 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
             snapshot.archive,
             snapshot.generatedOverlay,
             snapshot.generatedOverlayPublishGate,
-            snapshot.mpOverlayPackage);
+            snapshot.mpOverlayPackage,
+            snapshot.postPlayPipeline,
+            snapshot.gameplayAcceptance);
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
         snapshot.generatedAtLocal,
         snapshot.saveDiscovery,

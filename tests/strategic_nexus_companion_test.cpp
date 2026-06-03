@@ -594,7 +594,12 @@ int main()
         missingGameplayAcceptanceReport
     });
     requireCondition(directArchiveSession.archive.state == "ready", "archive session root with manifest should be ready");
-    requireCondition(directArchiveSession.statusCenter.state == "ready", "status center should be ready when archive session and overlay are ready");
+    requireCondition(
+        directArchiveSession.statusCenter.state == "starting",
+        "status center should wait when gameplay acceptance evidence is still missing");
+    requireCondition(
+        directArchiveSession.statusCenter.reason == "waiting for gameplay acceptance",
+        "status center should explicitly call out missing gameplay acceptance evidence");
 
     const auto stagedOverlayRoot = root / "staged_generated_overlay";
     const auto activeOverlayRoot = root / "active_generated_overlay";
@@ -1140,6 +1145,53 @@ int main()
     requireCondition(
         incompleteAcceptance.gameplayAcceptance.reason == "gameplay acceptance report incomplete for verified state",
         "incomplete verified gameplay acceptance should fail closed");
+    requireCondition(
+        incompleteAcceptance.statusCenter.state == "attention_required",
+        "status center should surface gameplay acceptance regressions");
+    requireCondition(
+        incompleteAcceptance.statusCenter.reason == "gameplay acceptance needs attention",
+        "status center should name gameplay acceptance as the attention source");
+    requireCondition(
+        incompleteAcceptance.statusCenter.path == incompleteGameplayAcceptanceReport,
+        "status center should point to the incomplete gameplay acceptance report");
+
+    const auto brokenDslDraftAuditPath = root / "broken_dsl_draft_audit";
+    std::filesystem::create_directories(brokenDslDraftAuditPath);
+    const auto postPlayAttention = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        overlayRoot,
+        mpPackageRoot,
+        true,
+        false,
+        false,
+        gameplayAcceptanceReport,
+        std::filesystem::path(),
+        std::filesystem::path(),
+        std::filesystem::path(),
+        std::filesystem::path(),
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        brokenDslDraftAuditPath
+    });
+    requireCondition(
+        postPlayAttention.postPlayPipeline.state == "needs_attention",
+        "post-play pipeline should fail closed when DSL draft audit path is not a file");
+    requireCondition(
+        postPlayAttention.postPlayPipeline.reason == "dsl draft audit path is not a file",
+        "post-play pipeline should expose DSL draft audit file errors");
+    requireCondition(
+        postPlayAttention.statusCenter.state == "attention_required",
+        "status center should surface post-play pipeline regressions");
+    requireCondition(
+        postPlayAttention.statusCenter.reason == "post-play pipeline needs attention",
+        "status center should name post-play pipeline as the attention source");
+    requireCondition(
+        postPlayAttention.statusCenterSummaryText.find(
+            "dsl_draft_audit_path: " + brokenDslDraftAuditPath.generic_string()) != std::string::npos,
+        "status center summary should point to the failing post-play pipeline artifact");
 
     {
         strategic_nexus::CompanionStatusSnapshot snapshot;
