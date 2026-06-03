@@ -37,11 +37,11 @@ strategic_nexus::SncCandidateDecision buildEligibleCandidate()
     candidate.playerCountryId = "0";
     candidate.empireName = "Aeel Corp";
     candidate.recommendedAction = "observe_only";
-    candidate.militaryPosture = "preserve";
-    candidate.researchBias = "preserve";
+    candidate.militaryPosture = "defensive";
+    candidate.researchBias = "economy";
     candidate.decisionBoundary = "dry_run_no_overlay_publish";
     candidate.validationState = "validated_dry_run_candidate";
-    candidate.confidencePercent = 25;
+    candidate.confidencePercent = 55;
     candidate.empireState.parsed = true;
     candidate.empireState.parseStatus = "headline_parsed";
     candidate.empireState.playerCountryId = "0";
@@ -96,7 +96,9 @@ int main()
     requireCondition(package.dslText.find("empire \"country_0\"") != std::string::npos, "DSL should carry safe empire id");
     requireCondition(package.dslText.find("when known.save_fingerprint = h_abcdef123456") != std::string::npos, "DSL should gate on save fingerprint");
     requireCondition(package.dslText.find("when known.save_date = d_2200_03_01") != std::string::npos, "DSL should gate on save date");
-    requireCondition(package.dslText.find("prefer doctrine_inertia high intensity 0.8") != std::string::npos, "DSL should only emit conservative v0 preference");
+    requireCondition(package.dslText.find("prefer military_posture defensive intensity 0.8") != std::string::npos, "DSL should emit bounded military posture");
+    requireCondition(package.dslText.find("prefer research_bias economy intensity 0.7") != std::string::npos, "DSL should emit bounded research bias");
+    requireCondition(package.dslText.find("prefer doctrine_inertia high intensity 0.8") != std::string::npos, "DSL should retain conservative doctrine inertia");
 
     const strategic_nexus::generated_overlay::DslParser parser;
     const auto parseResult = parser.parse(package.dslText);

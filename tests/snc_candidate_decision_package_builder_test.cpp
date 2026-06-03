@@ -104,8 +104,8 @@ int main()
     bool foundFutureExclusion = false;
     for (const auto& candidate : candidatePackage.candidateDecisions) {
         requireCondition(candidate.recommendedAction == "observe_only", "v0 candidate should be observe-only");
-        requireCondition(candidate.militaryPosture == "preserve", "v0 candidate should preserve military posture");
-        requireCondition(candidate.researchBias == "preserve", "v0 candidate should preserve research bias");
+        requireCondition(candidate.militaryPosture == "defensive", "v0 candidate should emit bounded military posture");
+        requireCondition(candidate.researchBias == "economy", "v0 candidate should emit bounded research bias");
         requireCondition(!candidate.publishesOverlay, "candidate must not publish overlay");
         requireCondition(!candidate.modelOutputUsed, "candidate must not use model output");
         requireCondition(!candidate.modelOutputTrusted, "candidate must not trust model output");
@@ -114,6 +114,12 @@ int main()
         requireCondition(
             containsValue(candidate.knownFacts, "candidate_source:deterministic_v0_stub"),
             "candidate should carry deterministic source fact");
+        requireCondition(
+            containsValue(candidate.knownFacts, "candidate_military_posture:defensive"),
+            "candidate should record chosen military posture");
+        requireCondition(
+            containsValue(candidate.knownFacts, "candidate_research_bias:economy"),
+            "candidate should record chosen research bias");
         requireCondition(
             containsValue(candidate.uncertainties, "candidate_is_not_a_mod_rule"),
             "candidate should state it is not a mod rule");
@@ -130,6 +136,8 @@ int main()
     requireCondition(json.find("\"validator_passed\": true") != std::string::npos, "JSON should expose validator gate");
     requireCondition(json.find("\"candidate_source\": \"deterministic_v0_stub\"") != std::string::npos, "JSON should expose candidate source");
     requireCondition(json.find("\"recommended_action\": \"observe_only\"") != std::string::npos, "JSON should expose observe-only action");
+    requireCondition(json.find("\"military_posture\": \"defensive\"") != std::string::npos, "JSON should expose bounded military posture");
+    requireCondition(json.find("\"research_bias\": \"economy\"") != std::string::npos, "JSON should expose bounded research bias");
     requireCondition(json.find("\"empire_state_summary\": {") != std::string::npos, "JSON should include bounded empire state summary");
     requireCondition(json.find("\"parsed\": false") != std::string::npos, "JSON should expose unavailable parser state for non-save fixtures");
     requireCondition(

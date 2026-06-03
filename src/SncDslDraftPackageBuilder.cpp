@@ -408,21 +408,25 @@ void appendRuleDsl(std::ostringstream& dsl, const SncCandidateDecision& candidat
     const std::string hash = hashToken(candidate.contentHash);
     const std::string ruleId = safeIdentifier("entry_" + hash + "_" + std::to_string(index + 1), "entry_rule");
     const double confidence = std::clamp(static_cast<double>(candidate.confidencePercent) / 100.0, 0.1, 0.8);
+    const std::string ministry = candidate.researchBias == "military_industry" ? "research_ministry" : "military_ministry";
+    const std::string rationale =
+        "Conservative dry-run DSL draft from validated entry-point candidate; "
+        "military_posture=" + candidate.militaryPosture + ", research_bias=" + candidate.researchBias + ".";
 
     dsl << "campaign \"" << campaignId << "\" {\n";
     dsl << "  empire \"" << empireId << "\" {\n";
     dsl << "    rule \"" << ruleId << "\" {\n";
-    dsl << "      ministry = military_ministry\n";
+    dsl << "      ministry = " << ministry << "\n";
     dsl << "      when campaign_marker\n";
     dsl << "      when known.save_fingerprint = h_" << hash << "\n";
     dsl << "      when known.save_date = " << saveDateToken(candidate.saveDate) << "\n";
     dsl << "      when known.rule_scope = " << safeIdentifier(candidate.ruleScope, "entry_scope") << "\n";
+    dsl << "      prefer military_posture " << candidate.militaryPosture << " intensity 0.8\n";
+    dsl << "      prefer research_bias " << candidate.researchBias << " intensity 0.7\n";
     dsl << "      prefer doctrine_inertia high intensity 0.8\n";
     dsl << "      duration = next_session\n";
     dsl << "      confidence = " << std::fixed << std::setprecision(2) << confidence << "\n";
-    dsl << "      rationale = \""
-        << safeDslString("Conservative dry-run DSL draft from validated entry-point candidate; generated overlay remains unpublished.")
-        << "\"\n";
+    dsl << "      rationale = \"" << safeDslString(rationale) << "\"\n";
     dsl << "    }\n";
     dsl << "  }\n";
     dsl << "}\n";

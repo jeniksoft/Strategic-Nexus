@@ -48,6 +48,52 @@ std::string boolFact(const char* name, const bool value)
     return std::string(name) + ":" + (value ? "true" : "false");
 }
 
+std::string textFact(const char* name, const std::string& value)
+{
+    return std::string(name) + ":" + value;
+}
+
+bool tryParseSaveYear(const std::string& saveDate, int& year)
+{
+    if (saveDate.size() != 10 || saveDate[4] != '.' || saveDate[7] != '.') {
+        return false;
+    }
+
+    int parsedYear = 0;
+    for (std::size_t index = 0; index < 4; ++index) {
+        const unsigned char raw = static_cast<unsigned char>(saveDate[index]);
+        if (std::isdigit(raw) == 0) {
+            return false;
+        }
+        parsedYear = (parsedYear * 10) + static_cast<int>(raw - '0');
+    }
+
+    year = parsedYear;
+    return true;
+}
+
+double deriveStrategicPressureHint(const SncDecisionInput& input)
+{
+    double pressure = 0.25;
+
+    int saveYear = 0;
+    if (tryParseSaveYear(input.saveDate, saveYear)) {
+        if (saveYear >= 2300 && pressure < 0.45) {
+            pressure = 0.45;
+        } else if (saveYear >= 2250 && pressure < 0.35) {
+            pressure = 0.35;
+        } else if (pressure < 0.30) {
+            pressure = 0.30;
+        }
+    }
+
+    if (input.empireState.activeWarCount > 0 && pressure < 0.60) {
+        pressure = 0.60;
+    }
+
+    return std::clamp(pressure, 0.0, 1.0);
+}
+
 std::optional<std::string> extractArrayBody(const std::string& json, const char* key)
 {
     const std::regex arrayStartPattern("\"" + std::string(key) + "\"\\s*:\\s*\\[");
@@ -237,10 +283,23 @@ SncCandidateDecision buildCandidateDecision(const SncDecisionInput& input)
     candidate.empireState = input.empireState;
     candidate.knownFacts = input.knownFacts;
     candidate.uncertainties = input.uncertainties;
+    const double pressure = deriveStrategicPressureHint(input);
+    candidate.militaryPosture = pressure >= 0.70 ? "aggressive" : "defensive";
+    candidate.researchBias = pressure >= 0.65 ? "military_industry" : "economy";
+    candidate.confidencePercent = static_cast<int>(pressure * 100.0 + 0.5);
+    if (candidate.confidencePercent < 55) {
+        candidate.confidencePercent = 55;
+    }
+    if (candidate.confidencePercent > 80) {
+        candidate.confidencePercent = 80;
+    }
     candidate.knownFacts.push_back("candidate_source:deterministic_v0_stub");
     candidate.knownFacts.push_back("candidate_action:observe_only");
     candidate.knownFacts.push_back(boolFact("candidate_publishes_overlay", candidate.publishesOverlay));
     candidate.knownFacts.push_back(boolFact("model_output_used", candidate.modelOutputUsed));
+    candidate.knownFacts.push_back(textFact("candidate_military_posture", candidate.militaryPosture));
+    candidate.knownFacts.push_back(textFact("candidate_research_bias", candidate.researchBias));
+    candidate.knownFacts.push_back(textFact("candidate_pressure_hint_percent", std::to_string(candidate.confidencePercent)));
     if (!candidate.playerCountryId.empty()) {
         candidate.knownFacts.push_back("candidate_player_country_id:" + candidate.playerCountryId);
     }
@@ -306,8 +365,11 @@ void validateCandidatePackage(const SncCandidateDecisionPackage& package, std::v
         if (candidate.recommendedAction != "observe_only") {
             errors.push_back("candidate action is not observe_only");
         }
-        if (candidate.militaryPosture != "preserve" || candidate.researchBias != "preserve") {
-            errors.push_back("candidate must preserve posture and research bias in v0 stub");
+        if (candidate.militaryPosture != "defensive" && candidate.militaryPosture != "aggressive") {
+            errors.push_back("candidate has unsupported military_posture");
+        }
+        if (candidate.researchBias != "economy" && candidate.researchBias != "military_industry") {
+            errors.push_back("candidate has unsupported research_bias");
         }
         if (candidate.publishesOverlay) {
             errors.push_back("candidate must not publish overlay");
