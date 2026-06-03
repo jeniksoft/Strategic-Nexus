@@ -64,6 +64,42 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-03
+
+Projekt dnes posunul hlavne owner-facing SNC publish boundary, viditelnost post-play pipeline a branch-aware real-session evidence. Nejde o rozsireni aktivni runtime pravomoci; jde o dalsi zpevneni integration boundary mezi archivovanym stavem kampane, offline analyzou, staged generated overlay artefaktem a jeho explicitne schvalenym publikovanim do oddeleneho aktivniho snapshotu.
+
+Co pribylo v repozitari:
+
+* Verejny head od posledniho denikoveho zapisu pridal souvislou commit radu od `Add SNC generated overlay publish gate` pres `Expose SNC generated overlay publish status` az po dnesni `Expose post-play staging in SNC status`.
+* Nova SNC publish gate vrstva zavadi vyssi owner-approved krok `--publish-snc-generated-overlay`, ktery pred publikaci vyzaduje explicitni schvaleni, overi staging status a manifest, zablokuje publish pri bezicim Stellaris runtime a vytvori zalohu predchoziho aktivniho generated overlay snapshotu.
+* Real-session v0 loop byl rozsiren o entry-point-scoped post-play artefakty a souvisejici evidence (`entry_point_analysis -> post_play_package -> decision_input_package -> candidate_decision_package`), takze runtime interoperability research ma presnejsi branch-aware stopu mezi archivem a dalsim scripted event/effect path rozhodovanim.
+* SNC status snapshoty a tray surface nove vystavuji generated overlay publish gate stav, structured MP mismatch warning signaly, post-play pipeline stav, dalsi doporuceny next-step signal a tvrdsi gameplay acceptance status validaci.
+* Dokumentace v `docs/DEVELOPMENT_ROADMAP.md` a `docs/V0_SCOPE_AND_PIPELINE_PLAN.md` byla upravena tak, aby publish gate, oddeleny aktivni overlay snapshot a nove owner-facing readiness fieldy byly vylozene explicitne, ne jen implicitne v implementaci.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt se posunul od cisteho generated overlay stagingu k presneji vymezene owner-authorized publish boundary. To je dulezite, protoze generated overlay artefakt zustava neduveryhodny az do okamziku, kdy projde status/manifest kontrolou a explicitnim schvalenim.
+* Entry-point-scoped post-play artefakty zmensuji mezeru mezi ulozenou kampanovou historii, branch-aware analyzou a dalsim rozhodovacim tokem SNC. Prakticky jde o lepsi pripravu autoritativnich vstupu pro host-authoritative model, ne o zmenu aktivni session za behu.
+* Oddeleni aktivniho generated overlay snapshotu od celeho mod rootu zpresnuje integration boundary a snizuje riziko, ze owner-facing publish krok prepise nesouvisejici descriptor, localization nebo manualne udrzovane PoC soubory.
+* Structured MP mismatch a gameplay acceptance stav dale posouvaji SNC od volnych textovych signalu k presnejsimu owner-facing rozhodovacimu rozhrani pro to, zda je staged vystup pripraven jen k interni kontrole, k publish kroku, nebo zda stale vyzaduje dalsi interoperabilni validaci.
+
+Testy a stav overeni:
+
+* Verejny GitHub Actions `Windows Tests` je pro dnesni verejny head potvrzen jako uspesny. Nejaktualnejsi dostupny push run pro commit `Expose post-play staging in SNC status` (`19737da`) byl vytvoren 3.6.2026 v 05:20:32 CEST a dokoncen se stavem `success` v 05:25:22 CEST.
+* Uspesny verejny `Windows Tests` signal je dostupny i pro predchozi dnesni commity `Harden gameplay acceptance status validation` (`ed8bbe4`), `Expose SNC post-play pipeline status` (`e83f53f`), `Add SNC tray next-step status surface` (`5e8779d`), `Add entry-point post-play artifacts to real session loop` (`bc929b5`) a `SNC expose structured MP mismatch status` (`eaa6f67`).
+* Tento denikovy beh nespoustel novy plny lokalni test run; zapis shrnuje stav verejneho headu, dostupneho GitHub Actions signalu a dnesniho repozitaroveho diffu.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni uplne: publish gate uz vyrazne zmensuje mezeru mezi stagingem a aktivnim snapshotem, ale stale chybi plne uzavreny checksum-safe multiplayer distribucni workflow mezi hostem a dalsimi ucastniky.
+* Entry-point-scoped post-play a publish readiness signaly zlepsuji rozhodovani, ale samy o sobe jeste neuzaviraji finalni export/import contract, campaign marker handshake ani empire identity resolver v cele end-to-end ceste.
+* Rizikem zustava, ze owner-facing observability a gate vrstvy porostou rychleji nez posledni interoperabilni krok realneho doruceni a prijeti generated overlay artefaktu v multiplayer provozu.
+
+Doporuceny dalsi krok:
+
+* Navazat prvnim explicitnim end-to-end overenim owner-approved publish a nasledneho verify/import toku od entry-point post-play artefaktu az po checksum-safe MP package handoff.
+* Pri tomto overeni se soustredit hlavne na finalni export/import contract, campaign marker handshake a na to, zda oddeleny aktivni generated overlay snapshot dava jednoznacny podklad pro dalsi host-authoritative session bez driftu na integration boundary.
+
 ## 2026-06-02
 
 Dnes nepribyl novy implementacni commit nad verejnym headem; denikovy update proto slouzi jako kratke konsolidovane shrnuti posledni pushnute SNC pracovni vlny z 1.6.2026 a aktualniho overeneho stavu repozitare.
