@@ -732,7 +732,16 @@ int main()
         std::ofstream out(gameplayAcceptanceReport, std::ios::binary | std::ios::trunc);
         out << "{\n"
             << "  \"schema_version\": 1,\n"
-            << "  \"acceptance_state\": \"verified_for_v0_domains\"\n"
+            << "  \"acceptance_state\": \"verified_for_v0_domains\",\n"
+            << "  \"summary\": \"custom verified gameplay acceptance summary\",\n"
+            << "  \"cases\": [\n"
+            << "    { \"case_id\": \"case_a_defensive_military_posture\", \"result\": \"pass\" },\n"
+            << "    { \"case_id\": \"case_b_aggressive_military_posture\", \"result\": \"pass\" },\n"
+            << "    { \"case_id\": \"case_c_economy_research_bias\", \"result\": \"pass\" },\n"
+            << "    { \"case_id\": \"case_d_military_industry_research_bias\", \"result\": \"pass\" },\n"
+            << "    { \"case_id\": \"case_e_invalid_tactical_domain\", \"result\": \"pass\" },\n"
+            << "    { \"case_id\": \"case_f_manifest_drift_before_publish\", \"result\": \"pass\" }\n"
+            << "  ]\n"
             << "}\n";
     }
 
@@ -747,11 +756,42 @@ int main()
     });
     requireCondition(acceptanceReady.gameplayAcceptance.state == "ready", "gameplay acceptance should be ready when report is verified");
     requireCondition(
-        acceptanceReady.gameplayAcceptance.reason == "gameplay acceptance verified for v0 domains",
-        "gameplay acceptance should expose verified reason");
+        acceptanceReady.gameplayAcceptance.reason == "custom verified gameplay acceptance summary",
+        "gameplay acceptance should expose summary reason");
     requireCondition(
-        acceptanceReady.statusCenterSummaryText.find("gameplay_acceptance: ready - gameplay acceptance verified for v0 domains") != std::string::npos,
+        acceptanceReady.statusCenterSummaryText.find("gameplay_acceptance: ready - custom verified gameplay acceptance summary") != std::string::npos,
         "status center summary should include verified gameplay acceptance state");
+
+    const auto incompleteGameplayAcceptanceReport = root / "gameplay_acceptance_incomplete_v0.json";
+    {
+        std::ofstream out(incompleteGameplayAcceptanceReport, std::ios::binary | std::ios::trunc);
+        out << "{\n"
+            << "  \"schema_version\": 1,\n"
+            << "  \"acceptance_state\": \"verified_for_v0_domains\",\n"
+            << "  \"summary\": \"should not be trusted\",\n"
+            << "  \"cases\": [\n"
+            << "    { \"case_id\": \"case_a_defensive_military_posture\", \"result\": \"pass\" },\n"
+            << "    { \"case_id\": \"case_b_aggressive_military_posture\", \"result\": \"pass\" },\n"
+            << "    { \"case_id\": \"case_c_economy_research_bias\", \"result\": \"pass\" }\n"
+            << "  ]\n"
+            << "}\n";
+    }
+
+    const auto incompleteAcceptance = companion.buildStatusSnapshot({
+        archiveRoot,
+        overlayRoot,
+        mpPackageRoot,
+        true,
+        false,
+        false,
+        incompleteGameplayAcceptanceReport
+    });
+    requireCondition(
+        incompleteAcceptance.gameplayAcceptance.state == "needs_attention",
+        "verified gameplay acceptance report should require full case coverage");
+    requireCondition(
+        incompleteAcceptance.gameplayAcceptance.reason == "gameplay acceptance report incomplete for verified state",
+        "incomplete verified gameplay acceptance should fail closed");
 
     {
         strategic_nexus::CompanionStatusSnapshot snapshot;

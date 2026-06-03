@@ -22,6 +22,7 @@
 #include <system_error>
 #include <thread>
 #include <set>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -136,6 +137,44 @@ std::vector<std::string> extractWarningCodesFromStatusText(const std::string& st
         warnings.push_back(warningCode);
     }
     return warnings;
+}
+
+std::unordered_map<std::string, std::string> extractGameplayAcceptanceCaseResults(const std::string& reportJson)
+{
+    std::unordered_map<std::string, std::string> results;
+    const std::regex casePattern(
+        "\"case_id\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"[\\s\\S]*?\"result\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"");
+    auto begin = std::sregex_iterator(reportJson.begin(), reportJson.end(), casePattern);
+    const auto end = std::sregex_iterator();
+    for (auto it = begin; it != end; ++it) {
+        const auto caseId = common::decodeJsonStringLiteral((*it)[1].str());
+        const auto result = common::decodeJsonStringLiteral((*it)[2].str());
+        if (!caseId.empty()) {
+            results[caseId] = result;
+        }
+    }
+    return results;
+}
+
+bool hasVerifiedGameplayAcceptanceCoverage(const std::string& reportJson)
+{
+    static const std::vector<std::string> expectedCaseIds = {
+        "case_a_defensive_military_posture",
+        "case_b_aggressive_military_posture",
+        "case_c_economy_research_bias",
+        "case_d_military_industry_research_bias",
+        "case_e_invalid_tactical_domain",
+        "case_f_manifest_drift_before_publish"
+    };
+
+    const auto caseResults = extractGameplayAcceptanceCaseResults(reportJson);
+    for (const auto& caseId : expectedCaseIds) {
+        const auto it = caseResults.find(caseId);
+        if (it == caseResults.end() || it->second != "pass") {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool isIdentityMismatchWarningCode(const std::string& warningCode)
@@ -762,6 +801,14 @@ CompanionSubsystemStatus buildGameplayAcceptanceStatus(const std::filesystem::pa
         return status;
     }
 
+    const auto setReasonFromSummaryOrFallback = [&](const std::string& fallback) {
+        if (const auto summary = common::extractJsonString(reportJson, "summary"); summary.has_value() && !summary->empty()) {
+            status.reason = *summary;
+        } else {
+            status.reason = fallback;
+        }
+    };
+
     const auto acceptanceState = common::extractJsonString(reportJson, "acceptance_state");
     if (!acceptanceState.has_value()) {
         status.state = "needs_attention";
@@ -770,18 +817,23 @@ CompanionSubsystemStatus buildGameplayAcceptanceStatus(const std::filesystem::pa
     }
 
     if (acceptanceState.value() == "verified_for_v0_domains") {
+        if (!hasVerifiedGameplayAcceptanceCoverage(reportJson)) {
+            status.state = "needs_attention";
+            status.reason = "gameplay acceptance report incomplete for verified state";
+            return status;
+        }
         status.state = "ready";
-        status.reason = "gameplay acceptance verified for v0 domains";
+        setReasonFromSummaryOrFallback("gameplay acceptance verified for v0 domains");
         return status;
     }
     if (acceptanceState.value() == "pending") {
         status.state = "starting";
-        status.reason = "gameplay acceptance pending";
+        setReasonFromSummaryOrFallback("gameplay acceptance pending");
         return status;
     }
     if (acceptanceState.value() == "failed") {
         status.state = "needs_attention";
-        status.reason = "gameplay acceptance failed";
+        setReasonFromSummaryOrFallback("gameplay acceptance failed");
         return status;
     }
 
