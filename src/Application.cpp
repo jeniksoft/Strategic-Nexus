@@ -1776,6 +1776,25 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_candidate_decision_count=" << snapshot.postPlayPipeline.candidateDecisionCount << "\n";
             std::cout << "snc_candidate_decision_validator_passed="
                       << (snapshot.postPlayPipeline.candidateDecisionValidatorPassed ? "true" : "false") << "\n";
+            std::cout << "snc_dsl_draft_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.dslDraftPath)) << "\n";
+            std::cout << "snc_dsl_draft_audit_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.dslDraftAuditPath)) << "\n";
+            std::cout << "snc_dsl_draft_readiness="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.dslDraftReadiness) << "\n";
+            std::cout << "snc_dsl_draft_rule_count=" << snapshot.postPlayPipeline.dslDraftRuleCount << "\n";
+            std::cout << "snc_dsl_draft_validator_passed="
+                      << (snapshot.postPlayPipeline.dslDraftValidatorPassed ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_staging_status_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.generatedOverlayStagingStatusPath)) << "\n";
+            std::cout << "snc_generated_overlay_staging_readiness="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.generatedOverlayStagingReadiness) << "\n";
+            std::cout << "snc_generated_overlay_staging_rule_count="
+                      << snapshot.postPlayPipeline.generatedOverlayStagingRuleCount << "\n";
+            std::cout << "snc_generated_overlay_manifest_verified="
+                      << (snapshot.postPlayPipeline.generatedOverlayManifestVerified ? "true" : "false") << "\n";
+            std::cout << "snc_generated_overlay_publish_allowed="
+                      << (snapshot.postPlayPipeline.generatedOverlayPublishAllowed ? "true" : "false") << "\n";
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
             std::cout << "snc_gameplay_acceptance_path=" << sanitizeCliValue(stdoutPath(snapshot.gameplayAcceptance.path)) << "\n";

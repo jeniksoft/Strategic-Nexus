@@ -32,6 +32,12 @@ struct CompanionStatusConfig {
         "dist/private_reports/snc_decision_input_package.json";
     std::filesystem::path candidateDecisionPackagePath =
         "dist/private_reports/snc_candidate_decision_package.json";
+    std::filesystem::path dslDraftPath =
+        "dist/private_reports/snc_validated_dsl_draft.dsl";
+    std::filesystem::path dslDraftAuditPath =
+        "dist/private_reports/snc_dsl_draft_package.json";
+    std::filesystem::path postPlayGeneratedOverlayStagingStatusPath =
+        "dist/private_reports/snc_generated_overlay_staging_status.json";
 };
 
 struct CompanionStatusLoopConfig {
@@ -146,6 +152,16 @@ struct CompanionPostPlayPipelineStatus {
     std::string candidateDecisionPackageReadiness;
     std::size_t candidateDecisionCount = 0;
     bool candidateDecisionValidatorPassed = false;
+    std::filesystem::path dslDraftPath;
+    std::filesystem::path dslDraftAuditPath;
+    std::string dslDraftReadiness;
+    std::size_t dslDraftRuleCount = 0;
+    bool dslDraftValidatorPassed = false;
+    std::filesystem::path generatedOverlayStagingStatusPath;
+    std::string generatedOverlayStagingReadiness;
+    std::size_t generatedOverlayStagingRuleCount = 0;
+    bool generatedOverlayManifestVerified = false;
+    bool generatedOverlayPublishAllowed = false;
 };
 
 struct CompanionLifecycleStatus {

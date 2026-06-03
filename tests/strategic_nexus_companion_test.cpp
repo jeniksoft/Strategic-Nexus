@@ -59,6 +59,9 @@ int main()
     const auto postPlayPackagePath = root / "snc_post_play_package.json";
     const auto decisionInputPackagePath = root / "snc_decision_input_package.json";
     const auto candidateDecisionPackagePath = root / "snc_candidate_decision_package.json";
+    const auto dslDraftPath = root / "snc_validated_dsl_draft.dsl";
+    const auto dslDraftAuditPath = root / "snc_dsl_draft_package.json";
+    const auto generatedOverlayStagingStatusPath = root / "snc_generated_overlay_staging_status.json";
     const auto missingGameplayAcceptanceReport = root / "missing_gameplay_acceptance_v0.json";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
@@ -177,6 +180,28 @@ int main()
         "  \"candidate_decision_count\": 2,\n"
         "  \"validator_passed\": true\n"
         "}\n");
+    writeTextFileAtomically(
+        dslDraftPath,
+        "campaign test_campaign\n"
+        "entry_point alpha_entry\n"
+        "rule doctrine_inertia high\n");
+    writeTextFileAtomically(
+        dslDraftAuditPath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"readiness\": \"ready\",\n"
+        "  \"dsl_rule_count\": 1,\n"
+        "  \"validator_passed\": true\n"
+        "}\n");
+    writeTextFileAtomically(
+        generatedOverlayStagingStatusPath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"readiness\": \"staged_verified\",\n"
+        "  \"dsl_rule_count\": 1,\n"
+        "  \"manifest_verified\": true,\n"
+        "  \"publish_allowed\": false\n"
+        "}\n");
 
     const strategic_nexus::StrategicNexusCompanion companion;
     const auto ready = companion.buildStatusSnapshot({
@@ -194,7 +219,10 @@ int main()
         entryPointAnalysisPath,
         postPlayPackagePath,
         decisionInputPackagePath,
-        candidateDecisionPackagePath
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        dslDraftAuditPath,
+        generatedOverlayStagingStatusPath
     });
 
     requireCondition(ready.appName == "Strategic Nexus Companion", "SNC app name should be stable");
@@ -212,10 +240,10 @@ int main()
         ready.generatedOverlayPublishGate.reason == "Stellaris is not running; generated overlay publish allowed",
         "publish gate should explain publish readiness");
     requireCondition(ready.mpOverlayPackage.state == "ready", "mp overlay package should be ready when verified");
-    requireCondition(ready.postPlayPipeline.state == "ready", "post-play pipeline should be ready when candidate decisions are ready");
+    requireCondition(ready.postPlayPipeline.state == "ready", "post-play pipeline should be ready when generated overlay staging verifies");
     requireCondition(
-        ready.postPlayPipeline.reason == "candidate decision package ready",
-        "post-play pipeline should summarize candidate decision readiness");
+        ready.postPlayPipeline.reason == "generated overlay staging verified",
+        "post-play pipeline should summarize generated overlay staging readiness");
     requireCondition(ready.postPlayPipeline.entryPointCount == 3, "post-play pipeline should expose entry point count");
     requireCondition(
         ready.postPlayPipeline.postPlayDecisionReadyEntryCount == 2,
@@ -225,6 +253,27 @@ int main()
     requireCondition(
         ready.postPlayPipeline.candidateDecisionValidatorPassed,
         "post-play pipeline should expose candidate validator result");
+    requireCondition(
+        ready.postPlayPipeline.dslDraftReadiness == "ready",
+        "post-play pipeline should expose DSL draft readiness");
+    requireCondition(
+        ready.postPlayPipeline.dslDraftRuleCount == 1,
+        "post-play pipeline should expose DSL draft rule count");
+    requireCondition(
+        ready.postPlayPipeline.dslDraftValidatorPassed,
+        "post-play pipeline should expose DSL draft validator result");
+    requireCondition(
+        ready.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified",
+        "post-play pipeline should expose generated overlay staging readiness");
+    requireCondition(
+        ready.postPlayPipeline.generatedOverlayStagingRuleCount == 1,
+        "post-play pipeline should expose generated overlay staging rule count");
+    requireCondition(
+        ready.postPlayPipeline.generatedOverlayManifestVerified,
+        "post-play pipeline should expose generated overlay manifest verification");
+    requireCondition(
+        !ready.postPlayPipeline.generatedOverlayPublishAllowed,
+        "post-play pipeline should expose publish gate still disabled for staged overlay");
     requireCondition(ready.mpOverlayPackage.campaignId == "campaign_mp_001", "mp overlay package should expose campaign id");
     requireCondition(ready.mpOverlayPackage.overlayVersion == "overlay_v1", "mp overlay package should expose overlay version");
     requireCondition(ready.mpOverlayPackage.gameVersion == "stellaris_4.x", "mp overlay package should expose game version");
@@ -286,7 +335,7 @@ int main()
         ready.statusCenterSummaryText.find("mp_overlay_balicek: ready - mp overlay package verified") != std::string::npos,
         "status center summary should include mp overlay package state");
     requireCondition(
-        ready.statusCenterSummaryText.find("post_play_pipeline: ready - candidate decision package ready") != std::string::npos,
+        ready.statusCenterSummaryText.find("post_play_pipeline: ready - generated overlay staging verified") != std::string::npos,
         "status center summary should include post-play pipeline state");
     requireCondition(
         ready.statusCenterSummaryText.find("entry_point_count: 3") != std::string::npos,
@@ -297,6 +346,18 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("candidate_decision_validator_passed: true") != std::string::npos,
         "status center summary should include candidate validator result");
+    requireCondition(
+        ready.statusCenterSummaryText.find("dsl_draft_readiness: ready") != std::string::npos,
+        "status center summary should include DSL draft readiness");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_staging_readiness: staged_verified") != std::string::npos,
+        "status center summary should include generated overlay staging readiness");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_manifest_verified: true") != std::string::npos,
+        "status center summary should include generated overlay staging manifest verification");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_publish_allowed: false") != std::string::npos,
+        "status center summary should include generated overlay staging publish gate state");
     requireCondition(
         ready.statusCenterSummaryText.find("publish_gate: ready - Stellaris is not running; generated overlay publish allowed") != std::string::npos,
         "status center summary should include publish gate state");
@@ -650,6 +711,18 @@ int main()
     requireCondition(
         json.find("\"candidate_decision_validator_passed\": true") != std::string::npos,
         "JSON should include candidate validator state");
+    requireCondition(
+        json.find("\"dsl_draft_readiness\": \"ready\"") != std::string::npos,
+        "JSON should include DSL draft readiness");
+    requireCondition(
+        json.find("\"generated_overlay_staging_readiness\": \"staged_verified\"") != std::string::npos,
+        "JSON should include generated overlay staging readiness");
+    requireCondition(
+        json.find("\"generated_overlay_manifest_verified\": true") != std::string::npos,
+        "JSON should include generated overlay staging manifest verification");
+    requireCondition(
+        json.find("\"generated_overlay_publish_allowed\": false") != std::string::npos,
+        "JSON should include generated overlay staging publish flag");
     requireCondition(json.find("\"campaign_id\": \"campaign_mp_001\"") != std::string::npos, "JSON should include mp overlay package campaign id");
     requireCondition(json.find("\"overlay_version\": \"overlay_v1\"") != std::string::npos, "JSON should include mp overlay package overlay version");
     requireCondition(json.find("\"game_version\": \"stellaris_4.x\"") != std::string::npos, "JSON should include mp overlay package game version");

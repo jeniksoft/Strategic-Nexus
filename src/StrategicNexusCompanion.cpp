@@ -362,6 +362,25 @@ std::string reasonFromReadiness(const std::string& label, const std::string& rea
     return label + " " + readiness;
 }
 
+std::string stateFromGeneratedOverlayStagingReadiness(const std::string& readiness)
+{
+    if (readiness == "staged_verified") {
+        return "ready";
+    }
+    return stateFromReadiness(readiness);
+}
+
+std::string reasonFromGeneratedOverlayStagingReadiness(const std::string& readiness)
+{
+    if (readiness.empty()) {
+        return "waiting for generated overlay staging";
+    }
+    if (readiness == "staged_verified") {
+        return "generated overlay staging verified";
+    }
+    return "generated overlay staging " + readiness;
+}
+
 std::string buildGeneratedOverlayPublishCommand(const CompanionGeneratedOverlayPublishGateStatus& status)
 {
     if (status.stagingStatusPath.empty() || status.activeOverlayDirectory.empty() ||
@@ -971,6 +990,9 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
     status.postPlayPackagePath = config.postPlayPackagePath;
     status.decisionInputPackagePath = config.decisionInputPackagePath;
     status.candidateDecisionPackagePath = config.candidateDecisionPackagePath;
+    status.dslDraftPath = config.dslDraftPath;
+    status.dslDraftAuditPath = config.dslDraftAuditPath;
+    status.generatedOverlayStagingStatusPath = config.postPlayGeneratedOverlayStagingStatusPath;
 
     auto inspectJsonFile = [](const std::filesystem::path& path, std::string& json, std::string& errorReason) {
         if (path.empty()) {
@@ -1007,6 +1029,31 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
     bool decisionInputAvailable = false;
     bool postPlayAvailable = false;
     bool entryPointAvailable = false;
+    bool dslDraftAvailable = false;
+    bool generatedOverlayStagingAvailable = false;
+    if (inspectJsonFile(status.generatedOverlayStagingStatusPath, json, fileError)) {
+        generatedOverlayStagingAvailable = true;
+        status.generatedOverlayStagingReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.generatedOverlayStagingRuleCount = extractJsonSize(json, "dsl_rule_count").value_or(0);
+        status.generatedOverlayManifestVerified = extractJsonBool(json, "manifest_verified").value_or(false);
+        status.generatedOverlayPublishAllowed = extractJsonBool(json, "publish_allowed").value_or(false);
+    } else if (!status.generatedOverlayStagingStatusPath.empty() && fileError != "missing") {
+        status.state = "needs_attention";
+        status.reason = "generated overlay staging status " + fileError;
+        return status;
+    }
+
+    if (inspectJsonFile(status.dslDraftAuditPath, json, fileError)) {
+        dslDraftAvailable = true;
+        status.dslDraftReadiness = common::extractJsonString(json, "readiness").value_or("");
+        status.dslDraftRuleCount = extractJsonSize(json, "dsl_rule_count").value_or(0);
+        status.dslDraftValidatorPassed = extractJsonBool(json, "validator_passed").value_or(false);
+    } else if (!status.dslDraftAuditPath.empty() && fileError != "missing") {
+        status.state = "needs_attention";
+        status.reason = "dsl draft audit " + fileError;
+        return status;
+    }
+
     if (inspectJsonFile(status.candidateDecisionPackagePath, json, fileError)) {
         candidateAvailable = true;
         status.candidateDecisionPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
@@ -1049,6 +1096,16 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
         return status;
     }
 
+    if (generatedOverlayStagingAvailable) {
+        status.state = stateFromGeneratedOverlayStagingReadiness(status.generatedOverlayStagingReadiness);
+        status.reason = reasonFromGeneratedOverlayStagingReadiness(status.generatedOverlayStagingReadiness);
+        return status;
+    }
+    if (dslDraftAvailable) {
+        status.state = stateFromReadiness(status.dslDraftReadiness);
+        status.reason = reasonFromReadiness("dsl draft", status.dslDraftReadiness);
+        return status;
+    }
     if (candidateAvailable) {
         status.state = stateFromReadiness(status.candidateDecisionPackageReadiness);
         status.reason = reasonFromReadiness("candidate decision package", status.candidateDecisionPackageReadiness);
@@ -1289,6 +1346,32 @@ std::string buildStatusCenterSummaryText(
     text << "candidate_decision_count: " << postPlayPipeline.candidateDecisionCount << "\n";
     text << "candidate_decision_validator_passed: "
          << (postPlayPipeline.candidateDecisionValidatorPassed ? "true" : "false") << "\n";
+    if (!postPlayPipeline.dslDraftPath.empty()) {
+        text << "dsl_draft_path: " << pathString(postPlayPipeline.dslDraftPath) << "\n";
+    }
+    if (!postPlayPipeline.dslDraftAuditPath.empty()) {
+        text << "dsl_draft_audit_path: " << pathString(postPlayPipeline.dslDraftAuditPath) << "\n";
+    }
+    if (!postPlayPipeline.dslDraftReadiness.empty()) {
+        text << "dsl_draft_readiness: " << postPlayPipeline.dslDraftReadiness << "\n";
+    }
+    text << "dsl_draft_rule_count: " << postPlayPipeline.dslDraftRuleCount << "\n";
+    text << "dsl_draft_validator_passed: "
+         << (postPlayPipeline.dslDraftValidatorPassed ? "true" : "false") << "\n";
+    if (!postPlayPipeline.generatedOverlayStagingStatusPath.empty()) {
+        text << "generated_overlay_staging_status_path: "
+             << pathString(postPlayPipeline.generatedOverlayStagingStatusPath) << "\n";
+    }
+    if (!postPlayPipeline.generatedOverlayStagingReadiness.empty()) {
+        text << "generated_overlay_staging_readiness: "
+             << postPlayPipeline.generatedOverlayStagingReadiness << "\n";
+    }
+    text << "generated_overlay_staging_rule_count: "
+         << postPlayPipeline.generatedOverlayStagingRuleCount << "\n";
+    text << "generated_overlay_manifest_verified: "
+         << (postPlayPipeline.generatedOverlayManifestVerified ? "true" : "false") << "\n";
+    text << "generated_overlay_publish_allowed: "
+         << (postPlayPipeline.generatedOverlayPublishAllowed ? "true" : "false") << "\n";
 
     if (!generatedOverlay.manifestHash.empty()) {
         text << "generated_overlay_manifest_hash: " << generatedOverlay.manifestHash << "\n";
@@ -1494,7 +1577,23 @@ void writePostPlayPipelineJson(
            << jsonString(status.candidateDecisionPackageReadiness) << ",\n";
     output << indent << "  \"candidate_decision_count\": " << status.candidateDecisionCount << ",\n";
     output << indent << "  \"candidate_decision_validator_passed\": "
-           << (status.candidateDecisionValidatorPassed ? "true" : "false") << "\n";
+           << (status.candidateDecisionValidatorPassed ? "true" : "false") << ",\n";
+    output << indent << "  \"dsl_draft_path\": " << jsonString(pathString(status.dslDraftPath)) << ",\n";
+    output << indent << "  \"dsl_draft_audit_path\": " << jsonString(pathString(status.dslDraftAuditPath)) << ",\n";
+    output << indent << "  \"dsl_draft_readiness\": " << jsonString(status.dslDraftReadiness) << ",\n";
+    output << indent << "  \"dsl_draft_rule_count\": " << status.dslDraftRuleCount << ",\n";
+    output << indent << "  \"dsl_draft_validator_passed\": "
+           << (status.dslDraftValidatorPassed ? "true" : "false") << ",\n";
+    output << indent << "  \"generated_overlay_staging_status_path\": "
+           << jsonString(pathString(status.generatedOverlayStagingStatusPath)) << ",\n";
+    output << indent << "  \"generated_overlay_staging_readiness\": "
+           << jsonString(status.generatedOverlayStagingReadiness) << ",\n";
+    output << indent << "  \"generated_overlay_staging_rule_count\": "
+           << status.generatedOverlayStagingRuleCount << ",\n";
+    output << indent << "  \"generated_overlay_manifest_verified\": "
+           << (status.generatedOverlayManifestVerified ? "true" : "false") << ",\n";
+    output << indent << "  \"generated_overlay_publish_allowed\": "
+           << (status.generatedOverlayPublishAllowed ? "true" : "false") << "\n";
     output << indent << "}";
 }
 
