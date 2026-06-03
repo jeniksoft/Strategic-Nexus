@@ -390,6 +390,14 @@ $statusWithMpOutputJsonFull = [System.IO.Path]::GetFullPath($statusWithMpOutputJ
 $mpPackageOutputDirFull = [System.IO.Path]::GetFullPath($MpPackageOutputDir)
 $sessionArchiveDir = Join-Path $archiveRootFull $SessionId
 $archiveSummaryPath = Join-Path $workDirFull "archive_summary.json"
+$entryPointAnalysisPath = Join-Path $workDirFull "snc_entry_point_analysis.json"
+$postPlayPackagePath = Join-Path $workDirFull "snc_post_play_package.json"
+$decisionInputPackagePath = Join-Path $workDirFull "snc_decision_input_package.json"
+$candidateDecisionPackagePath = Join-Path $workDirFull "snc_candidate_decision_package.json"
+$dslDraftPath = Join-Path $workDirFull "snc_validated_dsl_draft.dsl"
+$dslDraftAuditPath = Join-Path $workDirFull "snc_dsl_draft_package.json"
+$sncGeneratedOverlayStagingDir = Join-Path $defaultRunRoot "snc_generated_overlay_staged"
+$sncGeneratedOverlayStagingStatusPath = Join-Path $workDirFull "snc_generated_overlay_staging_status.json"
 
 if (-not (Test-Path -LiteralPath $saveRootFull)) {
     throw "SaveRoot does not exist: $saveRootFull"
@@ -406,9 +414,17 @@ New-Item -ItemType Directory -Force -Path $workDirFull | Out-Null
 New-Item -ItemType Directory -Force -Path $overlayOutputDirFull | Out-Null
 
 Remove-Item -LiteralPath $archiveSummaryPath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $entryPointAnalysisPath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $postPlayPackagePath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $decisionInputPackagePath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $candidateDecisionPackagePath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $dslDraftPath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $dslDraftAuditPath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $sncGeneratedOverlayStagingStatusPath -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $statusOutputJsonFull -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $sessionEvidenceJsonFull -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $statusWithMpOutputJsonFull -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $sncGeneratedOverlayStagingDir -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "==> archive stable saves"
 Write-Host ("real_session_v0_loop_save_root_resolution=" + $saveRootResolution)
@@ -448,6 +464,107 @@ if ($null -ne $archiveSummaryJson.last_archived_path) {
 }
 if ([string]::IsNullOrWhiteSpace($archiveCopiedSaveCount)) {
     throw "Archive summary is missing copied_save_count."
+}
+
+Write-Host "==> analyze save entry points"
+& $exe --analyze-save-entry-points $sessionArchiveDir $entryPointAnalysisPath $saveRootFull
+Assert-LastExitCodeOk -StepName "analyze save entry points"
+if (-not (Test-Path -LiteralPath $entryPointAnalysisPath)) {
+    throw "Entry point analysis output is missing: $entryPointAnalysisPath"
+}
+$entryPointAnalysisText = Get-Content -Raw -LiteralPath $entryPointAnalysisPath
+$entryPointAnalysisJson = $entryPointAnalysisText | ConvertFrom-Json
+$entryPointReadiness = [string]$entryPointAnalysisJson.readiness
+$entryPointCount = [string]$entryPointAnalysisJson.entry_point_count
+$entryPointBranchAmbiguity = [string]([bool]$entryPointAnalysisJson.branch_ambiguity_detected).ToString().ToLowerInvariant()
+
+Write-Host "==> build post-play package"
+& $exe --build-post-play-package $sessionArchiveDir $postPlayPackagePath $saveRootFull
+Assert-LastExitCodeOk -StepName "build post-play package"
+if (-not (Test-Path -LiteralPath $postPlayPackagePath)) {
+    throw "Post-play package output is missing: $postPlayPackagePath"
+}
+$postPlayPackageText = Get-Content -Raw -LiteralPath $postPlayPackagePath
+$postPlayPackageJson = $postPlayPackageText | ConvertFrom-Json
+$postPlayPackageReadiness = [string]$postPlayPackageJson.readiness
+$postPlayDecisionReadyEntryCount = [string]$postPlayPackageJson.decision_ready_entry_count
+
+Write-Host "==> build snc decision input package"
+& $exe --build-snc-decision-input-package $postPlayPackagePath $decisionInputPackagePath
+Assert-LastExitCodeOk -StepName "build snc decision input package"
+if (-not (Test-Path -LiteralPath $decisionInputPackagePath)) {
+    throw "SNC decision input package output is missing: $decisionInputPackagePath"
+}
+$decisionInputPackageText = Get-Content -Raw -LiteralPath $decisionInputPackagePath
+$decisionInputPackageJson = $decisionInputPackageText | ConvertFrom-Json
+$decisionInputPackageReadiness = [string]$decisionInputPackageJson.readiness
+$decisionInputCount = [string]$decisionInputPackageJson.decision_input_count
+
+Write-Host "==> build snc candidate decision package"
+& $exe --build-snc-candidate-decision-package $decisionInputPackagePath $candidateDecisionPackagePath
+Assert-LastExitCodeOk -StepName "build snc candidate decision package"
+if (-not (Test-Path -LiteralPath $candidateDecisionPackagePath)) {
+    throw "SNC candidate decision package output is missing: $candidateDecisionPackagePath"
+}
+$candidateDecisionPackageText = Get-Content -Raw -LiteralPath $candidateDecisionPackagePath
+$candidateDecisionPackageJson = $candidateDecisionPackageText | ConvertFrom-Json
+$candidateDecisionPackageReadiness = [string]$candidateDecisionPackageJson.readiness
+$candidateDecisionCount = [string]$candidateDecisionPackageJson.candidate_decision_count
+$candidateDecisionValidatorPassed = [string]([bool]$candidateDecisionPackageJson.validator_passed).ToString().ToLowerInvariant()
+
+$dslDraftReadiness = "not_attempted"
+$dslDraftRuleCount = "0"
+$dslDraftValidatorPassed = "false"
+$sncGeneratedOverlayStagingReadiness = "not_attempted"
+$sncGeneratedOverlayStagingRuleCount = "0"
+$sncGeneratedOverlayManifestVerified = "false"
+$sncGeneratedOverlayPublishAllowed = "false"
+$sncGeneratedOverlayDraftEligible = $false
+foreach ($candidateDecision in @($candidateDecisionPackageJson.candidate_decisions)) {
+    if ($null -eq $candidateDecision) {
+        continue
+    }
+
+    $empireStateSummary = $candidateDecision.empire_state_summary
+    if ($null -ne $empireStateSummary -and $empireStateSummary.parsed -eq $true) {
+        $sncGeneratedOverlayDraftEligible = $true
+        break
+    }
+}
+
+if ($sncGeneratedOverlayDraftEligible) {
+    Write-Host "==> build snc dsl draft package"
+    & $exe --build-snc-dsl-draft-package $candidateDecisionPackagePath $dslDraftPath $dslDraftAuditPath
+    Assert-LastExitCodeOk -StepName "build snc dsl draft package"
+    if (-not (Test-Path -LiteralPath $dslDraftAuditPath)) {
+        throw "SNC DSL draft audit output is missing: $dslDraftAuditPath"
+    }
+    if (-not (Test-Path -LiteralPath $dslDraftPath)) {
+        throw "SNC DSL draft output is missing: $dslDraftPath"
+    }
+
+    $dslDraftAuditText = Get-Content -Raw -LiteralPath $dslDraftAuditPath
+    $dslDraftAuditJson = $dslDraftAuditText | ConvertFrom-Json
+    $dslDraftReadiness = [string]$dslDraftAuditJson.readiness
+    $dslDraftRuleCount = [string]$dslDraftAuditJson.dsl_rule_count
+    $dslDraftValidatorPassed = [string]([bool]$dslDraftAuditJson.validator_passed).ToString().ToLowerInvariant()
+
+    Write-Host "==> stage snc generated overlay"
+    & $exe --stage-snc-generated-overlay $dslDraftPath $sncGeneratedOverlayStagingDir $sncGeneratedOverlayStagingStatusPath
+    Assert-LastExitCodeOk -StepName "stage snc generated overlay"
+    if (-not (Test-Path -LiteralPath $sncGeneratedOverlayStagingStatusPath)) {
+        throw "SNC generated overlay staging status output is missing: $sncGeneratedOverlayStagingStatusPath"
+    }
+
+    $sncGeneratedOverlayStagingStatusText = Get-Content -Raw -LiteralPath $sncGeneratedOverlayStagingStatusPath
+    $sncGeneratedOverlayStagingStatusJson = $sncGeneratedOverlayStagingStatusText | ConvertFrom-Json
+    $sncGeneratedOverlayStagingReadiness = [string]$sncGeneratedOverlayStagingStatusJson.readiness
+    $sncGeneratedOverlayStagingRuleCount = [string]$sncGeneratedOverlayStagingStatusJson.dsl_rule_count
+    $sncGeneratedOverlayManifestVerified = [string]([bool]$sncGeneratedOverlayStagingStatusJson.manifest_verified).ToString().ToLowerInvariant()
+    $sncGeneratedOverlayPublishAllowed = [string]([bool]$sncGeneratedOverlayStagingStatusJson.publish_allowed).ToString().ToLowerInvariant()
+} else {
+    $dslDraftReadiness = "needs_identity"
+    $sncGeneratedOverlayStagingReadiness = "needs_identity"
 }
 
 Write-Host "==> run offline spine"
@@ -628,6 +745,33 @@ Write-Host ("real_session_v0_loop_archive_summary_path=" + $archiveSummaryPath)
 Write-Host ("real_session_v0_loop_season_delta_ledger_path=" + $seasonDeltaLedgerPath)
 Write-Host ("real_session_v0_loop_empire_brief_path=" + $empireBriefPath)
 Write-Host ("real_session_v0_loop_archive_copied_save_count=" + $archiveCopiedSaveCount)
+Write-Host ("real_session_v0_loop_entry_point_analysis_path=" + $entryPointAnalysisPath)
+Write-Host ("real_session_v0_loop_entry_point_readiness=" + $entryPointReadiness)
+Write-Host ("real_session_v0_loop_entry_point_count=" + $entryPointCount)
+Write-Host ("real_session_v0_loop_entry_point_branch_ambiguity=" + $entryPointBranchAmbiguity)
+Write-Host ("real_session_v0_loop_post_play_package_path=" + $postPlayPackagePath)
+Write-Host ("real_session_v0_loop_post_play_package_readiness=" + $postPlayPackageReadiness)
+Write-Host ("real_session_v0_loop_post_play_decision_ready_entry_count=" + $postPlayDecisionReadyEntryCount)
+Write-Host ("real_session_v0_loop_decision_input_package_path=" + $decisionInputPackagePath)
+Write-Host ("real_session_v0_loop_decision_input_package_readiness=" + $decisionInputPackageReadiness)
+Write-Host ("real_session_v0_loop_decision_input_count=" + $decisionInputCount)
+Write-Host ("real_session_v0_loop_candidate_decision_package_path=" + $candidateDecisionPackagePath)
+Write-Host ("real_session_v0_loop_candidate_decision_package_readiness=" + $candidateDecisionPackageReadiness)
+Write-Host ("real_session_v0_loop_candidate_decision_count=" + $candidateDecisionCount)
+Write-Host ("real_session_v0_loop_candidate_decision_validator_passed=" + $candidateDecisionValidatorPassed)
+Write-Host ("real_session_v0_loop_dsl_draft_audit_path=" + $dslDraftAuditPath)
+Write-Host ("real_session_v0_loop_dsl_draft_readiness=" + $dslDraftReadiness)
+Write-Host ("real_session_v0_loop_dsl_draft_rule_count=" + $dslDraftRuleCount)
+Write-Host ("real_session_v0_loop_dsl_draft_validator_passed=" + $dslDraftValidatorPassed)
+Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_dir=" + $sncGeneratedOverlayStagingDir)
+Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_status_path=" + $sncGeneratedOverlayStagingStatusPath)
+Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_readiness=" + $sncGeneratedOverlayStagingReadiness)
+Write-Host ("real_session_v0_loop_snc_generated_overlay_staging_rule_count=" + $sncGeneratedOverlayStagingRuleCount)
+Write-Host ("real_session_v0_loop_snc_generated_overlay_manifest_verified=" + $sncGeneratedOverlayManifestVerified)
+Write-Host ("real_session_v0_loop_snc_generated_overlay_publish_allowed=" + $sncGeneratedOverlayPublishAllowed)
+if (Test-Path -LiteralPath $dslDraftPath) {
+    Write-Host ("real_session_v0_loop_dsl_draft_path=" + $dslDraftPath)
+}
 if (-not [string]::IsNullOrWhiteSpace($archiveLastArchivedPath)) {
     Write-Host ("real_session_v0_loop_archive_last_archived_path=" + $archiveLastArchivedPath)
 }
@@ -1633,6 +1777,18 @@ $sessionBriefLines = @(
     "- Archive summary: $archiveSummaryPath"
     "- Season delta ledger: $seasonDeltaLedgerPath"
     "- Empire brief: $empireBriefPath"
+    "- Entry point analysis: $entryPointAnalysisPath"
+    "- Entry point readiness: $entryPointReadiness"
+    "- Post-play package: $postPlayPackagePath"
+    "- Post-play readiness: $postPlayPackageReadiness"
+    "- Decision input package: $decisionInputPackagePath"
+    "- Decision input readiness: $decisionInputPackageReadiness"
+    "- Candidate decision package: $candidateDecisionPackagePath"
+    "- Candidate readiness: $candidateDecisionPackageReadiness"
+    "- DSL draft audit: $dslDraftAuditPath"
+    "- DSL draft readiness: $dslDraftReadiness"
+    "- SNC staged overlay status: $sncGeneratedOverlayStagingStatusPath"
+    "- SNC staged overlay readiness: $sncGeneratedOverlayStagingReadiness"
     "- SNC status snapshot: $statusOutputJsonFull"
     "- Session evidence JSON: $sessionEvidenceJsonFull"
     "- Generated overlay dir: $overlayOutputDirFull"
@@ -1709,6 +1865,33 @@ $sessionEvidence = [ordered]@{
     archive = [ordered]@{
         copied_save_count = $archiveCopiedSaveCount
         last_archived_path = $archiveLastArchivedPath
+    }
+    entry_point_post_play = [ordered]@{
+        entry_point_analysis_path = $entryPointAnalysisPath
+        entry_point_readiness = $entryPointReadiness
+        entry_point_count = $entryPointCount
+        entry_point_branch_ambiguity = $entryPointBranchAmbiguity
+        post_play_package_path = $postPlayPackagePath
+        post_play_package_readiness = $postPlayPackageReadiness
+        post_play_decision_ready_entry_count = $postPlayDecisionReadyEntryCount
+        decision_input_package_path = $decisionInputPackagePath
+        decision_input_package_readiness = $decisionInputPackageReadiness
+        decision_input_count = $decisionInputCount
+        candidate_decision_package_path = $candidateDecisionPackagePath
+        candidate_decision_package_readiness = $candidateDecisionPackageReadiness
+        candidate_decision_count = $candidateDecisionCount
+        candidate_decision_validator_passed = $candidateDecisionValidatorPassed
+        dsl_draft_path = $dslDraftPath
+        dsl_draft_audit_path = $dslDraftAuditPath
+        dsl_draft_readiness = $dslDraftReadiness
+        dsl_draft_rule_count = $dslDraftRuleCount
+        dsl_draft_validator_passed = $dslDraftValidatorPassed
+        generated_overlay_staging_dir = $sncGeneratedOverlayStagingDir
+        generated_overlay_staging_status_path = $sncGeneratedOverlayStagingStatusPath
+        generated_overlay_staging_readiness = $sncGeneratedOverlayStagingReadiness
+        generated_overlay_staging_rule_count = $sncGeneratedOverlayStagingRuleCount
+        generated_overlay_manifest_verified = $sncGeneratedOverlayManifestVerified
+        generated_overlay_publish_allowed = $sncGeneratedOverlayPublishAllowed
     }
     season_delta_ledger_path = $seasonDeltaLedgerPath
     empire_brief_path = $empireBriefPath

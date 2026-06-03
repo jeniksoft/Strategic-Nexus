@@ -2449,6 +2449,13 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_reason="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_analysis_path="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_readiness="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_path="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_decision_input_package_path="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_candidate_decision_package_path="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_dsl_draft_readiness="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_snc_generated_overlay_staging_readiness="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_season_delta_ledger_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_empire_brief_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_steps_brief="
@@ -2473,6 +2480,13 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"resolution":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"source":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"path":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"entry_point_post_play":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"entry_point_analysis_path":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"post_play_package_path":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"decision_input_package_path":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"candidate_decision_package_path":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"dsl_draft_readiness":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"generated_overlay_staging_readiness":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"season_delta_ledger_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"empire_brief_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"status_center":'
@@ -2493,6 +2507,12 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
         throw "real session loop mp snapshot contract next-steps brief missing: $nextStepsBriefPath"
     }
     $nextStepsBriefText = Get-Content -Raw -LiteralPath $nextStepsBriefPath
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Entry point analysis:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Post-play package:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Decision input package:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Candidate decision package:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- DSL draft readiness:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- SNC staged overlay readiness:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Season delta ledger:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Empire brief:"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "## MP Package"
