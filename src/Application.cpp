@@ -418,6 +418,9 @@ RunConfig parseRunConfig(int argc, char* argv[])
         if (argc > 11) {
             config.sncGeneratedOverlayPublishBackupRootDirectory = argv[11];
         }
+        if (argc > 12) {
+            config.sncMpOverlayPackageZipPath = argv[12];
+        }
         return config;
     }
 
@@ -1635,6 +1638,7 @@ int Application::run(const RunConfig& config) const
             statusConfig.archiveRoot = config.sncArchiveRoot;
             statusConfig.generatedOverlayDirectory = config.sncGeneratedOverlayDirectory;
             statusConfig.mpOverlayPackageDirectory = config.mpOverlayPackageDirectory;
+            statusConfig.mpOverlayPackageZipPath = config.sncMpOverlayPackageZipPath;
             statusConfig.startWithWindowsEnabled = config.sncStartWithWindowsEnabled;
             statusConfig.useDetectedStellarisState = config.sncUseDetectedStellarisState;
             statusConfig.stellarisRunningOverride = config.sncStellarisRunningOverride;
@@ -1700,6 +1704,13 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_state=" << sanitizeCliValue(snapshot.mpOverlayPackage.state) << "\n";
             std::cout << "snc_mp_overlay_package_reason=" << sanitizeCliValue(snapshot.mpOverlayPackage.reason) << "\n";
             std::cout << "snc_mp_overlay_package_path=" << sanitizeCliValue(stdoutPath(snapshot.mpOverlayPackage.path)) << "\n";
+            std::cout << "snc_mp_overlay_package_zip_state="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.packageZipState) << "\n";
+            std::cout << "snc_mp_overlay_package_zip_reason="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.packageZipReason) << "\n";
+            std::cout << "snc_mp_overlay_package_zip_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.mpOverlayPackage.packageZipPath)) << "\n";
+            std::cout << "snc_mp_overlay_package_zip_bytes=" << snapshot.mpOverlayPackage.packageZipBytes << "\n";
             std::cout << "snc_mp_overlay_package_campaign_id=" << sanitizeCliValue(snapshot.mpOverlayPackage.campaignId) << "\n";
             std::cout << "snc_mp_overlay_package_overlay_version=" << sanitizeCliValue(snapshot.mpOverlayPackage.overlayVersion) << "\n";
             std::cout << "snc_mp_overlay_package_game_version=" << sanitizeCliValue(snapshot.mpOverlayPackage.gameVersion) << "\n";

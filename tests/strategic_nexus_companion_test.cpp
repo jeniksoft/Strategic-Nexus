@@ -62,6 +62,7 @@ int main()
     const auto dslDraftPath = root / "snc_validated_dsl_draft.dsl";
     const auto dslDraftAuditPath = root / "snc_dsl_draft_package.json";
     const auto generatedOverlayStagingStatusPath = root / "snc_generated_overlay_staging_status.json";
+    const auto mpPackageZipPath = root / "mp_overlay_package.zip";
     const auto missingGameplayAcceptanceReport = root / "missing_gameplay_acceptance_v0.json";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
@@ -148,6 +149,10 @@ int main()
             mpPackageRoot,
             false);
         requireCondition(exportResult.ok, "MP overlay package export should succeed for companion test fixture");
+    }
+    {
+        std::ofstream zipOut(mpPackageZipPath, std::ios::binary | std::ios::trunc);
+        zipOut << "zip handoff payload";
     }
 
     writeTextFileAtomically(
@@ -248,7 +253,8 @@ int main()
         candidateDecisionPackagePath,
         dslDraftPath,
         dslDraftAuditPath,
-        generatedOverlayStagingStatusPath
+        generatedOverlayStagingStatusPath,
+        mpPackageZipPath
     });
 
     requireCondition(ready.appName == "Strategic Nexus Companion", "SNC app name should be stable");
@@ -266,6 +272,12 @@ int main()
         ready.generatedOverlayPublishGate.reason == "Stellaris is not running; generated overlay publish allowed",
         "publish gate should explain publish readiness");
     requireCondition(ready.mpOverlayPackage.state == "ready", "mp overlay package should be ready when verified");
+    requireCondition(ready.mpOverlayPackage.packageZipState == "ready", "mp overlay package zip should be ready when configured");
+    requireCondition(
+        ready.mpOverlayPackage.packageZipReason == "mp overlay package zip ready for handoff",
+        "mp overlay package zip should expose handoff reason");
+    requireCondition(ready.mpOverlayPackage.packageZipPath == mpPackageZipPath, "mp overlay package zip should expose path");
+    requireCondition(ready.mpOverlayPackage.packageZipBytes > 0, "mp overlay package zip should expose byte count");
     requireCondition(ready.postPlayPipeline.state == "ready", "post-play pipeline should be ready when generated overlay staging verifies");
     requireCondition(
         ready.postPlayPipeline.reason == "generated overlay staging verified",
@@ -407,6 +419,15 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_overlay_balicek: ready - mp overlay package verified") != std::string::npos,
         "status center summary should include mp overlay package state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_package_zip_state: ready") != std::string::npos,
+        "status center summary should include MP package zip state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_package_zip_reason: mp overlay package zip ready for handoff") != std::string::npos,
+        "status center summary should include MP package zip reason");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_package_zip_path: " + mpPackageZipPath.generic_string()) != std::string::npos,
+        "status center summary should include MP package zip path");
     requireCondition(
         ready.statusCenterSummaryText.find("post_play_pipeline: ready - generated overlay staging verified") != std::string::npos,
         "status center summary should include post-play pipeline state");
@@ -914,6 +935,13 @@ int main()
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
+    requireCondition(json.find("\"package_zip_state\": \"ready\"") != std::string::npos, "JSON should include MP package zip state");
+    requireCondition(
+        json.find("\"package_zip_reason\": \"mp overlay package zip ready for handoff\"") != std::string::npos,
+        "JSON should include MP package zip reason");
+    requireCondition(
+        json.find("\"package_zip_path\": \"" + mpPackageZipPath.generic_string() + "\"") != std::string::npos,
+        "JSON should include MP package zip path");
     requireCondition(json.find("generated_at_local: ") != std::string::npos, "status center summary should include generated_at_local timestamp");
     requireCondition(json.find("mp_warning_count: 0") != std::string::npos, "ready status center summary should include zero MP warning count");
     requireCondition(

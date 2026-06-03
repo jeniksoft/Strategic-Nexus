@@ -104,6 +104,7 @@ struct RunConfig {
     std::filesystem::path stellarisRunningOutputPath;
     std::filesystem::path mpOverlaySourceDirectory;
     std::filesystem::path mpOverlayPackageDirectory;
+    std::filesystem::path sncMpOverlayPackageZipPath;
     std::filesystem::path mpOverlayImportTargetDirectory;
     std::filesystem::path sncArchiveRoot;
     std::filesystem::path sncGeneratedOverlayDirectory;

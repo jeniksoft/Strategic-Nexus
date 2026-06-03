@@ -907,6 +907,62 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     return status;
 }
 
+void populateMpOverlayPackageZipStatus(
+    CompanionMpOverlayPackageStatus& status,
+    const std::filesystem::path& packageZipPath)
+{
+    status.packageZipPath = packageZipPath;
+    if (packageZipPath.empty()) {
+        return;
+    }
+
+    std::error_code error;
+    const bool exists = std::filesystem::exists(packageZipPath, error);
+    if (error) {
+        status.packageZipState = "needs_attention";
+        status.packageZipReason = "mp overlay package zip inaccessible";
+        status.state = "needs_attention";
+        status.reason = status.packageZipReason;
+        return;
+    }
+    if (!exists) {
+        status.packageZipState = "needs_attention";
+        status.packageZipReason = "mp overlay package zip missing";
+        status.state = "needs_attention";
+        status.reason = status.packageZipReason;
+        return;
+    }
+
+    const bool isRegularFile = std::filesystem::is_regular_file(packageZipPath, error);
+    if (error) {
+        status.packageZipState = "needs_attention";
+        status.packageZipReason = "mp overlay package zip inaccessible";
+        status.state = "needs_attention";
+        status.reason = status.packageZipReason;
+        return;
+    }
+    if (!isRegularFile) {
+        status.packageZipState = "needs_attention";
+        status.packageZipReason = "mp overlay package zip path is not a file";
+        status.state = "needs_attention";
+        status.reason = status.packageZipReason;
+        return;
+    }
+
+    const auto byteCount = std::filesystem::file_size(packageZipPath, error);
+    if (error) {
+        status.packageZipState = "needs_attention";
+        status.packageZipReason = "mp overlay package zip byte count unavailable";
+        status.state = "needs_attention";
+        status.reason = status.packageZipReason;
+        return;
+    }
+
+    status.packageZipBytes = byteCount;
+    status.packageZipState = "ready";
+    status.packageZipReason = "mp overlay package zip ready for handoff";
+}
+
 CompanionSubsystemStatus buildGameplayAcceptanceStatus(const std::filesystem::path& reportPath)
 {
     CompanionSubsystemStatus status;
@@ -1450,6 +1506,18 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.path.empty()) {
         text << "mp_overlay_balicek_cesta: " << pathString(mpOverlayPackage.path) << "\n";
     }
+    if (!mpOverlayPackage.packageZipState.empty()) {
+        text << "mp_package_zip_state: " << mpOverlayPackage.packageZipState << "\n";
+    }
+    if (!mpOverlayPackage.packageZipReason.empty()) {
+        text << "mp_package_zip_reason: " << mpOverlayPackage.packageZipReason << "\n";
+    }
+    if (!mpOverlayPackage.packageZipPath.empty()) {
+        text << "mp_package_zip_path: " << pathString(mpOverlayPackage.packageZipPath) << "\n";
+    }
+    if (!mpOverlayPackage.packageZipState.empty()) {
+        text << "mp_package_zip_bytes: " << mpOverlayPackage.packageZipBytes << "\n";
+    }
     text << "post_play_pipeline: " << postPlayPipeline.state << " - " << postPlayPipeline.reason << "\n";
     if (!postPlayPipeline.entryPointAnalysisPath.empty()) {
         text << "entry_point_analysis_path: " << pathString(postPlayPipeline.entryPointAnalysisPath) << "\n";
@@ -1670,6 +1738,10 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
     output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
     output << indent << "  \"path\": " << jsonString(pathString(status.path)) << ",\n";
+    output << indent << "  \"package_zip_state\": " << jsonString(status.packageZipState) << ",\n";
+    output << indent << "  \"package_zip_reason\": " << jsonString(status.packageZipReason) << ",\n";
+    output << indent << "  \"package_zip_path\": " << jsonString(pathString(status.packageZipPath)) << ",\n";
+    output << indent << "  \"package_zip_bytes\": " << status.packageZipBytes << ",\n";
     output << indent << "  \"campaign_id\": " << jsonString(status.campaignId) << ",\n";
     output << indent << "  \"overlay_version\": " << jsonString(status.overlayVersion) << ",\n";
     output << indent << "  \"game_version\": " << jsonString(status.gameVersion) << ",\n";
@@ -1801,6 +1873,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
     snapshot.generatedOverlayPublishGate = buildGeneratedOverlayPublishGateStatus(snapshot.generatedOverlay, config);
     snapshot.mpOverlayPackage = buildMpOverlayPackageStatus(config.mpOverlayPackageDirectory);
+    populateMpOverlayPackageZipStatus(snapshot.mpOverlayPackage, config.mpOverlayPackageZipPath);
     snapshot.postPlayPipeline = buildPostPlayPipelineStatus(config);
     snapshot.gameplayAcceptance = buildGameplayAcceptanceStatus(config.gameplayAcceptanceReportPath);
     snapshot.statusCenter =

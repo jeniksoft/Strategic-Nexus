@@ -834,7 +834,7 @@ if ($ExportMpPackage) {
     $mpPackageZipReason = "zip_created"
 
     Write-Host "==> refresh snc status snapshot with mp package visibility"
-    & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false
+    & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false "" "" "" "" $mpPackageZipPath
     Assert-LastExitCodeOk -StepName "snc status snapshot with mp package"
     if (-not (Test-Path -LiteralPath $statusWithMpOutputJsonFull)) {
         throw "Missing SNC MP status snapshot output: $statusWithMpOutputJsonFull"

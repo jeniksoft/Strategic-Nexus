@@ -38,6 +38,7 @@ struct CompanionStatusConfig {
         "dist/private_reports/snc_dsl_draft_package.json";
     std::filesystem::path postPlayGeneratedOverlayStagingStatusPath =
         "dist/private_reports/snc_generated_overlay_staging_status.json";
+    std::filesystem::path mpOverlayPackageZipPath;
 };
 
 struct CompanionStatusLoopConfig {
@@ -115,6 +116,10 @@ struct CompanionMpOverlayPackageStatus {
     std::string mismatchWarningReason = "no_identity_mismatch_detected";
     std::vector<std::string> mismatchWarningCodes;
     std::string identityMismatchAlert;
+    std::string packageZipState;
+    std::string packageZipReason;
+    std::filesystem::path packageZipPath;
+    std::uintmax_t packageZipBytes = 0;
 };
 
 struct CompanionGeneratedOverlayPublishGateStatus {
