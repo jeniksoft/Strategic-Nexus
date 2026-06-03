@@ -28,7 +28,10 @@ try {
                 $json.state -and
                 $null -ne $json.status_center_summary_text -and
                 $null -ne $json.next_action -and
-                $null -ne $json.next_steps_brief_path
+                $null -ne $json.next_steps_brief_path -and
+                $null -ne $json.mp_package_refresh_state -and
+                $null -ne $json.mp_overlay_package_directory -and
+                $null -ne $json.mp_overlay_package_state
             ) {
                 Write-Host "snc_tray_smoke_success=true"
                 Write-Host ("snc_tray_smoke_state=" + $json.state)

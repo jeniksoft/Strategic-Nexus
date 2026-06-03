@@ -21,10 +21,12 @@
 #include "SncDslDraftPackageBuilder.h"
 #include "SncGeneratedOverlayPublishGate.h"
 #include "SncGeneratedOverlayStager.h"
+#include "StrategicNexusCompanion.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 #include "common/FileUtil.h"
 #include "common/JsonExtract.h"
+#include "generated_overlay/MpOverlayPackage.h"
 
 #include <windows.h>
 #include <shellapi.h>
@@ -74,6 +76,11 @@ std::filesystem::path g_generatedOverlayStagingStatusPath;
 std::filesystem::path g_generatedOverlayActiveDirectory;
 std::filesystem::path g_generatedOverlayPublishStatusPath;
 std::filesystem::path g_generatedOverlayPublishBackupRootDirectory;
+std::filesystem::path g_mpOverlayPackageDirectory;
+std::filesystem::path g_mpOverlayPackageZipPath;
+constexpr const char* kTrayMpOverlayVersion = "overlay_v0_session";
+constexpr const char* kTrayMpGameVersion = "stellaris_4.x";
+constexpr const char* kTrayMpModVersion = "strategic_nexus_v0";
 NOTIFYICONDATAW g_trayIcon{};
 UINT g_taskbarCreatedMessage = 0;
 
@@ -130,6 +137,36 @@ std::string formatSessionToken()
     char buffer[32]{};
     std::strftime(buffer, sizeof(buffer), "%Y%m%dT%H%M%S", &localTime);
     return buffer;
+}
+
+std::string safeIdentifier(const std::string& value, const std::string& fallback)
+{
+    std::string output;
+    output.reserve(value.size());
+    bool lastWasSeparator = false;
+
+    for (const unsigned char raw : value) {
+        if (std::isalnum(raw) != 0) {
+            output.push_back(static_cast<char>(std::tolower(raw)));
+            lastWasSeparator = false;
+            continue;
+        }
+        if (!lastWasSeparator && !output.empty()) {
+            output.push_back('_');
+            lastWasSeparator = true;
+        }
+    }
+
+    while (!output.empty() && output.back() == '_') {
+        output.pop_back();
+    }
+    if (output.empty()) {
+        output = fallback;
+    }
+    if (std::isdigit(static_cast<unsigned char>(output.front())) != 0) {
+        output = fallback + "_" + output;
+    }
+    return output;
 }
 
 std::optional<std::string> extractArrayBody(const std::string& json, const char* key)
@@ -287,6 +324,107 @@ void parsePostPlayCampaignSummaries(
         }
         summary << ")";
         campaignSummaries.push_back(summary.str());
+    }
+}
+
+void writeStringArrayJson(std::ostringstream& json, const std::vector<std::string>& values)
+{
+    json << "[";
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        if (index > 0) {
+            json << ", ";
+        }
+        json << "\"" << jsonEscape(values[index]) << "\"";
+    }
+    json << "]";
+}
+
+void appendMpPackageSummaryLines(
+    std::ostringstream& output,
+    const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const std::string& mpPackageRefreshState,
+    const std::string& mpPackageRefreshReason)
+{
+    output << "mp_package_refresh_state: " << mpPackageRefreshState << "\n";
+    output << "mp_package_refresh_reason: " << mpPackageRefreshReason << "\n";
+    output << "mp_overlay_package_directory: " << pathString(g_mpOverlayPackageDirectory) << "\n";
+    output << "mp_overlay_package_zip_path: " << pathString(g_mpOverlayPackageZipPath) << "\n";
+    output << "mp_overlay_package_state: " << mpOverlayPackage.state << "\n";
+    output << "mp_overlay_package_reason: " << mpOverlayPackage.reason << "\n";
+    if (!mpOverlayPackage.path.empty()) {
+        output << "mp_overlay_package_path: " << pathString(mpOverlayPackage.path) << "\n";
+    }
+    if (!mpOverlayPackage.campaignId.empty()) {
+        output << "mp_campaign_id: " << mpOverlayPackage.campaignId << "\n";
+    }
+    if (!mpOverlayPackage.overlayVersion.empty()) {
+        output << "mp_overlay_version: " << mpOverlayPackage.overlayVersion << "\n";
+    }
+    if (!mpOverlayPackage.gameVersion.empty()) {
+        output << "mp_game_version: " << mpOverlayPackage.gameVersion << "\n";
+    }
+    if (!mpOverlayPackage.strategicNexusModVersion.empty()) {
+        output << "mp_mod_version: " << mpOverlayPackage.strategicNexusModVersion << "\n";
+    }
+    if (!mpOverlayPackage.handoffStatus.empty()) {
+        output << "mp_handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
+    }
+    if (!mpOverlayPackage.readiness.empty()) {
+        output << "mp_readiness: " << mpOverlayPackage.readiness << "\n";
+    }
+    if (!mpOverlayPackage.hostReadiness.empty()) {
+        output << "mp_host_readiness: " << mpOverlayPackage.hostReadiness << "\n";
+    }
+    if (!mpOverlayPackage.clientReadinessGate.empty()) {
+        output << "mp_client_readiness_gate: " << mpOverlayPackage.clientReadinessGate << "\n";
+    }
+    if (!mpOverlayPackage.hostNextStep.empty()) {
+        output << "mp_host_next_step: " << mpOverlayPackage.hostNextStep << "\n";
+    }
+    if (!mpOverlayPackage.clientNextStep.empty()) {
+        output << "mp_client_next_step: " << mpOverlayPackage.clientNextStep << "\n";
+    }
+    if (!mpOverlayPackage.packageManifestHash.empty()) {
+        output << "mp_package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
+    }
+    if (!mpOverlayPackage.verifyCommand.empty()) {
+        output << "mp_verify_command: " << mpOverlayPackage.verifyCommand << "\n";
+    }
+    if (!mpOverlayPackage.importCommand.empty()) {
+        output << "mp_import_command: " << mpOverlayPackage.importCommand << "\n";
+    }
+    if (!mpOverlayPackage.strictVerifyCommand.empty()) {
+        output << "mp_strict_verify_command: " << mpOverlayPackage.strictVerifyCommand << "\n";
+    }
+    if (!mpOverlayPackage.strictImportCommand.empty()) {
+        output << "mp_strict_import_command: " << mpOverlayPackage.strictImportCommand << "\n";
+    }
+    output << "mp_warning_count: " << mpOverlayPackage.warningCount << "\n";
+    for (const auto& warningCode : mpOverlayPackage.warningCodes) {
+        output << "mp_warning_code: " << warningCode << "\n";
+    }
+    output << "mp_identity_mismatch_warning: "
+           << (mpOverlayPackage.identityMismatchWarning ? "true" : "false") << "\n";
+    for (const auto& warningCode : mpOverlayPackage.identityMismatchWarningCodes) {
+        output << "mp_identity_mismatch_warning_code: " << warningCode << "\n";
+    }
+    output << "mp_mismatch_warning_state: " << mpOverlayPackage.mismatchWarningState << "\n";
+    output << "mp_mismatch_warning_reason: " << mpOverlayPackage.mismatchWarningReason << "\n";
+    for (const auto& warningCode : mpOverlayPackage.mismatchWarningCodes) {
+        output << "mp_mismatch_warning_code: " << warningCode << "\n";
+    }
+    if (!mpOverlayPackage.identityMismatchAlert.empty()) {
+        output << "mp_identity_mismatch_alert: " << mpOverlayPackage.identityMismatchAlert << "\n";
+    }
+    if (!mpOverlayPackage.packageZipState.empty()) {
+        output << "mp_package_zip_state: " << mpOverlayPackage.packageZipState << "\n";
+        output << "mp_package_zip_bytes: " << mpOverlayPackage.packageZipBytes << "\n";
+    }
+    if (!mpOverlayPackage.packageZipReason.empty()) {
+        output << "mp_package_zip_reason: " << mpOverlayPackage.packageZipReason << "\n";
+    }
+    if (!mpOverlayPackage.packageZipPath.empty()) {
+        output << "mp_package_zip_runtime_path: " << pathString(mpOverlayPackage.packageZipPath) << "\n";
     }
 }
 
@@ -496,7 +634,10 @@ std::string buildStatusCenterSummaryText(
     const std::size_t generatedOverlayStagingRuleCount,
     const bool generatedOverlayManifestVerified,
     const bool generatedOverlayPublishAllowed,
-    const std::string& generatedOverlayManifestHash)
+    const std::string& generatedOverlayManifestHash,
+    const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const std::string& mpPackageRefreshState,
+    const std::string& mpPackageRefreshReason)
 {
     std::ostringstream summary;
     summary << "Strategic Nexus Status Center\n";
@@ -576,6 +717,7 @@ std::string buildStatusCenterSummaryText(
     summary << "generated_overlay_publish_status_path: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     summary << "generated_overlay_publish_backup_root_directory: "
             << pathString(g_generatedOverlayPublishBackupRootDirectory) << "\n";
+    appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
 
@@ -595,6 +737,9 @@ void writeNextStepsBrief(
     const std::filesystem::path& generatedOverlayStagingStatusPath,
     const std::string& generatedOverlayStagingReadiness,
     const bool generatedOverlayPublishAllowed,
+    const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const std::string& mpPackageRefreshState,
+    const std::string& mpPackageRefreshReason,
     const std::string& nextAction,
     const std::string& nextActionReason)
 {
@@ -638,6 +783,44 @@ void writeNextStepsBrief(
     brief << "- Publish gate available: " << (generatedOverlayPublishAllowed ? "ano" : "ne") << "\n";
     brief << "- Active overlay snapshot: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
     brief << "- Publish status output: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
+    brief << "- MP package refresh: " << mpPackageRefreshState << " (" << mpPackageRefreshReason << ")\n";
+    brief << "- MP overlay package directory: " << pathString(g_mpOverlayPackageDirectory) << "\n";
+    brief << "- MP package zip path: " << pathString(g_mpOverlayPackageZipPath) << "\n";
+    brief << "- MP overlay package state: " << mpOverlayPackage.state;
+    if (!mpOverlayPackage.reason.empty()) {
+        brief << " (" << mpOverlayPackage.reason << ")";
+    }
+    brief << "\n";
+    if (!mpOverlayPackage.readiness.empty()) {
+        brief << "- MP readiness: " << mpOverlayPackage.readiness << "\n";
+    }
+    if (!mpOverlayPackage.hostReadiness.empty()) {
+        brief << "- MP host readiness: " << mpOverlayPackage.hostReadiness << "\n";
+    }
+    if (!mpOverlayPackage.clientReadinessGate.empty()) {
+        brief << "- MP client readiness gate: " << mpOverlayPackage.clientReadinessGate << "\n";
+    }
+    if (!mpOverlayPackage.verifyCommand.empty()) {
+        brief << "- MP verify command: " << mpOverlayPackage.verifyCommand << "\n";
+    }
+    if (!mpOverlayPackage.importCommand.empty()) {
+        brief << "- MP import command: " << mpOverlayPackage.importCommand << "\n";
+    }
+    if (!mpOverlayPackage.strictVerifyCommand.empty()) {
+        brief << "- MP strict verify command: " << mpOverlayPackage.strictVerifyCommand << "\n";
+    }
+    if (!mpOverlayPackage.strictImportCommand.empty()) {
+        brief << "- MP strict import command: " << mpOverlayPackage.strictImportCommand << "\n";
+    }
+    if (!mpOverlayPackage.hostNextStep.empty()) {
+        brief << "- MP host next step: " << mpOverlayPackage.hostNextStep << "\n";
+    }
+    if (!mpOverlayPackage.clientNextStep.empty()) {
+        brief << "- MP client next step: " << mpOverlayPackage.clientNextStep << "\n";
+    }
+    if (!mpOverlayPackage.identityMismatchAlert.empty()) {
+        brief << "- MP mismatch alert: " << mpOverlayPackage.identityMismatchAlert << "\n";
+    }
 
     strategic_nexus::common::writeTextFileAtomically(g_nextStepsBriefPath, brief.str());
 }
@@ -685,8 +868,31 @@ void writeStatus(
     const std::size_t generatedOverlayStagingRuleCount = 0,
     const bool generatedOverlayManifestVerified = false,
     const bool generatedOverlayPublishAllowed = false,
-    const std::string& generatedOverlayManifestHash = std::string())
+    const std::string& generatedOverlayManifestHash = std::string(),
+    const std::string& mpPackageRefreshState = "not_attempted",
+    const std::string& mpPackageRefreshReason = "waiting_for_staged_overlay")
 {
+    const strategic_nexus::StrategicNexusCompanion companion;
+    strategic_nexus::CompanionStatusConfig companionConfig;
+    companionConfig.archiveRoot = sessionDirectory.empty() ? g_archiveRoot : sessionDirectory;
+    companionConfig.generatedOverlayDirectory = g_generatedOverlayActiveDirectory;
+    companionConfig.mpOverlayPackageDirectory = g_mpOverlayPackageDirectory;
+    companionConfig.useDetectedStellarisState = false;
+    companionConfig.stellarisRunningOverride = stellarisRunning;
+    companionConfig.generatedOverlayStagingStatusPath = g_generatedOverlayStagingStatusPath;
+    companionConfig.generatedOverlayActiveDirectory = g_generatedOverlayActiveDirectory;
+    companionConfig.generatedOverlayPublishStatusPath = g_generatedOverlayPublishStatusPath;
+    companionConfig.generatedOverlayPublishBackupRootDirectory = g_generatedOverlayPublishBackupRootDirectory;
+    companionConfig.entryPointAnalysisPath = g_entryPointAnalysisPath;
+    companionConfig.postPlayPackagePath = g_postPlayPackagePath;
+    companionConfig.decisionInputPackagePath = g_decisionInputPackagePath;
+    companionConfig.candidateDecisionPackagePath = g_candidateDecisionPackagePath;
+    companionConfig.dslDraftPath = g_dslDraftPath;
+    companionConfig.dslDraftAuditPath = g_dslDraftAuditPath;
+    companionConfig.postPlayGeneratedOverlayStagingStatusPath = g_generatedOverlayStagingStatusPath;
+    companionConfig.mpOverlayPackageZipPath = g_mpOverlayPackageZipPath;
+    const auto companionSnapshot = companion.buildStatusSnapshot(companionConfig);
+
     const auto nextAction = buildNextAction(
         state,
         postPlayState,
@@ -739,7 +945,10 @@ void writeStatus(
         generatedOverlayStagingRuleCount,
         generatedOverlayManifestVerified,
         generatedOverlayPublishAllowed,
-        generatedOverlayManifestHash);
+        generatedOverlayManifestHash,
+        companionSnapshot.mpOverlayPackage,
+        mpPackageRefreshState,
+        mpPackageRefreshReason);
     writeNextStepsBrief(
         state,
         postPlayState,
@@ -756,6 +965,9 @@ void writeStatus(
         generatedOverlayStagingStatusPath,
         generatedOverlayStagingReadiness,
         generatedOverlayPublishAllowed,
+        companionSnapshot.mpOverlayPackage,
+        mpPackageRefreshState,
+        mpPackageRefreshReason,
         nextAction,
         nextActionReason);
 
@@ -829,6 +1041,47 @@ void writeStatus(
          << (generatedOverlayPublishAllowed ? "true" : "false") << ",\n";
     json << "  \"generated_overlay_manifest_hash\": \""
          << jsonEscape(generatedOverlayManifestHash) << "\",\n";
+    json << "  \"mp_package_refresh_state\": \"" << jsonEscape(mpPackageRefreshState) << "\",\n";
+    json << "  \"mp_package_refresh_reason\": \"" << jsonEscape(mpPackageRefreshReason) << "\",\n";
+    json << "  \"mp_overlay_package_directory\": \"" << jsonEscape(pathString(g_mpOverlayPackageDirectory)) << "\",\n";
+    json << "  \"mp_overlay_package_zip_path\": \"" << jsonEscape(pathString(g_mpOverlayPackageZipPath)) << "\",\n";
+    json << "  \"mp_overlay_package_state\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.state) << "\",\n";
+    json << "  \"mp_overlay_package_reason\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.reason) << "\",\n";
+    json << "  \"mp_overlay_package_path\": \"" << jsonEscape(pathString(companionSnapshot.mpOverlayPackage.path)) << "\",\n";
+    json << "  \"mp_overlay_package_campaign_id\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.campaignId) << "\",\n";
+    json << "  \"mp_overlay_package_overlay_version\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.overlayVersion) << "\",\n";
+    json << "  \"mp_overlay_package_game_version\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.gameVersion) << "\",\n";
+    json << "  \"mp_overlay_package_mod_version\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.strategicNexusModVersion) << "\",\n";
+    json << "  \"mp_overlay_package_handoff_status\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.handoffStatus) << "\",\n";
+    json << "  \"mp_overlay_package_readiness\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.readiness) << "\",\n";
+    json << "  \"mp_overlay_package_host_readiness\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.hostReadiness) << "\",\n";
+    json << "  \"mp_overlay_package_client_readiness_gate\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.clientReadinessGate) << "\",\n";
+    json << "  \"mp_overlay_package_host_next_step\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.hostNextStep) << "\",\n";
+    json << "  \"mp_overlay_package_client_next_step\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.clientNextStep) << "\",\n";
+    json << "  \"mp_overlay_package_manifest_hash\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageManifestHash) << "\",\n";
+    json << "  \"mp_overlay_package_verify_command\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.verifyCommand) << "\",\n";
+    json << "  \"mp_overlay_package_import_command\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.importCommand) << "\",\n";
+    json << "  \"mp_overlay_package_strict_verify_command\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.strictVerifyCommand) << "\",\n";
+    json << "  \"mp_overlay_package_strict_import_command\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.strictImportCommand) << "\",\n";
+    json << "  \"mp_overlay_package_warning_count\": " << companionSnapshot.mpOverlayPackage.warningCount << ",\n";
+    json << "  \"mp_overlay_package_warning_codes\": ";
+    writeStringArrayJson(json, companionSnapshot.mpOverlayPackage.warningCodes);
+    json << ",\n";
+    json << "  \"mp_overlay_package_identity_mismatch_warning\": "
+         << (companionSnapshot.mpOverlayPackage.identityMismatchWarning ? "true" : "false") << ",\n";
+    json << "  \"mp_overlay_package_identity_mismatch_warning_codes\": ";
+    writeStringArrayJson(json, companionSnapshot.mpOverlayPackage.identityMismatchWarningCodes);
+    json << ",\n";
+    json << "  \"mp_overlay_package_mismatch_warning_state\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.mismatchWarningState) << "\",\n";
+    json << "  \"mp_overlay_package_mismatch_warning_reason\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.mismatchWarningReason) << "\",\n";
+    json << "  \"mp_overlay_package_mismatch_warning_codes\": ";
+    writeStringArrayJson(json, companionSnapshot.mpOverlayPackage.mismatchWarningCodes);
+    json << ",\n";
+    json << "  \"mp_overlay_package_identity_mismatch_alert\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.identityMismatchAlert) << "\",\n";
+    json << "  \"mp_overlay_package_zip_state\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageZipState) << "\",\n";
+    json << "  \"mp_overlay_package_zip_reason\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageZipReason) << "\",\n";
+    json << "  \"mp_overlay_package_zip_runtime_path\": \"" << jsonEscape(pathString(companionSnapshot.mpOverlayPackage.packageZipPath)) << "\",\n";
+    json << "  \"mp_overlay_package_zip_bytes\": " << companionSnapshot.mpOverlayPackage.packageZipBytes << ",\n";
     json << "  \"status_center_state\": \"" << jsonEscape(state) << "\",\n";
     json << "  \"status_center_reason\": \"" << jsonEscape(reason) << "\",\n";
     json << "  \"status_center_summary_text\": \"" << jsonEscape(statusCenterSummaryText) << "\",\n";
@@ -922,6 +1175,8 @@ void workerLoop(HWND hwnd)
     bool lastGeneratedOverlayManifestVerified = false;
     bool lastGeneratedOverlayPublishAllowed = false;
     std::string lastGeneratedOverlayManifestHash;
+    std::string lastMpPackageRefreshState = "not_attempted";
+    std::string lastMpPackageRefreshReason = "waiting_for_stellaris_session";
 
     writeStatus(
         hwnd,
@@ -979,6 +1234,8 @@ void workerLoop(HWND hwnd)
             lastGeneratedOverlayManifestVerified = false;
             lastGeneratedOverlayPublishAllowed = false;
             lastGeneratedOverlayManifestHash.clear();
+            lastMpPackageRefreshState = "not_attempted";
+            lastMpPackageRefreshReason = "waiting_for_staged_overlay";
             writeStatus(
                 hwnd,
                 "capturing",
@@ -1076,6 +1333,42 @@ void workerLoop(HWND hwnd)
                 strategic_nexus::common::writeTextFileAtomically(
                     g_generatedOverlayStagingStatusPath,
                     strategic_nexus::serializeSncGeneratedOverlayStagingStatus(generatedOverlayStagingStatus));
+            lastMpPackageRefreshState = "not_attempted";
+            lastMpPackageRefreshReason = "waiting_for_staged_overlay";
+            if (generatedOverlayStagingStatus.ok) {
+                const std::string effectiveCampaignId =
+                    (!candidateDecisionPackage.candidateDecisions.empty())
+                        ? safeIdentifier(candidateDecisionPackage.candidateDecisions.front().campaignKey, "campaign")
+                        : std::string();
+                if (effectiveCampaignId.empty()) {
+                    lastMpPackageRefreshState = "blocked";
+                    lastMpPackageRefreshReason = "missing_campaign_identity_for_mp_package_export";
+                } else {
+                    const strategic_nexus::generated_overlay::MpOverlayPackageExporter mpExporter;
+                    const auto mpExportResult = mpExporter.exportPackage(
+                        g_generatedOverlayStagingDirectory,
+                        effectiveCampaignId,
+                        kTrayMpOverlayVersion,
+                        kTrayMpGameVersion,
+                        kTrayMpModVersion,
+                        g_mpOverlayPackageDirectory,
+                        false);
+                    if (!mpExportResult.ok) {
+                        lastMpPackageRefreshState = "failed";
+                        lastMpPackageRefreshReason = "mp_package_export_failed: " + mpExportResult.reason;
+                    } else {
+                        std::error_code zipError;
+                        if (std::filesystem::exists(g_mpOverlayPackageZipPath, zipError)) {
+                            std::filesystem::remove(g_mpOverlayPackageZipPath, zipError);
+                        }
+                        lastMpPackageRefreshState = "ready";
+                        lastMpPackageRefreshReason = "mp_package_exported_from_staged_overlay";
+                    }
+                }
+            } else if (dslDraftWritten) {
+                lastMpPackageRefreshState = "blocked";
+                lastMpPackageRefreshReason = "generated_overlay_staging_not_verified";
+            }
             postPlayState = "blocked_by_archive_verification";
             lastEntryPointAnalysisPath.clear();
             lastEntryPointCount = entryPointAnalysis.entryPointCount;
@@ -1229,7 +1522,9 @@ void workerLoop(HWND hwnd)
                 lastGeneratedOverlayStagingRuleCount,
                 lastGeneratedOverlayManifestVerified,
                 lastGeneratedOverlayPublishAllowed,
-                lastGeneratedOverlayManifestHash);
+                lastGeneratedOverlayManifestHash,
+                lastMpPackageRefreshState,
+                lastMpPackageRefreshReason);
         } else {
             writeStatus(
                 hwnd,
@@ -1274,7 +1569,9 @@ void workerLoop(HWND hwnd)
                 lastGeneratedOverlayStagingRuleCount,
                 lastGeneratedOverlayManifestVerified,
                 lastGeneratedOverlayPublishAllowed,
-                lastGeneratedOverlayManifestHash);
+                lastGeneratedOverlayManifestHash,
+                lastMpPackageRefreshState,
+                lastMpPackageRefreshReason);
         }
 
         wasRunning = running;
@@ -1324,7 +1621,9 @@ void workerLoop(HWND hwnd)
         lastGeneratedOverlayStagingRuleCount,
         lastGeneratedOverlayManifestVerified,
         lastGeneratedOverlayPublishAllowed,
-        lastGeneratedOverlayManifestHash);
+        lastGeneratedOverlayManifestHash,
+        lastMpPackageRefreshState,
+        lastMpPackageRefreshReason);
 }
 
 bool addTrayIcon(HWND hwnd)
@@ -1547,6 +1846,8 @@ void initializePaths()
     g_generatedOverlayActiveDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_active";
     g_generatedOverlayPublishStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_publish_status.json";
     g_generatedOverlayPublishBackupRootDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_backups";
+    g_mpOverlayPackageDirectory = g_repoRoot / "dist" / "private_reports" / "snc_mp_overlay_package";
+    g_mpOverlayPackageZipPath = g_repoRoot / "dist" / "private_reports" / "snc_mp_overlay_package.zip";
 }
 
 } // namespace
