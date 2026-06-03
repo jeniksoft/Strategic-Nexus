@@ -54,6 +54,23 @@ std::string invalidDsl()
         "}\n";
 }
 
+std::string unsupportedRuntimeConditionDsl()
+{
+    return
+        "campaign \"campaign_001\" {\n"
+        "  empire \"country_0\" {\n"
+        "    rule \"entry_unsupported\" {\n"
+        "      ministry = military_ministry\n"
+        "      when personality.paranoia >= medium\n"
+        "      prefer doctrine_inertia high intensity 0.8\n"
+        "      duration = next_session\n"
+        "      confidence = 0.25\n"
+        "      rationale = \"Unsupported runtime condition test.\"\n"
+        "    }\n"
+        "  }\n"
+        "}\n";
+}
+
 } // namespace
 
 int main()
@@ -61,12 +78,16 @@ int main()
     const std::filesystem::path root = std::filesystem::path("dist") / "snc_generated_overlay_stager_test";
     const std::filesystem::path dslPath = root / "input.dsl";
     const std::filesystem::path invalidDslPath = root / "invalid.dsl";
+    const std::filesystem::path unsupportedDslPath = root / "unsupported.dsl";
     const std::filesystem::path stagedRoot = root / "staged";
 
     std::error_code cleanupError;
     std::filesystem::remove_all(root, cleanupError);
     requireCondition(strategic_nexus::common::writeTextFileAtomically(dslPath, validDsl()), "valid DSL fixture should write");
     requireCondition(strategic_nexus::common::writeTextFileAtomically(invalidDslPath, invalidDsl()), "invalid DSL fixture should write");
+    requireCondition(
+        strategic_nexus::common::writeTextFileAtomically(unsupportedDslPath, unsupportedRuntimeConditionDsl()),
+        "unsupported DSL fixture should write");
     requireCondition(strategic_nexus::common::writeTextFileAtomically(stagedRoot / "stale.txt", "stale"), "stale staging file should write");
 
     const strategic_nexus::SncGeneratedOverlayStager stager;
@@ -101,6 +122,14 @@ int main()
     requireCondition(!invalidStatus.publishesOverlay, "invalid staging must not publish overlay");
     requireCondition(!invalidStatus.validatorPassed, "invalid DSL should fail validator");
     requireCondition(!invalidStatus.validationErrors.empty(), "invalid DSL should expose validation errors");
+
+    const auto unsupportedStatus = stager.stage(unsupportedDslPath, root / "unsupported_staged");
+    requireCondition(!unsupportedStatus.ok, "unsupported runtime conditions should fail closed");
+    requireCondition(unsupportedStatus.validatorPassed, "unsupported runtime conditions should still pass DSL validation");
+    requireCondition(!unsupportedStatus.validationErrors.empty(), "unsupported runtime conditions should expose gating errors");
+    requireCondition(
+        unsupportedStatus.reason == "generated overlay runtime conditions are not safely enforceable yet",
+        "unsupported runtime conditions should expose fail-safe reason");
 
     std::cout << "SNC generated overlay stager tests passed.\n";
     return 0;

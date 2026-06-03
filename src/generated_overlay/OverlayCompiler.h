@@ -12,5 +12,7 @@ public:
     GeneratedOverlayFiles compile(const DslProgram& program) const;
 };
 
+std::vector<std::string> findUnsupportedRuntimeConditionErrors(const DslProgram& program);
+
 } // namespace strategic_nexus::generated_overlay
 

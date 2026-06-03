@@ -34,9 +34,60 @@ std::string ruleSymbol(const DslRule& rule)
     return symbol(rule.campaignId + "_" + rule.empireId + "_" + rule.ruleId);
 }
 
+bool isSafeConditionValue(const std::string& value)
+{
+    if (value.empty()) {
+        return false;
+    }
+
+    return std::all_of(value.begin(), value.end(), [](const char ch) {
+        return std::isalnum(static_cast<unsigned char>(ch)) || ch == '_' || ch == '-';
+    });
+}
+
+bool isSupportedKnownCondition(const DslCondition& condition)
+{
+    return condition.op == "=" &&
+        (condition.source == "known.save_fingerprint" ||
+         condition.source == "known.save_date" ||
+         condition.source == "known.rule_scope") &&
+        isSafeConditionValue(condition.value);
+}
+
+bool isSupportedCampaignMarkerCondition(const DslCondition& condition)
+{
+    return condition.source == "campaign_marker" &&
+        (condition.op.empty() || (condition.op == "=" && isSafeConditionValue(condition.value)));
+}
+
+bool isSupportedRuntimeCondition(const DslCondition& condition)
+{
+    return isSupportedCampaignMarkerCondition(condition) || isSupportedKnownCondition(condition);
+}
+
+std::string runtimeConditionError(const DslRule& rule, const DslCondition& condition)
+{
+    std::ostringstream output;
+    output << rule.ruleId << ": runtime compiler does not support condition " << condition.source;
+    if (!condition.op.empty()) {
+        output << " " << condition.op;
+    }
+    if (!condition.value.empty()) {
+        output << " " << condition.value;
+    }
+    return output.str();
+}
+
 std::string flagForPreference(const DslPreference& preference)
 {
     return "strategic_nexus_pref_" + symbol(preference.domain) + "_" + symbol(preference.value);
+}
+
+std::string flagForKnownCondition(const DslCondition& condition)
+{
+    const auto dot = condition.source.find('.');
+    const std::string tail = dot == std::string::npos ? condition.source : condition.source.substr(dot + 1);
+    return "strategic_nexus_known_" + symbol(tail + "_" + condition.value);
 }
 
 std::string jsonEscape(const std::string_view value)
@@ -150,12 +201,29 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
         const std::string name = ruleSymbol(rule);
         const std::string triggerName = "strategic_nexus_generated_trigger_" + name;
         const std::string effectName = "strategic_nexus_generated_effect_" + name;
-        const std::string campaignFlag = "strategic_nexus_campaign_" + symbol(rule.campaignId);
+        std::string campaignMarkerValue = rule.campaignId;
+        for (const auto& condition : rule.conditions) {
+            if (condition.source == "campaign_marker" &&
+                condition.op == "=" &&
+                !condition.value.empty()) {
+                campaignMarkerValue = condition.value;
+                break;
+            }
+        }
+        const std::string campaignFlag = "strategic_nexus_campaign_" + symbol(campaignMarkerValue);
         const std::string empireFlag = "strategic_nexus_empire_" + symbol(rule.empireId);
 
         triggers << triggerName << " = {\n";
         triggers << "    has_global_flag = " << campaignFlag << "\n";
         triggers << "    has_country_flag = " << empireFlag << "\n";
+        for (const auto& condition : rule.conditions) {
+            if (condition.source == "campaign_marker") {
+                continue;
+            }
+            if (isSupportedKnownCondition(condition)) {
+                triggers << "    has_global_flag = " << flagForKnownCondition(condition) << "\n";
+            }
+        }
         triggers << "}\n\n";
 
         effects << effectName << " = {\n";
@@ -186,6 +254,19 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
         });
 
     return files;
+}
+
+std::vector<std::string> findUnsupportedRuntimeConditionErrors(const DslProgram& program)
+{
+    std::vector<std::string> errors;
+    for (const auto& rule : program.rules) {
+        for (const auto& condition : rule.conditions) {
+            if (!isSupportedRuntimeCondition(condition)) {
+                errors.push_back(runtimeConditionError(rule, condition));
+            }
+        }
+    }
+    return errors;
 }
 
 } // namespace strategic_nexus::generated_overlay

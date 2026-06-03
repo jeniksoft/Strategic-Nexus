@@ -34,13 +34,15 @@ std::string validDsl()
   empire "empire_001" {
     rule "border_war_defense" {
       ministry = military_ministry
-      when personality.paranoia >= medium
-      when memory.repeated_border_war
+      when campaign_marker = campaign_001
+      when known.save_fingerprint = h_abcdef123456
+      when known.save_date = d_2200_03_01
+      when known.rule_scope = entry_scope_alpha
       prefer military_posture defensive intensity 0.7
       prefer doctrine_inertia high intensity 0.4
       duration = next_session
       confidence = 0.72
-      rationale = "Repeated border wars reinforced defensive paranoia."
+      rationale = "Bounded entry-point gating should survive compile."
     }
   }
 }
@@ -87,6 +89,15 @@ int main()
             files.scriptedTriggersText.find("strategic_nexus_generated_trigger_campaign_001_empire_001_border_war_defense") != std::string::npos,
             "compiler should emit marker-guarded trigger");
         requireCondition(
+            files.scriptedTriggersText.find("has_global_flag = strategic_nexus_known_save_fingerprint_h_abcdef123456") != std::string::npos,
+            "compiler should preserve known.save_fingerprint guard");
+        requireCondition(
+            files.scriptedTriggersText.find("has_global_flag = strategic_nexus_known_save_date_d_2200_03_01") != std::string::npos,
+            "compiler should preserve known.save_date guard");
+        requireCondition(
+            files.scriptedTriggersText.find("has_global_flag = strategic_nexus_known_rule_scope_entry_scope_alpha") != std::string::npos,
+            "compiler should preserve known.rule_scope guard");
+        requireCondition(
             files.scriptedEffectsText.find("set_country_flag = strategic_nexus_pref_military_posture_defensive") != std::string::npos,
             "compiler should emit allowlisted preference flag");
         requireCondition(
@@ -110,6 +121,18 @@ int main()
         const auto parseResult = parser.parse(std::string("\xEF\xBB\xBF") + validDsl());
         requireCondition(parseResult.ok, "valid DSL with UTF-8 BOM should parse");
         requireCondition(parseResult.program.rules.size() == 1, "BOM should not create an extra token");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "unsupported_runtime_condition" { ministry = military_ministry when personality.paranoia >= medium prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.9 rationale = "bad" } } })");
+        requireCondition(parseResult.ok, "unsupported runtime condition DSL should still parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(validation.ok, "unsupported runtime condition should remain syntactically valid");
+        const auto runtimeErrors = strategic_nexus::generated_overlay::findUnsupportedRuntimeConditionErrors(parseResult.program);
+        requireCondition(runtimeErrors.size() == 1, "unsupported runtime condition should be surfaced before compile");
+        requireCondition(
+            runtimeErrors.front().find("personality.paranoia") != std::string::npos,
+            "runtime unsupported error should name the condition");
     }
 
     {

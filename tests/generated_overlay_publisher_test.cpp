@@ -37,11 +37,14 @@ std::string validDsl()
   empire "empire_publish" {
     rule "published_defense" {
       ministry = military_ministry
-      when personality.paranoia >= medium
+      when campaign_marker = campaign_publish
+      when known.save_fingerprint = h_publishabcdef
+      when known.save_date = d_2200_03_01
+      when known.rule_scope = entry_scope_publish
       prefer military_posture defensive intensity 0.6
       duration = next_session
       confidence = 0.75
-      rationale = "Publishing fixture."
+      rationale = "Bounded entry-point gating should survive publish."
     }
   }
 }

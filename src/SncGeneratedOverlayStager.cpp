@@ -177,6 +177,14 @@ SncGeneratedOverlayStagingStatus SncGeneratedOverlayStager::stage(
         return status;
     }
 
+    const auto runtimeConditionErrors = generated_overlay::findUnsupportedRuntimeConditionErrors(parseResult.program);
+    if (!runtimeConditionErrors.empty()) {
+        status.reason = "generated overlay runtime conditions are not safely enforceable yet";
+        status.validationErrors = runtimeConditionErrors;
+        addWarning(status, "snc_generated_overlay_staging_runtime_conditions_unsupported");
+        return status;
+    }
+
     std::string prepareReason;
     if (!prepareCleanDirectory(stagedOverlayDirectory, prepareReason)) {
         status.reason = prepareReason;

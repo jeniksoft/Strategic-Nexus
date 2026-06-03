@@ -28,12 +28,14 @@ std::string validDsl()
   empire "empire_alpha" {
     rule "border_defense" {
       ministry = military_ministry
-      when personality.paranoia >= medium
-      when memory.repeated_border_war
+      when campaign_marker = campaign_mp_001
+      when known.save_fingerprint = h_mpabcdef1234
+      when known.save_date = d_2200_03_01
+      when known.rule_scope = entry_scope_mp_alpha
       prefer military_posture defensive intensity 0.7
       duration = next_session
       confidence = 0.72
-      rationale = "Border threat memory."
+      rationale = "Bounded entry-point gating should survive MP export."
     }
   }
 }

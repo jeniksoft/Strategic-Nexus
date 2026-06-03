@@ -1080,6 +1080,17 @@ int Application::run(const RunConfig& config) const
                 return 1;
             }
 
+            const auto runtimeConditionErrors =
+                generated_overlay::findUnsupportedRuntimeConditionErrors(parseResult.program);
+            if (!runtimeConditionErrors.empty()) {
+                std::cout << "generated_overlay_success=false\n";
+                std::cout << "generated_overlay_reason=runtime conditions unsupported\n";
+                for (const auto& error : runtimeConditionErrors) {
+                    std::cout << "generated_overlay_error=" << sanitizeCliValue(error) << "\n";
+                }
+                return 1;
+            }
+
             const generated_overlay::OverlayCompiler compiler;
             const auto files = compiler.compile(parseResult.program);
             {
@@ -1999,6 +2010,17 @@ int Application::run(const RunConfig& config) const
                 return 1;
             }
 
+            const auto runtimeConditionErrors =
+                generated_overlay::findUnsupportedRuntimeConditionErrors(parseResult.program);
+            if (!runtimeConditionErrors.empty()) {
+                std::cout << "offline_spine_success=false\n";
+                std::cout << "offline_spine_reason=runtime conditions unsupported\n";
+                for (const auto& error : runtimeConditionErrors) {
+                    std::cout << "offline_spine_error=" << sanitizeCliValue(error) << "\n";
+                }
+                return 1;
+            }
+
             const generated_overlay::OverlayCompiler compiler;
             const auto files = compiler.compile(parseResult.program);
             const bool eventsWritten = common::writeTextFileAtomically(
@@ -2496,6 +2518,17 @@ int Application::run(const RunConfig& config) const
                 std::cout << "campaign_library_overlay_success=false\n";
                 std::cout << "campaign_library_overlay_reason=validation failed\n";
                 for (const auto& error : validation.errors) {
+                    std::cout << "campaign_library_overlay_error=" << sanitizeCliValue(error) << "\n";
+                }
+                return 1;
+            }
+
+            const auto runtimeConditionErrors =
+                generated_overlay::findUnsupportedRuntimeConditionErrors(filteredProgram);
+            if (!runtimeConditionErrors.empty()) {
+                std::cout << "campaign_library_overlay_success=false\n";
+                std::cout << "campaign_library_overlay_reason=runtime conditions unsupported\n";
+                for (const auto& error : runtimeConditionErrors) {
                     std::cout << "campaign_library_overlay_error=" << sanitizeCliValue(error) << "\n";
                 }
                 return 1;
