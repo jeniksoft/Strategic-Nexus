@@ -46,8 +46,34 @@ Codex may install or configure:
 * build tools
 * Git/GitHub utilities
 * local developer support tools
+* Codex plugins, connectors, and skills
 
 when they are materially useful for the project.
+
+---
+
+# Plugin And Skill Autonomy Rule
+
+Codex may install Codex plugins, connectors, and skills without asking for separate approval when there is a clear practical benefit for the current or near-future Strategic Nexus work.
+
+Examples of sufficient benefit:
+
+* better data analysis or dashboarding
+* safer GitHub, CI, PR, or issue work
+* better document, spreadsheet, or presentation generation
+* better local UI/browser verification
+* better project memory, workflow, or automation support
+* reduced manual owner friction
+
+The owner should be notified briefly after installation:
+
+```text
+Installed X because it helps with Y.
+```
+
+Codex should not install every available plugin by default.
+
+Install when the tool has a concrete use, not merely because it exists.
 
 ---
 
