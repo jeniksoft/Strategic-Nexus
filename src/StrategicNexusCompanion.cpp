@@ -1281,17 +1281,36 @@ void populateCampaignLibraryPlanStatus(
             return false;
         }
 
+        status.campaignLibraryPlanPath = planPath;
+        status.campaignLibraryPlanPresent = true;
+        status.campaignLibraryPlanSource = source;
+
         std::string json;
         if (!common::tryReadTextFile(planPath, json)) {
+            status.campaignLibraryPlanReadiness = "needs_attention";
+            status.campaignLibraryPlanReason = "campaign library plan unreadable";
             return false;
         }
 
-        status.campaignLibraryPlanPath = planPath;
-        status.campaignLibraryPlanPresent = true;
-        status.campaignLibraryLimitReached = extractJsonBool(json, "limit_reached").value_or(false);
+        const auto schemaVersion = extractJsonSize(json, "schema_version").value_or(0);
+        if (schemaVersion != 1) {
+            status.campaignLibraryPlanReadiness = "needs_attention";
+            status.campaignLibraryPlanReason = "campaign library plan schema unsupported";
+            return false;
+        }
+
+        const auto limitReached = extractJsonBool(json, "limit_reached");
+        if (!limitReached.has_value()) {
+            status.campaignLibraryPlanReadiness = "needs_attention";
+            status.campaignLibraryPlanReason = "campaign library plan missing limit_reached";
+            return false;
+        }
+
+        status.campaignLibraryPlanReadiness = "ready";
+        status.campaignLibraryPlanReason = "campaign library plan loaded";
+        status.campaignLibraryLimitReached = *limitReached;
         status.campaignLibrarySkippedDueToLimitCount =
             extractJsonSize(json, "skipped_due_to_limit_count").value_or(0);
-        status.campaignLibraryPlanSource = source;
         return true;
     };
 
@@ -1430,6 +1449,13 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
     }
 
     populateCampaignLibraryPlanStatus(status, config);
+    if (status.campaignLibraryPlanPresent && status.campaignLibraryPlanReadiness == "needs_attention") {
+        status.state = "needs_attention";
+        status.reason = status.campaignLibraryPlanReason.empty()
+            ? "campaign library plan needs attention"
+            : status.campaignLibraryPlanReason;
+        return status;
+    }
 
     const bool postPlayReadyLike = postPlayAvailable && isReadyLikeReadiness(status.postPlayPackageReadiness);
     const bool decisionInputReadyLike =
@@ -1758,11 +1784,15 @@ std::string buildStatusCenterSummaryText(
     if (postPlayPipeline.campaignLibraryPlanPresent) {
         text << "campaign_library_plan_path: " << pathString(postPlayPipeline.campaignLibraryPlanPath) << "\n";
         text << "campaign_library_plan_source: " << postPlayPipeline.campaignLibraryPlanSource << "\n";
+        text << "campaign_library_plan_readiness: " << postPlayPipeline.campaignLibraryPlanReadiness << "\n";
+        text << "campaign_library_plan_reason: " << postPlayPipeline.campaignLibraryPlanReason << "\n";
         text << "campaign_library_limit_reached: "
              << (postPlayPipeline.campaignLibraryLimitReached ? "true" : "false") << "\n";
         text << "campaign_library_skipped_due_to_limit_count: "
              << postPlayPipeline.campaignLibrarySkippedDueToLimitCount << "\n";
-        if (postPlayPipeline.campaignLibraryLimitReached) {
+        if (postPlayPipeline.campaignLibraryPlanReadiness == "needs_attention") {
+            text << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
+        } else if (postPlayPipeline.campaignLibraryLimitReached) {
             text << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
         } else {
             text << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
@@ -2202,6 +2232,10 @@ void writePostPlayPipelineJson(
            << status.campaignLibrarySkippedDueToLimitCount << ",\n";
     output << indent << "  \"campaign_library_plan_source\": "
            << jsonString(status.campaignLibraryPlanSource) << ",\n";
+    output << indent << "  \"campaign_library_plan_readiness\": "
+           << jsonString(status.campaignLibraryPlanReadiness) << ",\n";
+    output << indent << "  \"campaign_library_plan_reason\": "
+           << jsonString(status.campaignLibraryPlanReason) << ",\n";
     output << indent << "  \"post_play_campaign_summaries\": [";
     for (std::size_t index = 0; index < status.postPlayCampaignReadinessSummaries.size(); ++index) {
         if (index > 0) {

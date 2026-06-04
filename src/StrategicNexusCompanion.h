@@ -192,6 +192,8 @@ struct CompanionPostPlayPipelineStatus {
     bool campaignLibraryLimitReached = false;
     std::size_t campaignLibrarySkippedDueToLimitCount = 0;
     std::string campaignLibraryPlanSource;
+    std::string campaignLibraryPlanReadiness;
+    std::string campaignLibraryPlanReason;
 };
 
 struct CompanionLifecycleStatus {

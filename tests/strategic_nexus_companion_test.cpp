@@ -1303,6 +1303,63 @@ int main()
         stagedPublishJson.find("\"campaign_library_skipped_due_to_limit_count\": 2") != std::string::npos,
         "staged publish JSON should include skipped campaign count");
 
+    writeTextFileAtomically(
+        root / "strategic_nexus_campaign_library_plan.json",
+        "{\n"
+        "  \"schema_version\": 2,\n"
+        "  \"limit_reached\": true,\n"
+        "  \"skipped_due_to_limit_count\": 3,\n"
+        "  \"campaigns\": []\n"
+        "}\n");
+    const auto invalidCampaignLibraryPlan = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        activeOverlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport,
+        stagedOverlayStatusPath,
+        activeOverlayRoot,
+        publishStatusPath,
+        publishBackupRoot,
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        dslDraftAuditPath,
+        stagedOverlayStatusPath
+    });
+    requireCondition(
+        invalidCampaignLibraryPlan.postPlayPipeline.state == "needs_attention",
+        "invalid campaign library plan should fail closed");
+    requireCondition(
+        invalidCampaignLibraryPlan.postPlayPipeline.reason == "campaign library plan schema unsupported",
+        "invalid campaign library plan should expose schema guard reason");
+    requireCondition(
+        invalidCampaignLibraryPlan.statusCenter.state == "attention_required",
+        "status center should surface invalid campaign library plan");
+    requireCondition(
+        invalidCampaignLibraryPlan.statusCenter.reason == "post-play pipeline needs attention",
+        "status center should attribute invalid campaign library plan to post-play pipeline");
+    requireCondition(
+        invalidCampaignLibraryPlan.statusCenterSummaryText.find(
+            "campaign_library_plan_reason: campaign library plan schema unsupported") != std::string::npos,
+        "status center summary should expose invalid campaign library plan reason");
+    writeTextFileAtomically(
+        root / "strategic_nexus_campaign_library_plan.json",
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"save_root_available\": true,\n"
+        "  \"limit_reached\": true,\n"
+        "  \"max_included_campaigns\": 1,\n"
+        "  \"included_count\": 1,\n"
+        "  \"skipped_count\": 2,\n"
+        "  \"skipped_due_to_limit_count\": 2,\n"
+        "  \"campaigns\": []\n"
+        "}\n");
+
     const auto publishedJson = strategic_nexus::serializeCompanionStatusSnapshot(publishedSnapshot);
     requireCondition(
         publishedJson.find("\"published\": true") != std::string::npos,

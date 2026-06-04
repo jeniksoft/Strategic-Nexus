@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T15:11:00+02:00",
+  "updated_at": "2026-06-04T19:55:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md after shipped 6A continuity/fail-safe slices and active-library saturation contract visibility; next derive owner-visible SNC readiness from the bounded campaign-library plan contract.",
+  "current_source": "DEVELOPMENT_ROADMAP.md after shipped 6A campaign-library saturation readiness plus sidecar fail-closed guard; next surface explicit campaign-library plan fields in snc-status CLI/output contracts so automation consumers do not need summary-text parsing.",
   "chunks": [
     {
       "id": "v0-sprint-001-release-companion-package-state",
@@ -448,6 +448,25 @@
       ],
       "dependencies": [
         "v0-sprint-021-campaign-library-limit-state-surface"
+      ]
+    },
+    {
+      "id": "v0-sprint-024-snc-campaign-library-cli-surface",
+      "title": "Expose campaign-library plan fields in SNC CLI",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Generated Campaign Library Maintenance / Core Runtime Skeleton",
+      "goal": "Emit explicit campaign-library sidecar path/readiness/saturation fields from SNC status CLI surfaces so automation and release-companion flows do not need to parse summary text blobs.",
+      "acceptance": [
+        "--snc-status-snapshot stdout exposes campaign-library plan path, readiness, reason, limit_reached, skipped_due_to_limit_count, and source fields when the sidecar exists.",
+        "Invalid or unsupported sidecar state is surfaced explicitly in the same CLI contract.",
+        "Relevant SNC or v0 pipeline tests cover the new CLI/status fields."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-023-snc-campaign-library-limit-visibility"
       ]
     }
   ]
