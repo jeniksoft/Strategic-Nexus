@@ -1289,13 +1289,19 @@ function Invoke-StellarisProcessDetectionCase {
 function Invoke-SncStatusSnapshotCase {
     $archiveRoot = Join-Path $repoRoot "dist/snc_status_archive"
     $overlayRoot = Join-Path $repoRoot "dist/snc_status_overlay"
+    $postPlayStatusRoot = Join-Path $repoRoot "dist/snc_status_post_play"
     $outputPath = Join-Path $repoRoot "dist/snc_status_snapshot.json"
+    $stagingStatusPath = Join-Path $postPlayStatusRoot "generated_overlay_staging_status.json"
+    $campaignLibraryPlanPath = Join-Path $postPlayStatusRoot "strategic_nexus_campaign_library_plan.json"
+    $campaignLibraryPlanCliPath = $campaignLibraryPlanPath -replace '\\','/'
     Remove-Item -LiteralPath $archiveRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $overlayRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $postPlayStatusRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $outputPath -Force -ErrorAction SilentlyContinue
 
     New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
     New-Item -ItemType Directory -Force -Path $overlayRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $postPlayStatusRoot | Out-Null
 
     $compileOutput = & $exePath `
         --compile-generated-overlay `
@@ -1306,13 +1312,28 @@ function Invoke-SncStatusSnapshotCase {
         throw "snc_status_snapshot overlay compile failed. Actual output:`n$compileText"
     }
 
+    @'
+{
+  "schema_version": 1,
+  "save_root_available": true,
+  "limit_reached": true,
+  "max_included_campaigns": 1,
+  "included_count": 1,
+  "skipped_count": 2,
+  "skipped_due_to_limit_count": 2,
+  "campaigns": []
+}
+'@ | Set-Content -LiteralPath $campaignLibraryPlanPath -Encoding ascii
+
     $sncOutput = & $exePath `
         --snc-status-snapshot `
         $archiveRoot `
         $overlayRoot `
         $outputPath `
         true `
-        false
+        false `
+        false `
+        $stagingStatusPath
     $sncExitCode = $LASTEXITCODE
     $sncText = $sncOutput -join "`n"
 
@@ -1326,9 +1347,16 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_state=ready"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_manifest_hash="
-    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_publish_gate_state=ready"
-    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_publish_gate_reason=Stellaris is not running; generated overlay publish allowed"
-    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=starting"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_publish_gate_state=needs_setup"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_publish_gate_reason=generated overlay publish status path not configured"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_plan_present=true"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_plan_path=$campaignLibraryPlanCliPath"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_plan_source=staging_status_directory"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_plan_readiness=ready"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_plan_reason=campaign library plan loaded"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_limit_reached=true"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_skipped_due_to_limit_count=2"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=attention_required"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_output_written=true"
 
     $snapshotJson = Get-Content -Raw -LiteralPath $outputPath
@@ -1338,7 +1366,40 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"window_close_behavior": "minimize_to_tray"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"manifest_hash": "'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"generated_overlay_publish_gate_status":'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_plan_readiness": "ready"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_skipped_due_to_limit_count": 2'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"status_center":'
+
+    @'
+{
+  "schema_version": 2,
+  "limit_reached": true,
+  "skipped_due_to_limit_count": 3,
+  "campaigns": []
+}
+'@ | Set-Content -LiteralPath $campaignLibraryPlanPath -Encoding ascii
+
+    $invalidSncOutput = & $exePath `
+        --snc-status-snapshot `
+        $archiveRoot `
+        $overlayRoot `
+        $outputPath `
+        true `
+        false `
+        false `
+        $stagingStatusPath
+    $invalidSncExitCode = $LASTEXITCODE
+    $invalidSncText = $invalidSncOutput -join "`n"
+
+    if ($invalidSncExitCode -ne 0) {
+        throw "snc_status_snapshot app with invalid campaign-library sidecar failed unexpectedly. Actual output:`n$invalidSncText"
+    }
+
+    Assert-Contains -Name "snc_status_snapshot invalid app" -Text $invalidSncText -Expected "snc_campaign_library_plan_present=true"
+    Assert-Contains -Name "snc_status_snapshot invalid app" -Text $invalidSncText -Expected "snc_campaign_library_plan_readiness=needs_attention"
+    Assert-Contains -Name "snc_status_snapshot invalid app" -Text $invalidSncText -Expected "snc_campaign_library_plan_reason=campaign library plan schema unsupported"
+    Assert-Contains -Name "snc_status_snapshot invalid app" -Text $invalidSncText -Expected "snc_campaign_library_limit_reached=false"
+    Assert-Contains -Name "snc_status_snapshot invalid app" -Text $invalidSncText -Expected "snc_campaign_library_skipped_due_to_limit_count=0"
 
     Write-Host "[PASS] snc_status_snapshot"
 }

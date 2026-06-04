@@ -1655,6 +1655,8 @@ int Application::run(const RunConfig& config) const
             statusConfig.stellarisRunningOverride = config.sncStellarisRunningOverride;
             statusConfig.generatedOverlayStagingStatusPath =
                 config.sncGeneratedOverlayPublishStagingStatusPath;
+            statusConfig.postPlayGeneratedOverlayStagingStatusPath =
+                config.sncGeneratedOverlayPublishStagingStatusPath;
             statusConfig.generatedOverlayActiveDirectory =
                 config.sncGeneratedOverlayPublishActiveDirectory;
             statusConfig.generatedOverlayPublishStatusPath =
@@ -1817,6 +1819,20 @@ int Application::run(const RunConfig& config) const
                       << (snapshot.postPlayPipeline.generatedOverlayManifestVerified ? "true" : "false") << "\n";
             std::cout << "snc_generated_overlay_publish_allowed="
                       << (snapshot.postPlayPipeline.generatedOverlayPublishAllowed ? "true" : "false") << "\n";
+            std::cout << "snc_campaign_library_plan_present="
+                      << (snapshot.postPlayPipeline.campaignLibraryPlanPresent ? "true" : "false") << "\n";
+            std::cout << "snc_campaign_library_plan_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.campaignLibraryPlanPath)) << "\n";
+            std::cout << "snc_campaign_library_plan_source="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.campaignLibraryPlanSource) << "\n";
+            std::cout << "snc_campaign_library_plan_readiness="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.campaignLibraryPlanReadiness) << "\n";
+            std::cout << "snc_campaign_library_plan_reason="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.campaignLibraryPlanReason) << "\n";
+            std::cout << "snc_campaign_library_limit_reached="
+                      << (snapshot.postPlayPipeline.campaignLibraryLimitReached ? "true" : "false") << "\n";
+            std::cout << "snc_campaign_library_skipped_due_to_limit_count="
+                      << snapshot.postPlayPipeline.campaignLibrarySkippedDueToLimitCount << "\n";
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
             std::cout << "snc_gameplay_acceptance_path=" << sanitizeCliValue(stdoutPath(snapshot.gameplayAcceptance.path)) << "\n";
