@@ -435,6 +435,7 @@ The same save history may produce different memories and personality drift for d
 
 Current progress:
 The existing v0 ministry input context is now the minimal empire-scoped schema slice in production code: it carries `schema_version`, `campaign_id`, `empire_id`, ministry, bounded facts, and uncertainties, and the reader fails closed when required identity fields are missing so cross-empire/identity-free context does not silently pass as trusted input.
+The v0 pipeline test suite now also runs a two-empire same-campaign regression that proves decision/audit outputs preserve distinct `empire_id` routing per context and that missing identity still fails closed before any decision file is written.
 
 ---
 
