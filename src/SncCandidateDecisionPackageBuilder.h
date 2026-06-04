@@ -11,12 +11,6 @@
 
 namespace strategic_nexus {
 
-struct SncDecisionInputPackageReadResult {
-    bool ok = false;
-    std::string reason;
-    SncDecisionInputPackage package;
-};
-
 struct SncCandidateDecision {
     std::string candidateDecisionId;
     std::string decisionInputId;
@@ -75,6 +69,12 @@ struct SncCandidateDecisionPackage {
     std::vector<SncBlockedDecisionInput> blockedSourceEntries;
 };
 
+struct SncCandidateDecisionPackageReadResult {
+    bool ok = false;
+    std::string reason;
+    SncCandidateDecisionPackage package;
+};
+
 class SncCandidateDecisionPackageBuilder {
 public:
     SncCandidateDecisionPackage build(
@@ -82,7 +82,7 @@ public:
         const std::filesystem::path& sourceDecisionInputPackagePath = std::filesystem::path()) const;
 };
 
-SncDecisionInputPackageReadResult parseSncDecisionInputPackageJson(const std::string& json);
+SncCandidateDecisionPackageReadResult parseSncCandidateDecisionPackageJson(const std::string& json);
 std::string serializeSncCandidateDecisionPackage(const SncCandidateDecisionPackage& package);
 
 } // namespace strategic_nexus

@@ -160,6 +160,22 @@ int main()
         json.find("\"later_archived_evidence_samples\":") != std::string::npos,
         "JSON should expose bounded later evidence samples");
 
+    auto futureCandidateSchemaJson = json;
+    const auto candidateSchemaMarker = futureCandidateSchemaJson.find("\"schema_version\": 1");
+    requireCondition(
+        candidateSchemaMarker != std::string::npos,
+        "candidate decision package JSON should expose schema version marker");
+    futureCandidateSchemaJson.replace(
+        candidateSchemaMarker,
+        std::string("\"schema_version\": 1").size(),
+        "\"schema_version\": 2");
+    const auto futureCandidateSchemaRead =
+        strategic_nexus::parseSncCandidateDecisionPackageJson(futureCandidateSchemaJson);
+    requireCondition(!futureCandidateSchemaRead.ok, "unsupported candidate decision package schema should fail closed");
+    requireCondition(
+        futureCandidateSchemaRead.reason == "unsupported candidate decision package schema",
+        "unsupported candidate decision package schema should expose explicit compatibility reason");
+
     std::cout << "SNC candidate decision package builder tests passed.\n";
     return 0;
 }

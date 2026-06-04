@@ -235,6 +235,7 @@ $sncDecisionInputPackageBuilderExePath = Join-Path $repoRoot "dist/snc_decision_
 $sncDecisionInputPackageBuilderSourceFiles = @(
     (Join-Path $repoRoot "tests/snc_decision_input_package_builder_test.cpp"),
     (Join-Path $repoRoot "src/SncDecisionInputPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src/SncCandidateDecisionPackageBuilder.cpp"),
     (Join-Path $repoRoot "src/PostPlayPackageBuilder.cpp"),
     (Join-Path $repoRoot "src/SaveEntryPointAnalyzer.cpp"),
     (Join-Path $repoRoot "src/AutosaveArchiveSummarizer.cpp"),
@@ -249,7 +250,10 @@ $sncCandidateDecisionPackageBuilderExePath = Join-Path $repoRoot "dist/snc_candi
 $sncCandidateDecisionPackageBuilderSourceFiles = @(
     (Join-Path $repoRoot "tests/snc_candidate_decision_package_builder_test.cpp"),
     (Join-Path $repoRoot "src/SncCandidateDecisionPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src/SncDslDraftPackageBuilder.cpp"),
     (Join-Path $repoRoot "src/SncDecisionInputPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslParser.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslValidator.cpp"),
     (Join-Path $repoRoot "src/PostPlayPackageBuilder.cpp"),
     (Join-Path $repoRoot "src/SaveEntryPointAnalyzer.cpp"),
     (Join-Path $repoRoot "src/AutosaveArchiveSummarizer.cpp"),

@@ -147,6 +147,21 @@ int main()
         json.find("\"later_archived_evidence_samples\":") != std::string::npos,
         "JSON should expose bounded later evidence samples");
 
+    auto futureDecisionSchemaJson = json;
+    const auto decisionSchemaMarker = futureDecisionSchemaJson.find("\"schema_version\": 1");
+    requireCondition(
+        decisionSchemaMarker != std::string::npos,
+        "decision input package JSON should expose schema version marker");
+    futureDecisionSchemaJson.replace(
+        decisionSchemaMarker,
+        std::string("\"schema_version\": 1").size(),
+        "\"schema_version\": 2");
+    const auto futureDecisionSchemaRead = strategic_nexus::parseSncDecisionInputPackageJson(futureDecisionSchemaJson);
+    requireCondition(!futureDecisionSchemaRead.ok, "unsupported decision input package schema should fail closed");
+    requireCondition(
+        futureDecisionSchemaRead.reason == "unsupported decision input package schema",
+        "unsupported decision input package schema should expose explicit compatibility reason");
+
     std::cout << "SNC decision input package builder tests passed.\n";
     return 0;
 }

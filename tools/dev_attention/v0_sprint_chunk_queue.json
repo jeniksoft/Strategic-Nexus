@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T10:45:00+02:00",
+  "updated_at": "2026-06-04T12:05:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -253,6 +253,25 @@
       ],
       "dependencies": [
         "v0-sprint-012-schema-compatibility-guard"
+      ]
+    },
+    {
+      "id": "v0-sprint-014-snc-package-schema-regression-guard",
+      "title": "Extend fail-closed schema regressions across SNC handoff packages",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Schema Evolution And Compatibility",
+      "goal": "Prove the SNC decision-input and candidate-package parser surfaces reject unsupported future schema versions instead of silently accepting drift.",
+      "acceptance": [
+        "Serialized SNC decision-input package fixtures fail closed when schema_version is bumped to an unsupported future value.",
+        "Serialized SNC candidate-package fixtures fail closed when schema_version is bumped to an unsupported future value.",
+        "Regression coverage asserts explicit compatibility reasons for both parser surfaces."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-013-taskboard-roadmap-progress-refresh"
       ]
     }
   ]

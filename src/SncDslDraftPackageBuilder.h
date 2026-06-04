@@ -11,12 +11,6 @@
 
 namespace strategic_nexus {
 
-struct SncCandidateDecisionPackageReadResult {
-    bool ok = false;
-    std::string reason;
-    SncCandidateDecisionPackage package;
-};
-
 struct SncDslDraftPackage {
     bool ok = false;
     std::string reason;

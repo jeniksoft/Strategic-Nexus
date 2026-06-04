@@ -73,6 +73,12 @@ struct SncDecisionInputPackage {
     std::vector<SncBlockedDecisionInput> blockedEntries;
 };
 
+struct SncDecisionInputPackageReadResult {
+    bool ok = false;
+    std::string reason;
+    SncDecisionInputPackage package;
+};
+
 class SncDecisionInputPackageBuilder {
 public:
     SncDecisionInputPackage build(
@@ -81,6 +87,7 @@ public:
 };
 
 PostPlayPackageReadResult parsePostPlayPackageJson(const std::string& json);
+SncDecisionInputPackageReadResult parseSncDecisionInputPackageJson(const std::string& json);
 std::string serializeSncDecisionInputPackage(const SncDecisionInputPackage& package);
 
 } // namespace strategic_nexus
