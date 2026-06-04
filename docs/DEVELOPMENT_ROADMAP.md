@@ -661,6 +661,7 @@ The planner includes only locally present campaigns with anchor fingerprints and
 It does not parse save contents or assign final campaign identity yet.
 Inventory diff now detects stable campaign renames when exactly one previous and one current entry share the same anchor fingerprint, preserving previous/current relative paths in diff JSON for library-maintenance continuity.
 Ambiguous rename cases without a unique stable save-content fingerprint may still appear as remove+add.
+`--compile-campaign-library-overlay` now fails closed when the target output directory already contains files, preserving complete-replacement snapshot semantics for the active generated campaign library instead of silently leaving stale overlay residue behind.
 
 ---
 
@@ -987,18 +988,13 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
-Extend the MP package harness toward release-companion staging, import/verify UX, and Status Center visibility.
-The core export/verify manifest slice already exists, so do not repeat it unless a regression or missing acceptance check is found.
+Keep generated campaign library publication fail-safe and continuity-safe for real v0 save-root churn.
 
 The next slice should include:
 
-* release-companion-visible package state
-* clear import/verify command surface
-* Status Center copy text for host/client readiness
-* explicit owner-facing warning when package identity, game version, mod version, or generated file hashes do not match
-
-This slice must not require knowing all future participants before the season.
-It must assume the previous host may be absent from the next season entirely.
+* explicit restore/reappearance continuity signal for campaign inventory/library maintenance
+* library maintenance behavior that stays bounded when local save roots churn or temporarily disappear
+* progress updates only when the new continuity contract is test-backed
 
 ---
 

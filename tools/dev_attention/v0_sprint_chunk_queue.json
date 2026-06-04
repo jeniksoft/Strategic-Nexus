@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T12:55:00+02:00",
+  "updated_at": "2026-06-04T13:42:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next bounded work after sections 3/4/12 status alignment: section 6A Generated Campaign Library Maintenance.",
+  "current_source": "DEVELOPMENT_ROADMAP.md next bounded work after chunk 016: section 6A Generated Campaign Library Maintenance continuity/fail-safe slice.",
   "chunks": [
     {
       "id": "v0-sprint-001-release-companion-package-state",
@@ -311,6 +311,44 @@
       ],
       "dependencies": [
         "v0-sprint-015-roadmap-status-alignment"
+      ]
+    },
+    {
+      "id": "v0-sprint-017-campaign-library-overlay-complete-replacement-guard",
+      "title": "Fail closed on stale campaign library overlay output",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Generated Campaign Library Maintenance",
+      "goal": "Keep active generated campaign library publication as a complete replacement snapshot instead of silently layering new files over stale output.",
+      "acceptance": [
+        "--compile-campaign-library-overlay rejects non-empty output directories with a stable reason.",
+        "The rejection preserves pre-existing output files instead of mutating the directory.",
+        "run_v0_pipeline_tests.ps1 covers the regression."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-016-campaign-diff-rename-detection"
+      ]
+    },
+    {
+      "id": "v0-sprint-018-campaign-library-restore-continuity-signal",
+      "title": "Distinguish restored campaign continuity in save inventory flow",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Generated Campaign Library Maintenance",
+      "goal": "Surface when a previously known campaign reappears locally so later library maintenance can regenerate rules without treating it as a brand-new unknown campaign.",
+      "acceptance": [
+        "A bounded diff or plan artifact emits an explicit restored/reappeared continuity signal when the same anchor fingerprint returns.",
+        "Ambiguous cases still fail safe instead of asserting false continuity.",
+        "Regression coverage proves the continuity signal."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-017-campaign-library-overlay-complete-replacement-guard"
       ]
     }
   ]

@@ -1071,9 +1071,11 @@ function Invoke-CampaignLibraryOverlayCase {
     $saveRoot = Join-Path $repoRoot "dist/campaign_library_overlay_saves"
     $dslPath = Join-Path $repoRoot "dist/campaign_library_overlay.dsl"
     $overlayOutputPath = Join-Path $repoRoot "dist/campaign_library_overlay"
+    $nonEmptyOverlayOutputPath = Join-Path $repoRoot "dist/campaign_library_overlay_nonempty"
     Remove-Item -LiteralPath $saveRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $dslPath -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $overlayOutputPath -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $nonEmptyOverlayOutputPath -Recurse -Force -ErrorAction SilentlyContinue
 
     New-Item -ItemType Directory -Force -Path $saveRoot | Out-Null
     Set-Content -LiteralPath (Join-Path $saveRoot "Alpha.sav") -Value "fixture" -Encoding UTF8
@@ -1127,6 +1129,28 @@ campaign "missing" {
     Assert-Contains -Name "campaign_library_overlay events" -Text $eventsText -Expected "strategic_nexus_generated_effect_alpha_empire_001_local_defense"
     Assert-NotContains -Name "campaign_library_overlay events" -Text $eventsText -Unexpected "missing_aggression"
     Assert-Contains -Name "campaign_library_overlay plan" -Text $planText -Expected '"campaign_key": "alpha"'
+
+    New-Item -ItemType Directory -Force -Path $nonEmptyOverlayOutputPath | Out-Null
+    Set-Content -LiteralPath (Join-Path $nonEmptyOverlayOutputPath "stale.txt") -Value "stale" -Encoding UTF8
+
+    $nonEmptyOverlayOutput = & $exePath `
+        --compile-campaign-library-overlay `
+        $dslPath `
+        $saveRoot `
+        4 `
+        $nonEmptyOverlayOutputPath
+    $nonEmptyOverlayExitCode = $LASTEXITCODE
+    $nonEmptyOverlayText = $nonEmptyOverlayOutput -join "`n"
+
+    if ($nonEmptyOverlayExitCode -eq 0) {
+        throw "campaign_library_overlay app unexpectedly accepted non-empty output directory. Actual output:`n$nonEmptyOverlayText"
+    }
+
+    Assert-Contains -Name "campaign_library_overlay nonempty app" -Text $nonEmptyOverlayText -Expected "campaign_library_overlay_success=false"
+    Assert-Contains -Name "campaign_library_overlay nonempty app" -Text $nonEmptyOverlayText -Expected "campaign_library_overlay_reason=output directory must be empty"
+    if (-not (Test-Path -LiteralPath (Join-Path $nonEmptyOverlayOutputPath "stale.txt"))) {
+        throw "campaign_library_overlay app removed pre-existing non-empty output directory unexpectedly."
+    }
 
     Write-Host "[PASS] campaign_library_overlay"
 }
