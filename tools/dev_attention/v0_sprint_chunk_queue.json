@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T12:05:00+02:00",
+  "updated_at": "2026-06-04T12:18:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -272,6 +272,26 @@
       ],
       "dependencies": [
         "v0-sprint-013-taskboard-roadmap-progress-refresh"
+      ]
+    },
+    {
+      "id": "v0-sprint-015-roadmap-status-alignment",
+      "title": "Align roadmap statuses with shipped empire and timeline slices",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Empire-Scoped Context Pipeline / Save Timeline Memory Bootstrap",
+      "goal": "Keep owner-facing progress estimates truthful by marking sections 3 and 4 in progress once bounded v0 slices are already implemented and documented.",
+      "acceptance": [
+        "Roadmap section 3 status reflects the existing minimal empire-scoped context slice and isolation regression.",
+        "Roadmap section 4 records the shipped entry-point inventory/post-play bounded progress instead of remaining blank and not-started.",
+        "Roadmap complexity and project progress outputs are regenerated after the status correction."
+      ],
+      "preferred_tests": [
+        "tools/dev_attention/analyze_roadmap_complexity.ps1",
+        "tools/dev_attention/set_project_progress_estimate.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-014-snc-package-schema-regression-guard"
       ]
     }
   ]
