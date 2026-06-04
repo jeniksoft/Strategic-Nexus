@@ -659,7 +659,8 @@ The local harness can plan a bounded active generated campaign library with `--p
 The planner includes only locally present campaigns with anchor fingerprints and skips overflow entries with auditable reasons.
 `--compile-campaign-library-overlay <input.dsl> <save_root> <max_campaigns> <output_dir>` compiles only DSL rules whose campaign id matches an included local campaign key and writes the active library plan beside the generated overlay.
 It does not parse save contents or assign final campaign identity yet.
-Renames without a stable save-content fingerprint may still appear as remove+add.
+Inventory diff now detects stable campaign renames when exactly one previous and one current entry share the same anchor fingerprint, preserving previous/current relative paths in diff JSON for library-maintenance continuity.
+Ambiguous rename cases without a unique stable save-content fingerprint may still appear as remove+add.
 
 ---
 

@@ -18,11 +18,11 @@ void requireCondition(const bool condition, const std::string& message)
     }
 }
 
-void writeFile(const std::filesystem::path& path)
+void writeFile(const std::filesystem::path& path, const std::string& content = "fixture")
 {
     std::filesystem::create_directories(path.parent_path());
     std::ofstream output(path, std::ios::trunc);
-    output << "fixture";
+    output << content;
 }
 
 } // namespace
@@ -31,9 +31,9 @@ int main()
 {
     const auto root = std::filesystem::path("dist/campaign_save_scanner_fixture");
     std::filesystem::remove_all(root);
-    writeFile(root / "Alpha Campaign" / "autosave_2230.sav");
-    writeFile(root / "Alpha Campaign" / "ironman.sav");
-    writeFile(root / "Beta.sav");
+    writeFile(root / "Alpha Campaign" / "autosave_2230.sav", "alpha-anchor");
+    writeFile(root / "Alpha Campaign" / "ironman.sav", "alpha-ironman");
+    writeFile(root / "Beta.sav", "beta-loose");
     writeFile(root / "Ignored Folder" / "note.txt");
     writeFile(root / "not_a_save.txt");
 
@@ -47,7 +47,7 @@ int main()
     requireCondition(!inventory.entries[0].anchorSaveContentHash.empty(), "scanner should hash directory anchor save");
     requireCondition(inventory.entries[1].campaignKey == "beta", "scanner should stabilize loose save campaign key");
     requireCondition(inventory.entries[1].sourceKind == "loose_save", "scanner should classify loose save");
-    requireCondition(inventory.entries[1].anchorSaveByteCount == 7, "scanner should record loose save byte count");
+    requireCondition(inventory.entries[1].anchorSaveByteCount == std::string("beta-loose").size(), "scanner should record loose save byte count");
 
     const auto json = strategic_nexus::serializeCampaignSaveInventory(inventory);
     requireCondition(json.find("\"campaign_count\": 2") != std::string::npos, "inventory JSON should include campaign count");
@@ -57,10 +57,10 @@ int main()
 
     const auto nextRoot = std::filesystem::path("dist/campaign_save_scanner_fixture_next");
     std::filesystem::remove_all(nextRoot);
-    writeFile(nextRoot / "Alpha Campaign" / "autosave_2230.sav");
-    writeFile(nextRoot / "Alpha Campaign" / "autosave_2231.sav");
-    writeFile(nextRoot / "Alpha Campaign" / "autosave_2232.sav");
-    writeFile(nextRoot / "Gamma.sav");
+    writeFile(nextRoot / "Alpha Campaign" / "autosave_2230.sav", "alpha-anchor");
+    writeFile(nextRoot / "Alpha Campaign" / "autosave_2231.sav", "alpha-mid");
+    writeFile(nextRoot / "Alpha Campaign" / "autosave_2232.sav", "alpha-late");
+    writeFile(nextRoot / "Gamma.sav", "gamma-loose");
 
     const auto nextInventory = scanner.scan(nextRoot);
     const auto diff = strategic_nexus::diffCampaignSaveInventories(inventory, nextInventory);
@@ -74,6 +74,28 @@ int main()
     requireCondition(diffJson.find("\"change_kind\": \"removed\"") != std::string::npos, "diff JSON should include removed changes");
     requireCondition(diffJson.find("\"change_kind\": \"changed\"") != std::string::npos, "diff JSON should include changed changes");
     requireCondition(diffJson.find("\"anchor_save_content_hash\":") != std::string::npos, "diff JSON should include anchor save hashes");
+
+    const auto renamedRoot = std::filesystem::path("dist/campaign_save_scanner_fixture_renamed");
+    std::filesystem::remove_all(renamedRoot);
+    writeFile(renamedRoot / "Alpha Campaign Renamed" / "autosave_2230.sav", "alpha-anchor");
+    writeFile(renamedRoot / "Alpha Campaign Renamed" / "ironman.sav", "alpha-ironman");
+    writeFile(renamedRoot / "Gamma.sav", "gamma-loose");
+
+    const auto renamedInventory = scanner.scan(renamedRoot);
+    const auto renamedDiff = strategic_nexus::diffCampaignSaveInventories(inventory, renamedInventory);
+    requireCondition(renamedDiff.addedCount == 1, "inventory diff should still detect newly added campaigns alongside rename");
+    requireCondition(renamedDiff.removedCount == 1, "inventory diff should still detect removed campaigns alongside rename");
+    requireCondition(renamedDiff.renamedCount == 1, "inventory diff should detect renamed campaigns by anchor fingerprint");
+    requireCondition(renamedDiff.changedCount == 0, "inventory rename diff should not misclassify rename as changed");
+    requireCondition(renamedDiff.unchangedCount == 0, "inventory rename diff should not mark renamed entries unchanged");
+
+    const auto renamedDiffJson = strategic_nexus::serializeCampaignSaveInventoryDiff(renamedDiff);
+    requireCondition(renamedDiffJson.find("\"renamed_count\": 1") != std::string::npos, "diff JSON should include renamed count");
+    requireCondition(renamedDiffJson.find("\"change_kind\": \"renamed\"") != std::string::npos, "diff JSON should include renamed changes");
+    requireCondition(
+        renamedDiffJson.find("\"previous_relative_path\": \"Alpha Campaign\"") != std::string::npos &&
+        renamedDiffJson.find("\"current_relative_path\": \"Alpha Campaign Renamed\"") != std::string::npos,
+        "diff JSON should preserve previous and current rename paths");
 
     std::cout << "campaign save scanner tests passed.\n";
     return 0;

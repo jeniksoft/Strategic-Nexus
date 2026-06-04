@@ -998,12 +998,11 @@ function Invoke-CampaignSaveDiffCase {
     Remove-Item -LiteralPath $diffPath -Force -ErrorAction SilentlyContinue
 
     New-Item -ItemType Directory -Force -Path (Join-Path $previousRoot "Alpha Campaign") | Out-Null
-    New-Item -ItemType Directory -Force -Path (Join-Path $currentRoot "Alpha Campaign") | Out-Null
-    Set-Content -LiteralPath (Join-Path $previousRoot "Alpha Campaign/autosave_2230.sav") -Value "fixture" -Encoding UTF8
-    Set-Content -LiteralPath (Join-Path $currentRoot "Alpha Campaign/autosave_2230.sav") -Value "fixture" -Encoding UTF8
-    Set-Content -LiteralPath (Join-Path $currentRoot "Alpha Campaign/autosave_2231.sav") -Value "fixture" -Encoding UTF8
-    Set-Content -LiteralPath (Join-Path $previousRoot "Removed.sav") -Value "fixture" -Encoding UTF8
-    Set-Content -LiteralPath (Join-Path $currentRoot "Added.sav") -Value "fixture" -Encoding UTF8
+    New-Item -ItemType Directory -Force -Path (Join-Path $currentRoot "Alpha Campaign Renamed") | Out-Null
+    Set-Content -LiteralPath (Join-Path $previousRoot "Alpha Campaign/autosave_2230.sav") -Value "alpha-anchor" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $currentRoot "Alpha Campaign Renamed/autosave_2230.sav") -Value "alpha-anchor" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $previousRoot "Removed.sav") -Value "removed-loose" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $currentRoot "Added.sav") -Value "added-loose" -Encoding UTF8
 
     $diffOutput = & $exePath `
         --diff-save-campaigns `
@@ -1020,13 +1019,16 @@ function Invoke-CampaignSaveDiffCase {
     Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_success=true"
     Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_added=1"
     Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_removed=1"
-    Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_changed=1"
+    Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_renamed=1"
+    Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_changed=0"
 
     $inventoryDiffText = Get-Content -Raw -LiteralPath $diffPath
     $null = $inventoryDiffText | ConvertFrom-Json
     Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"change_kind": "added"'
     Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"change_kind": "removed"'
-    Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"change_kind": "changed"'
+    Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"change_kind": "renamed"'
+    Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"previous_relative_path": "Alpha Campaign"'
+    Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"current_relative_path": "Alpha Campaign Renamed"'
 
     Write-Host "[PASS] campaign_save_diff"
 }

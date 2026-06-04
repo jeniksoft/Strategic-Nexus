@@ -158,6 +158,18 @@ std::string entryIdentity(const CampaignSaveInventoryEntry& entry)
     return entry.campaignKey + "\n" + entry.relativePath + "\n" + entry.sourceKind;
 }
 
+std::string renameFingerprint(const CampaignSaveInventoryEntry& entry)
+{
+    if (entry.anchorSaveContentHash.empty() || entry.anchorSaveHashAlgorithm.empty()) {
+        return {};
+    }
+
+    return entry.sourceKind + "\n" +
+           entry.anchorSaveHashAlgorithm + "\n" +
+           entry.anchorSaveContentHash + "\n" +
+           std::to_string(entry.anchorSaveByteCount);
+}
+
 bool entryMetadataChanged(const CampaignSaveInventoryEntry& previous, const CampaignSaveInventoryEntry& current)
 {
     return previous.displayName != current.displayName ||
@@ -239,18 +251,19 @@ CampaignSaveInventoryDiff diffCampaignSaveInventories(
         currentEntries[entryIdentity(entry)] = entry;
     }
 
+    std::map<std::string, CampaignSaveInventoryEntry> unmatchedPreviousEntries;
+    std::map<std::string, CampaignSaveInventoryEntry> unmatchedCurrentEntries;
+
     for (const auto& [identity, currentEntry] : currentEntries) {
         const auto previousEntry = previousEntries.find(identity);
         if (previousEntry == previousEntries.end()) {
-            ++diff.addedCount;
-            diff.changes.push_back({"added", currentEntry, 0, currentEntry.saveFileCount});
+            unmatchedCurrentEntries.emplace(identity, currentEntry);
         } else if (entryMetadataChanged(previousEntry->second, currentEntry)) {
             ++diff.changedCount;
             diff.changes.push_back({
                 "changed",
-                currentEntry,
-                previousEntry->second.saveFileCount,
-                currentEntry.saveFileCount
+                previousEntry->second,
+                currentEntry
             });
         } else {
             ++diff.unchangedCount;
@@ -259,19 +272,78 @@ CampaignSaveInventoryDiff diffCampaignSaveInventories(
 
     for (const auto& [identity, previousEntry] : previousEntries) {
         if (currentEntries.find(identity) == currentEntries.end()) {
-            ++diff.removedCount;
-            diff.changes.push_back({"removed", previousEntry, previousEntry.saveFileCount, 0});
+            unmatchedPreviousEntries.emplace(identity, previousEntry);
         }
+    }
+
+    std::map<std::string, std::vector<std::string>> previousRenameCandidates;
+    std::map<std::string, std::vector<std::string>> currentRenameCandidates;
+
+    for (const auto& [identity, entry] : unmatchedPreviousEntries) {
+        const auto fingerprint = renameFingerprint(entry);
+        if (!fingerprint.empty()) {
+            previousRenameCandidates[fingerprint].push_back(identity);
+        }
+    }
+
+    for (const auto& [identity, entry] : unmatchedCurrentEntries) {
+        const auto fingerprint = renameFingerprint(entry);
+        if (!fingerprint.empty()) {
+            currentRenameCandidates[fingerprint].push_back(identity);
+        }
+    }
+
+    std::vector<std::pair<std::string, std::string>> renamedPairs;
+    for (const auto& [fingerprint, previousIds] : previousRenameCandidates) {
+        const auto currentMatch = currentRenameCandidates.find(fingerprint);
+        if (currentMatch == currentRenameCandidates.end()) {
+            continue;
+        }
+        if (previousIds.size() != 1 || currentMatch->second.size() != 1) {
+            continue;
+        }
+        renamedPairs.push_back({previousIds.front(), currentMatch->second.front()});
+    }
+
+    for (const auto& [previousId, currentId] : renamedPairs) {
+        const auto previousMatch = unmatchedPreviousEntries.find(previousId);
+        const auto currentMatch = unmatchedCurrentEntries.find(currentId);
+        if (previousMatch == unmatchedPreviousEntries.end() || currentMatch == unmatchedCurrentEntries.end()) {
+            continue;
+        }
+
+        ++diff.renamedCount;
+        diff.changes.push_back({
+            "renamed",
+            previousMatch->second,
+            currentMatch->second
+        });
+        unmatchedPreviousEntries.erase(previousMatch);
+        unmatchedCurrentEntries.erase(currentMatch);
+    }
+
+    for (const auto& [identity, currentEntry] : unmatchedCurrentEntries) {
+        ++diff.addedCount;
+        diff.changes.push_back({"added", CampaignSaveInventoryEntry{}, currentEntry});
+    }
+
+    for (const auto& [identity, previousEntry] : unmatchedPreviousEntries) {
+        ++diff.removedCount;
+        diff.changes.push_back({"removed", previousEntry, CampaignSaveInventoryEntry{}});
     }
 
     std::sort(diff.changes.begin(), diff.changes.end(), [](const auto& left, const auto& right) {
         if (left.changeKind != right.changeKind) {
             return left.changeKind < right.changeKind;
         }
-        if (left.entry.campaignKey != right.entry.campaignKey) {
-            return left.entry.campaignKey < right.entry.campaignKey;
+        const auto leftKey = !left.currentEntry.campaignKey.empty() ? left.currentEntry.campaignKey : left.previousEntry.campaignKey;
+        const auto rightKey = !right.currentEntry.campaignKey.empty() ? right.currentEntry.campaignKey : right.previousEntry.campaignKey;
+        if (leftKey != rightKey) {
+            return leftKey < rightKey;
         }
-        return left.entry.relativePath < right.entry.relativePath;
+        const auto leftPath = !left.currentEntry.relativePath.empty() ? left.currentEntry.relativePath : left.previousEntry.relativePath;
+        const auto rightPath = !right.currentEntry.relativePath.empty() ? right.currentEntry.relativePath : right.previousEntry.relativePath;
+        return leftPath < rightPath;
     });
 
     return diff;
@@ -312,23 +384,31 @@ std::string serializeCampaignSaveInventoryDiff(const CampaignSaveInventoryDiff& 
     json << "  \"schema_version\": 1,\n";
     json << "  \"added_count\": " << diff.addedCount << ",\n";
     json << "  \"removed_count\": " << diff.removedCount << ",\n";
+    json << "  \"renamed_count\": " << diff.renamedCount << ",\n";
     json << "  \"changed_count\": " << diff.changedCount << ",\n";
     json << "  \"unchanged_count\": " << diff.unchangedCount << ",\n";
     json << "  \"changes\": [\n";
     for (std::size_t i = 0; i < diff.changes.size(); ++i) {
         const auto& change = diff.changes[i];
+        const auto& previousEntry = change.previousEntry;
+        const auto& currentEntry = change.currentEntry;
         json << "    {\n";
         json << "      \"change_kind\": \"" << jsonEscape(change.changeKind) << "\",\n";
-        json << "      \"campaign_key\": \"" << jsonEscape(change.entry.campaignKey) << "\",\n";
-        json << "      \"display_name\": \"" << jsonEscape(change.entry.displayName) << "\",\n";
-        json << "      \"relative_path\": \"" << jsonEscape(change.entry.relativePath) << "\",\n";
-        json << "      \"source_kind\": \"" << jsonEscape(change.entry.sourceKind) << "\",\n";
-        json << "      \"anchor_save_name\": \"" << jsonEscape(change.entry.anchorSaveName) << "\",\n";
-        json << "      \"anchor_save_hash_algorithm\": \"" << jsonEscape(change.entry.anchorSaveHashAlgorithm) << "\",\n";
-        json << "      \"anchor_save_content_hash\": \"" << jsonEscape(change.entry.anchorSaveContentHash) << "\",\n";
-        json << "      \"anchor_save_byte_count\": " << change.entry.anchorSaveByteCount << ",\n";
-        json << "      \"previous_save_file_count\": " << change.previousSaveFileCount << ",\n";
-        json << "      \"current_save_file_count\": " << change.currentSaveFileCount << "\n";
+        json << "      \"campaign_key\": \"" << jsonEscape(!currentEntry.campaignKey.empty() ? currentEntry.campaignKey : previousEntry.campaignKey) << "\",\n";
+        json << "      \"previous_campaign_key\": \"" << jsonEscape(previousEntry.campaignKey) << "\",\n";
+        json << "      \"current_campaign_key\": \"" << jsonEscape(currentEntry.campaignKey) << "\",\n";
+        json << "      \"previous_display_name\": \"" << jsonEscape(previousEntry.displayName) << "\",\n";
+        json << "      \"current_display_name\": \"" << jsonEscape(currentEntry.displayName) << "\",\n";
+        json << "      \"previous_relative_path\": \"" << jsonEscape(previousEntry.relativePath) << "\",\n";
+        json << "      \"current_relative_path\": \"" << jsonEscape(currentEntry.relativePath) << "\",\n";
+        json << "      \"previous_source_kind\": \"" << jsonEscape(previousEntry.sourceKind) << "\",\n";
+        json << "      \"current_source_kind\": \"" << jsonEscape(currentEntry.sourceKind) << "\",\n";
+        json << "      \"anchor_save_name\": \"" << jsonEscape(!currentEntry.anchorSaveName.empty() ? currentEntry.anchorSaveName : previousEntry.anchorSaveName) << "\",\n";
+        json << "      \"anchor_save_hash_algorithm\": \"" << jsonEscape(!currentEntry.anchorSaveHashAlgorithm.empty() ? currentEntry.anchorSaveHashAlgorithm : previousEntry.anchorSaveHashAlgorithm) << "\",\n";
+        json << "      \"anchor_save_content_hash\": \"" << jsonEscape(!currentEntry.anchorSaveContentHash.empty() ? currentEntry.anchorSaveContentHash : previousEntry.anchorSaveContentHash) << "\",\n";
+        json << "      \"anchor_save_byte_count\": " << (!currentEntry.anchorSaveContentHash.empty() ? currentEntry.anchorSaveByteCount : previousEntry.anchorSaveByteCount) << ",\n";
+        json << "      \"previous_save_file_count\": " << previousEntry.saveFileCount << ",\n";
+        json << "      \"current_save_file_count\": " << currentEntry.saveFileCount << "\n";
         json << "    }" << (i + 1 < diff.changes.size() ? "," : "") << "\n";
     }
     json << "  ]\n";
