@@ -187,6 +187,11 @@ struct CompanionPostPlayPipelineStatus {
     std::size_t generatedOverlayStagingRuleCount = 0;
     bool generatedOverlayManifestVerified = false;
     bool generatedOverlayPublishAllowed = false;
+    std::filesystem::path campaignLibraryPlanPath;
+    bool campaignLibraryPlanPresent = false;
+    bool campaignLibraryLimitReached = false;
+    std::size_t campaignLibrarySkippedDueToLimitCount = 0;
+    std::string campaignLibraryPlanSource;
 };
 
 struct CompanionLifecycleStatus {

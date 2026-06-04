@@ -1263,7 +1263,49 @@ CompanionGeneratedOverlayPublishGateStatus buildGeneratedOverlayPublishGateStatu
     return status;
 }
 
-CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatusConfig& config)
+void populateCampaignLibraryPlanStatus(
+    CompanionPostPlayPipelineStatus& status,
+    const CompanionStatusConfig& config)
+{
+    const auto inspectPlanDirectory = [&](const std::filesystem::path& sourcePath, const std::string& source) {
+        if (sourcePath.empty()) {
+            return false;
+        }
+
+        const auto planPath = sourcePath.parent_path() / "strategic_nexus_campaign_library_plan.json";
+        std::error_code error;
+        if (!std::filesystem::exists(planPath, error) || error) {
+            return false;
+        }
+        if (!std::filesystem::is_regular_file(planPath, error) || error) {
+            return false;
+        }
+
+        std::string json;
+        if (!common::tryReadTextFile(planPath, json)) {
+            return false;
+        }
+
+        status.campaignLibraryPlanPath = planPath;
+        status.campaignLibraryPlanPresent = true;
+        status.campaignLibraryLimitReached = extractJsonBool(json, "limit_reached").value_or(false);
+        status.campaignLibrarySkippedDueToLimitCount =
+            extractJsonSize(json, "skipped_due_to_limit_count").value_or(0);
+        status.campaignLibraryPlanSource = source;
+        return true;
+    };
+
+    if (inspectPlanDirectory(config.postPlayPackagePath, "post_play_status_directory")) {
+        return;
+    }
+    if (inspectPlanDirectory(config.postPlayGeneratedOverlayStagingStatusPath, "staging_status_directory")) {
+        return;
+    }
+    inspectPlanDirectory(config.generatedOverlayPublishStatusPath, "publish_status_directory");
+}
+
+CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
+    const CompanionStatusConfig& config)
 {
     CompanionPostPlayPipelineStatus status;
     status.entryPointAnalysisPath = config.entryPointAnalysisPath;
@@ -1386,6 +1428,8 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
         status.reason = "entry point analysis " + fileError;
         return status;
     }
+
+    populateCampaignLibraryPlanStatus(status, config);
 
     const bool postPlayReadyLike = postPlayAvailable && isReadyLikeReadiness(status.postPlayPackageReadiness);
     const bool decisionInputReadyLike =
@@ -1710,6 +1754,19 @@ std::string buildStatusCenterSummaryText(
     text << "post_play_blocked_campaign_count: " << postPlayPipeline.postPlayBlockedCampaignCount << "\n";
     for (const auto& summary : postPlayPipeline.postPlayCampaignReadinessSummaries) {
         text << "post_play_campaign_summary: " << summary << "\n";
+    }
+    if (postPlayPipeline.campaignLibraryPlanPresent) {
+        text << "campaign_library_plan_path: " << pathString(postPlayPipeline.campaignLibraryPlanPath) << "\n";
+        text << "campaign_library_plan_source: " << postPlayPipeline.campaignLibraryPlanSource << "\n";
+        text << "campaign_library_limit_reached: "
+             << (postPlayPipeline.campaignLibraryLimitReached ? "true" : "false") << "\n";
+        text << "campaign_library_skipped_due_to_limit_count: "
+             << postPlayPipeline.campaignLibrarySkippedDueToLimitCount << "\n";
+        if (postPlayPipeline.campaignLibraryLimitReached) {
+            text << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
+        } else {
+            text << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
+        }
     }
     if (!postPlayPipeline.decisionInputPackagePath.empty()) {
         text << "decision_input_package_path: " << pathString(postPlayPipeline.decisionInputPackagePath) << "\n";
@@ -2135,6 +2192,16 @@ void writePostPlayPipelineJson(
     output << indent << "  \"post_play_ready_campaign_count\": " << status.postPlayReadyCampaignCount << ",\n";
     output << indent << "  \"post_play_partial_campaign_count\": " << status.postPlayPartialCampaignCount << ",\n";
     output << indent << "  \"post_play_blocked_campaign_count\": " << status.postPlayBlockedCampaignCount << ",\n";
+    output << indent << "  \"campaign_library_plan_path\": "
+           << jsonString(pathString(status.campaignLibraryPlanPath)) << ",\n";
+    output << indent << "  \"campaign_library_plan_present\": "
+           << (status.campaignLibraryPlanPresent ? "true" : "false") << ",\n";
+    output << indent << "  \"campaign_library_limit_reached\": "
+           << (status.campaignLibraryLimitReached ? "true" : "false") << ",\n";
+    output << indent << "  \"campaign_library_skipped_due_to_limit_count\": "
+           << status.campaignLibrarySkippedDueToLimitCount << ",\n";
+    output << indent << "  \"campaign_library_plan_source\": "
+           << jsonString(status.campaignLibraryPlanSource) << ",\n";
     output << indent << "  \"post_play_campaign_summaries\": [";
     for (std::size_t index = 0; index < status.postPlayCampaignReadinessSummaries.size(); ++index) {
         if (index > 0) {

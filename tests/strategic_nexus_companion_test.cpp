@@ -154,6 +154,18 @@ int main()
         std::ofstream zipOut(mpPackageZipPath, std::ios::binary | std::ios::trunc);
         zipOut << "zip handoff payload";
     }
+    writeTextFileAtomically(
+        root / "strategic_nexus_campaign_library_plan.json",
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"save_root_available\": true,\n"
+        "  \"limit_reached\": false,\n"
+        "  \"max_included_campaigns\": 4,\n"
+        "  \"included_count\": 2,\n"
+        "  \"skipped_count\": 0,\n"
+        "  \"skipped_due_to_limit_count\": 0,\n"
+        "  \"campaigns\": []\n"
+        "}\n");
 
     writeTextFileAtomically(
         entryPointAnalysisPath,
@@ -558,6 +570,14 @@ int main()
         ready.statusCenterSummaryText.find("post_play_campaign_summary: alpha_campaign: ready_partial (1/2 ready)") != std::string::npos,
         "status center summary should include campaign readiness summary");
     requireCondition(
+        ready.statusCenterSummaryText.find(
+            "campaign_library_owner_note: active generated campaign library fits within the configured limit") !=
+            std::string::npos,
+        "status center summary should mention healthy campaign library limit state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("campaign_library_limit_reached: false") != std::string::npos,
+        "status center summary should expose non-saturated campaign library state");
+    requireCondition(
         ready.statusCenterSummaryText.find("decision_input_count: 2") != std::string::npos,
         "status center summary should include decision input count");
     requireCondition(
@@ -729,6 +749,18 @@ int main()
     std::filesystem::copy(overlayRoot, stagedOverlayRoot, std::filesystem::copy_options::recursive);
     std::filesystem::copy(overlayRoot, activeOverlayRoot, std::filesystem::copy_options::recursive);
     writeTextFileAtomically(
+        root / "strategic_nexus_campaign_library_plan.json",
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"save_root_available\": true,\n"
+        "  \"limit_reached\": true,\n"
+        "  \"max_included_campaigns\": 1,\n"
+        "  \"included_count\": 1,\n"
+        "  \"skipped_count\": 2,\n"
+        "  \"skipped_due_to_limit_count\": 2,\n"
+        "  \"campaigns\": []\n"
+        "}\n");
+    writeTextFileAtomically(
         stagedOverlayStatusPath,
         "{\n"
         "  \"schema_version\": 1,\n"
@@ -754,7 +786,14 @@ int main()
         stagedOverlayStatusPath,
         activeOverlayRoot,
         publishStatusPath,
-        publishBackupRoot
+        publishBackupRoot,
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        dslDraftAuditPath,
+        stagedOverlayStatusPath
     });
     requireCondition(
         stagedPublishReady.generatedOverlayPublishGate.state == "ready",
@@ -820,6 +859,18 @@ int main()
     requireCondition(
         stagedPublishReady.statusCenterSummaryText.find("next_action: review_staged_overlay_and_publish_if_desired") != std::string::npos,
         "status center summary should expose publish next action");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find("campaign_library_plan_source: post_play_status_directory") !=
+            std::string::npos,
+        "status center summary should expose campaign library plan source");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find("campaign_library_limit_reached: true") != std::string::npos,
+        "status center summary should expose saturated campaign library state");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find(
+            "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests") !=
+            std::string::npos,
+        "status center summary should explain truncated campaign library follow-up");
 
     const auto stagedPublishBlocked = companion.buildStatusSnapshot({
         archiveSessionRoot,
@@ -1198,6 +1249,12 @@ int main()
         "JSON should include next action path");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
+    requireCondition(
+        json.find("\"campaign_library_limit_reached\": false") != std::string::npos,
+        "JSON should include non-saturated campaign library state");
+    requireCondition(
+        json.find("\"campaign_library_plan_source\": \"post_play_status_directory\"") != std::string::npos,
+        "JSON should include campaign library plan source");
     requireCondition(json.find("\"package_zip_state\": \"ready\"") != std::string::npos, "JSON should include MP package zip state");
     requireCondition(
         json.find("\"package_zip_reason\": \"mp overlay package zip ready for handoff\"") != std::string::npos,
@@ -1239,6 +1296,12 @@ int main()
     requireCondition(
         stagedPublishJson.find("\"publish_command\": \"Strategic Nexus.exe --publish-snc-generated-overlay ") != std::string::npos,
         "staged publish JSON should include publish command");
+    requireCondition(
+        stagedPublishJson.find("\"campaign_library_limit_reached\": true") != std::string::npos,
+        "staged publish JSON should include saturated campaign library state");
+    requireCondition(
+        stagedPublishJson.find("\"campaign_library_skipped_due_to_limit_count\": 2") != std::string::npos,
+        "staged publish JSON should include skipped campaign count");
 
     const auto publishedJson = strategic_nexus::serializeCompanionStatusSnapshot(publishedSnapshot);
     requireCondition(

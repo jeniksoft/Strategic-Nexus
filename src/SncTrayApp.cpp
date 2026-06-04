@@ -687,6 +687,11 @@ std::string buildStatusCenterSummaryText(
     const std::size_t postPlayReadyCampaignCount,
     const std::size_t postPlayPartialCampaignCount,
     const std::size_t postPlayBlockedCampaignCount,
+    const std::filesystem::path& campaignLibraryPlanPath,
+    const bool campaignLibraryPlanPresent,
+    const bool campaignLibraryLimitReached,
+    const std::size_t campaignLibrarySkippedDueToLimitCount,
+    const std::string& campaignLibraryPlanSource,
     const std::vector<std::string>& postPlayCampaignSummaries,
     const std::filesystem::path& decisionInputPackagePath,
     const std::string& decisionInputPackageReadiness,
@@ -744,6 +749,17 @@ std::string buildStatusCenterSummaryText(
     summary << "post_play_ready_campaign_count: " << postPlayReadyCampaignCount << "\n";
     summary << "post_play_partial_campaign_count: " << postPlayPartialCampaignCount << "\n";
     summary << "post_play_blocked_campaign_count: " << postPlayBlockedCampaignCount << "\n";
+    if (campaignLibraryPlanPresent) {
+        summary << "campaign_library_plan_path: " << pathString(campaignLibraryPlanPath) << "\n";
+        summary << "campaign_library_plan_source: " << campaignLibraryPlanSource << "\n";
+        summary << "campaign_library_limit_reached: " << (campaignLibraryLimitReached ? "true" : "false") << "\n";
+        summary << "campaign_library_skipped_due_to_limit_count: " << campaignLibrarySkippedDueToLimitCount << "\n";
+        if (campaignLibraryLimitReached) {
+            summary << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
+        } else {
+            summary << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
+        }
+    }
     for (const auto& campaignSummary : postPlayCampaignSummaries) {
         summary << "post_play_campaign_summary: " << campaignSummary << "\n";
     }
@@ -817,6 +833,10 @@ void writeNextStepsBrief(
     const std::string& entryPointReadiness,
     const std::filesystem::path& postPlayPackagePath,
     const std::string& postPlayPackageReadiness,
+    const std::filesystem::path& campaignLibraryPlanPath,
+    const bool campaignLibraryPlanPresent,
+    const bool campaignLibraryLimitReached,
+    const std::size_t campaignLibrarySkippedDueToLimitCount,
     const std::filesystem::path& decisionInputPackagePath,
     const std::string& decisionInputPackageReadiness,
     const std::filesystem::path& candidateDecisionPackagePath,
@@ -860,6 +880,20 @@ void writeNextStepsBrief(
         brief << " (" << postPlayPackageReadiness << ")";
     }
     brief << "\n";
+    if (campaignLibraryPlanPresent) {
+        brief << "- Campaign library plan: " << pathString(campaignLibraryPlanPath) << "\n";
+        brief << "- Campaign library saturation: "
+              << (campaignLibraryLimitReached ? "truncated_by_limit" : "within_limit");
+        if (campaignLibraryLimitReached) {
+            brief << " (" << campaignLibrarySkippedDueToLimitCount << " campaign(s) skipped by limit)";
+        }
+        brief << "\n";
+        if (campaignLibraryLimitReached) {
+            brief << "- Poznamka: aktivni generovana knihovna kampani je zamerne omezena; pokud v pristim testu chybi kampan, zvedni limit nebo uklid lokalni save root.\n";
+        } else {
+            brief << "- Poznamka: aktivni generovana knihovna kampani se vejde do nastaveneho limitu.\n";
+        }
+    }
     brief << "- Decision input package: " << pathString(decisionInputPackagePath);
     if (!decisionInputPackageReadiness.empty()) {
         brief << " (" << decisionInputPackageReadiness << ")";
@@ -1075,6 +1109,12 @@ void writeStatus(
         chooseSize(postPlayPartialCampaignCount, diskPipeline.postPlayPartialCampaignCount);
     const auto effectivePostPlayBlockedCampaignCount =
         chooseSize(postPlayBlockedCampaignCount, diskPipeline.postPlayBlockedCampaignCount);
+    const auto effectiveCampaignLibraryPlanPath = diskPipeline.campaignLibraryPlanPath;
+    const bool effectiveCampaignLibraryPlanPresent = diskPipeline.campaignLibraryPlanPresent;
+    const bool effectiveCampaignLibraryLimitReached = diskPipeline.campaignLibraryLimitReached;
+    const auto effectiveCampaignLibrarySkippedDueToLimitCount =
+        diskPipeline.campaignLibrarySkippedDueToLimitCount;
+    const auto effectiveCampaignLibraryPlanSource = diskPipeline.campaignLibraryPlanSource;
     const auto effectivePostPlayCampaignSummaries = postPlayCampaignSummaries.empty()
         ? diskPipeline.postPlayCampaignReadinessSummaries
         : postPlayCampaignSummaries;
@@ -1165,6 +1205,11 @@ void writeStatus(
         effectivePostPlayReadyCampaignCount,
         effectivePostPlayPartialCampaignCount,
         effectivePostPlayBlockedCampaignCount,
+        effectiveCampaignLibraryPlanPath,
+        effectiveCampaignLibraryPlanPresent,
+        effectiveCampaignLibraryLimitReached,
+        effectiveCampaignLibrarySkippedDueToLimitCount,
+        effectiveCampaignLibraryPlanSource,
         effectivePostPlayCampaignSummaries,
         effectiveDecisionInputPackagePath,
         effectiveDecisionInputPackageReadiness,
@@ -1193,6 +1238,10 @@ void writeStatus(
         effectiveEntryPointReadiness,
         effectivePostPlayPackagePath,
         effectivePostPlayPackageReadiness,
+        effectiveCampaignLibraryPlanPath,
+        effectiveCampaignLibraryPlanPresent,
+        effectiveCampaignLibraryLimitReached,
+        effectiveCampaignLibrarySkippedDueToLimitCount,
         effectiveDecisionInputPackagePath,
         effectiveDecisionInputPackageReadiness,
         effectiveCandidateDecisionPackagePath,
@@ -1241,6 +1290,11 @@ void writeStatus(
     json << "  \"post_play_ready_campaign_count\": " << effectivePostPlayReadyCampaignCount << ",\n";
     json << "  \"post_play_partial_campaign_count\": " << effectivePostPlayPartialCampaignCount << ",\n";
     json << "  \"post_play_blocked_campaign_count\": " << effectivePostPlayBlockedCampaignCount << ",\n";
+    json << "  \"campaign_library_plan_path\": \"" << jsonEscape(pathString(effectiveCampaignLibraryPlanPath)) << "\",\n";
+    json << "  \"campaign_library_plan_present\": " << (effectiveCampaignLibraryPlanPresent ? "true" : "false") << ",\n";
+    json << "  \"campaign_library_limit_reached\": " << (effectiveCampaignLibraryLimitReached ? "true" : "false") << ",\n";
+    json << "  \"campaign_library_skipped_due_to_limit_count\": " << effectiveCampaignLibrarySkippedDueToLimitCount << ",\n";
+    json << "  \"campaign_library_plan_source\": \"" << jsonEscape(effectiveCampaignLibraryPlanSource) << "\",\n";
     json << "  \"post_play_campaign_summaries\": [";
     for (std::size_t index = 0; index < effectivePostPlayCampaignSummaries.size(); ++index) {
         if (index > 0) {
