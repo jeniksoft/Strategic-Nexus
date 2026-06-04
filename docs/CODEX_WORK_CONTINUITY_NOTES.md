@@ -222,6 +222,7 @@ Completed:
 * scanner is read-only and does not parse or edit save contents
 * tests cover directory campaigns, loose saves, ignored non-save files, inventory diff behavior, active campaign library planning, filtered campaign library overlay compilation, and CLI JSON output
 * inventory diff distinguishes stable rename continuity (`renamed`) from reappeared continuity across source-kind changes (`restored`) when anchor fingerprint metadata matches uniquely
+* campaign library plans preserve `save_root_available`, and overlay compilation now fails closed on unavailable save roots instead of publishing an empty replacement snapshot
 
 Remaining:
 

@@ -37,6 +37,7 @@ CampaignLibraryPlan CampaignLibraryPlanner::build(
     const std::size_t maxIncludedCampaigns) const
 {
     CampaignLibraryPlan plan;
+    plan.saveRootAvailable = inventory.rootExists;
     plan.maxIncludedCampaigns = maxIncludedCampaigns;
 
     for (const auto& campaign : inventory.entries) {
@@ -71,6 +72,7 @@ std::string serializeCampaignLibraryPlan(const CampaignLibraryPlan& plan)
     std::ostringstream json;
     json << "{\n";
     json << "  \"schema_version\": 1,\n";
+    json << "  \"save_root_available\": " << (plan.saveRootAvailable ? "true" : "false") << ",\n";
     json << "  \"max_included_campaigns\": " << plan.maxIncludedCampaigns << ",\n";
     json << "  \"included_count\": " << plan.includedCount << ",\n";
     json << "  \"skipped_count\": " << plan.skippedCount << ",\n";

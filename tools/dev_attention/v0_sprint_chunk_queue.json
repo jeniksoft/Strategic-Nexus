@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T13:42:00+02:00",
+  "updated_at": "2026-06-04T15:10:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next bounded work after chunk 016: section 6A Generated Campaign Library Maintenance continuity/fail-safe slice.",
+  "current_source": "DEVELOPMENT_ROADMAP.md next bounded work after chunk 018: section 6A Generated Campaign Library Maintenance temporary save-root disappearance fail-safe slice.",
   "chunks": [
     {
       "id": "v0-sprint-001-release-companion-package-state",
@@ -349,6 +349,25 @@
       ],
       "dependencies": [
         "v0-sprint-017-campaign-library-overlay-complete-replacement-guard"
+      ]
+    },
+    {
+      "id": "v0-sprint-019-campaign-library-missing-root-fail-closed",
+      "title": "Fail closed when campaign save root is unavailable",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Generated Campaign Library Maintenance",
+      "goal": "Prevent temporary local save-root disappearance from being mistaken for a valid empty library snapshot that would wipe active generated campaign rules.",
+      "acceptance": [
+        "Campaign library plan or overlay compilation surfaces explicit save-root availability state instead of silently treating a missing root as an empty campaign set.",
+        "Unsafe publish paths fail closed with a stable reason when the save root is unavailable.",
+        "Regression coverage proves the missing-root fail-safe behavior."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-018-campaign-library-restore-continuity-signal"
       ]
     }
   ]

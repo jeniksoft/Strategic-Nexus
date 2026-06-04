@@ -2458,6 +2458,7 @@ int Application::run(const RunConfig& config) const
                 serializeCampaignLibraryPlan(plan));
 
             std::cout << "campaign_library_plan_success=" << (written ? "true" : "false") << "\n";
+            std::cout << "campaign_library_plan_root_exists=" << (inventory.rootExists ? "true" : "false") << "\n";
             std::cout << "campaign_library_plan_included=" << plan.includedCount << "\n";
             std::cout << "campaign_library_plan_skipped=" << plan.skippedCount << "\n";
             std::cout << "campaign_library_plan_output_written=" << (written ? "true" : "false") << "\n";
@@ -2512,6 +2513,11 @@ int Application::run(const RunConfig& config) const
             const CampaignSaveScanner scanner;
             const CampaignLibraryPlanner planner;
             const auto inventory = scanner.scan(config.campaignLibraryOverlaySaveRoot);
+            if (!inventory.rootExists) {
+                std::cout << "campaign_library_overlay_success=false\n";
+                std::cout << "campaign_library_overlay_reason=save root unavailable\n";
+                return 1;
+            }
             const auto plan = planner.build(inventory, maxCampaigns);
             std::set<std::string> includedCampaignKeys;
             for (const auto& entry : plan.entries) {

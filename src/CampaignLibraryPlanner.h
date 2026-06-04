@@ -21,6 +21,7 @@ struct CampaignLibraryPlanEntry {
 };
 
 struct CampaignLibraryPlan {
+    bool saveRootAvailable = false;
     std::size_t maxIncludedCampaigns = 0;
     std::size_t includedCount = 0;
     std::size_t skippedCount = 0;

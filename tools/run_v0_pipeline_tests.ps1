@@ -1103,11 +1103,13 @@ function Invoke-CampaignLibraryPlanCase {
     }
 
     Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_success=true"
+    Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_root_exists=true"
     Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_included=1"
     Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_skipped=1"
 
     $planJson = Get-Content -Raw -LiteralPath $planPath
     $null = $planJson | ConvertFrom-Json
+    Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"save_root_available": true'
     Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"status": "included"'
     Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"reason": "active_library_limit"'
 
@@ -1197,6 +1199,30 @@ campaign "missing" {
     Assert-Contains -Name "campaign_library_overlay nonempty app" -Text $nonEmptyOverlayText -Expected "campaign_library_overlay_reason=output directory must be empty"
     if (-not (Test-Path -LiteralPath (Join-Path $nonEmptyOverlayOutputPath "stale.txt"))) {
         throw "campaign_library_overlay app removed pre-existing non-empty output directory unexpectedly."
+    }
+
+    $missingRootPath = Join-Path $repoRoot "dist/campaign_library_overlay_missing_root_saves"
+    $missingRootOutputPath = Join-Path $repoRoot "dist/campaign_library_overlay_missing_root"
+    Remove-Item -LiteralPath $missingRootPath -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $missingRootOutputPath -Recurse -Force -ErrorAction SilentlyContinue
+
+    $missingRootOutput = & $exePath `
+        --compile-campaign-library-overlay `
+        $dslPath `
+        $missingRootPath `
+        4 `
+        $missingRootOutputPath
+    $missingRootExitCode = $LASTEXITCODE
+    $missingRootText = $missingRootOutput -join "`n"
+
+    if ($missingRootExitCode -eq 0) {
+        throw "campaign_library_overlay app unexpectedly accepted unavailable save root. Actual output:`n$missingRootText"
+    }
+
+    Assert-Contains -Name "campaign_library_overlay missing-root app" -Text $missingRootText -Expected "campaign_library_overlay_success=false"
+    Assert-Contains -Name "campaign_library_overlay missing-root app" -Text $missingRootText -Expected "campaign_library_overlay_reason=save root unavailable"
+    if (Test-Path -LiteralPath $missingRootOutputPath) {
+        throw "campaign_library_overlay app created output for unavailable save root unexpectedly."
     }
 
     Write-Host "[PASS] campaign_library_overlay"
