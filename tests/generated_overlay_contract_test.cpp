@@ -101,6 +101,9 @@ int main()
             files.scriptedEffectsText.find("set_country_flag = strategic_nexus_pref_military_posture_defensive") != std::string::npos,
             "compiler should emit allowlisted preference flag");
         requireCondition(
+            files.scriptedEffectsText.find("remove_country_flag = strategic_nexus_pref_military_posture_aggressive") != std::string::npos,
+            "compiler should clear conflicting military posture flag before applying the selected one");
+        requireCondition(
             files.eventsText.find("strategic_nexus_generated_effect_campaign_001_empire_001_border_war_defense = yes") != std::string::npos,
             "compiler should emit dispatcher effect call");
         requireCondition(

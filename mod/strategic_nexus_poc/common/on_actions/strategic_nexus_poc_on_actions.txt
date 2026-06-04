@@ -1,6 +1,7 @@
 on_game_start_country = {
     events = {
         strategic_nexus.1201
+        strategic_nexus.1450
     }
 }
 
@@ -9,5 +10,6 @@ on_monthly_pulse_country = {
         strategic_nexus.1202
         strategic_nexus.1300
         strategic_nexus.1302
+        strategic_nexus.1450
     }
 }

@@ -3,3 +3,18 @@
 # in the country modifier list without changing gameplay values.
 strategic_nexus_poc_bridge_seen = {
 }
+
+# Empty visible markers for generated overlay v0 preference projection.
+# These stay gameplay-neutral while making the selected strategy domain visible
+# after load/start through the ordinary country modifier list.
+strategic_nexus_poc_generated_military_posture_defensive = {
+}
+
+strategic_nexus_poc_generated_military_posture_aggressive = {
+}
+
+strategic_nexus_poc_generated_research_bias_economy = {
+}
+
+strategic_nexus_poc_generated_research_bias_military_industry = {
+}

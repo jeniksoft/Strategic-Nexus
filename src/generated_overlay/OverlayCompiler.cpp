@@ -83,6 +83,17 @@ std::string flagForPreference(const DslPreference& preference)
     return "strategic_nexus_pref_" + symbol(preference.domain) + "_" + symbol(preference.value);
 }
 
+std::vector<std::string> domainValues(const std::string& domain)
+{
+    if (domain == "military_posture") {
+        return {"defensive", "aggressive"};
+    }
+    if (domain == "research_bias") {
+        return {"economy", "military_industry"};
+    }
+    return {};
+}
+
 std::string flagForKnownCondition(const DslCondition& condition)
 {
     const auto dot = condition.source.find('.');
@@ -230,6 +241,10 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
         effects << "    if = {\n";
         effects << "        limit = { " << triggerName << " = yes }\n";
         for (const auto& preference : rule.preferences) {
+            for (const auto& domainValue : domainValues(preference.domain)) {
+                effects << "        remove_country_flag = strategic_nexus_pref_" << symbol(preference.domain)
+                        << "_" << symbol(domainValue) << "\n";
+            }
             effects << "        set_country_flag = " << flagForPreference(preference) << "\n";
         }
         effects << "    }\n";

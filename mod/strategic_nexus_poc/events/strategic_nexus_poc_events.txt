@@ -459,3 +459,73 @@ country_event = {
         name = strategic_nexus.1414.a
     }
 }
+
+# Development-only generated overlay projection.
+# This consumes generated v0 preference flags and makes the selected branch
+# visible as a harmless country modifier after start/load without adding hidden
+# gameplay buffs.
+country_event = {
+    id = strategic_nexus.1450
+    hide_window = yes
+    is_triggered_only = yes
+
+    trigger = {
+        is_ai = no
+        is_country_type = default
+    }
+
+    immediate = {
+        remove_modifier = strategic_nexus_poc_generated_military_posture_defensive
+        remove_modifier = strategic_nexus_poc_generated_military_posture_aggressive
+        remove_modifier = strategic_nexus_poc_generated_research_bias_economy
+        remove_modifier = strategic_nexus_poc_generated_research_bias_military_industry
+
+        if = {
+            limit = {
+                has_country_flag = strategic_nexus_pref_military_posture_defensive
+                NOT = { has_country_flag = strategic_nexus_pref_military_posture_aggressive }
+            }
+            add_modifier = {
+                modifier = strategic_nexus_poc_generated_military_posture_defensive
+                days = 40
+            }
+            log = "Strategic Nexus: generated overlay projected military_posture defensive marker"
+        }
+
+        if = {
+            limit = {
+                has_country_flag = strategic_nexus_pref_military_posture_aggressive
+                NOT = { has_country_flag = strategic_nexus_pref_military_posture_defensive }
+            }
+            add_modifier = {
+                modifier = strategic_nexus_poc_generated_military_posture_aggressive
+                days = 40
+            }
+            log = "Strategic Nexus: generated overlay projected military_posture aggressive marker"
+        }
+
+        if = {
+            limit = {
+                has_country_flag = strategic_nexus_pref_research_bias_economy
+                NOT = { has_country_flag = strategic_nexus_pref_research_bias_military_industry }
+            }
+            add_modifier = {
+                modifier = strategic_nexus_poc_generated_research_bias_economy
+                days = 40
+            }
+            log = "Strategic Nexus: generated overlay projected research_bias economy marker"
+        }
+
+        if = {
+            limit = {
+                has_country_flag = strategic_nexus_pref_research_bias_military_industry
+                NOT = { has_country_flag = strategic_nexus_pref_research_bias_economy }
+            }
+            add_modifier = {
+                modifier = strategic_nexus_poc_generated_research_bias_military_industry
+                days = 40
+            }
+            log = "Strategic Nexus: generated overlay projected research_bias military_industry marker"
+        }
+    }
+}

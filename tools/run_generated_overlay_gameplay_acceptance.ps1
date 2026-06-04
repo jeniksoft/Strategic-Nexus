@@ -47,6 +47,21 @@ function Ensure-AppBinary {
     }
 }
 
+function Assert-ObservableMarkerScaffold {
+    $eventPath = Join-Path $repoRoot "mod/strategic_nexus_poc/events/strategic_nexus_poc_events.txt"
+    $modifierPath = Join-Path $repoRoot "mod/strategic_nexus_poc/common/static_modifiers/strategic_nexus_poc_modifiers.txt"
+
+    $eventText = Get-Content -LiteralPath $eventPath -Raw
+    $modifierText = Get-Content -LiteralPath $modifierPath -Raw
+
+    Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "id = strategic_nexus.1450"
+    Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "has_country_flag = strategic_nexus_pref_military_posture_defensive"
+    Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "modifier = strategic_nexus_poc_generated_military_posture_defensive"
+    Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "modifier = strategic_nexus_poc_generated_research_bias_military_industry"
+    Assert-Contains -Name "observable modifier scaffold" -Text $modifierText -Expected "strategic_nexus_poc_generated_military_posture_defensive = {"
+    Assert-Contains -Name "observable modifier scaffold" -Text $modifierText -Expected "strategic_nexus_poc_generated_research_bias_economy = {"
+}
+
 function Invoke-CompileAndVerifyCase {
     param(
         [Parameter(Mandatory = $true)]
@@ -189,6 +204,7 @@ function Invoke-Case {
 }
 
 Ensure-AppBinary
+Assert-ObservableMarkerScaffold
 Remove-Item -LiteralPath $workRoot -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $workRoot | Out-Null
 
@@ -319,4 +335,3 @@ if (-not $allPassed) {
     }
     exit 1
 }
-
