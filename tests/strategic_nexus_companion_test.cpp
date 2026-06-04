@@ -359,6 +359,74 @@ int main()
     requireCondition(
         !ready.postPlayPipeline.generatedOverlayPublishAllowed,
         "post-play pipeline should expose publish gate still disabled for staged overlay");
+    requireCondition(
+        writeTextFileAtomically(
+            candidateDecisionPackagePath,
+            "{\n"
+            "  \"schema_version\": 1,\n"
+            "  \"reason\": \"candidate decision package blocked by validator\",\n"
+            "  \"readiness\": \"blocked\",\n"
+            "  \"candidate_decision_count\": 2,\n"
+            "  \"blocked_source_entry_count\": 1,\n"
+            "  \"validator_passed\": false\n"
+            "}\n"),
+        "stale-stage regression fixture should rewrite candidate decision package");
+    const auto staleStageBlocked = companion.buildStatusSnapshot({
+        archiveRoot,
+        overlayRoot,
+        mpPackageRoot,
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport,
+        std::filesystem::path(),
+        std::filesystem::path(),
+        std::filesystem::path(),
+        std::filesystem::path(),
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        dslDraftAuditPath,
+        generatedOverlayStagingStatusPath,
+        mpPackageZipPath
+    });
+    requireCondition(
+        staleStageBlocked.postPlayPipeline.state == "needs_attention",
+        "stale generated overlay staging must not hide blocked candidate decisions");
+    requireCondition(
+        staleStageBlocked.postPlayPipeline.reason == "candidate decision package blocked",
+        "blocked candidate decisions should win over stale downstream staging");
+    requireCondition(
+        staleStageBlocked.statusCenter.state == "attention_required",
+        "status center should surface blocked candidate decisions even if stale staging exists");
+    requireCondition(
+        staleStageBlocked.statusCenter.reason == "post-play pipeline needs attention",
+        "status center should attribute stale-stage regression to post-play pipeline");
+    requireCondition(
+        staleStageBlocked.statusCenter.path == candidateDecisionPackagePath,
+        "status center should focus the blocked candidate decision package path");
+    requireCondition(
+        staleStageBlocked.statusCenterSummaryText.find("candidate_decision_package_readiness: blocked") !=
+            std::string::npos,
+        "status center summary should expose blocked candidate decision readiness");
+    requireCondition(
+        staleStageBlocked.statusCenterSummaryText.find("generated_overlay_staging_readiness: staged_verified") !=
+            std::string::npos,
+        "status center summary should still expose stale staged overlay evidence for debugging");
+    requireCondition(
+        writeTextFileAtomically(
+            candidateDecisionPackagePath,
+            "{\n"
+            "  \"schema_version\": 1,\n"
+            "  \"reason\": \"candidate decision package built; some source entries remain blocked\",\n"
+            "  \"readiness\": \"ready\",\n"
+            "  \"candidate_decision_count\": 2,\n"
+            "  \"blocked_source_entry_count\": 1,\n"
+            "  \"validator_passed\": true\n"
+            "}\n"),
+        "stale-stage regression fixture should restore ready candidate decision package");
     requireCondition(ready.mpOverlayPackage.campaignId == "campaign_mp_001", "mp overlay package should expose campaign id");
     requireCondition(ready.mpOverlayPackage.overlayVersion == "overlay_v1", "mp overlay package should expose overlay version");
     requireCondition(ready.mpOverlayPackage.gameVersion == "stellaris_4.x", "mp overlay package should expose game version");

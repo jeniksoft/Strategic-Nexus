@@ -550,35 +550,50 @@ std::string reasonFromGeneratedOverlayStagingReadiness(const std::string& readin
     return "generated overlay staging " + readiness;
 }
 
+bool isReadyLikeReadiness(const std::string& readiness)
+{
+    return startsWith(readiness, "ready");
+}
+
+bool isStagedOverlayReadyLike(const std::string& readiness)
+{
+    return readiness == "staged_verified";
+}
+
 std::filesystem::path postPlayPipelineFocusPath(const CompanionPostPlayPipelineStatus& status)
 {
     const auto hasPrefix = [](const std::string& value, const std::string& prefix) {
         return value.rfind(prefix, 0) == 0;
     };
 
-    if (hasPrefix(status.reason, "generated overlay staging ") ||
-        !status.generatedOverlayStagingReadiness.empty() ||
-        !status.generatedOverlayStagingReason.empty()) {
+    if (hasPrefix(status.reason, "generated overlay staging ")) {
         return status.generatedOverlayStagingStatusPath;
     }
-    if (hasPrefix(status.reason, "dsl draft ") ||
-        !status.dslDraftReadiness.empty() ||
-        !status.dslDraftReason.empty()) {
+    if (hasPrefix(status.reason, "dsl draft ")) {
         return status.dslDraftAuditPath;
     }
-    if (hasPrefix(status.reason, "candidate decision package ") ||
-        !status.candidateDecisionPackageReadiness.empty() ||
-        !status.candidateDecisionPackageReason.empty()) {
+    if (hasPrefix(status.reason, "candidate decision package ")) {
         return status.candidateDecisionPackagePath;
     }
-    if (hasPrefix(status.reason, "decision input package ") ||
-        !status.decisionInputPackageReadiness.empty() ||
-        !status.decisionInputPackageReason.empty()) {
+    if (hasPrefix(status.reason, "decision input package ")) {
         return status.decisionInputPackagePath;
     }
-    if (hasPrefix(status.reason, "post-play package ") ||
-        !status.postPlayPackageReadiness.empty() ||
-        !status.postPlayPackageReason.empty()) {
+    if (hasPrefix(status.reason, "post-play package ")) {
+        return status.postPlayPackagePath;
+    }
+    if (!status.generatedOverlayStagingReadiness.empty() || !status.generatedOverlayStagingReason.empty()) {
+        return status.generatedOverlayStagingStatusPath;
+    }
+    if (!status.dslDraftReadiness.empty() || !status.dslDraftReason.empty()) {
+        return status.dslDraftAuditPath;
+    }
+    if (!status.candidateDecisionPackageReadiness.empty() || !status.candidateDecisionPackageReason.empty()) {
+        return status.candidateDecisionPackagePath;
+    }
+    if (!status.decisionInputPackageReadiness.empty() || !status.decisionInputPackageReason.empty()) {
+        return status.decisionInputPackagePath;
+    }
+    if (!status.postPlayPackageReadiness.empty() || !status.postPlayPackageReason.empty()) {
         return status.postPlayPackagePath;
     }
     return status.entryPointAnalysisPath;
@@ -1374,22 +1389,30 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(const CompanionStatu
         return status;
     }
 
-    if (generatedOverlayStagingAvailable) {
+    const bool postPlayReadyLike = postPlayAvailable && isReadyLikeReadiness(status.postPlayPackageReadiness);
+    const bool decisionInputReadyLike =
+        decisionInputAvailable && isReadyLikeReadiness(status.decisionInputPackageReadiness);
+    const bool candidateReadyLike =
+        candidateAvailable && isReadyLikeReadiness(status.candidateDecisionPackageReadiness);
+    const bool dslDraftReadyLike = dslDraftAvailable && isReadyLikeReadiness(status.dslDraftReadiness);
+
+    if (generatedOverlayStagingAvailable && dslDraftReadyLike && candidateReadyLike && decisionInputReadyLike &&
+        postPlayReadyLike && isStagedOverlayReadyLike(status.generatedOverlayStagingReadiness)) {
         status.state = stateFromGeneratedOverlayStagingReadiness(status.generatedOverlayStagingReadiness);
         status.reason = reasonFromGeneratedOverlayStagingReadiness(status.generatedOverlayStagingReadiness);
         return status;
     }
-    if (dslDraftAvailable) {
+    if (dslDraftAvailable && candidateReadyLike && decisionInputReadyLike && postPlayReadyLike) {
         status.state = stateFromReadiness(status.dslDraftReadiness);
         status.reason = reasonFromReadiness("dsl draft", status.dslDraftReadiness);
         return status;
     }
-    if (candidateAvailable) {
+    if (candidateAvailable && decisionInputReadyLike && postPlayReadyLike) {
         status.state = stateFromReadiness(status.candidateDecisionPackageReadiness);
         status.reason = reasonFromReadiness("candidate decision package", status.candidateDecisionPackageReadiness);
         return status;
     }
-    if (decisionInputAvailable) {
+    if (decisionInputAvailable && postPlayReadyLike) {
         status.state = stateFromReadiness(status.decisionInputPackageReadiness);
         status.reason = reasonFromReadiness("decision input package", status.decisionInputPackageReadiness);
         return status;
