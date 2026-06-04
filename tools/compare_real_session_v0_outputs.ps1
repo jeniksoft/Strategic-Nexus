@@ -168,6 +168,8 @@ $previousNextActionCommandHintSource = ""
 $currentNextActionCommandHintSource = ""
 $previousNextActionCommandHint = ""
 $currentNextActionCommandHint = ""
+$previousNextActionPath = ""
+$currentNextActionPath = ""
 $previousMpPackageZipState = ""
 $currentMpPackageZipState = ""
 $previousMpPackageZipReason = ""
@@ -205,6 +207,7 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousNextActionReason = Get-OptionalString -Object $previousEvidence.next_action -Property "reason"
         $previousNextActionCommandHintSource = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint_source"
         $previousNextActionCommandHint = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint"
+        $previousNextActionPath = Get-OptionalString -Object $previousEvidence.next_action -Property "path"
     }
     if ($null -ne $previousEvidence.mp_export) {
         $previousMpPackageZipState = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_state"
@@ -229,6 +232,7 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentNextActionReason = Get-OptionalString -Object $currentEvidence.next_action -Property "reason"
         $currentNextActionCommandHintSource = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint_source"
         $currentNextActionCommandHint = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint"
+        $currentNextActionPath = Get-OptionalString -Object $currentEvidence.next_action -Property "path"
     }
     if ($null -ne $currentEvidence.mp_export) {
         $currentMpPackageZipState = Get-OptionalString -Object $currentEvidence.mp_export -Property "package_zip_state"
@@ -494,6 +498,11 @@ $result = [ordered]@{
         current = $currentNextActionCommandHint
         changed = ($previousNextActionCommandHint -ne $currentNextActionCommandHint)
     }
+    next_action_path = [ordered]@{
+        previous = $previousNextActionPath
+        current = $currentNextActionPath
+        changed = ($previousNextActionPath -ne $currentNextActionPath)
+    }
     mp_package_manifest_hash = [ordered]@{
         previous = $previousMpManifestHash
         current = $currentMpManifestHash
@@ -723,6 +732,9 @@ Write-Host ("real_session_v0_compare_next_action_command_hint_source_changed=" +
 Write-Host ("real_session_v0_compare_next_action_command_hint_current=" + $currentNextActionCommandHint)
 Write-Host ("real_session_v0_compare_next_action_command_hint_previous=" + $previousNextActionCommandHint)
 Write-Host ("real_session_v0_compare_next_action_command_hint_changed=" + ((($previousNextActionCommandHint -ne $currentNextActionCommandHint).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_next_action_path_current=" + $currentNextActionPath)
+Write-Host ("real_session_v0_compare_next_action_path_previous=" + $previousNextActionPath)
+Write-Host ("real_session_v0_compare_next_action_path_changed=" + ((($previousNextActionPath -ne $currentNextActionPath).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_previous=" + $previousMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_changed=" + ((($previousMpHostReadiness -ne $currentMpHostReadiness).ToString().ToLowerInvariant())))

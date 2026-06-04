@@ -1170,6 +1170,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareNextActionCommandHintSourceCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_command_hint_source_current"
     $compareNextActionCommandHintSourcePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_command_hint_source_previous"
     $compareNextActionCommandHintSourceChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_command_hint_source_changed"
+    $compareNextActionPathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_current"
+    $compareNextActionPathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_previous"
+    $compareNextActionPathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_changed"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
     $compareMpHostReadinessPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_previous"
     $compareMpHostReadinessChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_changed"
@@ -1348,6 +1351,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_next_action_command_hint_source_current=" + $compareNextActionCommandHintSourceCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_next_action_command_hint_source_previous=" + $compareNextActionCommandHintSourcePrevious)
     Write-Host ("real_session_v0_loop_compare_auto_next_action_command_hint_source_changed=" + $compareNextActionCommandHintSourceChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_next_action_path_current=" + $compareNextActionPathCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_next_action_path_previous=" + $compareNextActionPathPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_next_action_path_changed=" + $compareNextActionPathChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_host_readiness_current=" + $compareMpHostReadinessCurrent)
     }
@@ -1667,6 +1673,9 @@ if ($EmitTrendSummary) {
     $trendNextActionCommandHintSourceCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_command_hint_source_current"
     $trendNextActionCommandHintSourcePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_command_hint_source_previous"
     $trendNextActionCommandHintSourceChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_command_hint_source_changed"
+    $trendNextActionPathCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_current"
+    $trendNextActionPathPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_previous"
+    $trendNextActionPathChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_changed"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendMpWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_codes_changed"
@@ -1823,6 +1832,9 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_next_action_command_hint_source_current=" + $trendNextActionCommandHintSourceCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_next_action_command_hint_source_previous=" + $trendNextActionCommandHintSourcePrevious)
     Write-Host ("real_session_v0_loop_trend_auto_next_action_command_hint_source_changed=" + $trendNextActionCommandHintSourceChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_next_action_path_current=" + $trendNextActionPathCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_next_action_path_previous=" + $trendNextActionPathPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_next_action_path_changed=" + $trendNextActionPathChanged)
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
     }
@@ -2349,6 +2361,9 @@ $sessionEvidence = [ordered]@{
         next_action_command_hint_source_current = (Get-VariableOrDefault -Name "compareNextActionCommandHintSourceCurrent")
         next_action_command_hint_source_previous = (Get-VariableOrDefault -Name "compareNextActionCommandHintSourcePrevious")
         next_action_command_hint_source_changed = (Get-VariableOrDefault -Name "compareNextActionCommandHintSourceChanged")
+        next_action_path_current = (Get-VariableOrDefault -Name "compareNextActionPathCurrent")
+        next_action_path_previous = (Get-VariableOrDefault -Name "compareNextActionPathPrevious")
+        next_action_path_changed = (Get-VariableOrDefault -Name "compareNextActionPathChanged")
         mp = [ordered]@{
             host_readiness_current = (Get-VariableOrDefault -Name "compareMpHostReadinessCurrent")
             host_readiness_previous = (Get-VariableOrDefault -Name "compareMpHostReadinessPrevious")
@@ -2490,6 +2505,9 @@ $sessionEvidence = [ordered]@{
         next_action_command_hint_source_current = (Get-VariableOrDefault -Name "trendNextActionCommandHintSourceCurrent")
         next_action_command_hint_source_previous = (Get-VariableOrDefault -Name "trendNextActionCommandHintSourcePrevious")
         next_action_command_hint_source_changed = (Get-VariableOrDefault -Name "trendNextActionCommandHintSourceChanged")
+        next_action_path_current = (Get-VariableOrDefault -Name "trendNextActionPathCurrent")
+        next_action_path_previous = (Get-VariableOrDefault -Name "trendNextActionPathPrevious")
+        next_action_path_changed = (Get-VariableOrDefault -Name "trendNextActionPathChanged")
         latest_compare_command_hint = (Get-VariableOrDefault -Name "trendLatestCompareCommandHint")
         next_session_command_hint = (Get-VariableOrDefault -Name "trendNextSessionCommandHint")
         mp = [ordered]@{
