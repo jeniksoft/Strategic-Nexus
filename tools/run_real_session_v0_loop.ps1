@@ -889,6 +889,8 @@ $mpExportHostReadiness = ""
 $mpExportClientReadinessGate = ""
 $mpExportHostNextStep = ""
 $mpExportClientNextStep = ""
+$mpExportHandoffStatus = ""
+$mpExportPreviousHostAvailable = ""
 $mpExportWarningCodes = @()
 $mpExportCampaignIdMismatchWarning = "false"
 $mpExportOverlayVersionMismatchWarning = "false"
@@ -936,6 +938,13 @@ if ($ExportMpPackage) {
     $mpExportClientReadinessGate = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_client_readiness_gate"
     $mpExportHostNextStep = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_host_next_step"
     $mpExportClientNextStep = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_client_next_step"
+    $mpExportHandoffStatus = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_handoff_status"
+    if ($mpExportHandoffStatus -eq "complete") {
+        $mpExportPreviousHostAvailable = "true"
+    }
+    elseif ($mpExportHandoffStatus -eq "degraded_previous_host_unavailable") {
+        $mpExportPreviousHostAvailable = "false"
+    }
     $mpExportWarningCodes = Get-KeyValueLineValues -Lines $mpExportLines -Key "mp_overlay_package_export_warning_code"
     $mpExportCampaignIdMismatchWarning = (Contains-Value -Values $mpExportWarningCodes -Needle "package_campaign_id_mismatch").ToString().ToLowerInvariant()
     $mpExportOverlayVersionMismatchWarning = (Contains-Value -Values $mpExportWarningCodes -Needle "package_overlay_version_mismatch").ToString().ToLowerInvariant()
@@ -1272,6 +1281,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMpClientNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_next_step_current"
     $compareMpClientNextStepPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_next_step_previous"
     $compareMpClientNextStepChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_client_next_step_changed"
+    $compareMpHandoffStatusCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_handoff_status_current"
+    $compareMpHandoffStatusPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_handoff_status_previous"
+    $compareMpHandoffStatusChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_handoff_status_changed"
+    $compareMpPreviousHostAvailableCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_previous_host_available_current"
+    $compareMpPreviousHostAvailablePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_previous_host_available_previous"
+    $compareMpPreviousHostAvailableChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_previous_host_available_changed"
     $compareMpVerifyCommandCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_verify_command_current"
     $compareMpVerifyCommandPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_verify_command_previous"
     $compareMpVerifyCommandChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_verify_command_changed"
@@ -1500,6 +1515,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpClientNextStepChanged)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_client_next_step_changed=" + $compareMpClientNextStepChanged)
     }
+    Write-Host ("real_session_v0_loop_compare_auto_mp_handoff_status_current=" + $compareMpHandoffStatusCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_handoff_status_previous=" + $compareMpHandoffStatusPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_handoff_status_changed=" + $compareMpHandoffStatusChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_previous_host_available_current=" + $compareMpPreviousHostAvailableCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_previous_host_available_previous=" + $compareMpPreviousHostAvailablePrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_previous_host_available_changed=" + $compareMpPreviousHostAvailableChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpVerifyCommandCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_verify_command_current=" + $compareMpVerifyCommandCurrent)
     }
@@ -1692,6 +1713,8 @@ if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_client_readiness_gate=" + $mpExportClientReadinessGate)
     Write-Host ("real_session_v0_loop_mp_package_host_next_step=" + $mpExportHostNextStep)
     Write-Host ("real_session_v0_loop_mp_package_client_next_step=" + $mpExportClientNextStep)
+    Write-Host ("real_session_v0_loop_mp_package_handoff_status=" + $mpExportHandoffStatus)
+    Write-Host ("real_session_v0_loop_mp_package_previous_host_available=" + $mpExportPreviousHostAvailable)
     Write-Host ("real_session_v0_loop_mp_package_campaign_id_mismatch_warning=" + $mpExportCampaignIdMismatchWarning)
     Write-Host ("real_session_v0_loop_mp_package_overlay_version_mismatch_warning=" + $mpExportOverlayVersionMismatchWarning)
     Write-Host ("real_session_v0_loop_mp_package_game_version_mismatch_warning=" + $mpExportGameVersionMismatchWarning)
@@ -1847,6 +1870,12 @@ if ($EmitTrendSummary) {
     $trendMpClientNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_next_step_current"
     $trendMpClientNextStepPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_next_step_previous"
     $trendMpClientNextStepChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_client_next_step_changed"
+    $trendMpHandoffStatusCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_handoff_status_current"
+    $trendMpHandoffStatusPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_handoff_status_previous"
+    $trendMpHandoffStatusChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_handoff_status_changed"
+    $trendMpPreviousHostAvailableCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_previous_host_available_current"
+    $trendMpPreviousHostAvailablePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_previous_host_available_previous"
+    $trendMpPreviousHostAvailableChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_previous_host_available_changed"
     $trendMpVerifyCommandCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_verify_command_current"
     $trendMpVerifyCommandPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_verify_command_previous"
     $trendMpVerifyCommandChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_verify_command_changed"
@@ -2075,6 +2104,12 @@ if ($EmitTrendSummary) {
     if (-not [string]::IsNullOrWhiteSpace($trendMpClientNextStepChanged)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_client_next_step_changed=" + $trendMpClientNextStepChanged)
     }
+    Write-Host ("real_session_v0_loop_trend_auto_mp_handoff_status_current=" + $trendMpHandoffStatusCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_handoff_status_previous=" + $trendMpHandoffStatusPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_handoff_status_changed=" + $trendMpHandoffStatusChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_previous_host_available_current=" + $trendMpPreviousHostAvailableCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_previous_host_available_previous=" + $trendMpPreviousHostAvailablePrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_previous_host_available_changed=" + $trendMpPreviousHostAvailableChanged)
     if (-not [string]::IsNullOrWhiteSpace($trendMpVerifyCommandCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_verify_command_current=" + $trendMpVerifyCommandCurrent)
     }
@@ -2326,6 +2361,8 @@ if ($ExportMpPackage) {
         "- Readiness: $mpExportReadiness"
         "- Host readiness: $mpExportHostReadiness"
         "- Client readiness gate: $mpExportClientReadinessGate"
+        "- Handoff status: $mpExportHandoffStatus"
+        "- Previous host available: $mpExportPreviousHostAvailable"
         "- Host next step: $mpExportHostNextStep"
         "- Client next step: $mpExportClientNextStep"
         "- Manifest hash: $mpExportManifestHash"
@@ -2487,6 +2524,8 @@ $sessionEvidence = [ordered]@{
         client_readiness_gate = $mpExportClientReadinessGate
         host_next_step = $mpExportHostNextStep
         client_next_step = $mpExportClientNextStep
+        handoff_status = $mpExportHandoffStatus
+        previous_host_available = $mpExportPreviousHostAvailable
         campaign_id_mismatch_warning = $mpExportCampaignIdMismatchWarning
         overlay_version_mismatch_warning = $mpExportOverlayVersionMismatchWarning
         game_version_mismatch_warning = $mpExportGameVersionMismatchWarning
@@ -2601,6 +2640,12 @@ $sessionEvidence = [ordered]@{
             client_next_step_current = (Get-VariableOrDefault -Name "compareMpClientNextStepCurrent")
             client_next_step_previous = (Get-VariableOrDefault -Name "compareMpClientNextStepPrevious")
             client_next_step_changed = (Get-VariableOrDefault -Name "compareMpClientNextStepChanged")
+            handoff_status_current = (Get-VariableOrDefault -Name "compareMpHandoffStatusCurrent")
+            handoff_status_previous = (Get-VariableOrDefault -Name "compareMpHandoffStatusPrevious")
+            handoff_status_changed = (Get-VariableOrDefault -Name "compareMpHandoffStatusChanged")
+            previous_host_available_current = (Get-VariableOrDefault -Name "compareMpPreviousHostAvailableCurrent")
+            previous_host_available_previous = (Get-VariableOrDefault -Name "compareMpPreviousHostAvailablePrevious")
+            previous_host_available_changed = (Get-VariableOrDefault -Name "compareMpPreviousHostAvailableChanged")
             verify_command_current = (Get-VariableOrDefault -Name "compareMpVerifyCommandCurrent")
             verify_command_previous = (Get-VariableOrDefault -Name "compareMpVerifyCommandPrevious")
             verify_command_changed = (Get-VariableOrDefault -Name "compareMpVerifyCommandChanged")
@@ -2772,6 +2817,12 @@ $sessionEvidence = [ordered]@{
             client_next_step_current = (Get-VariableOrDefault -Name "trendMpClientNextStepCurrent")
             client_next_step_previous = (Get-VariableOrDefault -Name "trendMpClientNextStepPrevious")
             client_next_step_changed = (Get-VariableOrDefault -Name "trendMpClientNextStepChanged")
+            handoff_status_current = (Get-VariableOrDefault -Name "trendMpHandoffStatusCurrent")
+            handoff_status_previous = (Get-VariableOrDefault -Name "trendMpHandoffStatusPrevious")
+            handoff_status_changed = (Get-VariableOrDefault -Name "trendMpHandoffStatusChanged")
+            previous_host_available_current = (Get-VariableOrDefault -Name "trendMpPreviousHostAvailableCurrent")
+            previous_host_available_previous = (Get-VariableOrDefault -Name "trendMpPreviousHostAvailablePrevious")
+            previous_host_available_changed = (Get-VariableOrDefault -Name "trendMpPreviousHostAvailableChanged")
             verify_command_current = (Get-VariableOrDefault -Name "trendMpVerifyCommandCurrent")
             verify_command_previous = (Get-VariableOrDefault -Name "trendMpVerifyCommandPrevious")
             verify_command_changed = (Get-VariableOrDefault -Name "trendMpVerifyCommandChanged")

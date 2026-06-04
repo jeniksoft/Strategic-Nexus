@@ -965,6 +965,7 @@ The evidence artifact now also includes explicit metadata (`evidence_schema_vers
 `tools/run_real_session_v0_loop.ps1` now also emits a stable aggregated MP mismatch warning contract (`real_session_v0_loop_mp_package_mismatch_warning_state/reason/code`) and mirrors it in evidence JSON `mp_export.mismatch_warning_*`, including `not_exported` defaults when MP export is skipped, so release-companion/owner flow can read one explicit package-risk signal without recomputing from many booleans.
 `tools/run_real_session_v0_loop.ps1` now also produces a deterministic MP package ZIP handoff artifact (`mp_overlay_package.zip`) with structured CLI/evidence fields (`*_mp_package_zip_{state,reason,path,sha256,bytes}`), so host/share staging for the next real MP session can consume one copyable package output without manual repacking.
 Compare/trend/loop outputs now also expose structured MP ZIP `path` and `bytes` drift fields (`*_mp_package_zip_{path,bytes}_{previous,current,changed}`), and loop evidence JSON mirrors them, so host handoff can confirm not only hash drift but also artifact path/size drift between sessions from one output surface.
+Compare/trend/loop outputs now also expose structured MP handoff continuity drift fields (`*_mp_handoff_status_{previous,current,changed}`, `*_mp_previous_host_available_{previous,current,changed}`), and real-session loop evidence now mirrors export-side `handoff_status` plus `previous_host_available`, so host-rotation follow-up can detect degraded previous-host continuity from one output artifact instead of reparsing status text.
 `StrategicNexusCompanionTray.exe` now refreshes a stable `dist/private_reports/snc_mp_overlay_package` export after `generated_overlay_staged`, removes stale tray ZIP handoff artifacts it did not regenerate, and surfaces structured MP package refresh/readiness/verify-import fields in `snc_tray_status.json`, Status Center summary text, and `snc_next_steps_brief.txt`.
 `StrategicNexusCompanion` status snapshots now also expose a top-level `next_action` contract (`next_action`, reason, command-hint source/path) and prioritize MP identity-mismatch review before ordinary staging follow-up, so release-companion or owner-facing status consumers do not need to reconstruct the next safe step from nested subsystem fields alone.
 `StrategicNexusCompanion` and SNC tray readiness surfaces now also expose `strategic_nexus_campaign_library_plan.json` saturation state (`campaign_library_limit_reached`, skipped count, source path, owner note) when the bounded active library contract is present beside SNC status artifacts, so owner-facing readiness can distinguish healthy bounded output from truncated local campaign coverage before the next real-session test.
@@ -996,11 +997,11 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
- Turn campaign-library coverage drift into explicit follow-up guidance.
+ Turn degraded MP handoff continuity into explicit follow-up guidance.
 
   The next slice should include:
 
- * promote campaign-library readiness regressions, truncation drift, and sidecar-source/path changes into explicit compare/trend recommendation or next_action inputs so release-companion and owner follow-up do not need custom campaign-library-specific interpretation rules
+* promote degraded `handoff_status`, `previous_host_available=false`, or continuity drift between sessions into explicit compare/trend recommendation or `next_action` inputs so release-companion and owner follow-up can tell when manual save recovery or host-rotation review is needed without custom MP-specific interpretation rules
 
   ---
 

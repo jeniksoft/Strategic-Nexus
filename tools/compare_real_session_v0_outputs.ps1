@@ -299,6 +299,10 @@ $previousMpStrictVerifyCommand = ""
 $currentMpStrictVerifyCommand = ""
 $previousMpStrictImportCommand = ""
 $currentMpStrictImportCommand = ""
+$previousMpHandoffStatus = ""
+$currentMpHandoffStatus = ""
+$previousMpPreviousHostAvailable = ""
+$currentMpPreviousHostAvailable = ""
 $previousMpIdentityMismatchWarning = ""
 $currentMpIdentityMismatchWarning = ""
 $previousMpMismatchWarningState = ""
@@ -330,12 +334,19 @@ if (Test-Path -LiteralPath $previousStatusWithMpPath) {
         $previousMpImportCommand = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "import_command"
         $previousMpStrictVerifyCommand = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "strict_verify_command"
         $previousMpStrictImportCommand = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "strict_import_command"
+        $previousMpHandoffStatus = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "handoff_status"
         $previousMpWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "warning_codes"
         $previousMpIdentityMismatchWarning = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
         $previousMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
         $previousMpMismatchWarningState = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_state"
         $previousMpMismatchWarningReason = Get-OptionalString -Object $previousStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_reason"
         $previousMpMismatchWarningCodes = Get-OptionalStringArray -Object $previousStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_codes"
+        if ($previousMpHandoffStatus -eq "complete") {
+            $previousMpPreviousHostAvailable = "true"
+        }
+        elseif ($previousMpHandoffStatus -eq "degraded_previous_host_unavailable") {
+            $previousMpPreviousHostAvailable = "false"
+        }
     }
 }
 if (Test-Path -LiteralPath $currentStatusWithMpPath) {
@@ -357,12 +368,19 @@ if (Test-Path -LiteralPath $currentStatusWithMpPath) {
         $currentMpImportCommand = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "import_command"
         $currentMpStrictVerifyCommand = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "strict_verify_command"
         $currentMpStrictImportCommand = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "strict_import_command"
+        $currentMpHandoffStatus = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "handoff_status"
         $currentMpWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "warning_codes"
         $currentMpIdentityMismatchWarning = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning"
         $currentMpIdentityMismatchWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "identity_mismatch_warning_codes"
         $currentMpMismatchWarningState = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_state"
         $currentMpMismatchWarningReason = Get-OptionalString -Object $currentStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_reason"
         $currentMpMismatchWarningCodes = Get-OptionalStringArray -Object $currentStatusWithMp.mp_overlay_package_status -Property "mismatch_warning_codes"
+        if ($currentMpHandoffStatus -eq "complete") {
+            $currentMpPreviousHostAvailable = "true"
+        }
+        elseif ($currentMpHandoffStatus -eq "degraded_previous_host_unavailable") {
+            $currentMpPreviousHostAvailable = "false"
+        }
     }
 }
 $previousMpWarningCodes = @($previousMpWarningCodes | Sort-Object -Unique)
@@ -694,6 +712,16 @@ $result = [ordered]@{
         current = $currentMpClientNextStep
         changed = ($previousMpClientNextStep -ne $currentMpClientNextStep)
     }
+    mp_handoff_status = [ordered]@{
+        previous = $previousMpHandoffStatus
+        current = $currentMpHandoffStatus
+        changed = ($previousMpHandoffStatus -ne $currentMpHandoffStatus)
+    }
+    mp_previous_host_available = [ordered]@{
+        previous = $previousMpPreviousHostAvailable
+        current = $currentMpPreviousHostAvailable
+        changed = ($previousMpPreviousHostAvailable -ne $currentMpPreviousHostAvailable)
+    }
     mp_verify_command = [ordered]@{
         previous = $previousMpVerifyCommand
         current = $currentMpVerifyCommand
@@ -883,6 +911,12 @@ Write-Host ("real_session_v0_compare_mp_host_next_step_changed=" + ((($previousM
 Write-Host ("real_session_v0_compare_mp_client_next_step_current=" + $currentMpClientNextStep)
 Write-Host ("real_session_v0_compare_mp_client_next_step_previous=" + $previousMpClientNextStep)
 Write-Host ("real_session_v0_compare_mp_client_next_step_changed=" + ((($previousMpClientNextStep -ne $currentMpClientNextStep).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_handoff_status_current=" + $currentMpHandoffStatus)
+Write-Host ("real_session_v0_compare_mp_handoff_status_previous=" + $previousMpHandoffStatus)
+Write-Host ("real_session_v0_compare_mp_handoff_status_changed=" + ((($previousMpHandoffStatus -ne $currentMpHandoffStatus).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_previous_host_available_current=" + $currentMpPreviousHostAvailable)
+Write-Host ("real_session_v0_compare_mp_previous_host_available_previous=" + $previousMpPreviousHostAvailable)
+Write-Host ("real_session_v0_compare_mp_previous_host_available_changed=" + ((($previousMpPreviousHostAvailable -ne $currentMpPreviousHostAvailable).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_verify_command_current=" + $currentMpVerifyCommand)
 Write-Host ("real_session_v0_compare_mp_verify_command_previous=" + $previousMpVerifyCommand)
 Write-Host ("real_session_v0_compare_mp_verify_command_changed=" + ((($previousMpVerifyCommand -ne $currentMpVerifyCommand).ToString().ToLowerInvariant())))

@@ -362,6 +362,12 @@ if ($sessionCount -ge 2) {
     $compareMpClientNextStepCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_next_step_current=*" } | Select-Object -First 1
     $compareMpClientNextStepPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_next_step_previous=*" } | Select-Object -First 1
     $compareMpClientNextStepChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_client_next_step_changed=*" } | Select-Object -First 1
+    $compareMpHandoffStatusCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_handoff_status_current=*" } | Select-Object -First 1
+    $compareMpHandoffStatusPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_handoff_status_previous=*" } | Select-Object -First 1
+    $compareMpHandoffStatusChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_handoff_status_changed=*" } | Select-Object -First 1
+    $compareMpPreviousHostAvailableCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_previous_host_available_current=*" } | Select-Object -First 1
+    $compareMpPreviousHostAvailablePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_previous_host_available_previous=*" } | Select-Object -First 1
+    $compareMpPreviousHostAvailableChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_previous_host_available_changed=*" } | Select-Object -First 1
     $compareMpVerifyCommandCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_current=*" } | Select-Object -First 1
     $compareMpVerifyCommandPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_previous=*" } | Select-Object -First 1
     $compareMpVerifyCommandChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_changed=*" } | Select-Object -First 1
@@ -768,6 +774,24 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpClientNextStepChangedLine)) {
         $latestMpClientNextStepChanged = $compareMpClientNextStepChangedLine.Substring("real_session_v0_compare_mp_client_next_step_changed=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHandoffStatusCurrentLine)) {
+        $latestMpHandoffStatusCurrent = $compareMpHandoffStatusCurrentLine.Substring("real_session_v0_compare_mp_handoff_status_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHandoffStatusPreviousLine)) {
+        $latestMpHandoffStatusPrevious = $compareMpHandoffStatusPreviousLine.Substring("real_session_v0_compare_mp_handoff_status_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHandoffStatusChangedLine)) {
+        $latestMpHandoffStatusChanged = $compareMpHandoffStatusChangedLine.Substring("real_session_v0_compare_mp_handoff_status_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPreviousHostAvailableCurrentLine)) {
+        $latestMpPreviousHostAvailableCurrent = $compareMpPreviousHostAvailableCurrentLine.Substring("real_session_v0_compare_mp_previous_host_available_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPreviousHostAvailablePreviousLine)) {
+        $latestMpPreviousHostAvailablePrevious = $compareMpPreviousHostAvailablePreviousLine.Substring("real_session_v0_compare_mp_previous_host_available_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpPreviousHostAvailableChangedLine)) {
+        $latestMpPreviousHostAvailableChanged = $compareMpPreviousHostAvailableChangedLine.Substring("real_session_v0_compare_mp_previous_host_available_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpVerifyCommandCurrentLine)) {
         $latestMpVerifyCommandCurrent = $compareMpVerifyCommandCurrentLine.Substring("real_session_v0_compare_mp_verify_command_current=".Length)
     }
@@ -1055,6 +1079,12 @@ $result = [ordered]@{
         client_next_step_previous = $latestMpClientNextStepPrevious
         client_next_step_current = $latestMpClientNextStepCurrent
         client_next_step_changed = $latestMpClientNextStepChanged
+        handoff_status_previous = $latestMpHandoffStatusPrevious
+        handoff_status_current = $latestMpHandoffStatusCurrent
+        handoff_status_changed = $latestMpHandoffStatusChanged
+        previous_host_available_previous = $latestMpPreviousHostAvailablePrevious
+        previous_host_available_current = $latestMpPreviousHostAvailableCurrent
+        previous_host_available_changed = $latestMpPreviousHostAvailableChanged
         verify_command_previous = $latestMpVerifyCommandPrevious
         verify_command_current = $latestMpVerifyCommandCurrent
         verify_command_changed = $latestMpVerifyCommandChanged
@@ -1304,6 +1334,12 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpClientNextStepPrevious)) {
 if (-not [string]::IsNullOrWhiteSpace($latestMpClientNextStepChanged)) {
     Write-Host ("real_session_v0_trend_mp_client_next_step_changed=" + $latestMpClientNextStepChanged)
 }
+Write-Host ("real_session_v0_trend_mp_handoff_status_current=" + $latestMpHandoffStatusCurrent)
+Write-Host ("real_session_v0_trend_mp_handoff_status_previous=" + $latestMpHandoffStatusPrevious)
+Write-Host ("real_session_v0_trend_mp_handoff_status_changed=" + $latestMpHandoffStatusChanged)
+Write-Host ("real_session_v0_trend_mp_previous_host_available_current=" + $latestMpPreviousHostAvailableCurrent)
+Write-Host ("real_session_v0_trend_mp_previous_host_available_previous=" + $latestMpPreviousHostAvailablePrevious)
+Write-Host ("real_session_v0_trend_mp_previous_host_available_changed=" + $latestMpPreviousHostAvailableChanged)
 if (-not [string]::IsNullOrWhiteSpace($latestMpVerifyCommandCurrent)) {
     Write-Host ("real_session_v0_trend_mp_verify_command_current=" + $latestMpVerifyCommandCurrent)
 }
