@@ -625,6 +625,47 @@ std::string buildNextActionCommandHintSource(const std::string& nextActionComman
     return "none";
 }
 
+std::filesystem::path buildNextActionPath(
+    const std::string& nextAction,
+    const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
+    const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const std::filesystem::path& entryPointAnalysisPath,
+    const std::filesystem::path& candidateDecisionPackagePath,
+    const std::filesystem::path& dslDraftAuditPath,
+    const std::filesystem::path& dslDraftPath,
+    const std::filesystem::path& generatedOverlayStagingStatusPath,
+    const std::filesystem::path& statusPath)
+{
+    if (nextAction == "review_staged_overlay_and_publish_if_desired") {
+        return generatedOverlayPublishGate.stagingStatusPath.empty()
+            ? generatedOverlayPublishGate.path
+            : generatedOverlayPublishGate.stagingStatusPath;
+    }
+    if (nextAction == "review_staged_overlay_status") {
+        return generatedOverlayStagingStatusPath;
+    }
+    if (nextAction == "review_dsl_draft") {
+        return dslDraftAuditPath.empty() ? dslDraftPath : dslDraftAuditPath;
+    }
+    if (nextAction == "review_candidate_decision_package") {
+        return candidateDecisionPackagePath;
+    }
+    if (nextAction == "review_entry_point_ambiguity" || nextAction == "review_entry_point_analysis_failure") {
+        return entryPointAnalysisPath;
+    }
+    if (nextAction == "review_tray_status") {
+        if (mpOverlayPackage.identityMismatchWarning || mpOverlayPackage.state == "needs_attention") {
+            return mpOverlayPackage.path;
+        }
+        if (generatedOverlayPublishGate.state == "published") {
+            return generatedOverlayPublishGate.publishStatusPath.empty()
+                ? generatedOverlayPublishGate.path
+                : generatedOverlayPublishGate.publishStatusPath;
+        }
+    }
+    return statusPath;
+}
+
 std::string buildStatusCenterSummaryText(
     const std::string& state,
     const std::string& reason,
@@ -792,7 +833,8 @@ void writeNextStepsBrief(
     const std::string& nextAction,
     const std::string& nextActionReason,
     const std::string& nextActionCommandHint,
-    const std::string& nextActionCommandHintSource)
+    const std::string& nextActionCommandHintSource,
+    const std::filesystem::path& nextActionPath)
 {
     std::ostringstream brief;
     brief << "Strategic Nexus Companion - dalsi kroky\n";
@@ -804,6 +846,9 @@ void writeNextStepsBrief(
     if (!nextActionCommandHint.empty()) {
         brief << "Command hint: " << nextActionCommandHint << "\n";
         brief << "Command hint source: " << nextActionCommandHintSource << "\n\n";
+    }
+    if (!nextActionPath.empty()) {
+        brief << "Action path: " << pathString(nextActionPath) << "\n\n";
     }
     brief << "- Entry point analysis: " << pathString(entryPointAnalysisPath);
     if (!entryPointReadiness.empty()) {
@@ -983,6 +1028,16 @@ void writeStatus(
         candidateDecisionPackageReadiness);
     const auto nextActionCommandHint = buildNextActionCommandHint(nextAction, g_nextStepsBriefPath);
     const auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextActionCommandHint);
+    const auto nextActionPath = buildNextActionPath(
+        nextAction,
+        companionSnapshot.generatedOverlayPublishGate,
+        companionSnapshot.mpOverlayPackage,
+        entryPointAnalysisPath,
+        candidateDecisionPackagePath,
+        dslDraftAuditPath,
+        dslDraftPath,
+        generatedOverlayStagingStatusPath,
+        g_trayStatusPath);
     const auto statusCenterSummaryText = buildStatusCenterSummaryText(
         state,
         reason,
@@ -1048,7 +1103,8 @@ void writeStatus(
         nextAction,
         nextActionReason,
         nextActionCommandHint,
-        nextActionCommandHintSource);
+        nextActionCommandHintSource,
+        nextActionPath);
 
     std::ostringstream json;
     json << "{\n";
@@ -1186,6 +1242,7 @@ void writeStatus(
     json << "  \"next_action_reason\": \"" << jsonEscape(nextActionReason) << "\",\n";
     json << "  \"next_action_command_hint\": \"" << jsonEscape(nextActionCommandHint) << "\",\n";
     json << "  \"next_action_command_hint_source\": \"" << jsonEscape(nextActionCommandHintSource) << "\",\n";
+    json << "  \"next_action_path\": \"" << jsonEscape(pathString(nextActionPath)) << "\",\n";
     json << "  \"next_steps_brief_path\": \"" << jsonEscape(pathString(g_nextStepsBriefPath)) << "\"\n";
     json << "}\n";
 

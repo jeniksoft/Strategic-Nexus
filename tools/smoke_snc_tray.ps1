@@ -29,6 +29,7 @@ try {
                 $null -ne $json.status_center_summary_text -and
                 $null -ne $json.next_action -and
                 $null -ne $json.next_action_command_hint_source -and
+                $null -ne $json.next_action_path -and
                 $null -ne $json.next_steps_brief_path -and
                 $null -ne $json.generated_overlay_publish_gate_state -and
                 $null -ne $json.generated_overlay_publish_gate_reason -and
@@ -46,6 +47,7 @@ try {
                 Write-Host ("snc_tray_smoke_state=" + $json.state)
                 Write-Host ("snc_tray_smoke_next_action=" + $json.next_action)
                 Write-Host ("snc_tray_smoke_next_action_command_hint_source=" + $json.next_action_command_hint_source)
+                Write-Host ("snc_tray_smoke_next_action_path=" + $json.next_action_path)
                 Write-Host ("snc_tray_smoke_process_id=" + $process.Id)
                 exit 0
             }
