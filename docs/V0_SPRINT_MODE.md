@@ -88,6 +88,21 @@ The foreground chat may override the queue.
 
 Background Free Work should not invent a new strategic direction when queued worker-ready chunks exist.
 
+`no_safe_task` is allowed only when all of these are true:
+
+* the sprint queue has no available chunk
+* `DEVELOPMENT_ROADMAP.md` has no unblocked `IN_PROGRESS` or `NOT_STARTED` implementation/documentation/verification work that can be made into a bounded chunk
+* no useful verification, regression, fail-safe hardening, documentation correction, or roadmap queue refresh can be done without owner input
+
+If the queue is empty or fully verified while the roadmap still contains unblocked work, the worker must not stop.
+It must either:
+
+* append the next bounded roadmap-derived chunk to `tools/dev_attention/v0_sprint_chunk_queue.json`, commit that queue refresh, and then claim it, or
+* implement a directly obvious bounded roadmap chunk and update the queue/roadmap afterward.
+
+Owner readiness reports are not a stop condition.
+After reporting that an owner test is possible, continue with the next unblocked roadmap implementation unless all remaining useful work genuinely depends on that owner test.
+
 ---
 
 # Claim And Overlap Rule
@@ -163,3 +178,4 @@ The readiness notice must include:
 * any known limitations
 
 Until such a notice exists, Free Work should keep moving through the v0 queue instead of waiting for the owner.
+After such a notice exists, Free Work should still continue with unrelated or follow-on roadmap chunks unless the next meaningful implementation depends on the owner test result.

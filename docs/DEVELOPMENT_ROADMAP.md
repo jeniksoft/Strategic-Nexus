@@ -93,6 +93,7 @@ Otherwise, prefer product/runtime roadmap progress over additional meta-tooling.
 
 When v0 Sprint Mode is active, background Free Work should select from `tools/dev_attention/v0_sprint_chunk_queue.json` before inventing new worker-ready chunks.
 The sprint queue must remain subordinate to this roadmap and the master architecture index; if it becomes stale, update the queue rather than following stale work.
+The sprint queue must not become a reason to stop work: if the queue is exhausted while this roadmap still has unblocked `IN_PROGRESS` or `NOT_STARTED` work, Codex must derive the next bounded chunk from the roadmap instead of ending with `no_safe_task`.
 
 ---
 

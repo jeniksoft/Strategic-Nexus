@@ -1,9 +1,10 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T09:35:00+02:00",
+  "updated_at": "2026-06-04T10:45:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
+  "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
   "current_source": "DEVELOPMENT_ROADMAP.md Next worker-ready slice under Core Runtime Skeleton.",
   "chunks": [
@@ -118,6 +119,140 @@
       ],
       "dependencies": [
         "v0-sprint-005-release-companion-one-file-consumption"
+      ]
+    },
+    {
+      "id": "v0-sprint-007-minimal-strategy-dimension-gap-audit",
+      "title": "Audit minimal strategy dimension gameplay-effect gaps",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Minimal Strategy Dimensions",
+      "goal": "Determine the smallest missing implementation piece that makes v0 strategy dimensions produce observable generated-overlay behavior instead of only passing contract shape tests.",
+      "acceptance": [
+        "The audit identifies whether military_posture and research_bias already have observable generated overlay effects.",
+        "If a missing effect is found and can be implemented safely in the same bounded chunk, implement it; otherwise append a follow-up implementation chunk.",
+        "The result is recorded in roadmap progress or the sprint queue so Free Work continues."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-006-owner-real-session-readiness-report"
+      ]
+    },
+    {
+      "id": "v0-sprint-008-observable-v0-domain-effect",
+      "title": "Implement or verify observable v0 domain effect",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Minimal Strategy Dimensions",
+      "goal": "Make at least one v0 strategy domain visibly affect generated mod overlay state in a bounded, reversible, fail-safe way suitable for real-session observation.",
+      "acceptance": [
+        "Generated overlay output contains a deterministic, checksum-relevant scripted representation of the selected v0 domain.",
+        "Unsupported or unsafe domain values still fail closed.",
+        "A regression test proves the generated output changes when the selected domain changes."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-007-minimal-strategy-dimension-gap-audit"
+      ]
+    },
+    {
+      "id": "v0-sprint-009-empire-context-schema-slice",
+      "title": "Define minimal empire-scoped context schema slice",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Empire-Scoped Context Pipeline",
+      "goal": "Create the smallest durable schema/fixture path for isolating per-empire context without implementing the full strategic memory system.",
+      "acceptance": [
+        "A bounded schema or fixture contract exists for one empire context input.",
+        "The contract includes campaign_id and empire_id isolation fields.",
+        "Malformed or cross-empire context cannot silently pass as trusted context."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-008-observable-v0-domain-effect"
+      ]
+    },
+    {
+      "id": "v0-sprint-010-empire-context-isolation-test",
+      "title": "Add empire context isolation regression",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Empire-Scoped Context Pipeline",
+      "goal": "Prove two empires cannot accidentally share or overwrite bounded v0 context in the deterministic pipeline.",
+      "acceptance": [
+        "A test or harness covers two empires in one campaign.",
+        "The output preserves distinct empire_id/campaign_id routing.",
+        "Cross-empire mismatch fails closed or is reported as explicit uncertainty."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-009-empire-context-schema-slice"
+      ]
+    },
+    {
+      "id": "v0-sprint-011-save-timeline-entrypoint-inventory-slice",
+      "title": "Build save timeline entry-point inventory slice",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Save Timeline Memory Bootstrap",
+      "goal": "Move toward identifying all currently loadable campaign entry points so generated rules can be entry-point scoped instead of only latest-save scoped.",
+      "acceptance": [
+        "The inventory can distinguish currently loadable saves from historical captured autosaves when available metadata permits.",
+        "Ambiguous branch/history cases are reported explicitly rather than treated as a single linear truth.",
+        "The output is bounded and safe for later LLM summarization."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-010-empire-context-isolation-test"
+      ]
+    },
+    {
+      "id": "v0-sprint-012-schema-compatibility-guard",
+      "title": "Add next small schema compatibility guard",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Schema Evolution And Compatibility",
+      "goal": "Add one small compatibility guard so v0 artifacts fail closed on unsupported schema drift instead of silently accepting unknown shapes.",
+      "acceptance": [
+        "At least one currently trusted v0 artifact path checks schema_version or equivalent compatibility metadata.",
+        "Unsupported future schema is rejected or converted into explicit uncertainty.",
+        "Regression coverage proves the guard."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-011-save-timeline-entrypoint-inventory-slice"
+      ]
+    },
+    {
+      "id": "v0-sprint-013-taskboard-roadmap-progress-refresh",
+      "title": "Refresh roadmap progress after implemented chunks",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Task Board And Owner Report Log",
+      "goal": "Ensure roadmap progress and Task Board project estimate move after verified sprint chunks instead of leaving the owner with stale progress.",
+      "acceptance": [
+        "Roadmap complexity and project progress helpers are run after meaningful implementation.",
+        "The Task Board estimate reflects the latest roadmap status inputs.",
+        "No owner-facing report spam is created."
+      ],
+      "preferred_tests": [
+        "tools/dev_attention/analyze_roadmap_complexity.ps1",
+        "tools/dev_attention/set_project_progress_estimate.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-012-schema-compatibility-guard"
       ]
     }
   ]
