@@ -79,6 +79,16 @@ int main()
     requireCondition(readResult.package.entries.size() == 3, "post-play parser should preserve entries");
     requireCondition(readResult.package.decisionReadyEntryCount == 2, "post-play parser should preserve ready count");
 
+    auto futureSchemaJson = postPlayJson;
+    const auto schemaMarker = futureSchemaJson.find("\"schema_version\": 1");
+    requireCondition(schemaMarker != std::string::npos, "post-play JSON should expose schema version marker");
+    futureSchemaJson.replace(schemaMarker, std::string("\"schema_version\": 1").size(), "\"schema_version\": 2");
+    const auto futureSchemaRead = strategic_nexus::parsePostPlayPackageJson(futureSchemaJson);
+    requireCondition(!futureSchemaRead.ok, "unsupported post-play package schema should fail closed");
+    requireCondition(
+        futureSchemaRead.reason == "unsupported post-play package schema",
+        "unsupported post-play package schema should expose explicit compatibility reason");
+
     const strategic_nexus::SncDecisionInputPackageBuilder builder;
     const auto decisionPackage = builder.build(readResult.package, root / "snc_post_play_package.json");
     requireCondition(decisionPackage.ok, "decision input package should build from parsed post-play package");
