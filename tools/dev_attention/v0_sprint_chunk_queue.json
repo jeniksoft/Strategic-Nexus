@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "mode": "v0_sprint",
+  "updated_at": "2026-06-04T09:35:00+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
+  "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
+  "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
+  "current_source": "DEVELOPMENT_ROADMAP.md Next worker-ready slice under Core Runtime Skeleton.",
+  "chunks": [
+    {
+      "id": "v0-sprint-001-release-companion-package-state",
+      "title": "Expose release-companion-visible MP package state",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Core Runtime Skeleton / Next worker-ready slice",
+      "goal": "Make the current generated MP package state consumable from one stable evidence/status surface without scraping several outputs.",
+      "acceptance": [
+        "A machine-readable status or evidence artifact exposes package readiness, path, hash, byte count, and reason fields.",
+        "Missing package, stale package, and not-exported states are explicit, not ambiguous nulls.",
+        "Relevant v0 pipeline or status tests cover the contract."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-002-import-verify-command-surface",
+      "title": "Clarify import/verify command surface",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Core Runtime Skeleton / Next worker-ready slice",
+      "goal": "Ensure host/client strict verify and import commands are copyable and stable for release-companion handoff.",
+      "acceptance": [
+        "Evidence/status output contains explicit strict verify and import command hints.",
+        "Unsupported or missing command-hint values fail closed in tests.",
+        "Owner-facing next-step text points to the safe command when package identity risk exists."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-001-release-companion-package-state"
+      ]
+    },
+    {
+      "id": "v0-sprint-003-status-center-host-client-copy",
+      "title": "Surface host/client readiness in Status Center",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Core Runtime Skeleton / Next worker-ready slice",
+      "goal": "Make Status Center explain host readiness and client gate state without requiring raw JSON inspection.",
+      "acceptance": [
+        "Status Center summary includes host readiness and client readiness gate lines.",
+        "Ready, blocked, mismatch, and not-exported states produce distinct text.",
+        "Tests or golden output cover the expected lines."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-001-release-companion-package-state"
+      ]
+    },
+    {
+      "id": "v0-sprint-004-identity-mismatch-owner-warning",
+      "title": "Harden owner-facing package identity mismatch warning",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Core Runtime Skeleton / Next worker-ready slice",
+      "goal": "Ensure campaign, overlay, game version, mod version, and generated hash mismatches are visible as owner-critical warnings.",
+      "acceptance": [
+        "Mismatch warnings are explicit booleans or stable enum fields in evidence/status output.",
+        "Aggregated next_action prioritizes identity risk over ordinary follow-up.",
+        "Regression tests cover at least one identity-risk plus ordinary-delta collision."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-002-import-verify-command-surface",
+        "v0-sprint-003-status-center-host-client-copy"
+      ]
+    },
+    {
+      "id": "v0-sprint-005-release-companion-one-file-consumption",
+      "title": "Stabilize one-file evidence consumption for release companion",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Core Runtime Skeleton / release-companion handoff",
+      "goal": "Verify the release companion can consume one structured evidence/status artifact instead of reconstructing state from many CLI streams.",
+      "acceptance": [
+        "One artifact contains the fields needed for readiness, next action, package path/hash/bytes, command hints, and mismatch warning state.",
+        "A test fails if required fields disappear or become placeholder strings.",
+        "The roadmap records the artifact as the handoff source if verified."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-004-identity-mismatch-owner-warning"
+      ]
+    },
+    {
+      "id": "v0-sprint-006-owner-real-session-readiness-report",
+      "title": "Emit clear owner readiness report for the next real-session test",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "v0 real-game validation loop",
+      "goal": "When the v0 package/status path is ready, tell the owner exactly what to test and what evidence Codex will inspect afterward.",
+      "acceptance": [
+        "A concise Task Board report or next-steps brief states the next real-session test instructions.",
+        "The report names the generated evidence path or command output to inspect after the owner test.",
+        "The report does not ask for manual code review."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-005-release-companion-one-file-consumption"
+      ]
+    }
+  ]
+}

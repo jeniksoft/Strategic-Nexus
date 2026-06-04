@@ -87,6 +87,7 @@ Core documents:
 * [LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md](LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md) - how to read older daemon, bridge, and cadence documents after the offline architecture shift
 * [DOCUMENTATION_CONSISTENCY_AUDIT.md](DOCUMENTATION_CONSISTENCY_AUDIT.md) - focused audits for contradictions between architecture documents
 * [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) - implementation order and milestone status
+* [V0_SPRINT_MODE.md](V0_SPRINT_MODE.md) - temporary acceleration rules for reaching the first real-game v0 validation loop
 * [PROJECT_ARCHITECTURE_INDEX_RULES.md](PROJECT_ARCHITECTURE_INDEX_RULES.md) - rules for maintaining this index
 * [PROJECT_OWNER_COLLABORATION_MODEL.md](PROJECT_OWNER_COLLABORATION_MODEL.md) - project owner and Codex collaboration model, Free Work expectations, and owner input checklist
 * [ENGINEERING_RULES.md](ENGINEERING_RULES.md) - practical engineering rules for development

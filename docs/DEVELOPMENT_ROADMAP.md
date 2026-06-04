@@ -38,6 +38,8 @@ Use `META_RULE_LANGUAGE_AND_COMPILER.md` for the bounded DSL and deterministic c
 
 Use `LOCAL_LLM_INTEGRATION_CONTRACT.md` for the model-weights, local runtime, companion Model Manager, validation, reduced-mode, and mod boundary contract.
 
+Use `V0_SPRINT_MODE.md` and `tools/dev_attention/v0_sprint_chunk_queue.json` when the owner asks for maximum implementation throughput toward the first real-game v0 validation loop.
+
 ---
 
 
@@ -88,6 +90,9 @@ Until that path is robust enough to feel like a real product spine, new strategi
 
 Task Board work remains allowed when it fixes bugs, reliability, owner visibility, or repeated friction.
 Otherwise, prefer product/runtime roadmap progress over additional meta-tooling.
+
+When v0 Sprint Mode is active, background Free Work should select from `tools/dev_attention/v0_sprint_chunk_queue.json` before inventing new worker-ready chunks.
+The sprint queue must remain subordinate to this roadmap and the master architecture index; if it becomes stale, update the queue rather than following stale work.
 
 ---
 
