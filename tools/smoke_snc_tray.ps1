@@ -34,6 +34,7 @@ try {
                 $null -ne $json.generated_overlay_publish_gate_state -and
                 $null -ne $json.generated_overlay_publish_gate_reason -and
                 $null -ne $json.generated_overlay_publish_gate_published -and
+                $null -ne $json.generated_overlay_publish_gate_can_publish -and
                 $null -ne $json.mp_package_refresh_state -and
                 $null -ne $json.mp_overlay_package_directory -and
                 $null -ne $json.mp_overlay_package_state
@@ -41,6 +42,15 @@ try {
                 if ($json.generated_overlay_publish_gate_can_publish -eq $true -and
                     $json.next_action -ne "review_staged_overlay_and_publish_if_desired") {
                     throw "SNC tray publish-ready status did not surface the publish/review next action."
+                }
+                if ($json.generated_overlay_publish_gate_can_publish -eq $true) {
+                    if (-not (Test-Path -LiteralPath $json.next_steps_brief_path)) {
+                        throw "SNC tray did not write the next-steps brief named by status JSON."
+                    }
+                    $briefText = Get-Content -Raw -LiteralPath $json.next_steps_brief_path
+                    if ($briefText -notlike "*Publish gate available: ano*") {
+                        throw "SNC tray next-steps brief does not match publish gate availability from status JSON."
+                    }
                 }
 
                 Write-Host "snc_tray_smoke_success=true"

@@ -885,7 +885,10 @@ void writeNextStepsBrief(
         brief << " (" << generatedOverlayPublishGate.reason << ")";
     }
     brief << "\n";
-    brief << "- Publish gate available: " << (generatedOverlayPublishAllowed ? "ano" : "ne") << "\n";
+    brief << "- Publish gate available: " << (generatedOverlayPublishGate.canPublish ? "ano" : "ne") << "\n";
+    brief << "- Publish allowed now: " << (generatedOverlayPublishAllowed ? "ano" : "ne") << "\n";
+    brief << "- Owner approval required: "
+          << (generatedOverlayPublishGate.ownerApprovalRequired ? "ano" : "ne") << "\n";
     brief << "- Current staged overlay already published: " << (generatedOverlayPublishGate.published ? "ano" : "ne") << "\n";
     brief << "- Active overlay snapshot: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
     brief << "- Publish status output: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
@@ -901,6 +904,15 @@ void writeNextStepsBrief(
     brief << "- MP package refresh: " << mpPackageRefreshState << " (" << mpPackageRefreshReason << ")\n";
     brief << "- MP overlay package directory: " << pathString(g_mpOverlayPackageDirectory) << "\n";
     brief << "- MP package zip path: " << pathString(g_mpOverlayPackageZipPath) << "\n";
+    if (!mpOverlayPackage.packageZipState.empty()) {
+        brief << "- MP package zip state: " << mpOverlayPackage.packageZipState << "\n";
+    }
+    if (!mpOverlayPackage.packageZipReason.empty()) {
+        brief << "- MP package zip reason: " << mpOverlayPackage.packageZipReason << "\n";
+    }
+    if (!mpOverlayPackage.packageZipState.empty()) {
+        brief << "- MP package zip bytes: " << mpOverlayPackage.packageZipBytes << "\n";
+    }
     brief << "- MP overlay package state: " << mpOverlayPackage.state;
     if (!mpOverlayPackage.reason.empty()) {
         brief << " (" << mpOverlayPackage.reason << ")";
@@ -1007,36 +1019,130 @@ void writeStatus(
     companionConfig.postPlayGeneratedOverlayStagingStatusPath = g_generatedOverlayStagingStatusPath;
     companionConfig.mpOverlayPackageZipPath = g_mpOverlayPackageZipPath;
     const auto companionSnapshot = companion.buildStatusSnapshot(companionConfig);
+    const auto& diskPipeline = companionSnapshot.postPlayPipeline;
+
+    auto choosePath = [](const std::filesystem::path& liveValue, const std::filesystem::path& diskValue) {
+        return liveValue.empty() ? diskValue : liveValue;
+    };
+    auto chooseString = [](const std::string& liveValue, const std::string& diskValue) {
+        return liveValue.empty() ? diskValue : liveValue;
+    };
+    auto chooseSize = [](const std::size_t liveValue, const std::size_t diskValue) {
+        return liveValue == 0 ? diskValue : liveValue;
+    };
+
+    std::string effectivePostPlayState = postPlayState;
+    if (effectivePostPlayState == "not_started" && diskPipeline.state != "starting") {
+        if (!diskPipeline.generatedOverlayStagingReadiness.empty()) {
+            effectivePostPlayState = diskPipeline.generatedOverlayStagingReadiness.rfind("staged", 0) == 0
+                ? "generated_overlay_staged"
+                : "generated_overlay_staging_failed";
+        } else if (!diskPipeline.dslDraftReadiness.empty()) {
+            effectivePostPlayState = diskPipeline.dslDraftReadiness == "needs_identity"
+                ? "dsl_draft_needs_identity"
+                : "dsl_draft_ready";
+        } else if (!diskPipeline.candidateDecisionPackageReadiness.empty()) {
+            effectivePostPlayState = "candidate_decision_package_ready";
+        } else if (!diskPipeline.decisionInputPackageReadiness.empty()) {
+            effectivePostPlayState = "decision_input_package_ready";
+        } else if (!diskPipeline.postPlayPackageReadiness.empty()) {
+            effectivePostPlayState = "post_play_package_ready";
+        } else if (!diskPipeline.entryPointReadiness.empty()) {
+            effectivePostPlayState = diskPipeline.branchAmbiguityDetected
+                ? "entry_points_ambiguous"
+                : "entry_points_ready";
+        }
+    }
+
+    const auto effectiveEntryPointAnalysisPath =
+        choosePath(entryPointAnalysisPath, diskPipeline.entryPointAnalysisPath);
+    const auto effectiveEntryPointCount = chooseSize(entryPointCount, diskPipeline.entryPointCount);
+    const bool effectiveBranchAmbiguityDetected =
+        branchAmbiguityDetected || diskPipeline.branchAmbiguityDetected;
+    const auto effectiveEntryPointReadiness =
+        chooseString(entryPointReadiness, diskPipeline.entryPointReadiness);
+    const auto effectivePostPlayPackagePath =
+        choosePath(postPlayPackagePath, diskPipeline.postPlayPackagePath);
+    const auto effectivePostPlayPackageReadiness =
+        chooseString(postPlayPackageReadiness, diskPipeline.postPlayPackageReadiness);
+    const auto effectivePostPlayDecisionReadyEntryCount =
+        chooseSize(postPlayDecisionReadyEntryCount, diskPipeline.postPlayDecisionReadyEntryCount);
+    const auto effectivePostPlayCampaignCount =
+        chooseSize(postPlayCampaignCount, diskPipeline.postPlayCampaignCount);
+    const auto effectivePostPlayReadyCampaignCount =
+        chooseSize(postPlayReadyCampaignCount, diskPipeline.postPlayReadyCampaignCount);
+    const auto effectivePostPlayPartialCampaignCount =
+        chooseSize(postPlayPartialCampaignCount, diskPipeline.postPlayPartialCampaignCount);
+    const auto effectivePostPlayBlockedCampaignCount =
+        chooseSize(postPlayBlockedCampaignCount, diskPipeline.postPlayBlockedCampaignCount);
+    const auto effectivePostPlayCampaignSummaries = postPlayCampaignSummaries.empty()
+        ? diskPipeline.postPlayCampaignReadinessSummaries
+        : postPlayCampaignSummaries;
+    const auto effectiveDecisionInputPackagePath =
+        choosePath(decisionInputPackagePath, diskPipeline.decisionInputPackagePath);
+    const auto effectiveDecisionInputPackageReadiness =
+        chooseString(decisionInputPackageReadiness, diskPipeline.decisionInputPackageReadiness);
+    const auto effectiveDecisionInputCount = chooseSize(decisionInputCount, diskPipeline.decisionInputCount);
+    const auto effectiveCandidateDecisionPackagePath =
+        choosePath(candidateDecisionPackagePath, diskPipeline.candidateDecisionPackagePath);
+    const auto effectiveCandidateDecisionPackageReadiness =
+        chooseString(candidateDecisionPackageReadiness, diskPipeline.candidateDecisionPackageReadiness);
+    const auto effectiveCandidateDecisionCount =
+        chooseSize(candidateDecisionCount, diskPipeline.candidateDecisionCount);
+    const bool effectiveCandidateDecisionValidatorPassed =
+        candidateDecisionValidatorPassed || diskPipeline.candidateDecisionValidatorPassed;
+    const auto effectiveDslDraftPath = choosePath(dslDraftPath, diskPipeline.dslDraftPath);
+    const auto effectiveDslDraftAuditPath = choosePath(dslDraftAuditPath, diskPipeline.dslDraftAuditPath);
+    const auto effectiveDslDraftReadiness = chooseString(dslDraftReadiness, diskPipeline.dslDraftReadiness);
+    const auto effectiveDslDraftRuleCount = chooseSize(dslDraftRuleCount, diskPipeline.dslDraftRuleCount);
+    const bool effectiveDslDraftValidatorPassed =
+        dslDraftValidatorPassed || diskPipeline.dslDraftValidatorPassed;
+    const auto effectiveGeneratedOverlayStagingDirectory = generatedOverlayStagingDirectory.empty()
+        ? g_generatedOverlayStagingDirectory
+        : generatedOverlayStagingDirectory;
+    const auto effectiveGeneratedOverlayStagingStatusPath =
+        choosePath(generatedOverlayStagingStatusPath, diskPipeline.generatedOverlayStagingStatusPath);
+    const auto effectiveGeneratedOverlayStagingReadiness =
+        chooseString(generatedOverlayStagingReadiness, diskPipeline.generatedOverlayStagingReadiness);
+    const auto effectiveGeneratedOverlayStagingRuleCount =
+        chooseSize(generatedOverlayStagingRuleCount, diskPipeline.generatedOverlayStagingRuleCount);
+    const bool effectiveGeneratedOverlayManifestVerified =
+        generatedOverlayManifestVerified || diskPipeline.generatedOverlayManifestVerified;
+    const bool effectiveGeneratedOverlayPublishAllowed =
+        generatedOverlayPublishAllowed || diskPipeline.generatedOverlayPublishAllowed;
+    const auto effectiveGeneratedOverlayManifestHash = chooseString(
+        generatedOverlayManifestHash,
+        companionSnapshot.generatedOverlayPublishGate.manifestHash);
 
     const auto nextAction = buildNextAction(
         state,
-        postPlayState,
+        effectivePostPlayState,
         companionSnapshot.generatedOverlayPublishGate.state,
         companionSnapshot.generatedOverlayPublishGate.canPublish,
-        generatedOverlayPublishAllowed,
-        generatedOverlayStagingReadiness,
-        dslDraftReadiness,
-        candidateDecisionPackageReadiness);
+        effectiveGeneratedOverlayPublishAllowed,
+        effectiveGeneratedOverlayStagingReadiness,
+        effectiveDslDraftReadiness,
+        effectiveCandidateDecisionPackageReadiness);
     const auto nextActionReason = buildNextActionReason(
         state,
-        postPlayState,
+        effectivePostPlayState,
         companionSnapshot.generatedOverlayPublishGate.state,
         companionSnapshot.generatedOverlayPublishGate.canPublish,
-        generatedOverlayPublishAllowed,
-        generatedOverlayStagingReadiness,
-        dslDraftReadiness,
-        candidateDecisionPackageReadiness);
+        effectiveGeneratedOverlayPublishAllowed,
+        effectiveGeneratedOverlayStagingReadiness,
+        effectiveDslDraftReadiness,
+        effectiveCandidateDecisionPackageReadiness);
     const auto nextActionCommandHint = buildNextActionCommandHint(nextAction, g_nextStepsBriefPath);
     const auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextActionCommandHint);
     const auto nextActionPath = buildNextActionPath(
         nextAction,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
-        entryPointAnalysisPath,
-        candidateDecisionPackagePath,
-        dslDraftAuditPath,
-        dslDraftPath,
-        generatedOverlayStagingStatusPath,
+        effectiveEntryPointAnalysisPath,
+        effectiveCandidateDecisionPackagePath,
+        effectiveDslDraftAuditPath,
+        effectiveDslDraftPath,
+        effectiveGeneratedOverlayStagingStatusPath,
         g_trayStatusPath);
     const auto statusCenterSummaryText = buildStatusCenterSummaryText(
         state,
@@ -1046,56 +1152,56 @@ void writeStatus(
         sessionDirectory,
         copiedTotal,
         skippedTotal,
-        postPlayState,
+        effectivePostPlayState,
         archiveVerified,
-        entryPointAnalysisPath,
-        entryPointCount,
-        branchAmbiguityDetected,
-        entryPointReadiness,
-        postPlayPackagePath,
-        postPlayPackageReadiness,
-        postPlayDecisionReadyEntryCount,
-        postPlayCampaignCount,
-        postPlayReadyCampaignCount,
-        postPlayPartialCampaignCount,
-        postPlayBlockedCampaignCount,
-        postPlayCampaignSummaries,
-        decisionInputPackagePath,
-        decisionInputPackageReadiness,
-        decisionInputCount,
-        candidateDecisionPackagePath,
-        candidateDecisionPackageReadiness,
-        candidateDecisionCount,
-        dslDraftPath,
-        dslDraftReadiness,
-        dslDraftRuleCount,
-        generatedOverlayStagingDirectory,
-        generatedOverlayStagingStatusPath,
-        generatedOverlayStagingReadiness,
-        generatedOverlayStagingRuleCount,
-        generatedOverlayManifestVerified,
-        generatedOverlayPublishAllowed,
-        generatedOverlayManifestHash,
+        effectiveEntryPointAnalysisPath,
+        effectiveEntryPointCount,
+        effectiveBranchAmbiguityDetected,
+        effectiveEntryPointReadiness,
+        effectivePostPlayPackagePath,
+        effectivePostPlayPackageReadiness,
+        effectivePostPlayDecisionReadyEntryCount,
+        effectivePostPlayCampaignCount,
+        effectivePostPlayReadyCampaignCount,
+        effectivePostPlayPartialCampaignCount,
+        effectivePostPlayBlockedCampaignCount,
+        effectivePostPlayCampaignSummaries,
+        effectiveDecisionInputPackagePath,
+        effectiveDecisionInputPackageReadiness,
+        effectiveDecisionInputCount,
+        effectiveCandidateDecisionPackagePath,
+        effectiveCandidateDecisionPackageReadiness,
+        effectiveCandidateDecisionCount,
+        effectiveDslDraftPath,
+        effectiveDslDraftReadiness,
+        effectiveDslDraftRuleCount,
+        effectiveGeneratedOverlayStagingDirectory,
+        effectiveGeneratedOverlayStagingStatusPath,
+        effectiveGeneratedOverlayStagingReadiness,
+        effectiveGeneratedOverlayStagingRuleCount,
+        effectiveGeneratedOverlayManifestVerified,
+        effectiveGeneratedOverlayPublishAllowed,
+        effectiveGeneratedOverlayManifestHash,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
         mpPackageRefreshState,
         mpPackageRefreshReason);
     writeNextStepsBrief(
         state,
-        postPlayState,
-        entryPointAnalysisPath,
-        entryPointReadiness,
-        postPlayPackagePath,
-        postPlayPackageReadiness,
-        decisionInputPackagePath,
-        decisionInputPackageReadiness,
-        candidateDecisionPackagePath,
-        candidateDecisionPackageReadiness,
-        dslDraftPath,
-        dslDraftReadiness,
-        generatedOverlayStagingStatusPath,
-        generatedOverlayStagingReadiness,
-        generatedOverlayPublishAllowed,
+        effectivePostPlayState,
+        effectiveEntryPointAnalysisPath,
+        effectiveEntryPointReadiness,
+        effectivePostPlayPackagePath,
+        effectivePostPlayPackageReadiness,
+        effectiveDecisionInputPackagePath,
+        effectiveDecisionInputPackageReadiness,
+        effectiveCandidateDecisionPackagePath,
+        effectiveCandidateDecisionPackageReadiness,
+        effectiveDslDraftPath,
+        effectiveDslDraftReadiness,
+        effectiveGeneratedOverlayStagingStatusPath,
+        effectiveGeneratedOverlayStagingReadiness,
+        effectiveGeneratedOverlayPublishAllowed,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
         mpPackageRefreshState,
@@ -1122,45 +1228,45 @@ void writeStatus(
     json << "  \"existing_root_count\": " << existingRootCount << ",\n";
     json << "  \"copied_count_total\": " << copiedTotal << ",\n";
     json << "  \"skipped_count_total\": " << skippedTotal << ",\n";
-    json << "  \"post_play_state\": \"" << jsonEscape(postPlayState) << "\",\n";
+    json << "  \"post_play_state\": \"" << jsonEscape(effectivePostPlayState) << "\",\n";
     json << "  \"archive_verified\": " << (archiveVerified ? "true" : "false") << ",\n";
-    json << "  \"entry_point_analysis_path\": \"" << jsonEscape(pathString(entryPointAnalysisPath)) << "\",\n";
-    json << "  \"entry_point_count\": " << entryPointCount << ",\n";
-    json << "  \"branch_ambiguity_detected\": " << (branchAmbiguityDetected ? "true" : "false") << ",\n";
-    json << "  \"entry_point_readiness\": \"" << jsonEscape(entryPointReadiness) << "\",\n";
-    json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(postPlayPackagePath)) << "\",\n";
-    json << "  \"post_play_package_readiness\": \"" << jsonEscape(postPlayPackageReadiness) << "\",\n";
-    json << "  \"post_play_decision_ready_entry_count\": " << postPlayDecisionReadyEntryCount << ",\n";
-    json << "  \"post_play_campaign_count\": " << postPlayCampaignCount << ",\n";
-    json << "  \"post_play_ready_campaign_count\": " << postPlayReadyCampaignCount << ",\n";
-    json << "  \"post_play_partial_campaign_count\": " << postPlayPartialCampaignCount << ",\n";
-    json << "  \"post_play_blocked_campaign_count\": " << postPlayBlockedCampaignCount << ",\n";
+    json << "  \"entry_point_analysis_path\": \"" << jsonEscape(pathString(effectiveEntryPointAnalysisPath)) << "\",\n";
+    json << "  \"entry_point_count\": " << effectiveEntryPointCount << ",\n";
+    json << "  \"branch_ambiguity_detected\": " << (effectiveBranchAmbiguityDetected ? "true" : "false") << ",\n";
+    json << "  \"entry_point_readiness\": \"" << jsonEscape(effectiveEntryPointReadiness) << "\",\n";
+    json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(effectivePostPlayPackagePath)) << "\",\n";
+    json << "  \"post_play_package_readiness\": \"" << jsonEscape(effectivePostPlayPackageReadiness) << "\",\n";
+    json << "  \"post_play_decision_ready_entry_count\": " << effectivePostPlayDecisionReadyEntryCount << ",\n";
+    json << "  \"post_play_campaign_count\": " << effectivePostPlayCampaignCount << ",\n";
+    json << "  \"post_play_ready_campaign_count\": " << effectivePostPlayReadyCampaignCount << ",\n";
+    json << "  \"post_play_partial_campaign_count\": " << effectivePostPlayPartialCampaignCount << ",\n";
+    json << "  \"post_play_blocked_campaign_count\": " << effectivePostPlayBlockedCampaignCount << ",\n";
     json << "  \"post_play_campaign_summaries\": [";
-    for (std::size_t index = 0; index < postPlayCampaignSummaries.size(); ++index) {
+    for (std::size_t index = 0; index < effectivePostPlayCampaignSummaries.size(); ++index) {
         if (index > 0) {
             json << ", ";
         }
-        json << "\"" << jsonEscape(postPlayCampaignSummaries[index]) << "\"";
+        json << "\"" << jsonEscape(effectivePostPlayCampaignSummaries[index]) << "\"";
     }
     json << "],\n";
-    json << "  \"decision_input_package_path\": \"" << jsonEscape(pathString(decisionInputPackagePath)) << "\",\n";
-    json << "  \"decision_input_package_readiness\": \"" << jsonEscape(decisionInputPackageReadiness) << "\",\n";
-    json << "  \"decision_input_count\": " << decisionInputCount << ",\n";
-    json << "  \"candidate_decision_package_path\": \"" << jsonEscape(pathString(candidateDecisionPackagePath)) << "\",\n";
-    json << "  \"candidate_decision_package_readiness\": \"" << jsonEscape(candidateDecisionPackageReadiness) << "\",\n";
-    json << "  \"candidate_decision_count\": " << candidateDecisionCount << ",\n";
+    json << "  \"decision_input_package_path\": \"" << jsonEscape(pathString(effectiveDecisionInputPackagePath)) << "\",\n";
+    json << "  \"decision_input_package_readiness\": \"" << jsonEscape(effectiveDecisionInputPackageReadiness) << "\",\n";
+    json << "  \"decision_input_count\": " << effectiveDecisionInputCount << ",\n";
+    json << "  \"candidate_decision_package_path\": \"" << jsonEscape(pathString(effectiveCandidateDecisionPackagePath)) << "\",\n";
+    json << "  \"candidate_decision_package_readiness\": \"" << jsonEscape(effectiveCandidateDecisionPackageReadiness) << "\",\n";
+    json << "  \"candidate_decision_count\": " << effectiveCandidateDecisionCount << ",\n";
     json << "  \"candidate_decision_validator_passed\": "
-         << (candidateDecisionValidatorPassed ? "true" : "false") << ",\n";
-    json << "  \"dsl_draft_path\": \"" << jsonEscape(pathString(dslDraftPath)) << "\",\n";
-    json << "  \"dsl_draft_audit_path\": \"" << jsonEscape(pathString(dslDraftAuditPath)) << "\",\n";
-    json << "  \"dsl_draft_readiness\": \"" << jsonEscape(dslDraftReadiness) << "\",\n";
-    json << "  \"dsl_draft_rule_count\": " << dslDraftRuleCount << ",\n";
+         << (effectiveCandidateDecisionValidatorPassed ? "true" : "false") << ",\n";
+    json << "  \"dsl_draft_path\": \"" << jsonEscape(pathString(effectiveDslDraftPath)) << "\",\n";
+    json << "  \"dsl_draft_audit_path\": \"" << jsonEscape(pathString(effectiveDslDraftAuditPath)) << "\",\n";
+    json << "  \"dsl_draft_readiness\": \"" << jsonEscape(effectiveDslDraftReadiness) << "\",\n";
+    json << "  \"dsl_draft_rule_count\": " << effectiveDslDraftRuleCount << ",\n";
     json << "  \"dsl_draft_validator_passed\": "
-         << (dslDraftValidatorPassed ? "true" : "false") << ",\n";
+         << (effectiveDslDraftValidatorPassed ? "true" : "false") << ",\n";
     json << "  \"generated_overlay_staging_directory\": \""
-         << jsonEscape(pathString(generatedOverlayStagingDirectory)) << "\",\n";
+         << jsonEscape(pathString(effectiveGeneratedOverlayStagingDirectory)) << "\",\n";
     json << "  \"generated_overlay_staging_status_path\": \""
-         << jsonEscape(pathString(generatedOverlayStagingStatusPath)) << "\",\n";
+         << jsonEscape(pathString(effectiveGeneratedOverlayStagingStatusPath)) << "\",\n";
     json << "  \"generated_overlay_active_directory\": \""
          << jsonEscape(pathString(g_generatedOverlayActiveDirectory)) << "\",\n";
     json << "  \"generated_overlay_publish_status_path\": \""
@@ -1168,14 +1274,14 @@ void writeStatus(
     json << "  \"generated_overlay_publish_backup_root_directory\": \""
          << jsonEscape(pathString(g_generatedOverlayPublishBackupRootDirectory)) << "\",\n";
     json << "  \"generated_overlay_staging_readiness\": \""
-         << jsonEscape(generatedOverlayStagingReadiness) << "\",\n";
-    json << "  \"generated_overlay_staging_rule_count\": " << generatedOverlayStagingRuleCount << ",\n";
+         << jsonEscape(effectiveGeneratedOverlayStagingReadiness) << "\",\n";
+    json << "  \"generated_overlay_staging_rule_count\": " << effectiveGeneratedOverlayStagingRuleCount << ",\n";
     json << "  \"generated_overlay_manifest_verified\": "
-         << (generatedOverlayManifestVerified ? "true" : "false") << ",\n";
+         << (effectiveGeneratedOverlayManifestVerified ? "true" : "false") << ",\n";
     json << "  \"generated_overlay_publish_allowed\": "
-         << (generatedOverlayPublishAllowed ? "true" : "false") << ",\n";
+         << (effectiveGeneratedOverlayPublishAllowed ? "true" : "false") << ",\n";
     json << "  \"generated_overlay_manifest_hash\": \""
-         << jsonEscape(generatedOverlayManifestHash) << "\",\n";
+         << jsonEscape(effectiveGeneratedOverlayManifestHash) << "\",\n";
     json << "  \"generated_overlay_publish_gate_state\": \""
          << jsonEscape(companionSnapshot.generatedOverlayPublishGate.state) << "\",\n";
     json << "  \"generated_overlay_publish_gate_reason\": \""

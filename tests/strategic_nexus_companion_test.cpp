@@ -278,6 +278,37 @@ int main()
         "mp overlay package zip should expose handoff reason");
     requireCondition(ready.mpOverlayPackage.packageZipPath == mpPackageZipPath, "mp overlay package zip should expose path");
     requireCondition(ready.mpOverlayPackage.packageZipBytes > 0, "mp overlay package zip should expose byte count");
+    const auto missingMpPackageZipPath = root / "missing_mp_overlay_package.zip";
+    const auto readyWithoutZip = companion.buildStatusSnapshot({
+        archiveRoot,
+        overlayRoot,
+        mpPackageRoot,
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport,
+        std::filesystem::path(),
+        std::filesystem::path(),
+        std::filesystem::path(),
+        std::filesystem::path(),
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        dslDraftAuditPath,
+        generatedOverlayStagingStatusPath,
+        missingMpPackageZipPath
+    });
+    requireCondition(
+        readyWithoutZip.mpOverlayPackage.state == "ready",
+        "missing optional tray MP package zip should not downgrade verified MP package readiness");
+    requireCondition(
+        readyWithoutZip.mpOverlayPackage.packageZipState == "not_exported",
+        "missing optional tray MP package zip should be reported as not exported");
+    requireCondition(
+        readyWithoutZip.mpOverlayPackage.packageZipReason == "mp overlay package zip not exported by current status source",
+        "missing optional tray MP package zip should explain non-exported state");
     requireCondition(ready.postPlayPipeline.state == "ready", "post-play pipeline should be ready when generated overlay staging verifies");
     requireCondition(
         ready.postPlayPipeline.reason == "generated overlay staging verified",

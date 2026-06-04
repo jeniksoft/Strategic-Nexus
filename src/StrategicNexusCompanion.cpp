@@ -1019,10 +1019,8 @@ void populateMpOverlayPackageZipStatus(
         return;
     }
     if (!exists) {
-        status.packageZipState = "needs_attention";
-        status.packageZipReason = "mp overlay package zip missing";
-        status.state = "needs_attention";
-        status.reason = status.packageZipReason;
+        status.packageZipState = "not_exported";
+        status.packageZipReason = "mp overlay package zip not exported by current status source";
         return;
     }
 
