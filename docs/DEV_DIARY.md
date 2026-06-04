@@ -64,6 +64,41 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-04
+
+Projekt dnes posunul hlavne fail-closed chovani generated overlay cesty pri nepodporovanych runtime podminkach a soucasne zpresnil owner-facing dalsi krok, ktery SNC a tray vrstva vystavuji po dobehnuti post-play pipeline. Nejde o rozsireni runtime pravomoci; jde o dalsi zpevneni integration boundary mezi staged generated overlay artefaktem, post-play observability a explicitnim owner-facing rozhodnutim, co ma nasledovat.
+
+Co pribylo v repozitari:
+
+* Dnesni verejny head pridal souvislou commit radu `Fail closed on unsupported overlay runtime conditions`, `Fix stale SNC post-play status precedence`, `Expose SNC companion next-action contract` a `Expose tray next action path`.
+* Generated overlay stager, compiler a souvisejici verifier/publisher testy byly upraveny tak, aby nepodporovane overlay runtime podminky koncily fail-closed misto nejednoznacneho pokracovani. To je dulezite hlavne pro checksum-citlivou generated overlay pripravu na integration boundary.
+* `StrategicNexusCompanion` dostal opravu precedence kolem stale post-play statusu, takze owner-facing stav mene hrozi prepsanim novych signalu starsimi post-play artefakty.
+* Companion vrstva nove vystavuje explicitni next-action contract a tray aplikace k nemu doplnuje i citelnou next-action path, aby bylo jasne, zda je dalsim krokem kontrola staged overlay, publish gate, nebo jiny navazujici owner-approved krok.
+* `docs/DEVELOPMENT_ROADMAP.md` byl prubezne doplnen tak, aby tato owner-facing decision surface nebyla jen implicitni v implementaci.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt se posunul od pouheho vystavovani stavovych poli k presnejsimu owner-facing rozhodovacimu rozhrani. Next-action contract/path je uzitecny tim, ze spojuje observability se skutecnym doporucenym krokem bez rozsirovani pravomoci do aktivni session.
+* Fail-closed overlay guardy dale potvrzuji, ze generated overlay cesta ma zustat auditovatelna a konzervativni: pokud runtime podminky nejsou podporovane nebo nejsou jednoznacne, workflow ma radsi zastavit a vysvetlit duvod.
+* Oprava stale post-play precedence zmensuje riziko, ze host-authoritative model bude vychazet z neaktualniho interpretacniho stavu na scripted event/effect path hranici mezi archivem, analyzou a publikaci staged overlay snapshotu.
+
+Testy a stav overeni:
+
+* Verejny GitHub Actions `Windows Tests` je pro dnesni verejny head potvrzen jako uspesny. Dostupne push behy pro commity `Fail closed on unsupported overlay runtime conditions`, `Fix stale SNC post-play status precedence`, `Expose SNC companion next-action contract` a `Expose tray next action path` vsechny skoncily stavem `success` dne 4.6.2026.
+* Nejaktualnejsi dostupny push run pro commit `Expose tray next action path` byl vytvoren 4.6.2026 v 05:49:57 CEST a dokoncen se stavem `success` po 4 minutach a 16 sekundach.
+* Tento denikovy beh nespoustel novy plny lokalni test run; zapis shrnuje dnesni verejny head, dostupny GitHub Actions signal a aktualni commit historii.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi plne uzavreny checksum-safe multiplayer distribucni workflow mezi owner-approved publish krokem a dalsimi ucastniky.
+* Next-action contract/path zlepsuje operacni citelnost, ale sam o sobe jeste neuzavira finalni export/import contract, campaign marker handshake ani empire identity resolver v cele end-to-end ceste.
+* Fail-closed runtime guardy snizuji riziko ticheho driftu, ale mohou odhalit dalsi nepodporovane okrajove podminky, ktere bude potreba explicitne klasifikovat, aby owner-facing publish rozhodnuti zustalo konzistentni.
+
+Doporuceny dalsi krok:
+
+* Navazat explicitnim end-to-end overenim toho, ze next-action contract/path dovede ownera od post-play artefaktu pres review staged overlay az k owner-approved publish a naslednemu verify/import kroku bez nejasnosti na integration boundary.
+* Pri tomto overeni se soustredit hlavne na to, aby fail-closed guardy, publish gate a navazujici MP package handoff davaly jednotny host-authoritative vyklad pripravene dalsi session.
+
 ## 2026-06-03
 
 Projekt dnes posunul hlavne owner-facing SNC publish boundary, viditelnost post-play pipeline a branch-aware real-session evidence. Nejde o rozsireni aktivni runtime pravomoci; jde o dalsi zpevneni integration boundary mezi archivovanym stavem kampane, offline analyzou, staged generated overlay artefaktem a jeho explicitne schvalenym publikovanim do oddeleneho aktivniho snapshotu.
