@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T15:10:00+02:00",
+  "updated_at": "2026-06-04T15:20:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next bounded work after chunk 018: section 6A Generated Campaign Library Maintenance temporary save-root disappearance fail-safe slice.",
+  "current_source": "DEVELOPMENT_ROADMAP.md progress refresh after shipped 6A continuity/fail-safe slices; then derive next worker-ready chunk from remaining v0 roadmap.",
   "chunks": [
     {
       "id": "v0-sprint-001-release-companion-package-state",
@@ -368,6 +368,27 @@
       ],
       "dependencies": [
         "v0-sprint-018-campaign-library-restore-continuity-signal"
+      ]
+    },
+    {
+      "id": "v0-sprint-020-roadmap-progress-refresh-after-library-slices",
+      "title": "Refresh progress after campaign-library slices",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Task Board And Owner Report Log",
+      "goal": "Keep owner-facing progress truthful after shipping the latest generated campaign library continuity and fail-safe slices.",
+      "acceptance": [
+        "Roadmap complexity analysis and project progress estimate are regenerated after chunks 018-019.",
+        "Task Board synced state reflects the refreshed progress inputs without report spam.",
+        "The daily freework report summarizes the newly shipped campaign-library continuity guards."
+      ],
+      "preferred_tests": [
+        "tools/dev_attention/analyze_roadmap_complexity.ps1",
+        "tools/dev_attention/set_project_progress_estimate.ps1",
+        "tools/dev_attention/sync_user_task_board_state.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-019-campaign-library-missing-root-fail-closed"
       ]
     }
   ]
