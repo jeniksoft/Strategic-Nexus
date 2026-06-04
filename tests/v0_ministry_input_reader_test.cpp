@@ -82,6 +82,38 @@ int main()
             "turn_context_pressure_war_hint_confidence_percent:70") != result.input.knownFacts.end(),
         "reader should retain late turn-context pressure hint inside bound");
 
+    const std::filesystem::path missingCampaignPath = "dist/v0_ministry_input_reader_missing_campaign.json";
+    const std::string missingCampaignJson =
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"empire_id\": \"empire_cli\",\n"
+        "  \"ministry\": \"military\"\n"
+        "}\n";
+    requireCondition(
+        strategic_nexus::common::writeTextFileAtomically(missingCampaignPath, missingCampaignJson),
+        "missing-campaign fixture JSON should be written");
+    const auto missingCampaignResult = reader.read(missingCampaignPath);
+    requireCondition(!missingCampaignResult.ok, "reader should reject missing campaign id");
+    requireCondition(
+        missingCampaignResult.error == "missing required identity fields",
+        "missing campaign id should fail closed as missing required identity fields");
+
+    const std::filesystem::path missingEmpirePath = "dist/v0_ministry_input_reader_missing_empire.json";
+    const std::string missingEmpireJson =
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"campaign_id\": \"campaign_cli\",\n"
+        "  \"ministry\": \"military\"\n"
+        "}\n";
+    requireCondition(
+        strategic_nexus::common::writeTextFileAtomically(missingEmpirePath, missingEmpireJson),
+        "missing-empire fixture JSON should be written");
+    const auto missingEmpireResult = reader.read(missingEmpirePath);
+    requireCondition(!missingEmpireResult.ok, "reader should reject missing empire id");
+    requireCondition(
+        missingEmpireResult.error == "missing required identity fields",
+        "missing empire id should fail closed as missing required identity fields");
+
     std::cout << "v0 ministry input reader tests passed.\n";
     return 0;
 }

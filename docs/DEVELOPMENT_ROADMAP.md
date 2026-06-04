@@ -433,6 +433,9 @@ Notes:
 No global galaxy AI brain allowed.
 The same save history may produce different memories and personality drift for different empires.
 
+Current progress:
+The existing v0 ministry input context is now the minimal empire-scoped schema slice in production code: it carries `schema_version`, `campaign_id`, `empire_id`, ministry, bounded facts, and uncertainties, and the reader fails closed when required identity fields are missing so cross-empire/identity-free context does not silently pass as trusted input.
+
 ---
 
 # Strategic Intelligence Phasing Guard
