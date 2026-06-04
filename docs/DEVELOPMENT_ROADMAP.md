@@ -661,6 +661,7 @@ The planner includes only locally present campaigns with anchor fingerprints and
 It does not parse save contents or assign final campaign identity yet.
 Inventory diff now detects stable campaign renames when exactly one previous and one current entry share the same anchor fingerprint, preserving previous/current relative paths in diff JSON for library-maintenance continuity.
 Ambiguous rename cases without a unique stable save-content fingerprint may still appear as remove+add.
+Inventory diff now also emits explicit restored continuity when exactly one previous and one current entry share the same anchor fingerprint metadata but return under a different source kind, so library maintenance can distinguish reappeared known campaigns from brand-new unknown saves without aggressive merges.
 `--compile-campaign-library-overlay` now fails closed when the target output directory already contains files, preserving complete-replacement snapshot semantics for the active generated campaign library instead of silently leaving stale overlay residue behind.
 
 ---
@@ -992,7 +993,6 @@ Keep generated campaign library publication fail-safe and continuity-safe for re
 
 The next slice should include:
 
-* explicit restore/reappearance continuity signal for campaign inventory/library maintenance
 * library maintenance behavior that stays bounded when local save roots churn or temporarily disappear
 * progress updates only when the new continuity contract is test-backed
 

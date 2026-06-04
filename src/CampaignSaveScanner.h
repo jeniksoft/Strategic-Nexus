@@ -38,6 +38,7 @@ struct CampaignSaveInventoryDiff {
     std::size_t addedCount = 0;
     std::size_t removedCount = 0;
     std::size_t renamedCount = 0;
+    std::size_t restoredCount = 0;
     std::size_t changedCount = 0;
     std::size_t unchangedCount = 0;
     std::vector<CampaignSaveInventoryChange> changes;

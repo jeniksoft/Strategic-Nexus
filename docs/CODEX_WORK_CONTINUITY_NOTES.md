@@ -221,12 +221,12 @@ Completed:
 * `--compile-campaign-library-overlay <input.dsl> <save_root> <max_campaigns> <output_dir>` compiles only DSL rules matching included local campaign keys and writes the library plan beside the generated overlay
 * scanner is read-only and does not parse or edit save contents
 * tests cover directory campaigns, loose saves, ignored non-save files, inventory diff behavior, active campaign library planning, filtered campaign library overlay compilation, and CLI JSON output
+* inventory diff distinguishes stable rename continuity (`renamed`) from reappeared continuity across source-kind changes (`restored`) when anchor fingerprint metadata matches uniquely
 
 Remaining:
 
 * user-facing save root selection and override UI
 * campaign identity fingerprinting
-* robust rename detection from save-content identity rather than path/key changes
 * known campaign memory lookup
 * production companion app cleanup/rebuild integration
 * user-pinned campaign exceptions

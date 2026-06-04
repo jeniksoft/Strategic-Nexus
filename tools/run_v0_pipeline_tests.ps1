@@ -1020,6 +1020,7 @@ function Invoke-CampaignSaveDiffCase {
     Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_added=1"
     Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_removed=1"
     Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_renamed=1"
+    Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_restored=0"
     Assert-Contains -Name "campaign_save_diff app" -Text $diffText -Expected "save_campaign_diff_changed=0"
 
     $inventoryDiffText = Get-Content -Raw -LiteralPath $diffPath
@@ -1031,6 +1032,52 @@ function Invoke-CampaignSaveDiffCase {
     Assert-Contains -Name "campaign_save_diff json" -Text $inventoryDiffText -Expected '"current_relative_path": "Alpha Campaign Renamed"'
 
     Write-Host "[PASS] campaign_save_diff"
+}
+
+function Invoke-CampaignSaveRestoreContinuityCase {
+    $previousRoot = Join-Path $repoRoot "dist/campaign_save_diff_previous_restore"
+    $currentRoot = Join-Path $repoRoot "dist/campaign_save_diff_current_restore"
+    $diffPath = Join-Path $repoRoot "dist/campaign_save_diff_restore.json"
+    Remove-Item -LiteralPath $previousRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $currentRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $diffPath -Force -ErrorAction SilentlyContinue
+
+    New-Item -ItemType Directory -Force -Path (Join-Path $previousRoot "Alpha Campaign") | Out-Null
+    New-Item -ItemType Directory -Force -Path $currentRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $previousRoot "Alpha Campaign/autosave_2230.sav") -Value "alpha-anchor" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $previousRoot "Alpha Campaign/ironman.sav") -Value "alpha-ironman" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $previousRoot "Removed.sav") -Value "removed-loose" -Encoding UTF8
+
+    Set-Content -LiteralPath (Join-Path $currentRoot "Alpha Campaign Restored.sav") -Value "alpha-anchor" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $currentRoot "Gamma.sav") -Value "gamma-loose" -Encoding UTF8
+
+    $diffOutput = & $exePath `
+        --diff-save-campaigns `
+        $previousRoot `
+        $currentRoot `
+        $diffPath
+    $diffExitCode = $LASTEXITCODE
+    $diffText = $diffOutput -join "`n"
+
+    if ($diffExitCode -ne 0) {
+        throw "campaign_save_restore_diff app failed. Actual output:`n$diffText"
+    }
+
+    Assert-Contains -Name "campaign_save_restore_diff app" -Text $diffText -Expected "save_campaign_diff_success=true"
+    Assert-Contains -Name "campaign_save_restore_diff app" -Text $diffText -Expected "save_campaign_diff_added=1"
+    Assert-Contains -Name "campaign_save_restore_diff app" -Text $diffText -Expected "save_campaign_diff_removed=1"
+    Assert-Contains -Name "campaign_save_restore_diff app" -Text $diffText -Expected "save_campaign_diff_renamed=0"
+    Assert-Contains -Name "campaign_save_restore_diff app" -Text $diffText -Expected "save_campaign_diff_restored=1"
+    Assert-Contains -Name "campaign_save_restore_diff app" -Text $diffText -Expected "save_campaign_diff_changed=0"
+
+    $inventoryDiffText = Get-Content -Raw -LiteralPath $diffPath
+    $null = $inventoryDiffText | ConvertFrom-Json
+    Assert-Contains -Name "campaign_save_restore_diff json" -Text $inventoryDiffText -Expected '"restored_count": 1'
+    Assert-Contains -Name "campaign_save_restore_diff json" -Text $inventoryDiffText -Expected '"change_kind": "restored"'
+    Assert-Contains -Name "campaign_save_restore_diff json" -Text $inventoryDiffText -Expected '"previous_source_kind": "campaign_directory"'
+    Assert-Contains -Name "campaign_save_restore_diff json" -Text $inventoryDiffText -Expected '"current_source_kind": "loose_save"'
+
+    Write-Host "[PASS] campaign_save_restore_diff"
 }
 
 function Invoke-CampaignLibraryPlanCase {
@@ -3111,6 +3158,7 @@ Invoke-GeneratedOverlayVerifyMismatchCase
 Invoke-GeneratedOverlayInvalidCase
 Invoke-CampaignSaveScanCase
 Invoke-CampaignSaveDiffCase
+Invoke-CampaignSaveRestoreContinuityCase
 Invoke-CampaignLibraryPlanCase
 Invoke-CampaignLibraryOverlayCase
 Invoke-StellarisSaveRootDiscoveryCase

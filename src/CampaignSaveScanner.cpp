@@ -170,6 +170,17 @@ std::string renameFingerprint(const CampaignSaveInventoryEntry& entry)
            std::to_string(entry.anchorSaveByteCount);
 }
 
+std::string restoredFingerprint(const CampaignSaveInventoryEntry& entry)
+{
+    if (entry.anchorSaveContentHash.empty() || entry.anchorSaveHashAlgorithm.empty()) {
+        return {};
+    }
+
+    return entry.anchorSaveHashAlgorithm + "\n" +
+           entry.anchorSaveContentHash + "\n" +
+           std::to_string(entry.anchorSaveByteCount);
+}
+
 bool entryMetadataChanged(const CampaignSaveInventoryEntry& previous, const CampaignSaveInventoryEntry& current)
 {
     return previous.displayName != current.displayName ||
@@ -322,6 +333,65 @@ CampaignSaveInventoryDiff diffCampaignSaveInventories(
         unmatchedCurrentEntries.erase(currentMatch);
     }
 
+    std::map<std::string, std::vector<std::string>> previousRestoredCandidates;
+    std::map<std::string, std::vector<std::string>> currentRestoredCandidates;
+
+    for (const auto& [identity, entry] : unmatchedPreviousEntries) {
+        const auto fingerprint = restoredFingerprint(entry);
+        if (!fingerprint.empty()) {
+            previousRestoredCandidates[fingerprint].push_back(identity);
+        }
+    }
+
+    for (const auto& [identity, entry] : unmatchedCurrentEntries) {
+        const auto fingerprint = restoredFingerprint(entry);
+        if (!fingerprint.empty()) {
+            currentRestoredCandidates[fingerprint].push_back(identity);
+        }
+    }
+
+    std::vector<std::pair<std::string, std::string>> restoredPairs;
+    for (const auto& [fingerprint, previousIds] : previousRestoredCandidates) {
+        const auto currentMatch = currentRestoredCandidates.find(fingerprint);
+        if (currentMatch == currentRestoredCandidates.end()) {
+            continue;
+        }
+        if (previousIds.size() != 1 || currentMatch->second.size() != 1) {
+            continue;
+        }
+
+        const auto& previousId = previousIds.front();
+        const auto& currentId = currentMatch->second.front();
+        const auto previousMatch = unmatchedPreviousEntries.find(previousId);
+        const auto currentEntryMatch = unmatchedCurrentEntries.find(currentId);
+        if (previousMatch == unmatchedPreviousEntries.end() || currentEntryMatch == unmatchedCurrentEntries.end()) {
+            continue;
+        }
+
+        if (previousMatch->second.sourceKind == currentEntryMatch->second.sourceKind) {
+            continue;
+        }
+
+        restoredPairs.push_back({previousId, currentId});
+    }
+
+    for (const auto& [previousId, currentId] : restoredPairs) {
+        const auto previousMatch = unmatchedPreviousEntries.find(previousId);
+        const auto currentMatch = unmatchedCurrentEntries.find(currentId);
+        if (previousMatch == unmatchedPreviousEntries.end() || currentMatch == unmatchedCurrentEntries.end()) {
+            continue;
+        }
+
+        ++diff.restoredCount;
+        diff.changes.push_back({
+            "restored",
+            previousMatch->second,
+            currentMatch->second
+        });
+        unmatchedPreviousEntries.erase(previousMatch);
+        unmatchedCurrentEntries.erase(currentMatch);
+    }
+
     for (const auto& [identity, currentEntry] : unmatchedCurrentEntries) {
         ++diff.addedCount;
         diff.changes.push_back({"added", CampaignSaveInventoryEntry{}, currentEntry});
@@ -385,6 +455,7 @@ std::string serializeCampaignSaveInventoryDiff(const CampaignSaveInventoryDiff& 
     json << "  \"added_count\": " << diff.addedCount << ",\n";
     json << "  \"removed_count\": " << diff.removedCount << ",\n";
     json << "  \"renamed_count\": " << diff.renamedCount << ",\n";
+    json << "  \"restored_count\": " << diff.restoredCount << ",\n";
     json << "  \"changed_count\": " << diff.changedCount << ",\n";
     json << "  \"unchanged_count\": " << diff.unchangedCount << ",\n";
     json << "  \"changes\": [\n";

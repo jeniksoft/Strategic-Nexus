@@ -2429,6 +2429,7 @@ int Application::run(const RunConfig& config) const
             std::cout << "save_campaign_diff_added=" << diff.addedCount << "\n";
             std::cout << "save_campaign_diff_removed=" << diff.removedCount << "\n";
             std::cout << "save_campaign_diff_renamed=" << diff.renamedCount << "\n";
+            std::cout << "save_campaign_diff_restored=" << diff.restoredCount << "\n";
             std::cout << "save_campaign_diff_changed=" << diff.changedCount << "\n";
             std::cout << "save_campaign_diff_unchanged=" << diff.unchangedCount << "\n";
             std::cout << "save_campaign_diff_output_written=" << (written ? "true" : "false") << "\n";

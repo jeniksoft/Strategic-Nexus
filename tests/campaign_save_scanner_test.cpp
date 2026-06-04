@@ -86,6 +86,7 @@ int main()
     requireCondition(renamedDiff.addedCount == 1, "inventory diff should still detect newly added campaigns alongside rename");
     requireCondition(renamedDiff.removedCount == 1, "inventory diff should still detect removed campaigns alongside rename");
     requireCondition(renamedDiff.renamedCount == 1, "inventory diff should detect renamed campaigns by anchor fingerprint");
+    requireCondition(renamedDiff.restoredCount == 0, "inventory rename diff should not misclassify rename as restored continuity");
     requireCondition(renamedDiff.changedCount == 0, "inventory rename diff should not misclassify rename as changed");
     requireCondition(renamedDiff.unchangedCount == 0, "inventory rename diff should not mark renamed entries unchanged");
 
@@ -96,6 +97,28 @@ int main()
         renamedDiffJson.find("\"previous_relative_path\": \"Alpha Campaign\"") != std::string::npos &&
         renamedDiffJson.find("\"current_relative_path\": \"Alpha Campaign Renamed\"") != std::string::npos,
         "diff JSON should preserve previous and current rename paths");
+
+    const auto restoredRoot = std::filesystem::path("dist/campaign_save_scanner_fixture_restored");
+    std::filesystem::remove_all(restoredRoot);
+    writeFile(restoredRoot / "Alpha Campaign Restored.sav", "alpha-anchor");
+    writeFile(restoredRoot / "Gamma.sav", "gamma-loose");
+
+    const auto restoredInventory = scanner.scan(restoredRoot);
+    const auto restoredDiff = strategic_nexus::diffCampaignSaveInventories(inventory, restoredInventory);
+    requireCondition(restoredDiff.addedCount == 1, "inventory restore diff should still detect unrelated newly added campaigns");
+    requireCondition(restoredDiff.removedCount == 1, "inventory restore diff should still detect unrelated removed campaigns");
+    requireCondition(restoredDiff.renamedCount == 0, "inventory restore diff should not classify source-kind continuity as rename");
+    requireCondition(restoredDiff.restoredCount == 1, "inventory restore diff should emit restored continuity when anchor fingerprint returns in a different source kind");
+    requireCondition(restoredDiff.changedCount == 0, "inventory restore diff should not misclassify restored continuity as changed");
+    requireCondition(restoredDiff.unchangedCount == 0, "inventory restore diff should not mark restored continuity unchanged");
+
+    const auto restoredDiffJson = strategic_nexus::serializeCampaignSaveInventoryDiff(restoredDiff);
+    requireCondition(restoredDiffJson.find("\"restored_count\": 1") != std::string::npos, "diff JSON should include restored count");
+    requireCondition(restoredDiffJson.find("\"change_kind\": \"restored\"") != std::string::npos, "diff JSON should include restored continuity changes");
+    requireCondition(
+        restoredDiffJson.find("\"previous_source_kind\": \"campaign_directory\"") != std::string::npos &&
+        restoredDiffJson.find("\"current_source_kind\": \"loose_save\"") != std::string::npos,
+        "restored continuity JSON should preserve previous/current source kinds");
 
     std::cout << "campaign save scanner tests passed.\n";
     return 0;
