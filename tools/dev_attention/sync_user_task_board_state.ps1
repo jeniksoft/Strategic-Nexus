@@ -5,7 +5,9 @@ param(
     [string]$GamingQuietSessionLogPath = ".codex_local/gaming_quiet_session_log.csv",
     [string]$ProjectProgressFilePath = "dist/private_reports/project_progress_estimate.json",
     [string]$RoadmapComplexityOutputPath = "dist/private_reports/roadmap_complexity_estimate.json",
-    [string]$SuggestionFilePath = "dist/private_reports/user_suggestions.json"
+    [string]$SuggestionFilePath = "dist/private_reports/user_suggestions.json",
+    [string]$SprintQueuePath = "tools/dev_attention/v0_sprint_chunk_queue.json",
+    [string]$SprintLedgerPath = ".codex_local/v0_sprint_chunk_ledger.json"
 )
 
 $ErrorActionPreference = "Stop"
@@ -221,6 +223,29 @@ function Promote-AcceptedSuggestionNextSteps {
     return $true
 }
 
+function Enqueue-ApprovedSuggestionImplementationChunks {
+    param(
+        [string]$SuggestionPath,
+        [string]$QueuePath,
+        [string]$LedgerPath
+    )
+
+    $queueScript = Join-Path $PSScriptRoot "enqueue_approved_suggestions.ps1"
+    if (-not (Test-Path -LiteralPath $queueScript)) {
+        return "approved_suggestion_chunks_updated=false"
+    }
+
+    $output = & powershell `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $queueScript `
+        -SuggestionFilePath $SuggestionPath `
+        -QueuePath $QueuePath `
+        -LedgerPath $LedgerPath
+
+    return @($output) -join [Environment]::NewLine
+}
+
 $taskPath = Resolve-ProjectPath $TaskFilePath
 $gamingQuietProcessPath = Resolve-ProjectPath $GamingQuietProcessFilePath
 $gamingQuietSessionState = Resolve-ProjectPath $GamingQuietSessionStatePath
@@ -228,9 +253,15 @@ $gamingQuietSessionLog = Resolve-ProjectPath $GamingQuietSessionLogPath
 $projectProgressPath = Resolve-ProjectPath $ProjectProgressFilePath
 $roadmapComplexityPath = Resolve-ProjectPath $RoadmapComplexityOutputPath
 $suggestionPath = Resolve-ProjectPath $SuggestionFilePath
+$sprintQueuePath = Resolve-ProjectPath $SprintQueuePath
+$sprintLedgerPath = Resolve-ProjectPath $SprintLedgerPath
 $projectProgressUpdated = Update-ProjectProgressEstimate -ProgressPath $projectProgressPath -ComplexityPath $roadmapComplexityPath
 $maintenanceBalanceUpdated = Update-MaintenanceBalance
 $acceptedSuggestionFollowupsUpdated = Promote-AcceptedSuggestionNextSteps -SuggestionPath $suggestionPath
+$approvedSuggestionQueueOutput = Enqueue-ApprovedSuggestionImplementationChunks `
+    -SuggestionPath $suggestionPath `
+    -QueuePath $sprintQueuePath `
+    -LedgerPath $sprintLedgerPath
 $quietProcessNames = @(Read-GamingQuietProcessNames -Path $gamingQuietProcessPath)
 $runningQuietProcesses = @()
 
@@ -278,3 +309,4 @@ Write-Host "project_progress_updated=$projectProgressUpdated"
 Write-Host "project_progress_file=$projectProgressPath"
 Write-Host "roadmap_complexity_file=$roadmapComplexityPath"
 Write-Host "accepted_suggestion_followups_updated=$acceptedSuggestionFollowupsUpdated"
+Write-Host $approvedSuggestionQueueOutput

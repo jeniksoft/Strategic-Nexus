@@ -79,10 +79,13 @@ If a chunk becomes broader than this, split it.
 Default selection order:
 
 1. Read `tools/dev_attention/v0_sprint_chunk_queue.json`.
-2. Pick the first `ready` chunk whose dependencies are done or already satisfied by current code.
-3. If the first chunk is already implemented, verify it and record the evidence instead of reimplementing it.
-4. If it is blocked, record the blocker and take the next unblocked chunk.
-5. If the queue is stale, update the queue from the current `DEVELOPMENT_ROADMAP.md` next worker-ready slice before implementing.
+2. Refresh owner-approved Task Board suggestions into the queue when practical:
+   `tools/dev_attention/enqueue_approved_suggestions.ps1`.
+3. Pick the first `ready` chunk whose dependencies are done or already satisfied by current code.
+   Chunks with `lane = owner_approved_suggestion` are owner-approved implementation signals and should be tried before ordinary roadmap chunks.
+4. If the first chunk is already implemented, verify it and record the evidence instead of reimplementing it.
+5. If it is blocked, record the blocker and take the next unblocked chunk.
+6. If the queue is stale, update the queue from the current `DEVELOPMENT_ROADMAP.md` next worker-ready slice before implementing.
 
 The foreground chat may override the queue.
 

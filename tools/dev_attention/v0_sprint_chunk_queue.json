@@ -1,13 +1,76 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T20:51:00+02:00",
+  "updated_at": "2026-06-04T23:08:40.1722272+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
-  "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
+  "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md after shipped campaign-library drift forwarding in compare/trend/next-steps brief; next elevate campaign-library coverage regressions into explicit follow-up guidance.",
+  "current_source": "Task Board owner-approved suggestions + DEVELOPMENT_ROADMAP.md",
   "chunks": [
+    {
+      "id": "owner-suggestion-suggestion-followup-20260528074600-vynucovat-pomer-maintenance-vs-produktova-impleme",
+      "title": "Realizovat navrh: Navazujici krok: Vynucovat pomer maintenance vs produktova implementace",
+      "status": "ready",
+      "lane": "owner_approved_suggestion",
+      "source": "task_board",
+      "source_suggestion_id": "suggestion-followup-20260528074600-vynucovat-pomer-maintenance-vs-produktova-implementace",
+      "source_suggestion_status": "schvaleno-k-realizaci",
+      "source_suggestion_title": "Navazujici krok: Vynucovat pomer maintenance vs produktova implementace",
+      "roadmap_anchor": "Task Board owner-approved suggestions",
+      "goal": "Pokud maintenance zustane nad 40 % i po nekolika dalsich behach, navrhnout konkretni zjednoduseni nejhlucnejsich kontrol/reportu.",
+      "context": "Maintenance je uzitecna jen kdyz chrani rychlost, bezpecnost nebo spolehlivost. Pokud sama zacne brzdit produktovy vyvoj, je potreba ji zjednodusit.",
+      "next_step": "Pri dalsim vyssim maintenance podilu vybrat jednu konkretni hlucnou kontrolu nebo report a navrhnout jeji zjednoduseni.",
+      "acceptance": [
+        "Re-read the approved suggestion and confirm it still makes sense with current roadmap, safety, and owner-facing workflow.",
+        "Implement the smallest safe useful slice, or mark this chunk blocked/obsolete with a concrete reason if it cannot be done without owner input.",
+        "After completion, update the source suggestion/report context with evidence, tests, commit id, or a clear not-applicable reason."
+      ],
+      "preferred_tests": [],
+      "dependencies": []
+    },
+    {
+      "id": "owner-suggestion-suggestion-followup-20260528074600-implementovat-kostru-strategic-nexus-companion-sn",
+      "title": "Realizovat navrh: Navazujici krok: Implementovat kostru Strategic Nexus Companion (SNC)",
+      "status": "ready",
+      "lane": "owner_approved_suggestion",
+      "source": "task_board",
+      "source_suggestion_id": "suggestion-followup-20260528074600-implementovat-kostru-strategic-nexus-companion-snc",
+      "source_suggestion_status": "schvaleno-k-realizaci",
+      "source_suggestion_title": "Navazujici krok: Implementovat kostru Strategic Nexus Companion (SNC)",
+      "roadmap_anchor": "Task Board owner-approved suggestions",
+      "goal": "Navazat dalsim SNC rezem: propojit status snapshot s realnym autosave archivem, save discovery a generated overlay readiness.",
+      "context": "Companion ma byt produktova appka k modu. Bez napojeni na realna data by Status Center mohlo pusobit hotove, ale nereflektovalo by realny stav pred dalsi session.",
+      "next_step": "Navrhnout maly rez: najit existujici archive/save/overlay vystupy, definovat status pravidla ready/attention/starting a pridat CLI/test, ktery je overi.",
+      "acceptance": [
+        "Re-read the approved suggestion and confirm it still makes sense with current roadmap, safety, and owner-facing workflow.",
+        "Implement the smallest safe useful slice, or mark this chunk blocked/obsolete with a concrete reason if it cannot be done without owner input.",
+        "After completion, update the source suggestion/report context with evidence, tests, commit id, or a clear not-applicable reason."
+      ],
+      "preferred_tests": [],
+      "dependencies": []
+    },
+    {
+      "id": "owner-suggestion-suggestion-20260602-freework-cadence-14m-not-auto",
+      "title": "Realizovat navrh: Navrh: zvazit Free Work 14 minut",
+      "status": "ready",
+      "lane": "owner_approved_suggestion",
+      "source": "task_board",
+      "source_suggestion_id": "suggestion-20260602-freework-cadence-14m-not-auto",
+      "source_suggestion_status": "schvaleno-k-realizaci",
+      "source_suggestion_title": "Navrh: zvazit Free Work 14 minut",
+      "roadmap_anchor": "Task Board owner-approved suggestions",
+      "goal": "Cadence tuner doporucuje zkratit sn-bounded-free-work-execution z 27 na 14 minut.",
+      "context": "Strojovy budget check je cerstvy: 81 % weekly remaining, reset 2026-06-07 17:26:51 Europe/Prague, quiet mode neaktivni, ale 14min cadence spada do rapid near-reset zony a pravidla povoluji automaticke zrychleni jen kdyz se reset zretelne blizi.",
+      "next_step": "Pokud chces agresivnejsi freework i 4.9 dne pred resetem, schval 14min cadence; jinak ponechame 27 minut do blizsiho reset okna.",
+      "acceptance": [
+        "Re-read the approved suggestion and confirm it still makes sense with current roadmap, safety, and owner-facing workflow.",
+        "Implement the smallest safe useful slice, or mark this chunk blocked/obsolete with a concrete reason if it cannot be done without owner input.",
+        "After completion, update the source suggestion/report context with evidence, tests, commit id, or a clear not-applicable reason."
+      ],
+      "preferred_tests": [],
+      "dependencies": []
+    },
     {
       "id": "v0-sprint-001-release-companion-package-state",
       "title": "Expose release-companion-visible MP package state",
