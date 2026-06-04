@@ -2578,7 +2578,7 @@ function Invoke-RealSessionLoopAutoResolutionCase {
     Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_campaign_id="
     Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_campaign_id_source=auto_"
     Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_empire_id=player_country_"
-    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_empire_id_source=auto_player_country_id"
+    Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_empire_id_source=auto_"
     Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_dsl_input_path="
     Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected "real_session_v0_loop_dsl_input_source=auto_generated_dsl_draft"
     Assert-Contains -Name "real session loop auto resolution output" -Text $text -Expected 'real_session_v0_loop_next_session_command_hint=cmd /c tools\run_real_session_v0_loop.cmd "'
@@ -2595,12 +2595,17 @@ function Invoke-RealSessionLoopAutoResolutionCase {
     $evidenceText = Get-Content -Raw -LiteralPath $evidencePath
     Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"resolved_identity":'
     Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"campaign_id_source":'
-    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected 'auto_decision_input_campaign_key'
     Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"empire_id_source":'
-    Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected 'auto_player_country_id'
     Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"dsl_input":'
     Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected '"source":'
     Assert-Contains -Name "real session loop auto resolution evidence" -Text $evidenceText -Expected 'auto_generated_dsl_draft'
+    $evidenceJson = $evidenceText | ConvertFrom-Json
+    if (-not ([string]$evidenceJson.resolved_identity.campaign_id_source).StartsWith("auto_")) {
+        throw "real session loop auto resolution evidence campaign_id_source should start with auto_."
+    }
+    if (-not ([string]$evidenceJson.resolved_identity.empire_id_source).StartsWith("auto_")) {
+        throw "real session loop auto resolution evidence empire_id_source should start with auto_."
+    }
 
     $nextStepsBriefPathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_next_steps_brief=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($nextStepsBriefPathLine)) {
@@ -2612,10 +2617,145 @@ function Invoke-RealSessionLoopAutoResolutionCase {
     }
     $nextStepsBriefText = Get-Content -Raw -LiteralPath $nextStepsBriefPath
     Assert-Contains -Name "real session loop auto resolution brief" -Text $nextStepsBriefText -Expected "Campaign ID source: auto_"
-    Assert-Contains -Name "real session loop auto resolution brief" -Text $nextStepsBriefText -Expected "Empire ID source: auto_player_country_id"
+    Assert-Contains -Name "real session loop auto resolution brief" -Text $nextStepsBriefText -Expected "Empire ID source: auto_"
     Assert-Contains -Name "real session loop auto resolution brief" -Text $nextStepsBriefText -Expected "DSL input source: auto_generated_dsl_draft"
 
     Write-Host "[PASS] real_session_loop_auto_resolution"
+}
+
+function Invoke-RealSessionLoopMultiCampaignEligibleAutoResolutionCase {
+    $saveRoot = Join-Path $repoRoot "dist/real_session_loop_multi_campaign_fixture_saves"
+    $archiveRoot = Join-Path $repoRoot "dist/real_session_loop_multi_campaign_fixture_archive"
+    $sessionId = "session_test_multi_campaign_auto_resolution_" + [DateTime]::UtcNow.ToString("yyyyMMdd_HHmmss")
+
+    function New-TestSavArchive {
+        param(
+            [string]$SavPath,
+            [string]$MetaText,
+            [string]$GamestateText
+        )
+
+        $stagingDir = Join-Path ([System.IO.Path]::GetDirectoryName($SavPath)) ("sav_stage_" + [guid]::NewGuid().ToString("N"))
+        New-Item -ItemType Directory -Force -Path $stagingDir | Out-Null
+        Set-Content -LiteralPath (Join-Path $stagingDir "meta") -Value $MetaText -NoNewline
+        Set-Content -LiteralPath (Join-Path $stagingDir "gamestate") -Value $GamestateText -NoNewline
+        Push-Location $stagingDir
+        try {
+            & tar -cf $SavPath "meta" "gamestate" | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                throw "tar failed while creating test save archive: $SavPath"
+            }
+        } finally {
+            Pop-Location
+            Remove-Item -LiteralPath $stagingDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    Remove-Item -LiteralPath $saveRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $archiveRoot -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $saveRoot | Out-Null
+
+    $validMeta = @'
+version="v4.0.22"
+revision="abcdef"
+name="Alpha Campaign"
+'@
+    $validGamestate = @'
+date="2230.01.01"
+player={
+    {
+        name="Jeniksoft"
+        country=0
+    }
+}
+country={
+    0={
+        name="Aeel Corp"
+        government="gov_megacorporation"
+        authority="auth_corporate"
+        founder_species=7
+        capital=42
+        starting_system=9
+    }
+}
+species={
+    7={
+        name="Aeel"
+    }
+}
+planet={
+    42={
+        name="Aeel Prime"
+    }
+}
+galactic_object={
+    9={
+        name="Aeel System"
+    }
+}
+'@
+    $partialMeta = @'
+version="v4.0.22"
+revision="ghijkl"
+name="Beta Campaign"
+'@
+    $partialGamestate = @'
+date="2230.01.01"
+country={
+    1={
+        name="Unresolved Observer"
+    }
+}
+'@
+
+    New-TestSavArchive -SavPath (Join-Path $saveRoot "alpha_campaign_2230.01.01.sav") -MetaText $validMeta -GamestateText $validGamestate
+    New-TestSavArchive -SavPath (Join-Path $saveRoot "beta_campaign_2230.01.01.sav") -MetaText $partialMeta -GamestateText $partialGamestate
+
+    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "run_real_session_v0_loop.ps1") `
+        $saveRoot `
+        $archiveRoot `
+        "" `
+        "" `
+        "" `
+        -SessionId $sessionId
+    if ($LASTEXITCODE -ne 0) {
+        throw "real session loop multi-campaign eligible auto resolution case failed (exit code $LASTEXITCODE)."
+    }
+
+    $text = $output -join "`n"
+    Assert-Contains -Name "real session loop multi-campaign auto resolution output" -Text $text -Expected "real_session_v0_loop_campaign_id=alpha_campaign_2230_01_01"
+    Assert-Contains -Name "real session loop multi-campaign auto resolution output" -Text $text -Expected "real_session_v0_loop_campaign_id_source=auto_dsl_eligible_candidate_campaign_key"
+    Assert-Contains -Name "real session loop multi-campaign auto resolution output" -Text $text -Expected "real_session_v0_loop_empire_id=player_country_0"
+    Assert-Contains -Name "real session loop multi-campaign auto resolution output" -Text $text -Expected "real_session_v0_loop_empire_id_source=auto_dsl_eligible_player_country_id"
+    Assert-Contains -Name "real session loop multi-campaign auto resolution output" -Text $text -Expected "real_session_v0_loop_decision_input_count=2"
+    Assert-Contains -Name "real session loop multi-campaign auto resolution output" -Text $text -Expected "real_session_v0_loop_candidate_decision_count=2"
+    Assert-Contains -Name "real session loop multi-campaign auto resolution output" -Text $text -Expected "real_session_v0_loop_dsl_draft_eligible_candidate_count=1"
+    Assert-Contains -Name "real session loop multi-campaign auto resolution output" -Text $text -Expected "real_session_v0_loop_dsl_draft_skipped_candidate_count=1"
+
+    $evidencePathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_evidence_json=*" } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($evidencePathLine)) {
+        throw "real session loop multi-campaign eligible auto resolution case missing evidence path."
+    }
+    $evidencePath = $evidencePathLine.Substring("real_session_v0_loop_evidence_json=".Length)
+    if (-not (Test-Path -LiteralPath $evidencePath)) {
+        throw "real session loop multi-campaign eligible auto resolution evidence json missing: $evidencePath"
+    }
+
+    $evidenceJson = (Get-Content -Raw -LiteralPath $evidencePath) | ConvertFrom-Json
+    if ([string]$evidenceJson.resolved_identity.campaign_id_source -ne "auto_dsl_eligible_candidate_campaign_key") {
+        throw "real session loop multi-campaign eligible auto resolution expected campaign_id_source from DSL-eligible candidate."
+    }
+    if ([string]$evidenceJson.resolved_identity.empire_id_source -ne "auto_dsl_eligible_player_country_id") {
+        throw "real session loop multi-campaign eligible auto resolution expected empire_id_source from DSL-eligible candidate."
+    }
+    if ([string]$evidenceJson.resolved_identity.campaign_id -ne "alpha_campaign_2230_01_01") {
+        throw "real session loop multi-campaign eligible auto resolution expected alpha campaign resolved identity."
+    }
+    if ([string]$evidenceJson.resolved_identity.empire_id -ne "player_country_0") {
+        throw "real session loop multi-campaign eligible auto resolution expected player_country_0 resolved identity."
+    }
+
+    Write-Host "[PASS] real_session_loop_multi_campaign_eligible_auto_resolution"
 }
 
 Invoke-V0PipelineCase `
@@ -2925,6 +3065,7 @@ Invoke-RealSessionWarningCodeDriftSurfaceCase
 Invoke-RealSessionLoopMpSnapshotContractCase
 Invoke-RealSessionLoopNextActionStrictVerifySourceContractCase
 Invoke-RealSessionLoopAutoResolutionCase
+Invoke-RealSessionLoopMultiCampaignEligibleAutoResolutionCase
 Invoke-RealSessionLoopMismatchForwardingCase
 Write-Host "Running generated overlay gameplay acceptance cases..."
 $gameplayAcceptanceOutput = & cmd /c (Join-Path $repoRoot "tools\\run_generated_overlay_gameplay_acceptance.cmd")

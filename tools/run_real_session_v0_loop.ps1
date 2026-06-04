@@ -162,20 +162,105 @@ function Get-SafeFileToken {
 }
 
 function Get-UniqueNonEmptyValues {
-    param([object[]]$Values)
+    param([object]$Values)
 
-    $result = New-Object System.Collections.Generic.List[string]
-    foreach ($value in @($Values)) {
+    $result = @()
+    $seen = @{}
+    $items = if ($Values -is [string]) { @([string]$Values) } else { @($Values) }
+    foreach ($value in $items) {
         $text = [string]$value
         if ([string]::IsNullOrWhiteSpace($text)) {
             continue
         }
-        if (-not $result.Contains($text)) {
-            [void]$result.Add($text)
+        if (-not $seen.ContainsKey($text)) {
+            $seen[$text] = $true
+            $result += $text
         }
     }
 
     return @($result)
+}
+
+function Get-DslEligibleCandidateDecisions {
+    param(
+        [object[]]$CandidateDecisions
+    )
+
+    $eligible = @()
+    foreach ($candidate in @($CandidateDecisions)) {
+        if ($null -eq $candidate) {
+            continue
+        }
+
+        $empireStateSummary = $candidate.empire_state_summary
+        $empireStateParsed = $false
+        if ($null -ne $empireStateSummary -and $empireStateSummary.parsed -eq $true) {
+            $empireStateParsed = $true
+        }
+        if (-not $empireStateParsed) {
+            continue
+        }
+
+        $validationWarnings = @()
+        if ($null -ne $candidate.validation_warnings) {
+            $validationWarnings = @($candidate.validation_warnings | ForEach-Object { [string]$_ })
+        }
+
+        $recommendedAction = ""
+        if ($null -ne $candidate.recommended_action) {
+            $recommendedAction = [string]$candidate.recommended_action
+        }
+        $campaignKey = ""
+        if ($null -ne $candidate.campaign_key) {
+            $campaignKey = [string]$candidate.campaign_key
+        }
+        $ruleScope = ""
+        if ($null -ne $candidate.rule_scope) {
+            $ruleScope = [string]$candidate.rule_scope
+        }
+        $saveDate = ""
+        if ($null -ne $candidate.save_date) {
+            $saveDate = [string]$candidate.save_date
+        }
+        $contentHash = ""
+        if ($null -ne $candidate.content_hash) {
+            $contentHash = [string]$candidate.content_hash
+        }
+        $playerCountryId = ""
+        if ($null -ne $candidate.player_country_id) {
+            $playerCountryId = [string]$candidate.player_country_id
+        }
+        $empireName = ""
+        if ($null -ne $candidate.empire_name) {
+            $empireName = [string]$candidate.empire_name
+        }
+        $publishesOverlay = ($null -ne $candidate.publishes_overlay -and $candidate.publishes_overlay -eq $true)
+        $modelOutputUsed = ($null -ne $candidate.model_output_used -and $candidate.model_output_used -eq $true)
+        $modelOutputTrusted = ($null -ne $candidate.model_output_trusted -and $candidate.model_output_trusted -eq $true)
+        $validationRequired = ($null -eq $candidate.validation_required -or $candidate.validation_required -eq $true)
+
+        if ([string]::IsNullOrWhiteSpace($campaignKey) -or
+            [string]::IsNullOrWhiteSpace($ruleScope) -or
+            [string]::IsNullOrWhiteSpace($saveDate) -or
+            [string]::IsNullOrWhiteSpace($contentHash) -or
+            [string]::IsNullOrWhiteSpace($playerCountryId) -or
+            $recommendedAction -ne "observe_only" -or
+            $publishesOverlay -or
+            $modelOutputUsed -or
+            $modelOutputTrusted -or
+            -not $validationRequired -or
+            $validationWarnings.Count -gt 0) {
+            continue
+        }
+
+        $eligible += [pscustomobject]@{
+            campaign_key = $campaignKey
+            player_country_id = $playerCountryId
+            empire_name = $empireName
+        }
+    }
+
+    return @($eligible)
 }
 
 function New-CommandHintChoice {
@@ -675,21 +760,28 @@ if ($sncGeneratedOverlayDraftEligible) {
 $effectiveCampaignId = $CampaignId
 $campaignIdSource = "explicit"
 if ([string]::IsNullOrWhiteSpace($effectiveCampaignId)) {
-    $decisionInputCampaignKeys = Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.campaign_key }))
-    if ($decisionInputCampaignKeys.Count -eq 1) {
-        $effectiveCampaignId = $decisionInputCampaignKeys[0]
-        $campaignIdSource = "auto_decision_input_campaign_key"
-    } elseif ($decisionInputCampaignKeys.Count -gt 1) {
-        throw "CampaignId not provided and decision inputs span multiple campaign keys: $([string]::Join(', ', $decisionInputCampaignKeys))"
+    $dslEligibleCandidateDecisions = Get-DslEligibleCandidateDecisions -CandidateDecisions @($candidateDecisionPackageJson.candidate_decisions)
+    $dslEligibleCandidateCampaignKeys = @(Get-UniqueNonEmptyValues (@($dslEligibleCandidateDecisions | ForEach-Object { $_.campaign_key })))
+    if ($dslEligibleCandidateCampaignKeys.Count -eq 1) {
+        $effectiveCampaignId = $dslEligibleCandidateCampaignKeys[0]
+        $campaignIdSource = "auto_dsl_eligible_candidate_campaign_key"
     } else {
-        $postPlayCampaignKeys = Get-UniqueNonEmptyValues (@($postPlayPackageJson.campaigns | ForEach-Object { $_.campaign_key }))
-        if ($postPlayCampaignKeys.Count -eq 1) {
-            $effectiveCampaignId = $postPlayCampaignKeys[0]
-            $campaignIdSource = "auto_post_play_campaign_key"
-        } elseif ($postPlayCampaignKeys.Count -gt 1) {
-            throw "CampaignId not provided and post-play package spans multiple campaigns: $([string]::Join(', ', $postPlayCampaignKeys))"
+        $decisionInputCampaignKeys = @(Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.campaign_key })))
+        if ($decisionInputCampaignKeys.Count -eq 1) {
+            $effectiveCampaignId = $decisionInputCampaignKeys[0]
+            $campaignIdSource = "auto_decision_input_campaign_key"
+        } elseif ($decisionInputCampaignKeys.Count -gt 1) {
+            throw "CampaignId not provided and decision inputs span multiple campaign keys without a single DSL-eligible campaign: $([string]::Join(', ', $decisionInputCampaignKeys))"
         } else {
-            throw "CampaignId not provided and no bounded campaign key could be derived from post-play artifacts."
+            $postPlayCampaignKeys = @(Get-UniqueNonEmptyValues (@($postPlayPackageJson.campaigns | ForEach-Object { $_.campaign_key })))
+            if ($postPlayCampaignKeys.Count -eq 1) {
+                $effectiveCampaignId = $postPlayCampaignKeys[0]
+                $campaignIdSource = "auto_post_play_campaign_key"
+            } elseif ($postPlayCampaignKeys.Count -gt 1) {
+                throw "CampaignId not provided and post-play package spans multiple campaigns without a single DSL-eligible campaign: $([string]::Join(', ', $postPlayCampaignKeys))"
+            } else {
+                throw "CampaignId not provided and no bounded campaign key could be derived from post-play artifacts."
+            }
         }
     }
 }
@@ -697,21 +789,34 @@ if ([string]::IsNullOrWhiteSpace($effectiveCampaignId)) {
 $effectiveEmpireId = $EmpireId
 $empireIdSource = "explicit"
 if ([string]::IsNullOrWhiteSpace($effectiveEmpireId)) {
-    $decisionInputPlayerCountryIds = Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.player_country_id }))
-    if ($decisionInputPlayerCountryIds.Count -eq 1) {
-        $effectiveEmpireId = "player_country_" + (Convert-ToStableIdentityToken -Value $decisionInputPlayerCountryIds[0] -Fallback "player_country")
-        $empireIdSource = "auto_player_country_id"
-    } elseif ($decisionInputPlayerCountryIds.Count -gt 1) {
-        throw "EmpireId not provided and decision inputs span multiple player_country_id values: $([string]::Join(', ', $decisionInputPlayerCountryIds))"
+    $dslEligibleCandidateDecisions = if ($null -ne $dslEligibleCandidateDecisions) { @($dslEligibleCandidateDecisions) } else { Get-DslEligibleCandidateDecisions -CandidateDecisions @($candidateDecisionPackageJson.candidate_decisions) }
+    $dslEligiblePlayerCountryIds = @(Get-UniqueNonEmptyValues (@($dslEligibleCandidateDecisions | ForEach-Object { $_.player_country_id })))
+    if ($dslEligiblePlayerCountryIds.Count -eq 1) {
+        $effectiveEmpireId = "player_country_" + (Convert-ToStableIdentityToken -Value $dslEligiblePlayerCountryIds[0] -Fallback "player_country")
+        $empireIdSource = "auto_dsl_eligible_player_country_id"
     } else {
-        $decisionInputEmpireNames = Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.empire_name }))
-        if ($decisionInputEmpireNames.Count -eq 1) {
-            $effectiveEmpireId = "empire_" + (Convert-ToStableIdentityToken -Value $decisionInputEmpireNames[0] -Fallback "empire")
-            $empireIdSource = "auto_empire_name"
-        } elseif ($decisionInputEmpireNames.Count -gt 1) {
-            throw "EmpireId not provided and decision inputs span multiple empire names: $([string]::Join(', ', $decisionInputEmpireNames))"
+        $decisionInputPlayerCountryIds = @(Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.player_country_id })))
+        if ($decisionInputPlayerCountryIds.Count -eq 1) {
+            $effectiveEmpireId = "player_country_" + (Convert-ToStableIdentityToken -Value $decisionInputPlayerCountryIds[0] -Fallback "player_country")
+            $empireIdSource = "auto_player_country_id"
+        } elseif ($decisionInputPlayerCountryIds.Count -gt 1) {
+            throw "EmpireId not provided and decision inputs span multiple player_country_id values without a single DSL-eligible player country."
         } else {
-            throw "EmpireId not provided and no bounded player empire identity could be derived from decision inputs."
+            $dslEligibleEmpireNames = @(Get-UniqueNonEmptyValues (@($dslEligibleCandidateDecisions | ForEach-Object { $_.empire_name })))
+            if ($dslEligibleEmpireNames.Count -eq 1) {
+                $effectiveEmpireId = "empire_" + (Convert-ToStableIdentityToken -Value $dslEligibleEmpireNames[0] -Fallback "empire")
+                $empireIdSource = "auto_dsl_eligible_empire_name"
+            } else {
+                $decisionInputEmpireNames = @(Get-UniqueNonEmptyValues (@($decisionInputPackageJson.decision_inputs | ForEach-Object { $_.empire_name })))
+                if ($decisionInputEmpireNames.Count -eq 1) {
+                    $effectiveEmpireId = "empire_" + (Convert-ToStableIdentityToken -Value $decisionInputEmpireNames[0] -Fallback "empire")
+                    $empireIdSource = "auto_empire_name"
+                } elseif ($decisionInputEmpireNames.Count -gt 1) {
+                    throw "EmpireId not provided and decision inputs span multiple empire names without a single DSL-eligible empire."
+                } else {
+                    throw "EmpireId not provided and no bounded player empire identity could be derived from decision inputs."
+                }
+            }
         }
     }
 }
