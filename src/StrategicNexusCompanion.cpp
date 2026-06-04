@@ -1601,7 +1601,12 @@ std::string buildStatusCenterSummaryText(
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const CompanionPostPlayPipelineStatus& postPlayPipeline,
     const CompanionSubsystemStatus& gameplayAcceptance,
-    const CompanionSubsystemStatus& statusCenter)
+    const CompanionSubsystemStatus& statusCenter,
+    const std::string& nextAction,
+    const std::string& nextActionReason,
+    const std::string& nextActionCommandHint,
+    const std::string& nextActionCommandHintSource,
+    const std::filesystem::path& nextActionPath)
 {
     std::ostringstream text;
     text << "Strategic Nexus Status Center\n";
@@ -1840,7 +1845,159 @@ std::string buildStatusCenterSummaryText(
     if (!gameplayAcceptance.path.empty()) {
         text << "gameplay_acceptance_report_path: " << pathString(gameplayAcceptance.path) << "\n";
     }
+    if (!nextAction.empty()) {
+        text << "next_action: " << nextAction << "\n";
+    }
+    if (!nextActionReason.empty()) {
+        text << "next_action_reason: " << nextActionReason << "\n";
+    }
+    if (!nextActionCommandHint.empty()) {
+        text << "next_action_command_hint: " << nextActionCommandHint << "\n";
+    }
+    if (!nextActionCommandHintSource.empty()) {
+        text << "next_action_command_hint_source: " << nextActionCommandHintSource << "\n";
+    }
+    if (!nextActionPath.empty()) {
+        text << "next_action_path: " << pathString(nextActionPath) << "\n";
+    }
     return text.str();
+}
+
+std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
+{
+    if (snapshot.mpOverlayPackage.identityMismatchWarning) {
+        return "review_mp_package_mismatch_warning";
+    }
+    if (snapshot.mpOverlayPackage.state == "needs_attention") {
+        return "review_mp_overlay_package_warning";
+    }
+    if (snapshot.generatedOverlayPublishGate.canPublish) {
+        return "review_staged_overlay_and_publish_if_desired";
+    }
+    if (snapshot.generatedOverlayPublishGate.state == "published") {
+        return "review_published_overlay_status";
+    }
+    if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
+        return "review_staged_overlay_status";
+    }
+    if (startsWith(snapshot.postPlayPipeline.dslDraftReadiness, "ready")) {
+        return "review_dsl_draft";
+    }
+    if (startsWith(snapshot.postPlayPipeline.candidateDecisionPackageReadiness, "ready")) {
+        return "review_candidate_decision_package";
+    }
+    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
+        return "review_entry_point_ambiguity";
+    }
+    if (snapshot.statusCenter.state == "attention_required") {
+        return "review_status_center_issue";
+    }
+    if (snapshot.statusCenter.state == "starting" || snapshot.statusCenter.state == "waiting") {
+        return "wait_for_next_pipeline_step";
+    }
+    return "review_status_center_summary";
+}
+
+std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapshot)
+{
+    if (snapshot.mpOverlayPackage.identityMismatchWarning) {
+        return "package_identity_mismatch_detected";
+    }
+    if (snapshot.mpOverlayPackage.state == "needs_attention") {
+        return snapshot.mpOverlayPackage.mismatchWarningReason.empty() ? snapshot.mpOverlayPackage.reason
+                                                                       : snapshot.mpOverlayPackage.mismatchWarningReason;
+    }
+    if (snapshot.generatedOverlayPublishGate.canPublish) {
+        return "staged_overlay_ready_owner_gate_available";
+    }
+    if (snapshot.generatedOverlayPublishGate.state == "published") {
+        return "current_staged_overlay_already_published";
+    }
+    if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
+        return "staged_overlay_written_but_publish_gate_not_ready";
+    }
+    if (startsWith(snapshot.postPlayPipeline.dslDraftReadiness, "ready")) {
+        return "dsl_draft_ready_before_overlay_stage";
+    }
+    if (startsWith(snapshot.postPlayPipeline.candidateDecisionPackageReadiness, "ready")) {
+        return "candidate_decisions_ready_before_dsl_draft";
+    }
+    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
+        return "entry_point_branch_ambiguity_detected";
+    }
+    if (!snapshot.statusCenter.reason.empty()) {
+        return snapshot.statusCenter.reason;
+    }
+    return "see_status_center_summary";
+}
+
+std::string buildCompanionNextActionCommandHint(const CompanionStatusSnapshot& snapshot)
+{
+    if (snapshot.mpOverlayPackage.identityMismatchWarning) {
+        if (!snapshot.mpOverlayPackage.strictVerifyCommand.empty()) {
+            return snapshot.mpOverlayPackage.strictVerifyCommand;
+        }
+        if (!snapshot.mpOverlayPackage.verifyCommand.empty()) {
+            return snapshot.mpOverlayPackage.verifyCommand;
+        }
+    }
+    if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
+        return snapshot.mpOverlayPackage.verifyCommand;
+    }
+    if (snapshot.generatedOverlayPublishGate.canPublish && !snapshot.generatedOverlayPublishGate.publishCommand.empty()) {
+        return snapshot.generatedOverlayPublishGate.publishCommand;
+    }
+    return std::string();
+}
+
+std::string buildCompanionNextActionCommandHintSource(const CompanionStatusSnapshot& snapshot)
+{
+    if (snapshot.mpOverlayPackage.identityMismatchWarning) {
+        if (!snapshot.mpOverlayPackage.strictVerifyCommand.empty()) {
+            return "mp_overlay_package_strict_verify_command";
+        }
+        if (!snapshot.mpOverlayPackage.verifyCommand.empty()) {
+            return "mp_overlay_package_verify_command";
+        }
+    }
+    if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
+        return "mp_overlay_package_verify_command";
+    }
+    if (snapshot.generatedOverlayPublishGate.canPublish && !snapshot.generatedOverlayPublishGate.publishCommand.empty()) {
+        return "generated_overlay_publish_gate_publish_command";
+    }
+    return "none";
+}
+
+std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot& snapshot)
+{
+    if (snapshot.mpOverlayPackage.identityMismatchWarning || snapshot.mpOverlayPackage.state == "needs_attention") {
+        return snapshot.mpOverlayPackage.path;
+    }
+    if (snapshot.generatedOverlayPublishGate.canPublish) {
+        return snapshot.generatedOverlayPublishGate.stagingStatusPath.empty()
+            ? snapshot.generatedOverlayPublishGate.path
+            : snapshot.generatedOverlayPublishGate.stagingStatusPath;
+    }
+    if (snapshot.generatedOverlayPublishGate.state == "published") {
+        return snapshot.generatedOverlayPublishGate.publishStatusPath.empty()
+            ? snapshot.generatedOverlayPublishGate.path
+            : snapshot.generatedOverlayPublishGate.publishStatusPath;
+    }
+    if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
+        return snapshot.postPlayPipeline.generatedOverlayStagingStatusPath;
+    }
+    if (startsWith(snapshot.postPlayPipeline.dslDraftReadiness, "ready")) {
+        return snapshot.postPlayPipeline.dslDraftAuditPath.empty() ? snapshot.postPlayPipeline.dslDraftPath
+                                                                   : snapshot.postPlayPipeline.dslDraftAuditPath;
+    }
+    if (startsWith(snapshot.postPlayPipeline.candidateDecisionPackageReadiness, "ready")) {
+        return snapshot.postPlayPipeline.candidateDecisionPackagePath;
+    }
+    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
+        return snapshot.postPlayPipeline.entryPointAnalysisPath;
+    }
+    return snapshot.statusCenter.path;
 }
 
 void writeSubsystemJson(
@@ -2052,6 +2209,11 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
             snapshot.mpOverlayPackage,
             snapshot.postPlayPipeline,
             snapshot.gameplayAcceptance);
+    snapshot.nextAction = buildCompanionNextAction(snapshot);
+    snapshot.nextActionReason = buildCompanionNextActionReason(snapshot);
+    snapshot.nextActionCommandHint = buildCompanionNextActionCommandHint(snapshot);
+    snapshot.nextActionCommandHintSource = buildCompanionNextActionCommandHintSource(snapshot);
+    snapshot.nextActionPath = buildCompanionNextActionPath(snapshot);
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
         snapshot.generatedAtLocal,
         snapshot.saveDiscovery,
@@ -2061,7 +2223,12 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
         snapshot.mpOverlayPackage,
         snapshot.postPlayPipeline,
         snapshot.gameplayAcceptance,
-        snapshot.statusCenter);
+        snapshot.statusCenter,
+        snapshot.nextAction,
+        snapshot.nextActionReason,
+        snapshot.nextActionCommandHint,
+        snapshot.nextActionCommandHintSource,
+        snapshot.nextActionPath);
     return snapshot;
 }
 
@@ -2107,6 +2274,11 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"status_center\": ";
     writeSubsystemJson(output, snapshot.statusCenter, "  ");
     output << ",\n";
+    output << "  \"next_action\": " << jsonString(snapshot.nextAction) << ",\n";
+    output << "  \"next_action_reason\": " << jsonString(snapshot.nextActionReason) << ",\n";
+    output << "  \"next_action_command_hint\": " << jsonString(snapshot.nextActionCommandHint) << ",\n";
+    output << "  \"next_action_command_hint_source\": " << jsonString(snapshot.nextActionCommandHintSource) << ",\n";
+    output << "  \"next_action_path\": " << jsonString(pathString(snapshot.nextActionPath)) << ",\n";
     output << "  \"status_center_summary_text\": " << jsonString(snapshot.statusCenterSummaryText) << "\n";
     output << "}\n";
     return output.str();

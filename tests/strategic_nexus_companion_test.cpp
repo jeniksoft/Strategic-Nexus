@@ -477,6 +477,21 @@ int main()
     requireCondition(
         ready.mpOverlayPackage.statusText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
         "mp overlay package status text should include strict import command");
+    requireCondition(
+        ready.nextAction == "review_staged_overlay_status",
+        "ready snapshot should prioritize staged overlay review as next action when publish gate is not configured");
+    requireCondition(
+        ready.nextActionReason == "staged_overlay_written_but_publish_gate_not_ready",
+        "ready snapshot should expose staged-overlay next action reason");
+    requireCondition(
+        ready.nextActionCommandHint.empty(),
+        "ready snapshot should not expose a publish command hint before publish gate configuration");
+    requireCondition(
+        ready.nextActionCommandHintSource == "none",
+        "ready snapshot should expose no command hint source before publish gate configuration");
+    requireCondition(
+        ready.nextActionPath == generatedOverlayStagingStatusPath,
+        "ready snapshot should focus the staged overlay status path");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
     requireCondition(
         ready.statusCenterSummaryText.find("stav: starting - waiting for archive to become ready") != std::string::npos,
@@ -598,6 +613,12 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("gameplay_acceptance: starting - gameplay acceptance pending") != std::string::npos,
         "status center summary should include gameplay acceptance pending state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("next_action: review_staged_overlay_status") != std::string::npos,
+        "status center summary should include next action");
+    requireCondition(
+        ready.statusCenterSummaryText.find("next_action_command_hint_source: none") != std::string::npos,
+        "status center summary should include next action command hint source");
 
     const auto emptyOverlay = companion.buildStatusSnapshot({
         archiveRoot,
@@ -735,6 +756,21 @@ int main()
     requireCondition(stagedPublishReady.generatedOverlayPublishGate.activeOverlayExists, "staged publish gate should detect existing active overlay");
     requireCondition(stagedPublishReady.generatedOverlayPublishGate.backupBeforeReplace, "staged publish gate should plan backup before replace");
     requireCondition(
+        stagedPublishReady.nextAction == "review_staged_overlay_and_publish_if_desired",
+        "staged publish-ready snapshot should prioritize publish review as next action");
+    requireCondition(
+        stagedPublishReady.nextActionReason == "staged_overlay_ready_owner_gate_available",
+        "staged publish-ready snapshot should expose publish next action reason");
+    requireCondition(
+        stagedPublishReady.nextActionCommandHint == stagedPublishReady.generatedOverlayPublishGate.publishCommand,
+        "staged publish-ready snapshot should expose publish command hint");
+    requireCondition(
+        stagedPublishReady.nextActionCommandHintSource == "generated_overlay_publish_gate_publish_command",
+        "staged publish-ready snapshot should expose publish command hint source");
+    requireCondition(
+        stagedPublishReady.nextActionPath == stagedOverlayStatusPath,
+        "staged publish-ready snapshot should focus the staging status path");
+    requireCondition(
         stagedPublishReady.generatedOverlayPublishGate.publishCommand.find(
             "Strategic Nexus.exe --publish-snc-generated-overlay ") == 0,
         "staged publish gate should expose owner-approved publish command");
@@ -750,6 +786,9 @@ int main()
     requireCondition(
         stagedPublishReady.statusCenterSummaryText.find("publish_gate_command: Strategic Nexus.exe --publish-snc-generated-overlay ") != std::string::npos,
         "status center summary should expose publish command");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find("next_action: review_staged_overlay_and_publish_if_desired") != std::string::npos,
+        "status center summary should expose publish next action");
 
     const auto stagedPublishBlocked = companion.buildStatusSnapshot({
         archiveSessionRoot,
@@ -973,6 +1012,27 @@ int main()
         tamperedMpPackage.mpOverlayPackage.mismatchWarningCodes.size() == 1 &&
             tamperedMpPackage.mpOverlayPackage.mismatchWarningCodes.front() == "mp_overlay_package_files_mismatch_manifest",
         "tampered mp package should expose structured mismatch warning codes");
+    requireCondition(
+        tamperedMpPackage.nextAction == "review_mp_package_mismatch_warning",
+        "tampered mp package should prioritize mismatch review as next action");
+    requireCondition(
+        tamperedMpPackage.nextActionReason == "package_identity_mismatch_detected",
+        "tampered mp package should expose mismatch next action reason");
+    requireCondition(
+        tamperedMpPackage.nextActionCommandHint == tamperedMpPackage.mpOverlayPackage.strictVerifyCommand,
+        "tampered mp package should surface strict verify command as next action hint");
+    requireCondition(
+        tamperedMpPackage.nextActionCommandHintSource == "mp_overlay_package_strict_verify_command",
+        "tampered mp package should expose strict verify command hint source");
+    requireCondition(
+        tamperedMpPackage.nextActionPath == mpPackageRoot,
+        "tampered mp package should focus the mp package directory");
+    requireCondition(
+        tamperedMpPackage.statusCenterSummaryText.find("next_action: review_mp_package_mismatch_warning") != std::string::npos,
+        "status center summary should include mismatch next action");
+    requireCondition(
+        tamperedMpPackage.statusCenterSummaryText.find("next_action_command_hint_source: mp_overlay_package_strict_verify_command") != std::string::npos,
+        "status center summary should include mismatch command hint source");
 
     const auto json = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(json.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "JSON should include app name");
@@ -1090,6 +1150,21 @@ int main()
         json.find("\"identity_mismatch_alert\": \"\"") != std::string::npos,
         "ready MP package JSON should include empty mismatch alert");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
+    requireCondition(
+        json.find("\"next_action\": \"review_staged_overlay_status\"") != std::string::npos,
+        "JSON should include next action");
+    requireCondition(
+        json.find("\"next_action_reason\": \"staged_overlay_written_but_publish_gate_not_ready\"") != std::string::npos,
+        "JSON should include next action reason");
+    requireCondition(
+        json.find("\"next_action_command_hint\": \"\"") != std::string::npos,
+        "JSON should include next action command hint");
+    requireCondition(
+        json.find("\"next_action_command_hint_source\": \"none\"") != std::string::npos,
+        "JSON should include next action command hint source");
+    requireCondition(
+        json.find("\"next_action_path\": \"" + generatedOverlayStagingStatusPath.generic_string() + "\"") != std::string::npos,
+        "JSON should include next action path");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
     requireCondition(json.find("\"package_zip_state\": \"ready\"") != std::string::npos, "JSON should include MP package zip state");

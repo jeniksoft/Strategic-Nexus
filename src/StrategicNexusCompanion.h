@@ -209,6 +209,11 @@ struct CompanionStatusSnapshot {
     CompanionPostPlayPipelineStatus postPlayPipeline;
     CompanionSubsystemStatus gameplayAcceptance;
     CompanionSubsystemStatus statusCenter;
+    std::string nextAction;
+    std::string nextActionReason;
+    std::string nextActionCommandHint;
+    std::string nextActionCommandHintSource;
+    std::filesystem::path nextActionPath;
     std::string statusCenterSummaryText;
 };
 
