@@ -54,7 +54,9 @@ CampaignLibraryPlan CampaignLibraryPlanner::build(
         } else if (plan.includedCount >= maxIncludedCampaigns) {
             entry.status = "skipped";
             entry.reason = "active_library_limit";
+            plan.limitReached = true;
             ++plan.skippedCount;
+            ++plan.skippedDueToLimitCount;
         } else {
             entry.status = "included";
             entry.reason = "local_save_available";
@@ -73,9 +75,11 @@ std::string serializeCampaignLibraryPlan(const CampaignLibraryPlan& plan)
     json << "{\n";
     json << "  \"schema_version\": 1,\n";
     json << "  \"save_root_available\": " << (plan.saveRootAvailable ? "true" : "false") << ",\n";
+    json << "  \"limit_reached\": " << (plan.limitReached ? "true" : "false") << ",\n";
     json << "  \"max_included_campaigns\": " << plan.maxIncludedCampaigns << ",\n";
     json << "  \"included_count\": " << plan.includedCount << ",\n";
     json << "  \"skipped_count\": " << plan.skippedCount << ",\n";
+    json << "  \"skipped_due_to_limit_count\": " << plan.skippedDueToLimitCount << ",\n";
     json << "  \"campaigns\": [\n";
     for (std::size_t i = 0; i < plan.entries.size(); ++i) {
         const auto& entry = plan.entries[i];

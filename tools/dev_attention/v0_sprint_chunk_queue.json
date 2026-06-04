@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T15:20:00+02:00",
+  "updated_at": "2026-06-04T15:11:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md progress refresh after shipped 6A continuity/fail-safe slices; then derive next worker-ready chunk from remaining v0 roadmap.",
+  "current_source": "DEVELOPMENT_ROADMAP.md after shipped 6A continuity/fail-safe slices and active-library saturation contract visibility; next derive owner-visible SNC readiness from the bounded campaign-library plan contract.",
   "chunks": [
     {
       "id": "v0-sprint-001-release-companion-package-state",
@@ -389,6 +389,65 @@
       ],
       "dependencies": [
         "v0-sprint-019-campaign-library-missing-root-fail-closed"
+      ]
+    },
+    {
+      "id": "v0-sprint-021-campaign-library-limit-state-surface",
+      "title": "Surface active library saturation state",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Generated Campaign Library Maintenance",
+      "goal": "Make bounded active-library truncation explicit in campaign-library plan and overlay outputs so downstream SNC/release flows can detect a limited but incomplete local ruleset snapshot.",
+      "acceptance": [
+        "Campaign-library plan JSON and CLI expose explicit limit_reached state plus skipped-due-to-limit counts.",
+        "Campaign-library overlay CLI mirrors whether the active library was truncated by the configured campaign cap.",
+        "run_v0_pipeline_tests.ps1 covers both the saturated plan case and the non-saturated overlay case."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-020-roadmap-progress-refresh-after-library-slices"
+      ]
+    },
+    {
+      "id": "v0-sprint-022-roadmap-progress-refresh-after-library-limit-state",
+      "title": "Refresh progress after library saturation slice",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Task Board And Owner Report Log",
+      "goal": "Keep roadmap notes and owner-facing progress truthful after surfacing the active campaign-library saturation contract.",
+      "acceptance": [
+        "Roadmap current-progress notes mention the explicit saturation contract once tests pass.",
+        "Roadmap complexity and project progress outputs are regenerated after the chunk.",
+        "The daily freework report is replaced without creating report spam."
+      ],
+      "preferred_tests": [
+        "tools/dev_attention/analyze_roadmap_complexity.ps1",
+        "tools/dev_attention/set_project_progress_estimate.ps1",
+        "tools/dev_attention/sync_user_task_board_state.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-021-campaign-library-limit-state-surface"
+      ]
+    },
+    {
+      "id": "v0-sprint-023-snc-campaign-library-limit-visibility",
+      "title": "Surface library saturation in SNC readiness",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Generated Campaign Library Maintenance / Core Runtime Skeleton",
+      "goal": "Expose active campaign-library truncation in SNC status and next-step text so the owner can see when the local library is intentionally bounded before a real-session test.",
+      "acceptance": [
+        "SNC status JSON or owner-facing brief includes whether the active campaign library hit its configured limit.",
+        "Owner-facing next-step text distinguishes healthy bounded output from a truncated library that may need a higher cap or campaign cleanup.",
+        "Relevant SNC or v0 pipeline tests cover the new readiness text/fields."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-021-campaign-library-limit-state-surface"
       ]
     }
   ]

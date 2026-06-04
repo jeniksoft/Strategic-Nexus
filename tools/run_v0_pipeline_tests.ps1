@@ -1104,13 +1104,17 @@ function Invoke-CampaignLibraryPlanCase {
 
     Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_success=true"
     Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_root_exists=true"
+    Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_limit_reached=true"
     Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_included=1"
     Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_skipped=1"
+    Assert-Contains -Name "campaign_library_plan app" -Text $planText -Expected "campaign_library_plan_skipped_due_to_limit=1"
 
     $planJson = Get-Content -Raw -LiteralPath $planPath
     $null = $planJson | ConvertFrom-Json
     Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"save_root_available": true'
+    Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"limit_reached": true'
     Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"status": "included"'
+    Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"skipped_due_to_limit_count": 1'
     Assert-Contains -Name "campaign_library_plan json" -Text $planJson -Expected '"reason": "active_library_limit"'
 
     Write-Host "[PASS] campaign_library_plan"
@@ -1171,6 +1175,8 @@ campaign "missing" {
     Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_success=true"
     Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_rules_included=1"
     Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_rules_skipped=1"
+    Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_limit_reached=false"
+    Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_campaigns_skipped_due_to_limit=0"
 
     $eventsText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "events/strategic_nexus_generated_events.txt")
     $planText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "strategic_nexus_campaign_library_plan.json")
@@ -1178,6 +1184,7 @@ campaign "missing" {
     Assert-Contains -Name "campaign_library_overlay events" -Text $eventsText -Expected "strategic_nexus_generated_effect_alpha_empire_001_local_defense"
     Assert-NotContains -Name "campaign_library_overlay events" -Text $eventsText -Unexpected "missing_aggression"
     Assert-Contains -Name "campaign_library_overlay plan" -Text $planText -Expected '"campaign_key": "alpha"'
+    Assert-Contains -Name "campaign_library_overlay plan" -Text $planText -Expected '"limit_reached": false'
 
     New-Item -ItemType Directory -Force -Path $nonEmptyOverlayOutputPath | Out-Null
     Set-Content -LiteralPath (Join-Path $nonEmptyOverlayOutputPath "stale.txt") -Value "stale" -Encoding UTF8

@@ -2459,8 +2459,10 @@ int Application::run(const RunConfig& config) const
 
             std::cout << "campaign_library_plan_success=" << (written ? "true" : "false") << "\n";
             std::cout << "campaign_library_plan_root_exists=" << (inventory.rootExists ? "true" : "false") << "\n";
+            std::cout << "campaign_library_plan_limit_reached=" << (plan.limitReached ? "true" : "false") << "\n";
             std::cout << "campaign_library_plan_included=" << plan.includedCount << "\n";
             std::cout << "campaign_library_plan_skipped=" << plan.skippedCount << "\n";
+            std::cout << "campaign_library_plan_skipped_due_to_limit=" << plan.skippedDueToLimitCount << "\n";
             std::cout << "campaign_library_plan_output_written=" << (written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "campaign_library_plan_reason=failed to write campaign library plan\n";
@@ -2597,7 +2599,9 @@ int Application::run(const RunConfig& config) const
             std::cout << "campaign_library_overlay_success=" << (success ? "true" : "false") << "\n";
             std::cout << "campaign_library_overlay_rules_included=" << filteredProgram.rules.size() << "\n";
             std::cout << "campaign_library_overlay_rules_skipped=" << skippedRules << "\n";
+            std::cout << "campaign_library_overlay_limit_reached=" << (plan.limitReached ? "true" : "false") << "\n";
             std::cout << "campaign_library_overlay_campaigns_included=" << plan.includedCount << "\n";
+            std::cout << "campaign_library_overlay_campaigns_skipped_due_to_limit=" << plan.skippedDueToLimitCount << "\n";
             std::cout << "campaign_library_overlay_plan_written=" << (planWritten ? "true" : "false") << "\n";
             if (!success) {
                 std::cout << "campaign_library_overlay_reason=failed to write campaign library overlay files\n";

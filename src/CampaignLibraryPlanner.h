@@ -22,9 +22,11 @@ struct CampaignLibraryPlanEntry {
 
 struct CampaignLibraryPlan {
     bool saveRootAvailable = false;
+    bool limitReached = false;
     std::size_t maxIncludedCampaigns = 0;
     std::size_t includedCount = 0;
     std::size_t skippedCount = 0;
+    std::size_t skippedDueToLimitCount = 0;
     std::vector<CampaignLibraryPlanEntry> entries;
 };
 

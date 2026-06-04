@@ -664,6 +664,7 @@ Ambiguous rename cases without a unique stable save-content fingerprint may stil
 Inventory diff now also emits explicit restored continuity when exactly one previous and one current entry share the same anchor fingerprint metadata but return under a different source kind, so library maintenance can distinguish reappeared known campaigns from brand-new unknown saves without aggressive merges.
 `--compile-campaign-library-overlay` now fails closed when the target output directory already contains files, preserving complete-replacement snapshot semantics for the active generated campaign library instead of silently leaving stale overlay residue behind.
 Campaign library plans now preserve explicit `save_root_available` state, and `--compile-campaign-library-overlay` fails closed with `save root unavailable` before mutating output when the local save root temporarily disappears.
+Campaign library plans and overlay compilation now also surface explicit active-library saturation (`limit_reached`, skipped-due-to-limit counts) in JSON and CLI output, so SNC/release flows can detect a bounded but truncated local campaign library instead of treating it as an unqualified ready state.
 
 ---
 
@@ -994,7 +995,7 @@ Keep generated campaign library publication fail-safe and continuity-safe for re
 
 The next slice should include:
 
-* progress updates only when the new continuity contract is test-backed
+* surface campaign-library saturation in owner-visible SNC status/readiness once the bounded plan/overlay contract is already test-backed
 
 ---
 
