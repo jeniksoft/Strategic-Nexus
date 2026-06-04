@@ -420,6 +420,48 @@ if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -an
 if ($identityRiskWarning) {
     $recommendation = "review_identity_risk_warning"
 }
+$campaignLibraryFollowUpActive = $false
+$campaignLibraryFollowUpReason = "none"
+$previousCampaignLibrarySkippedDueToLimitCountParsed = Parse-OptionalInt -Value $previousCampaignLibrarySkippedDueToLimitCount
+$currentCampaignLibrarySkippedDueToLimitCountParsed = Parse-OptionalInt -Value $currentCampaignLibrarySkippedDueToLimitCount
+if ($currentCampaignLibraryPlanPresent -ne "true") {
+    $campaignLibraryFollowUpActive = $true
+    $campaignLibraryFollowUpReason = "current_campaign_library_plan_missing"
+}
+elseif ($currentCampaignLibraryPlanReadiness -ne "ready") {
+    $campaignLibraryFollowUpActive = $true
+    $campaignLibraryFollowUpReason = "current_campaign_library_plan_needs_attention"
+}
+elseif ($currentCampaignLibraryLimitReached -eq "true") {
+    $campaignLibraryFollowUpActive = $true
+    $campaignLibraryFollowUpReason = "current_campaign_library_limit_reached"
+}
+elseif ($previousCampaignLibraryPlanPresent -ne $currentCampaignLibraryPlanPresent) {
+    $campaignLibraryFollowUpActive = $true
+    $campaignLibraryFollowUpReason = "campaign_library_plan_presence_changed_between_sessions"
+}
+elseif (-not [string]::IsNullOrWhiteSpace($previousCampaignLibraryPlanSource) -and
+        -not [string]::IsNullOrWhiteSpace($currentCampaignLibraryPlanSource) -and
+        $previousCampaignLibraryPlanSource -ne $currentCampaignLibraryPlanSource) {
+    $campaignLibraryFollowUpActive = $true
+    $campaignLibraryFollowUpReason = "campaign_library_plan_source_changed_between_sessions"
+}
+elseif (-not [string]::IsNullOrWhiteSpace($previousCampaignLibraryPlanReadiness) -and
+        -not [string]::IsNullOrWhiteSpace($currentCampaignLibraryPlanReadiness) -and
+        $previousCampaignLibraryPlanReadiness -ne $currentCampaignLibraryPlanReadiness) {
+    $campaignLibraryFollowUpActive = $true
+    $campaignLibraryFollowUpReason = "campaign_library_plan_readiness_changed_between_sessions"
+}
+elseif ($previousCampaignLibraryLimitReached -ne $currentCampaignLibraryLimitReached) {
+    $campaignLibraryFollowUpActive = $true
+    $campaignLibraryFollowUpReason = "campaign_library_limit_state_changed_between_sessions"
+}
+elseif ($null -ne $previousCampaignLibrarySkippedDueToLimitCountParsed -and
+        $null -ne $currentCampaignLibrarySkippedDueToLimitCountParsed -and
+        $previousCampaignLibrarySkippedDueToLimitCountParsed -ne $currentCampaignLibrarySkippedDueToLimitCountParsed) {
+    $campaignLibraryFollowUpActive = $true
+    $campaignLibraryFollowUpReason = "campaign_library_limit_skip_count_changed_between_sessions"
+}
 $observableEffectSignal = $false
 $observableEffectReason = "no_observable_delta"
 if ($overlayChanged) {
@@ -569,6 +611,10 @@ $result = [ordered]@{
         previous = $previousCampaignLibrarySkippedDueToLimitCount
         current = $currentCampaignLibrarySkippedDueToLimitCount
         changed = ($previousCampaignLibrarySkippedDueToLimitCount -ne $currentCampaignLibrarySkippedDueToLimitCount)
+    }
+    campaign_library_follow_up = [ordered]@{
+        active = $campaignLibraryFollowUpActive
+        reason = $campaignLibraryFollowUpReason
     }
     mp_package_manifest_hash = [ordered]@{
         previous = $previousMpManifestHash
@@ -823,6 +869,8 @@ Write-Host ("real_session_v0_compare_campaign_library_limit_reached_changed=" + 
 Write-Host ("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_current=" + $currentCampaignLibrarySkippedDueToLimitCount)
 Write-Host ("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_previous=" + $previousCampaignLibrarySkippedDueToLimitCount)
 Write-Host ("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed=" + ((($previousCampaignLibrarySkippedDueToLimitCount -ne $currentCampaignLibrarySkippedDueToLimitCount).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_campaign_library_follow_up_active=" + ($campaignLibraryFollowUpActive.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_campaign_library_follow_up_reason=" + $campaignLibraryFollowUpReason)
 Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_previous=" + $previousMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_changed=" + ((($previousMpHostReadiness -ne $currentMpHostReadiness).ToString().ToLowerInvariant())))

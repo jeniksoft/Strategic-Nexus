@@ -145,6 +145,8 @@ $latestCampaignLibraryLimitReachedChanged = ""
 $latestCampaignLibrarySkippedDueToLimitCountCurrent = ""
 $latestCampaignLibrarySkippedDueToLimitCountPrevious = ""
 $latestCampaignLibrarySkippedDueToLimitCountChanged = ""
+$latestCampaignLibraryFollowUpActive = "false"
+$latestCampaignLibraryFollowUpReason = "none"
 $latestMpWarningCountCurrent = ""
 $latestMpWarningCountDelta = ""
 $latestMpWarningCodesChanged = ""
@@ -308,6 +310,8 @@ if ($sessionCount -ge 2) {
     $compareCampaignLibrarySkippedDueToLimitCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_current=*" } | Select-Object -First 1
     $compareCampaignLibrarySkippedDueToLimitCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_previous=*" } | Select-Object -First 1
     $compareCampaignLibrarySkippedDueToLimitCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed=*" } | Select-Object -First 1
+    $compareCampaignLibraryFollowUpActiveLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_follow_up_active=*" } | Select-Object -First 1
+    $compareCampaignLibraryFollowUpReasonLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_follow_up_reason=*" } | Select-Object -First 1
     $compareMpWarningCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_current=*" } | Select-Object -First 1
     $compareMpWarningCountDeltaLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_delta=*" } | Select-Object -First 1
     $compareMpWarningCodesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_codes_changed=*" } | Select-Object -First 1
@@ -649,6 +653,12 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibrarySkippedDueToLimitCountChangedLine)) {
         $latestCampaignLibrarySkippedDueToLimitCountChanged = $compareCampaignLibrarySkippedDueToLimitCountChangedLine.Substring("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryFollowUpActiveLine)) {
+        $latestCampaignLibraryFollowUpActive = $compareCampaignLibraryFollowUpActiveLine.Substring("real_session_v0_compare_campaign_library_follow_up_active=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryFollowUpReasonLine)) {
+        $latestCampaignLibraryFollowUpReason = $compareCampaignLibraryFollowUpReasonLine.Substring("real_session_v0_compare_campaign_library_follow_up_reason=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrentLine)) {
         $latestMpWarningCountCurrent = $compareMpWarningCountCurrentLine.Substring("real_session_v0_compare_mp_warning_count_current=".Length)
@@ -999,6 +1009,8 @@ $result = [ordered]@{
         skipped_due_to_limit_count_current = $latestCampaignLibrarySkippedDueToLimitCountCurrent
         skipped_due_to_limit_count_previous = $latestCampaignLibrarySkippedDueToLimitCountPrevious
         skipped_due_to_limit_count_changed = $latestCampaignLibrarySkippedDueToLimitCountChanged
+        follow_up_active = $latestCampaignLibraryFollowUpActive
+        follow_up_reason = $latestCampaignLibraryFollowUpReason
     }
     latest_mp_warning_count = [ordered]@{
         current = $latestMpWarningCountCurrent
@@ -1176,6 +1188,8 @@ Write-Host ("real_session_v0_trend_campaign_library_limit_reached_changed=" + $l
 Write-Host ("real_session_v0_trend_campaign_library_skipped_due_to_limit_count_current=" + $latestCampaignLibrarySkippedDueToLimitCountCurrent)
 Write-Host ("real_session_v0_trend_campaign_library_skipped_due_to_limit_count_previous=" + $latestCampaignLibrarySkippedDueToLimitCountPrevious)
 Write-Host ("real_session_v0_trend_campaign_library_skipped_due_to_limit_count_changed=" + $latestCampaignLibrarySkippedDueToLimitCountChanged)
+Write-Host ("real_session_v0_trend_campaign_library_follow_up_active=" + $latestCampaignLibraryFollowUpActive)
+Write-Host ("real_session_v0_trend_campaign_library_follow_up_reason=" + $latestCampaignLibraryFollowUpReason)
 if (-not [string]::IsNullOrWhiteSpace($latestMpWarningCountCurrent)) {
     Write-Host ("real_session_v0_trend_mp_warning_count_current=" + $latestMpWarningCountCurrent)
 }

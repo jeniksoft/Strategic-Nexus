@@ -329,10 +329,15 @@ function Get-NextActionSummary {
         [string]$MpMismatchWarningState,
         [string]$CompareRecommendation,
         [string]$TrendRecommendation,
+        [string]$CompareCampaignLibraryFollowUpActive,
+        [string]$CompareCampaignLibraryFollowUpReason,
+        [string]$TrendCampaignLibraryFollowUpActive,
+        [string]$TrendCampaignLibraryFollowUpReason,
         [string]$MpExportStrictVerifyCommand,
         [string]$CompareMpStrictVerifyCommandCurrent,
         [string]$TrendMpStrictVerifyCommandCurrent,
         [string]$CompareCommandHint,
+        [string]$TrendLatestCompareCommandHint,
         [string]$TrendNextSessionCommandHint,
         [string]$DefaultNextSessionCommandHint
     )
@@ -362,6 +367,30 @@ function Get-NextActionSummary {
             reason = "identity_risk_warning_active"
             command_hint = $preferredIdentityRiskHint.command_hint
             command_hint_source = $preferredIdentityRiskHint.command_hint_source
+        }
+    }
+
+    if ($CompareCampaignLibraryFollowUpActive -eq "true" -or $TrendCampaignLibraryFollowUpActive -eq "true") {
+        $preferredCampaignLibraryHint = Get-FirstCommandHintChoice -Choices @(
+            (New-CommandHintChoice -CommandHint $CompareCommandHint -Source "compare_campaign_library_follow_up"),
+            (New-CommandHintChoice -CommandHint $TrendLatestCompareCommandHint -Source "trend_latest_compare")
+        )
+        $campaignLibraryReason = "campaign_library_follow_up_active"
+        if ($CompareCampaignLibraryFollowUpActive -eq "true" -and
+            -not [string]::IsNullOrWhiteSpace($CompareCampaignLibraryFollowUpReason) -and
+            $CompareCampaignLibraryFollowUpReason -ne "none") {
+            $campaignLibraryReason = "compare_" + $CompareCampaignLibraryFollowUpReason
+        }
+        elseif ($TrendCampaignLibraryFollowUpActive -eq "true" -and
+                -not [string]::IsNullOrWhiteSpace($TrendCampaignLibraryFollowUpReason) -and
+                $TrendCampaignLibraryFollowUpReason -ne "none") {
+            $campaignLibraryReason = "trend_" + $TrendCampaignLibraryFollowUpReason
+        }
+        return [ordered]@{
+            action = "review_campaign_library_coverage"
+            reason = $campaignLibraryReason
+            command_hint = $preferredCampaignLibraryHint.command_hint
+            command_hint_source = $preferredCampaignLibraryHint.command_hint_source
         }
     }
 
@@ -1229,6 +1258,8 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareCampaignLibrarySkippedDueToLimitCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_current"
     $compareCampaignLibrarySkippedDueToLimitCountPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_previous"
     $compareCampaignLibrarySkippedDueToLimitCountChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed"
+    $compareCampaignLibraryFollowUpActive = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_follow_up_active"
+    $compareCampaignLibraryFollowUpReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_follow_up_reason"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
     $compareMpHostReadinessPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_previous"
     $compareMpHostReadinessChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_changed"
@@ -1431,6 +1462,8 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_campaign_library_skipped_due_to_limit_count_current=" + $compareCampaignLibrarySkippedDueToLimitCountCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_campaign_library_skipped_due_to_limit_count_previous=" + $compareCampaignLibrarySkippedDueToLimitCountPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_campaign_library_skipped_due_to_limit_count_changed=" + $compareCampaignLibrarySkippedDueToLimitCountChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_follow_up_active=" + $compareCampaignLibraryFollowUpActive)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_follow_up_reason=" + $compareCampaignLibraryFollowUpReason)
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_host_readiness_current=" + $compareMpHostReadinessCurrent)
     }
@@ -1774,6 +1807,8 @@ if ($EmitTrendSummary) {
     $trendCampaignLibrarySkippedDueToLimitCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_skipped_due_to_limit_count_current"
     $trendCampaignLibrarySkippedDueToLimitCountPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_skipped_due_to_limit_count_previous"
     $trendCampaignLibrarySkippedDueToLimitCountChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_skipped_due_to_limit_count_changed"
+    $trendCampaignLibraryFollowUpActive = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_follow_up_active"
+    $trendCampaignLibraryFollowUpReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_follow_up_reason"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendMpWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_codes_changed"
@@ -1954,6 +1989,8 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_campaign_library_skipped_due_to_limit_count_current=" + $trendCampaignLibrarySkippedDueToLimitCountCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_campaign_library_skipped_due_to_limit_count_previous=" + $trendCampaignLibrarySkippedDueToLimitCountPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_campaign_library_skipped_due_to_limit_count_changed=" + $trendCampaignLibrarySkippedDueToLimitCountChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_follow_up_active=" + $trendCampaignLibraryFollowUpActive)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_follow_up_reason=" + $trendCampaignLibraryFollowUpReason)
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
     }
@@ -2175,10 +2212,15 @@ $nextActionSummary = Get-NextActionSummary `
     -MpMismatchWarningState $mpPackageMismatchWarningState `
     -CompareRecommendation (Get-VariableOrDefault -Name "compareRecommendation") `
     -TrendRecommendation (Get-VariableOrDefault -Name "trendRecommendation") `
+    -CompareCampaignLibraryFollowUpActive (Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpActive") `
+    -CompareCampaignLibraryFollowUpReason (Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpReason") `
+    -TrendCampaignLibraryFollowUpActive (Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpActive") `
+    -TrendCampaignLibraryFollowUpReason (Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpReason") `
     -MpExportStrictVerifyCommand $mpExportStrictVerifyCommand `
     -CompareMpStrictVerifyCommandCurrent (Get-VariableOrDefault -Name "compareMpStrictVerifyCommandCurrent") `
     -TrendMpStrictVerifyCommandCurrent (Get-VariableOrDefault -Name "trendMpStrictVerifyCommandCurrent") `
     -CompareCommandHint (Get-VariableOrDefault -Name "compareCommandHintLine") `
+    -TrendLatestCompareCommandHint (Get-VariableOrDefault -Name "trendLatestCompareCommandHint") `
     -TrendNextSessionCommandHint (Get-VariableOrDefault -Name "trendNextSessionCommandHint") `
     -DefaultNextSessionCommandHint $nextSessionCommandHint
 
@@ -2265,6 +2307,7 @@ if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "compareRecom
         "- Compare limit previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedChanged")"
         "- Compare skipped-count previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountChanged")"
         "- Compare reason previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonChanged")"
+        "- Compare follow-up active/reason: $(Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpActive") / $(Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpReason")"
     )
 }
 if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "trendOutputJsonLine"))) {
@@ -2273,6 +2316,7 @@ if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "trendOutputJ
         "- Trend limit previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedChanged")"
         "- Trend skipped-count previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountChanged")"
         "- Trend reason previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonChanged")"
+        "- Trend follow-up active/reason: $(Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpActive") / $(Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpReason")"
     )
 }
 if ($ExportMpPackage) {
@@ -2541,6 +2585,8 @@ $sessionEvidence = [ordered]@{
             skipped_due_to_limit_count_current = (Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountCurrent")
             skipped_due_to_limit_count_previous = (Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountPrevious")
             skipped_due_to_limit_count_changed = (Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountChanged")
+            follow_up_active = (Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpActive")
+            follow_up_reason = (Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpReason")
         }
         mp = [ordered]@{
             host_readiness_current = (Get-VariableOrDefault -Name "compareMpHostReadinessCurrent")
@@ -2708,6 +2754,8 @@ $sessionEvidence = [ordered]@{
             skipped_due_to_limit_count_current = (Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountCurrent")
             skipped_due_to_limit_count_previous = (Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountPrevious")
             skipped_due_to_limit_count_changed = (Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountChanged")
+            follow_up_active = (Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpActive")
+            follow_up_reason = (Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpReason")
         }
         latest_compare_command_hint = (Get-VariableOrDefault -Name "trendLatestCompareCommandHint")
         next_session_command_hint = (Get-VariableOrDefault -Name "trendNextSessionCommandHint")
