@@ -404,6 +404,7 @@ Bridge pipeline failure tests now cover effect batch write failure, malformed pa
 GitHub Actions Windows CI runs the same local regression suite on push and pull request.
 Generated overlay contract tests now compile and run with the v0 test suite.
 The v0 suite verifies both successful generated overlay staging and fail-closed rejection of an invalid tactical-style DSL rule.
+Audit 2026-06-04: generated overlay output already changes deterministically between `military_posture` / `research_bias` values, but today it only emits bounded `strategic_nexus_pref_*` country flags; no mod-side runtime consumer turns those generated flags into an in-game observable next-session effect yet.
 Remaining test gap:
 Generated overlay tests currently prove deterministic staging and fail-closed validation, but they do not yet prove that Stellaris applies the generated scripts with the intended gameplay effect.
 Before generated overlays are treated as gameplay-ready, add mod-side smoke tests, local scripted harnesses, or documented manual Stellaris acceptance tests that verify behavior in-game or against a faithful mod-script execution surface.
