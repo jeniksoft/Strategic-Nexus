@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-04T20:10:00+02:00",
+  "updated_at": "2026-06-04T20:51:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take the first ready unblocked chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md after shipped SNC campaign-library CLI + real-session evidence forwarding; next carry campaign-library sidecar state through compare/trend and owner-facing next-step artifacts so bounded-library drift stays visible between sessions.",
+  "current_source": "DEVELOPMENT_ROADMAP.md after shipped campaign-library drift forwarding in compare/trend/next-steps brief; next elevate campaign-library coverage regressions into explicit follow-up guidance.",
   "chunks": [
     {
       "id": "v0-sprint-001-release-companion-package-state",
@@ -486,6 +486,25 @@
       ],
       "dependencies": [
         "v0-sprint-024-snc-campaign-library-cli-surface"
+      ]
+    },
+    {
+      "id": "v0-sprint-026-campaign-library-coverage-next-action",
+      "title": "Promote campaign-library coverage drift into next-action guidance",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Generated Campaign Library Maintenance / real-session validation loop",
+      "goal": "Ensure campaign-library readiness regressions, truncation drift, or sidecar-source/path changes can directly influence compare/trend recommendation or next_action guidance instead of remaining passive telemetry.",
+      "acceptance": [
+        "At least one explicit compare/trend or loop-level guidance field reacts to campaign-library readiness/truncation drift with a stable reason.",
+        "Owner-facing next-step text or one-file evidence highlights the campaign-library coverage issue without requiring custom downstream interpretation.",
+        "tools/run_v0_pipeline_tests.ps1 fails closed if the new guidance contract disappears."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-025-real-session-campaign-library-evidence-forwarding"
       ]
     }
   ]

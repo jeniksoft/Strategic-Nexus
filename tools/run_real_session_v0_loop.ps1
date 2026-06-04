@@ -1208,6 +1208,27 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareNextActionPathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_current"
     $compareNextActionPathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_previous"
     $compareNextActionPathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_changed"
+    $compareCampaignLibraryPlanPresentCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_present_current"
+    $compareCampaignLibraryPlanPresentPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_present_previous"
+    $compareCampaignLibraryPlanPresentChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_present_changed"
+    $compareCampaignLibraryPlanPathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_path_current"
+    $compareCampaignLibraryPlanPathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_path_previous"
+    $compareCampaignLibraryPlanPathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_path_changed"
+    $compareCampaignLibraryPlanSourceCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_source_current"
+    $compareCampaignLibraryPlanSourcePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_source_previous"
+    $compareCampaignLibraryPlanSourceChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_source_changed"
+    $compareCampaignLibraryPlanReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_readiness_current"
+    $compareCampaignLibraryPlanReadinessPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_readiness_previous"
+    $compareCampaignLibraryPlanReadinessChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_readiness_changed"
+    $compareCampaignLibraryPlanReasonCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_reason_current"
+    $compareCampaignLibraryPlanReasonPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_reason_previous"
+    $compareCampaignLibraryPlanReasonChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_reason_changed"
+    $compareCampaignLibraryLimitReachedCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_limit_reached_current"
+    $compareCampaignLibraryLimitReachedPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_limit_reached_previous"
+    $compareCampaignLibraryLimitReachedChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_limit_reached_changed"
+    $compareCampaignLibrarySkippedDueToLimitCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_current"
+    $compareCampaignLibrarySkippedDueToLimitCountPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_previous"
+    $compareCampaignLibrarySkippedDueToLimitCountChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
     $compareMpHostReadinessPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_previous"
     $compareMpHostReadinessChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_changed"
@@ -1389,6 +1410,27 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_next_action_path_current=" + $compareNextActionPathCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_next_action_path_previous=" + $compareNextActionPathPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_next_action_path_changed=" + $compareNextActionPathChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_present_current=" + $compareCampaignLibraryPlanPresentCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_present_previous=" + $compareCampaignLibraryPlanPresentPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_present_changed=" + $compareCampaignLibraryPlanPresentChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_path_current=" + $compareCampaignLibraryPlanPathCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_path_previous=" + $compareCampaignLibraryPlanPathPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_path_changed=" + $compareCampaignLibraryPlanPathChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_source_current=" + $compareCampaignLibraryPlanSourceCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_source_previous=" + $compareCampaignLibraryPlanSourcePrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_source_changed=" + $compareCampaignLibraryPlanSourceChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_readiness_current=" + $compareCampaignLibraryPlanReadinessCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_readiness_previous=" + $compareCampaignLibraryPlanReadinessPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_readiness_changed=" + $compareCampaignLibraryPlanReadinessChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_reason_current=" + $compareCampaignLibraryPlanReasonCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_reason_previous=" + $compareCampaignLibraryPlanReasonPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_plan_reason_changed=" + $compareCampaignLibraryPlanReasonChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_limit_reached_current=" + $compareCampaignLibraryLimitReachedCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_limit_reached_previous=" + $compareCampaignLibraryLimitReachedPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_limit_reached_changed=" + $compareCampaignLibraryLimitReachedChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_skipped_due_to_limit_count_current=" + $compareCampaignLibrarySkippedDueToLimitCountCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_skipped_due_to_limit_count_previous=" + $compareCampaignLibrarySkippedDueToLimitCountPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_campaign_library_skipped_due_to_limit_count_changed=" + $compareCampaignLibrarySkippedDueToLimitCountChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_host_readiness_current=" + $compareMpHostReadinessCurrent)
     }
@@ -1711,6 +1753,27 @@ if ($EmitTrendSummary) {
     $trendNextActionPathCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_current"
     $trendNextActionPathPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_previous"
     $trendNextActionPathChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_changed"
+    $trendCampaignLibraryPlanPresentCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_present_current"
+    $trendCampaignLibraryPlanPresentPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_present_previous"
+    $trendCampaignLibraryPlanPresentChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_present_changed"
+    $trendCampaignLibraryPlanPathCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_path_current"
+    $trendCampaignLibraryPlanPathPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_path_previous"
+    $trendCampaignLibraryPlanPathChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_path_changed"
+    $trendCampaignLibraryPlanSourceCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_source_current"
+    $trendCampaignLibraryPlanSourcePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_source_previous"
+    $trendCampaignLibraryPlanSourceChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_source_changed"
+    $trendCampaignLibraryPlanReadinessCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_readiness_current"
+    $trendCampaignLibraryPlanReadinessPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_readiness_previous"
+    $trendCampaignLibraryPlanReadinessChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_readiness_changed"
+    $trendCampaignLibraryPlanReasonCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_reason_current"
+    $trendCampaignLibraryPlanReasonPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_reason_previous"
+    $trendCampaignLibraryPlanReasonChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_plan_reason_changed"
+    $trendCampaignLibraryLimitReachedCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_limit_reached_current"
+    $trendCampaignLibraryLimitReachedPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_limit_reached_previous"
+    $trendCampaignLibraryLimitReachedChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_limit_reached_changed"
+    $trendCampaignLibrarySkippedDueToLimitCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_skipped_due_to_limit_count_current"
+    $trendCampaignLibrarySkippedDueToLimitCountPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_skipped_due_to_limit_count_previous"
+    $trendCampaignLibrarySkippedDueToLimitCountChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_skipped_due_to_limit_count_changed"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendMpWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_codes_changed"
@@ -1870,6 +1933,27 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_next_action_path_current=" + $trendNextActionPathCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_next_action_path_previous=" + $trendNextActionPathPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_next_action_path_changed=" + $trendNextActionPathChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_present_current=" + $trendCampaignLibraryPlanPresentCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_present_previous=" + $trendCampaignLibraryPlanPresentPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_present_changed=" + $trendCampaignLibraryPlanPresentChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_path_current=" + $trendCampaignLibraryPlanPathCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_path_previous=" + $trendCampaignLibraryPlanPathPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_path_changed=" + $trendCampaignLibraryPlanPathChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_source_current=" + $trendCampaignLibraryPlanSourceCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_source_previous=" + $trendCampaignLibraryPlanSourcePrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_source_changed=" + $trendCampaignLibraryPlanSourceChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_readiness_current=" + $trendCampaignLibraryPlanReadinessCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_readiness_previous=" + $trendCampaignLibraryPlanReadinessPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_readiness_changed=" + $trendCampaignLibraryPlanReadinessChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_reason_current=" + $trendCampaignLibraryPlanReasonCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_reason_previous=" + $trendCampaignLibraryPlanReasonPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_plan_reason_changed=" + $trendCampaignLibraryPlanReasonChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_limit_reached_current=" + $trendCampaignLibraryLimitReachedCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_limit_reached_previous=" + $trendCampaignLibraryLimitReachedPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_limit_reached_changed=" + $trendCampaignLibraryLimitReachedChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_skipped_due_to_limit_count_current=" + $trendCampaignLibrarySkippedDueToLimitCountCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_skipped_due_to_limit_count_previous=" + $trendCampaignLibrarySkippedDueToLimitCountPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_campaign_library_skipped_due_to_limit_count_changed=" + $trendCampaignLibrarySkippedDueToLimitCountChanged)
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
     }
@@ -2153,6 +2237,15 @@ $sessionBriefLines = @(
     "- State: $statusCenterState"
     "- Reason: $statusCenterReason"
     ""
+    "## Campaign Library"
+    "- Plan present: $($campaignLibraryPlanPresent.ToString().ToLowerInvariant())"
+    "- Plan path: $campaignLibraryPlanPath"
+    "- Plan source: $campaignLibraryPlanSource"
+    "- Plan readiness: $campaignLibraryPlanReadiness"
+    "- Plan reason: $campaignLibraryPlanReason"
+    "- Limit reached: $($campaignLibraryLimitReached.ToString().ToLowerInvariant())"
+    "- Skipped due to limit count: $campaignLibrarySkippedDueToLimitCount"
+    ""
     "## Next Action"
     "- Action: $($nextActionSummary.action)"
     "- Reason: $($nextActionSummary.reason)"
@@ -2164,6 +2257,24 @@ $sessionBriefLines = @(
     "- Trend hint: $trendCommandHint"
     "- Next session hint: $nextSessionCommandHint"
 )
+if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "compareRecommendation"))) {
+    $sessionBriefLines += @(
+        ""
+        "## Campaign Library Drift"
+        "- Compare readiness previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReadinessPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReadinessCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReadinessChanged")"
+        "- Compare limit previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedChanged")"
+        "- Compare skipped-count previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountChanged")"
+        "- Compare reason previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonChanged")"
+    )
+}
+if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "trendOutputJsonLine"))) {
+    $sessionBriefLines += @(
+        "- Trend readiness previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReadinessPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReadinessCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReadinessChanged")"
+        "- Trend limit previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedChanged")"
+        "- Trend skipped-count previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountChanged")"
+        "- Trend reason previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonChanged")"
+    )
+}
 if ($ExportMpPackage) {
     $sessionBriefLines += @(
         ""
@@ -2408,6 +2519,29 @@ $sessionEvidence = [ordered]@{
         next_action_path_current = (Get-VariableOrDefault -Name "compareNextActionPathCurrent")
         next_action_path_previous = (Get-VariableOrDefault -Name "compareNextActionPathPrevious")
         next_action_path_changed = (Get-VariableOrDefault -Name "compareNextActionPathChanged")
+        campaign_library = [ordered]@{
+            plan_present_current = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanPresentCurrent")
+            plan_present_previous = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanPresentPrevious")
+            plan_present_changed = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanPresentChanged")
+            plan_path_current = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanPathCurrent")
+            plan_path_previous = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanPathPrevious")
+            plan_path_changed = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanPathChanged")
+            plan_source_current = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanSourceCurrent")
+            plan_source_previous = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanSourcePrevious")
+            plan_source_changed = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanSourceChanged")
+            plan_readiness_current = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanReadinessCurrent")
+            plan_readiness_previous = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanReadinessPrevious")
+            plan_readiness_changed = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanReadinessChanged")
+            plan_reason_current = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonCurrent")
+            plan_reason_previous = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonPrevious")
+            plan_reason_changed = (Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonChanged")
+            limit_reached_current = (Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedCurrent")
+            limit_reached_previous = (Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedPrevious")
+            limit_reached_changed = (Get-VariableOrDefault -Name "compareCampaignLibraryLimitReachedChanged")
+            skipped_due_to_limit_count_current = (Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountCurrent")
+            skipped_due_to_limit_count_previous = (Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountPrevious")
+            skipped_due_to_limit_count_changed = (Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountChanged")
+        }
         mp = [ordered]@{
             host_readiness_current = (Get-VariableOrDefault -Name "compareMpHostReadinessCurrent")
             host_readiness_previous = (Get-VariableOrDefault -Name "compareMpHostReadinessPrevious")
@@ -2552,6 +2686,29 @@ $sessionEvidence = [ordered]@{
         next_action_path_current = (Get-VariableOrDefault -Name "trendNextActionPathCurrent")
         next_action_path_previous = (Get-VariableOrDefault -Name "trendNextActionPathPrevious")
         next_action_path_changed = (Get-VariableOrDefault -Name "trendNextActionPathChanged")
+        campaign_library = [ordered]@{
+            plan_present_current = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanPresentCurrent")
+            plan_present_previous = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanPresentPrevious")
+            plan_present_changed = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanPresentChanged")
+            plan_path_current = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanPathCurrent")
+            plan_path_previous = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanPathPrevious")
+            plan_path_changed = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanPathChanged")
+            plan_source_current = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanSourceCurrent")
+            plan_source_previous = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanSourcePrevious")
+            plan_source_changed = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanSourceChanged")
+            plan_readiness_current = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanReadinessCurrent")
+            plan_readiness_previous = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanReadinessPrevious")
+            plan_readiness_changed = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanReadinessChanged")
+            plan_reason_current = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonCurrent")
+            plan_reason_previous = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonPrevious")
+            plan_reason_changed = (Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonChanged")
+            limit_reached_current = (Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedCurrent")
+            limit_reached_previous = (Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedPrevious")
+            limit_reached_changed = (Get-VariableOrDefault -Name "trendCampaignLibraryLimitReachedChanged")
+            skipped_due_to_limit_count_current = (Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountCurrent")
+            skipped_due_to_limit_count_previous = (Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountPrevious")
+            skipped_due_to_limit_count_changed = (Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountChanged")
+        }
         latest_compare_command_hint = (Get-VariableOrDefault -Name "trendLatestCompareCommandHint")
         next_session_command_hint = (Get-VariableOrDefault -Name "trendNextSessionCommandHint")
         mp = [ordered]@{

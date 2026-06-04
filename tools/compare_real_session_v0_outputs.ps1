@@ -170,6 +170,20 @@ $previousNextActionCommandHint = ""
 $currentNextActionCommandHint = ""
 $previousNextActionPath = ""
 $currentNextActionPath = ""
+$previousCampaignLibraryPlanPresent = "false"
+$currentCampaignLibraryPlanPresent = "false"
+$previousCampaignLibraryPlanPath = ""
+$currentCampaignLibraryPlanPath = ""
+$previousCampaignLibraryPlanSource = ""
+$currentCampaignLibraryPlanSource = ""
+$previousCampaignLibraryPlanReadiness = ""
+$currentCampaignLibraryPlanReadiness = ""
+$previousCampaignLibraryPlanReason = ""
+$currentCampaignLibraryPlanReason = ""
+$previousCampaignLibraryLimitReached = "false"
+$currentCampaignLibraryLimitReached = "false"
+$previousCampaignLibrarySkippedDueToLimitCount = ""
+$currentCampaignLibrarySkippedDueToLimitCount = ""
 $previousMpPackageZipState = ""
 $currentMpPackageZipState = ""
 $previousMpPackageZipReason = ""
@@ -209,6 +223,15 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousNextActionCommandHint = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint"
         $previousNextActionPath = Get-OptionalString -Object $previousEvidence.next_action -Property "path"
     }
+    if ($null -ne $previousEvidence.campaign_library) {
+        $previousCampaignLibraryPlanPresent = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_present"
+        $previousCampaignLibraryPlanPath = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_path"
+        $previousCampaignLibraryPlanSource = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_source"
+        $previousCampaignLibraryPlanReadiness = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_readiness"
+        $previousCampaignLibraryPlanReason = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_reason"
+        $previousCampaignLibraryLimitReached = Get-OptionalString -Object $previousEvidence.campaign_library -Property "limit_reached"
+        $previousCampaignLibrarySkippedDueToLimitCount = Get-OptionalString -Object $previousEvidence.campaign_library -Property "skipped_due_to_limit_count"
+    }
     if ($null -ne $previousEvidence.mp_export) {
         $previousMpPackageZipState = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_state"
         $previousMpPackageZipReason = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_reason"
@@ -233,6 +256,15 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentNextActionCommandHintSource = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint_source"
         $currentNextActionCommandHint = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint"
         $currentNextActionPath = Get-OptionalString -Object $currentEvidence.next_action -Property "path"
+    }
+    if ($null -ne $currentEvidence.campaign_library) {
+        $currentCampaignLibraryPlanPresent = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_present"
+        $currentCampaignLibraryPlanPath = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_path"
+        $currentCampaignLibraryPlanSource = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_source"
+        $currentCampaignLibraryPlanReadiness = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_readiness"
+        $currentCampaignLibraryPlanReason = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_reason"
+        $currentCampaignLibraryLimitReached = Get-OptionalString -Object $currentEvidence.campaign_library -Property "limit_reached"
+        $currentCampaignLibrarySkippedDueToLimitCount = Get-OptionalString -Object $currentEvidence.campaign_library -Property "skipped_due_to_limit_count"
     }
     if ($null -ne $currentEvidence.mp_export) {
         $currentMpPackageZipState = Get-OptionalString -Object $currentEvidence.mp_export -Property "package_zip_state"
@@ -503,6 +535,41 @@ $result = [ordered]@{
         current = $currentNextActionPath
         changed = ($previousNextActionPath -ne $currentNextActionPath)
     }
+    campaign_library_plan_present = [ordered]@{
+        previous = $previousCampaignLibraryPlanPresent
+        current = $currentCampaignLibraryPlanPresent
+        changed = ($previousCampaignLibraryPlanPresent -ne $currentCampaignLibraryPlanPresent)
+    }
+    campaign_library_plan_path = [ordered]@{
+        previous = $previousCampaignLibraryPlanPath
+        current = $currentCampaignLibraryPlanPath
+        changed = ($previousCampaignLibraryPlanPath -ne $currentCampaignLibraryPlanPath)
+    }
+    campaign_library_plan_source = [ordered]@{
+        previous = $previousCampaignLibraryPlanSource
+        current = $currentCampaignLibraryPlanSource
+        changed = ($previousCampaignLibraryPlanSource -ne $currentCampaignLibraryPlanSource)
+    }
+    campaign_library_plan_readiness = [ordered]@{
+        previous = $previousCampaignLibraryPlanReadiness
+        current = $currentCampaignLibraryPlanReadiness
+        changed = ($previousCampaignLibraryPlanReadiness -ne $currentCampaignLibraryPlanReadiness)
+    }
+    campaign_library_plan_reason = [ordered]@{
+        previous = $previousCampaignLibraryPlanReason
+        current = $currentCampaignLibraryPlanReason
+        changed = ($previousCampaignLibraryPlanReason -ne $currentCampaignLibraryPlanReason)
+    }
+    campaign_library_limit_reached = [ordered]@{
+        previous = $previousCampaignLibraryLimitReached
+        current = $currentCampaignLibraryLimitReached
+        changed = ($previousCampaignLibraryLimitReached -ne $currentCampaignLibraryLimitReached)
+    }
+    campaign_library_skipped_due_to_limit_count = [ordered]@{
+        previous = $previousCampaignLibrarySkippedDueToLimitCount
+        current = $currentCampaignLibrarySkippedDueToLimitCount
+        changed = ($previousCampaignLibrarySkippedDueToLimitCount -ne $currentCampaignLibrarySkippedDueToLimitCount)
+    }
     mp_package_manifest_hash = [ordered]@{
         previous = $previousMpManifestHash
         current = $currentMpManifestHash
@@ -735,6 +802,27 @@ Write-Host ("real_session_v0_compare_next_action_command_hint_changed=" + ((($pr
 Write-Host ("real_session_v0_compare_next_action_path_current=" + $currentNextActionPath)
 Write-Host ("real_session_v0_compare_next_action_path_previous=" + $previousNextActionPath)
 Write-Host ("real_session_v0_compare_next_action_path_changed=" + ((($previousNextActionPath -ne $currentNextActionPath).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_campaign_library_plan_present_current=" + $currentCampaignLibraryPlanPresent)
+Write-Host ("real_session_v0_compare_campaign_library_plan_present_previous=" + $previousCampaignLibraryPlanPresent)
+Write-Host ("real_session_v0_compare_campaign_library_plan_present_changed=" + ((($previousCampaignLibraryPlanPresent -ne $currentCampaignLibraryPlanPresent).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_campaign_library_plan_path_current=" + $currentCampaignLibraryPlanPath)
+Write-Host ("real_session_v0_compare_campaign_library_plan_path_previous=" + $previousCampaignLibraryPlanPath)
+Write-Host ("real_session_v0_compare_campaign_library_plan_path_changed=" + ((($previousCampaignLibraryPlanPath -ne $currentCampaignLibraryPlanPath).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_campaign_library_plan_source_current=" + $currentCampaignLibraryPlanSource)
+Write-Host ("real_session_v0_compare_campaign_library_plan_source_previous=" + $previousCampaignLibraryPlanSource)
+Write-Host ("real_session_v0_compare_campaign_library_plan_source_changed=" + ((($previousCampaignLibraryPlanSource -ne $currentCampaignLibraryPlanSource).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_campaign_library_plan_readiness_current=" + $currentCampaignLibraryPlanReadiness)
+Write-Host ("real_session_v0_compare_campaign_library_plan_readiness_previous=" + $previousCampaignLibraryPlanReadiness)
+Write-Host ("real_session_v0_compare_campaign_library_plan_readiness_changed=" + ((($previousCampaignLibraryPlanReadiness -ne $currentCampaignLibraryPlanReadiness).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_campaign_library_plan_reason_current=" + $currentCampaignLibraryPlanReason)
+Write-Host ("real_session_v0_compare_campaign_library_plan_reason_previous=" + $previousCampaignLibraryPlanReason)
+Write-Host ("real_session_v0_compare_campaign_library_plan_reason_changed=" + ((($previousCampaignLibraryPlanReason -ne $currentCampaignLibraryPlanReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_campaign_library_limit_reached_current=" + $currentCampaignLibraryLimitReached)
+Write-Host ("real_session_v0_compare_campaign_library_limit_reached_previous=" + $previousCampaignLibraryLimitReached)
+Write-Host ("real_session_v0_compare_campaign_library_limit_reached_changed=" + ((($previousCampaignLibraryLimitReached -ne $currentCampaignLibraryLimitReached).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_current=" + $currentCampaignLibrarySkippedDueToLimitCount)
+Write-Host ("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_previous=" + $previousCampaignLibrarySkippedDueToLimitCount)
+Write-Host ("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed=" + ((($previousCampaignLibrarySkippedDueToLimitCount -ne $currentCampaignLibrarySkippedDueToLimitCount).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_host_readiness_current=" + $currentMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_previous=" + $previousMpHostReadiness)
 Write-Host ("real_session_v0_compare_mp_host_readiness_changed=" + ((($previousMpHostReadiness -ne $currentMpHostReadiness).ToString().ToLowerInvariant())))

@@ -124,6 +124,27 @@ $latestNextActionCommandHintSourceChanged = ""
 $latestNextActionPathCurrent = ""
 $latestNextActionPathPrevious = ""
 $latestNextActionPathChanged = ""
+$latestCampaignLibraryPlanPresentCurrent = ""
+$latestCampaignLibraryPlanPresentPrevious = ""
+$latestCampaignLibraryPlanPresentChanged = ""
+$latestCampaignLibraryPlanPathCurrent = ""
+$latestCampaignLibraryPlanPathPrevious = ""
+$latestCampaignLibraryPlanPathChanged = ""
+$latestCampaignLibraryPlanSourceCurrent = ""
+$latestCampaignLibraryPlanSourcePrevious = ""
+$latestCampaignLibraryPlanSourceChanged = ""
+$latestCampaignLibraryPlanReadinessCurrent = ""
+$latestCampaignLibraryPlanReadinessPrevious = ""
+$latestCampaignLibraryPlanReadinessChanged = ""
+$latestCampaignLibraryPlanReasonCurrent = ""
+$latestCampaignLibraryPlanReasonPrevious = ""
+$latestCampaignLibraryPlanReasonChanged = ""
+$latestCampaignLibraryLimitReachedCurrent = ""
+$latestCampaignLibraryLimitReachedPrevious = ""
+$latestCampaignLibraryLimitReachedChanged = ""
+$latestCampaignLibrarySkippedDueToLimitCountCurrent = ""
+$latestCampaignLibrarySkippedDueToLimitCountPrevious = ""
+$latestCampaignLibrarySkippedDueToLimitCountChanged = ""
 $latestMpWarningCountCurrent = ""
 $latestMpWarningCountDelta = ""
 $latestMpWarningCodesChanged = ""
@@ -266,6 +287,27 @@ if ($sessionCount -ge 2) {
     $compareNextActionPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_current=*" } | Select-Object -First 1
     $compareNextActionPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_previous=*" } | Select-Object -First 1
     $compareNextActionPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_changed=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanPresentCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_current=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanPresentPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_previous=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanPresentChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_changed=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_path_current=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_path_previous=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_path_changed=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanSourceCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_source_current=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanSourcePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_source_previous=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanSourceChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_source_changed=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanReadinessCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_readiness_current=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanReadinessPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_readiness_previous=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanReadinessChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_readiness_changed=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_reason_current=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_reason_previous=*" } | Select-Object -First 1
+    $compareCampaignLibraryPlanReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_reason_changed=*" } | Select-Object -First 1
+    $compareCampaignLibraryLimitReachedCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_limit_reached_current=*" } | Select-Object -First 1
+    $compareCampaignLibraryLimitReachedPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_limit_reached_previous=*" } | Select-Object -First 1
+    $compareCampaignLibraryLimitReachedChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_limit_reached_changed=*" } | Select-Object -First 1
+    $compareCampaignLibrarySkippedDueToLimitCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_current=*" } | Select-Object -First 1
+    $compareCampaignLibrarySkippedDueToLimitCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_previous=*" } | Select-Object -First 1
+    $compareCampaignLibrarySkippedDueToLimitCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed=*" } | Select-Object -First 1
     $compareMpWarningCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_current=*" } | Select-Object -First 1
     $compareMpWarningCountDeltaLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_count_delta=*" } | Select-Object -First 1
     $compareMpWarningCodesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_warning_codes_changed=*" } | Select-Object -First 1
@@ -544,6 +586,69 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareNextActionPathChangedLine)) {
         $latestNextActionPathChanged = $compareNextActionPathChangedLine.Substring("real_session_v0_compare_next_action_path_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanPresentCurrentLine)) {
+        $latestCampaignLibraryPlanPresentCurrent = $compareCampaignLibraryPlanPresentCurrentLine.Substring("real_session_v0_compare_campaign_library_plan_present_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanPresentPreviousLine)) {
+        $latestCampaignLibraryPlanPresentPrevious = $compareCampaignLibraryPlanPresentPreviousLine.Substring("real_session_v0_compare_campaign_library_plan_present_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanPresentChangedLine)) {
+        $latestCampaignLibraryPlanPresentChanged = $compareCampaignLibraryPlanPresentChangedLine.Substring("real_session_v0_compare_campaign_library_plan_present_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanPathCurrentLine)) {
+        $latestCampaignLibraryPlanPathCurrent = $compareCampaignLibraryPlanPathCurrentLine.Substring("real_session_v0_compare_campaign_library_plan_path_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanPathPreviousLine)) {
+        $latestCampaignLibraryPlanPathPrevious = $compareCampaignLibraryPlanPathPreviousLine.Substring("real_session_v0_compare_campaign_library_plan_path_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanPathChangedLine)) {
+        $latestCampaignLibraryPlanPathChanged = $compareCampaignLibraryPlanPathChangedLine.Substring("real_session_v0_compare_campaign_library_plan_path_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanSourceCurrentLine)) {
+        $latestCampaignLibraryPlanSourceCurrent = $compareCampaignLibraryPlanSourceCurrentLine.Substring("real_session_v0_compare_campaign_library_plan_source_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanSourcePreviousLine)) {
+        $latestCampaignLibraryPlanSourcePrevious = $compareCampaignLibraryPlanSourcePreviousLine.Substring("real_session_v0_compare_campaign_library_plan_source_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanSourceChangedLine)) {
+        $latestCampaignLibraryPlanSourceChanged = $compareCampaignLibraryPlanSourceChangedLine.Substring("real_session_v0_compare_campaign_library_plan_source_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanReadinessCurrentLine)) {
+        $latestCampaignLibraryPlanReadinessCurrent = $compareCampaignLibraryPlanReadinessCurrentLine.Substring("real_session_v0_compare_campaign_library_plan_readiness_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanReadinessPreviousLine)) {
+        $latestCampaignLibraryPlanReadinessPrevious = $compareCampaignLibraryPlanReadinessPreviousLine.Substring("real_session_v0_compare_campaign_library_plan_readiness_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanReadinessChangedLine)) {
+        $latestCampaignLibraryPlanReadinessChanged = $compareCampaignLibraryPlanReadinessChangedLine.Substring("real_session_v0_compare_campaign_library_plan_readiness_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanReasonCurrentLine)) {
+        $latestCampaignLibraryPlanReasonCurrent = $compareCampaignLibraryPlanReasonCurrentLine.Substring("real_session_v0_compare_campaign_library_plan_reason_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanReasonPreviousLine)) {
+        $latestCampaignLibraryPlanReasonPrevious = $compareCampaignLibraryPlanReasonPreviousLine.Substring("real_session_v0_compare_campaign_library_plan_reason_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanReasonChangedLine)) {
+        $latestCampaignLibraryPlanReasonChanged = $compareCampaignLibraryPlanReasonChangedLine.Substring("real_session_v0_compare_campaign_library_plan_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryLimitReachedCurrentLine)) {
+        $latestCampaignLibraryLimitReachedCurrent = $compareCampaignLibraryLimitReachedCurrentLine.Substring("real_session_v0_compare_campaign_library_limit_reached_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryLimitReachedPreviousLine)) {
+        $latestCampaignLibraryLimitReachedPrevious = $compareCampaignLibraryLimitReachedPreviousLine.Substring("real_session_v0_compare_campaign_library_limit_reached_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryLimitReachedChangedLine)) {
+        $latestCampaignLibraryLimitReachedChanged = $compareCampaignLibraryLimitReachedChangedLine.Substring("real_session_v0_compare_campaign_library_limit_reached_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibrarySkippedDueToLimitCountCurrentLine)) {
+        $latestCampaignLibrarySkippedDueToLimitCountCurrent = $compareCampaignLibrarySkippedDueToLimitCountCurrentLine.Substring("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibrarySkippedDueToLimitCountPreviousLine)) {
+        $latestCampaignLibrarySkippedDueToLimitCountPrevious = $compareCampaignLibrarySkippedDueToLimitCountPreviousLine.Substring("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibrarySkippedDueToLimitCountChangedLine)) {
+        $latestCampaignLibrarySkippedDueToLimitCountChanged = $compareCampaignLibrarySkippedDueToLimitCountChangedLine.Substring("real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMpWarningCountCurrentLine)) {
         $latestMpWarningCountCurrent = $compareMpWarningCountCurrentLine.Substring("real_session_v0_compare_mp_warning_count_current=".Length)
@@ -872,6 +977,29 @@ $result = [ordered]@{
         path_previous = $latestNextActionPathPrevious
         path_changed = $latestNextActionPathChanged
     }
+    latest_campaign_library = [ordered]@{
+        plan_present_current = $latestCampaignLibraryPlanPresentCurrent
+        plan_present_previous = $latestCampaignLibraryPlanPresentPrevious
+        plan_present_changed = $latestCampaignLibraryPlanPresentChanged
+        plan_path_current = $latestCampaignLibraryPlanPathCurrent
+        plan_path_previous = $latestCampaignLibraryPlanPathPrevious
+        plan_path_changed = $latestCampaignLibraryPlanPathChanged
+        plan_source_current = $latestCampaignLibraryPlanSourceCurrent
+        plan_source_previous = $latestCampaignLibraryPlanSourcePrevious
+        plan_source_changed = $latestCampaignLibraryPlanSourceChanged
+        plan_readiness_current = $latestCampaignLibraryPlanReadinessCurrent
+        plan_readiness_previous = $latestCampaignLibraryPlanReadinessPrevious
+        plan_readiness_changed = $latestCampaignLibraryPlanReadinessChanged
+        plan_reason_current = $latestCampaignLibraryPlanReasonCurrent
+        plan_reason_previous = $latestCampaignLibraryPlanReasonPrevious
+        plan_reason_changed = $latestCampaignLibraryPlanReasonChanged
+        limit_reached_current = $latestCampaignLibraryLimitReachedCurrent
+        limit_reached_previous = $latestCampaignLibraryLimitReachedPrevious
+        limit_reached_changed = $latestCampaignLibraryLimitReachedChanged
+        skipped_due_to_limit_count_current = $latestCampaignLibrarySkippedDueToLimitCountCurrent
+        skipped_due_to_limit_count_previous = $latestCampaignLibrarySkippedDueToLimitCountPrevious
+        skipped_due_to_limit_count_changed = $latestCampaignLibrarySkippedDueToLimitCountChanged
+    }
     latest_mp_warning_count = [ordered]@{
         current = $latestMpWarningCountCurrent
         delta = $latestMpWarningCountDelta
@@ -1027,6 +1155,27 @@ Write-Host ("real_session_v0_trend_next_action_command_hint_source_changed=" + $
 Write-Host ("real_session_v0_trend_next_action_path_current=" + $latestNextActionPathCurrent)
 Write-Host ("real_session_v0_trend_next_action_path_previous=" + $latestNextActionPathPrevious)
 Write-Host ("real_session_v0_trend_next_action_path_changed=" + $latestNextActionPathChanged)
+Write-Host ("real_session_v0_trend_campaign_library_plan_present_current=" + $latestCampaignLibraryPlanPresentCurrent)
+Write-Host ("real_session_v0_trend_campaign_library_plan_present_previous=" + $latestCampaignLibraryPlanPresentPrevious)
+Write-Host ("real_session_v0_trend_campaign_library_plan_present_changed=" + $latestCampaignLibraryPlanPresentChanged)
+Write-Host ("real_session_v0_trend_campaign_library_plan_path_current=" + $latestCampaignLibraryPlanPathCurrent)
+Write-Host ("real_session_v0_trend_campaign_library_plan_path_previous=" + $latestCampaignLibraryPlanPathPrevious)
+Write-Host ("real_session_v0_trend_campaign_library_plan_path_changed=" + $latestCampaignLibraryPlanPathChanged)
+Write-Host ("real_session_v0_trend_campaign_library_plan_source_current=" + $latestCampaignLibraryPlanSourceCurrent)
+Write-Host ("real_session_v0_trend_campaign_library_plan_source_previous=" + $latestCampaignLibraryPlanSourcePrevious)
+Write-Host ("real_session_v0_trend_campaign_library_plan_source_changed=" + $latestCampaignLibraryPlanSourceChanged)
+Write-Host ("real_session_v0_trend_campaign_library_plan_readiness_current=" + $latestCampaignLibraryPlanReadinessCurrent)
+Write-Host ("real_session_v0_trend_campaign_library_plan_readiness_previous=" + $latestCampaignLibraryPlanReadinessPrevious)
+Write-Host ("real_session_v0_trend_campaign_library_plan_readiness_changed=" + $latestCampaignLibraryPlanReadinessChanged)
+Write-Host ("real_session_v0_trend_campaign_library_plan_reason_current=" + $latestCampaignLibraryPlanReasonCurrent)
+Write-Host ("real_session_v0_trend_campaign_library_plan_reason_previous=" + $latestCampaignLibraryPlanReasonPrevious)
+Write-Host ("real_session_v0_trend_campaign_library_plan_reason_changed=" + $latestCampaignLibraryPlanReasonChanged)
+Write-Host ("real_session_v0_trend_campaign_library_limit_reached_current=" + $latestCampaignLibraryLimitReachedCurrent)
+Write-Host ("real_session_v0_trend_campaign_library_limit_reached_previous=" + $latestCampaignLibraryLimitReachedPrevious)
+Write-Host ("real_session_v0_trend_campaign_library_limit_reached_changed=" + $latestCampaignLibraryLimitReachedChanged)
+Write-Host ("real_session_v0_trend_campaign_library_skipped_due_to_limit_count_current=" + $latestCampaignLibrarySkippedDueToLimitCountCurrent)
+Write-Host ("real_session_v0_trend_campaign_library_skipped_due_to_limit_count_previous=" + $latestCampaignLibrarySkippedDueToLimitCountPrevious)
+Write-Host ("real_session_v0_trend_campaign_library_skipped_due_to_limit_count_changed=" + $latestCampaignLibrarySkippedDueToLimitCountChanged)
 if (-not [string]::IsNullOrWhiteSpace($latestMpWarningCountCurrent)) {
     Write-Host ("real_session_v0_trend_mp_warning_count_current=" + $latestMpWarningCountCurrent)
 }

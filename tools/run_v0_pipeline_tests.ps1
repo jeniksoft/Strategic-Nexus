@@ -2458,9 +2458,19 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_path_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_path_previous="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_path_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_plan_readiness_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_plan_readiness_previous="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_plan_readiness_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_limit_reached_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_skipped_due_to_limit_count_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_path_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_path_previous="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_next_action_path_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_plan_readiness_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_plan_readiness_previous="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_plan_readiness_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_limit_reached_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_skipped_due_to_limit_count_current="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_steps_brief="
     $runIdLine = ($output | Where-Object { $_ -like "real_session_v0_loop_run_id=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($runIdLine)) {
@@ -2538,6 +2548,10 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Mismatch warning reason:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Game version mismatch warning:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Manifest hash mismatch warning:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "## Campaign Library"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "## Campaign Library Drift"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Compare readiness previous/current/changed:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Trend readiness previous/current/changed:"
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"archive"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"copied_save_count"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"last_archived_path"'
@@ -2565,6 +2579,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_path_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_path_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"next_action_path_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"campaign_library"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"plan_readiness_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"limit_reached_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_state_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_reason_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_sha256_current"'
@@ -2596,6 +2613,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"package_zip_sha256_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"package_zip_path_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"package_zip_bytes_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"campaign_library"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"plan_readiness_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"limit_reached_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence status center" -Text $evidenceText -Expected '"status_center"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence status center" -Text $evidenceText -Expected '"summary_present"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"entry_point_reason"'
@@ -2754,6 +2774,9 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Empire brief:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- SNC MP status snapshot:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- SNC MP status readiness: not_exported"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "## Campaign Library"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Plan readiness:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Limit reached:"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "## MP Package"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "- Host readiness:"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "- Client readiness gate:"

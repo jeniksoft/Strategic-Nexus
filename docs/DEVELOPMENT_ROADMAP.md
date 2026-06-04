@@ -668,6 +668,7 @@ Campaign library plans and overlay compilation now also surface explicit active-
 SNC companion/tray readiness now also surfaces campaign-library sidecar saturation (`campaign_library_limit_reached`, skipped count, source path, owner note) and fails closed when the sidecar exists but is unreadable or uses an unsupported schema, so owner-facing coverage signals do not silently drift.
 `--snc-status-snapshot` stdout now also emits explicit campaign-library sidecar fields (`plan_present`, path, source, readiness, reason, `limit_reached`, skipped count), and the CLI now routes the staging-status path into the same post-play sidecar inspection path used by SNC JSON/Status Center instead of silently dropping those fields.
 `tools/run_real_session_v0_loop.ps1` now forwards campaign-library sidecar state into its stable CLI/evidence contract (`real_session_v0_loop_campaign_library_*` plus evidence JSON `campaign_library`), so release-companion or owner follow-up can read bounded local-library coverage from one run artifact even when the sidecar is absent.
+Compare/trend real-session outputs and the owner-facing `real_session_v0_next_steps.md` brief now also surface campaign-library readiness/source/limit drift between sessions, so bounded local-library coverage changes stay visible without reopening raw SNC snapshots.
 
 ---
 
@@ -995,11 +996,11 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
- Keep generated campaign library visibility continuous across the real-session validation loop.
+ Turn campaign-library coverage drift into explicit follow-up guidance.
 
   The next slice should include:
 
- * forward campaign-library sidecar state into compare/trend outputs and owner-facing next-steps artifacts so bounded-library drift is visible between real sessions without reopening raw SNC snapshots
+ * promote campaign-library readiness regressions, truncation drift, and sidecar-source/path changes into explicit compare/trend recommendation or next_action inputs so release-companion and owner follow-up do not need custom campaign-library-specific interpretation rules
 
   ---
 
