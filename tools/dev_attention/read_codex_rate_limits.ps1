@@ -134,30 +134,26 @@ function Read-CodexRateLimitsWithNode {
         return $null
     }
 
-    $psi = [System.Diagnostics.ProcessStartInfo]::new()
-    $psi.FileName = $nodeExe
-    $psi.Arguments = '"' + $helper + '" "' + $CodexExePath + '"'
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    $psi.UseShellExecute = $false
-    $psi.CreateNoWindow = $true
-
-    $process = [System.Diagnostics.Process]::Start($psi)
-    if (-not $process.WaitForExit(50000)) {
-        try { $process.Kill() } catch {}
-        return $null
-    }
-
-    $stdout = $process.StandardOutput.ReadToEnd()
-    $stderr = $process.StandardError.ReadToEnd()
-    if ($process.ExitCode -ne 0 -or -not $stdout.Trim()) {
-        return $null
-    }
-
+    $stderrPath = [System.IO.Path]::GetTempFileName()
     try {
-        return ($stdout | ConvertFrom-Json)
-    } catch {
-        return $null
+        $stdout = (& $nodeExe $helper $CodexExePath 2> $stderrPath | Out-String)
+        $stderr = if (Test-Path -LiteralPath $stderrPath) {
+            Get-Content -LiteralPath $stderrPath -Raw -ErrorAction SilentlyContinue
+        } else {
+            ""
+        }
+
+        if ($LASTEXITCODE -ne 0 -or -not $stdout.Trim()) {
+            return $null
+        }
+
+        try {
+            return ($stdout | ConvertFrom-Json)
+        } catch {
+            return $null
+        }
+    } finally {
+        Remove-Item -LiteralPath $stderrPath -ErrorAction SilentlyContinue
     }
 }
 
@@ -280,9 +276,12 @@ function Read-CodexRateLimits {
 
         if (-not $process.HasExited) {
             $process.StandardInput.Close()
+            if (-not $process.WaitForExit(5000)) {
+                $process.Kill()
+                $process.WaitForExit(5000) | Out-Null
+            }
         }
         $stderr = $process.StandardError.ReadToEnd()
-        $process.WaitForExit(10000) | Out-Null
     } finally {
         if (-not $process.HasExited) {
             $process.Kill()

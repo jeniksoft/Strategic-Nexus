@@ -89,6 +89,18 @@ const timeout = setTimeout(() => {
   fail(`codex app-server timeout; stderr=${stderr}`);
 }, 45000);
 
+function shutdownAndExit(code) {
+  try {
+    child.stdin.end();
+  } catch {}
+  setTimeout(() => {
+    try {
+      child.kill();
+    } catch {}
+    process.exit(code);
+  }, 50);
+}
+
 (async () => {
   try {
     await send("initialize", {
@@ -105,13 +117,9 @@ const timeout = setTimeout(() => {
     notify("initialized");
     const result = await send("account/rateLimits/read");
     clearTimeout(timeout);
-    console.log(JSON.stringify(result));
-    try {
-      child.stdin.end();
-    } catch {}
-    try {
-      child.kill("SIGKILL");
-    } catch {}
+    process.stdout.write(`${JSON.stringify(result)}\n`, "utf8", () => {
+      shutdownAndExit(0);
+    });
   } catch (error) {
     clearTimeout(timeout);
     fail(error && error.message ? error.message : String(error));

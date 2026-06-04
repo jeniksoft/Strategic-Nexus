@@ -313,6 +313,24 @@ function Get-TomlStringValue {
     return ""
 }
 
+function Get-TomlIntValue {
+    param(
+        [string]$Path,
+        [string]$Name
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $null
+    }
+
+    $pattern = "^\s*$([regex]::Escape($Name))\s*=\s*(?<value>[0-9]+)\s*$"
+    $match = Select-String -LiteralPath $Path -Pattern $pattern | Select-Object -First 1
+    if ($match) {
+        return [int64]$match.Matches[0].Groups["value"].Value
+    }
+    return $null
+}
+
 function Resolve-FreeworkAutomationPath {
     param([string]$Path)
 
@@ -436,6 +454,20 @@ function Clamp-IntervalMinutes {
     return [Math]::Max($MinimumMinutes, [Math]::Min($MaximumMinutes, $rounded))
 }
 
+function Get-PreviousCadenceRecommendation {
+    param([string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $null
+    }
+
+    try {
+        return Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json
+    } catch {
+        return $null
+    }
+}
+
 $usagePath = Resolve-ProjectPath $UsageBudgetStatePath
 $usageLogPath = Resolve-ProjectPath $UsageBudgetLogPath
 $budgetRulesResolvedPath = Resolve-ProjectPath $BudgetRulesPath
@@ -444,6 +476,9 @@ $outputResolvedPath = Resolve-ProjectPath $OutputPath
 $freeworkAutomationResolvedPath = Resolve-FreeworkAutomationPath -Path $FreeworkAutomationPath
 $freeworkAutomationId = if ($freeworkAutomationResolvedPath) { Get-TomlStringValue -Path $freeworkAutomationResolvedPath -Name "id" } else { "" }
 $freeworkAutomationName = if ($freeworkAutomationResolvedPath) { Get-TomlStringValue -Path $freeworkAutomationResolvedPath -Name "name" } else { "" }
+$freeworkAutomationUpdatedAtUnixMs = if ($freeworkAutomationResolvedPath) { Get-TomlIntValue -Path $freeworkAutomationResolvedPath -Name "updated_at" } else { $null }
+$freeworkAutomationUpdatedAt = if ($null -ne $freeworkAutomationUpdatedAtUnixMs) { [DateTimeOffset]::FromUnixTimeMilliseconds($freeworkAutomationUpdatedAtUnixMs).LocalDateTime } else { $null }
+$previousRecommendation = Get-PreviousCadenceRecommendation -Path $outputResolvedPath
 
 if (-not (Test-Path -LiteralPath $budgetRulesResolvedPath)) {
     throw "Budget rules file not found: $budgetRulesResolvedPath"
@@ -563,13 +598,35 @@ $adaptiveCadence = if ($null -ne $resetAnchor) {
 $adaptiveInputIntervalMinutes = if ($null -ne $currentIntervalMinutes) { $currentIntervalMinutes } else { $fallbackIntervalMinutes }
 $adaptiveUnclampedIntervalMinutes = $null
 $adaptiveApplied = $false
+$adaptiveAlreadyAppliedForPair = $false
+
+if ($adaptiveCadence.available -and $null -ne $freeworkAutomationUpdatedAt) {
+    $adaptiveCurrentTimestamp = [DateTime]::MinValue
+    if ([DateTime]::TryParse([string]$adaptiveCadence.current_timestamp, [ref]$adaptiveCurrentTimestamp)) {
+        if ($freeworkAutomationUpdatedAt -ge $adaptiveCurrentTimestamp) {
+            $adaptiveAlreadyAppliedForPair = $true
+        }
+    }
+}
+
+if (
+    -not $adaptiveAlreadyAppliedForPair -and
+    $adaptiveCadence.available -and
+    $null -ne $previousRecommendation -and
+    $previousRecommendation.adaptive_previous_budget_check_at -eq $adaptiveCadence.previous_timestamp -and
+    $previousRecommendation.adaptive_current_budget_check_at -eq $adaptiveCadence.current_timestamp -and
+    $previousRecommendation.recommended_freework_rrule -eq $currentRRule
+) {
+    $adaptiveAlreadyAppliedForPair = $true
+}
 
 if (
     $hasUsefulProjectWork -and
     $remainingPercent -ge 40 -and
     $null -ne $spendableToReserve -and
     $spendableToReserve -gt 0 -and
-    $adaptiveCadence.available
+    $adaptiveCadence.available -and
+    -not $adaptiveAlreadyAppliedForPair
 ) {
     $adaptiveUnclampedIntervalMinutes = $adaptiveInputIntervalMinutes * [double]$adaptiveCadence.scale
     $intervalMinutes = Clamp-IntervalMinutes -Minutes $adaptiveUnclampedIntervalMinutes
@@ -582,6 +639,12 @@ if (
         "adaptive-on-target-bounded"
     }
     $reason = "adaptive cadence: actual budget spend D=$($adaptiveCadence.actual_spend_percent)% versus expected K=$($adaptiveCadence.expected_spend_percent)% over I=$($adaptiveCadence.interval_hours)h; applying S=$($adaptiveCadence.scale) to current Free Work interval"
+} elseif ($adaptiveAlreadyAppliedForPair -and $null -ne $currentIntervalMinutes) {
+    $intervalMinutes = $currentIntervalMinutes
+    if ($previousRecommendation.recommended_chunk_mode) {
+        $chunkMode = [string]$previousRecommendation.recommended_chunk_mode
+    }
+    $reason = "adaptive cadence already applied for the latest budget-check pair; keeping current Free Work interval until a new budget reading arrives"
 }
 
 $nearResetCapMinutes = $null
