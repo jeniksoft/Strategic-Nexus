@@ -971,6 +971,13 @@ $gameplayAcceptancePath = ""
 $statusCenterState = ""
 $statusCenterReason = ""
 $statusCenterSummaryText = ""
+$campaignLibraryPlanPresent = $false
+$campaignLibraryPlanPath = ""
+$campaignLibraryPlanSource = ""
+$campaignLibraryPlanReadiness = ""
+$campaignLibraryPlanReason = ""
+$campaignLibraryLimitReached = $false
+$campaignLibrarySkippedDueToLimitCount = 0
 if ($null -ne $statusJson.gameplay_acceptance_status) {
     if ($null -ne $statusJson.gameplay_acceptance_status.state) {
         $gameplayAcceptanceState = [string]$statusJson.gameplay_acceptance_status.state
@@ -992,6 +999,27 @@ if ($null -ne $statusJson.status_center) {
 }
 if ($null -ne $statusJson.status_center_summary_text) {
     $statusCenterSummaryText = [string]$statusJson.status_center_summary_text
+}
+if ($null -ne $statusJson.campaign_library_plan_present) {
+    $campaignLibraryPlanPresent = [bool]$statusJson.campaign_library_plan_present
+}
+if ($null -ne $statusJson.campaign_library_plan_path) {
+    $campaignLibraryPlanPath = [string]$statusJson.campaign_library_plan_path
+}
+if ($null -ne $statusJson.campaign_library_plan_source) {
+    $campaignLibraryPlanSource = [string]$statusJson.campaign_library_plan_source
+}
+if ($null -ne $statusJson.campaign_library_plan_readiness) {
+    $campaignLibraryPlanReadiness = [string]$statusJson.campaign_library_plan_readiness
+}
+if ($null -ne $statusJson.campaign_library_plan_reason) {
+    $campaignLibraryPlanReason = [string]$statusJson.campaign_library_plan_reason
+}
+if ($null -ne $statusJson.campaign_library_limit_reached) {
+    $campaignLibraryLimitReached = [bool]$statusJson.campaign_library_limit_reached
+}
+if ($null -ne $statusJson.campaign_library_skipped_due_to_limit_count) {
+    $campaignLibrarySkippedDueToLimitCount = [int]$statusJson.campaign_library_skipped_due_to_limit_count
 }
 if ([string]::IsNullOrWhiteSpace($gameplayAcceptanceState)) {
     throw "Offline spine status snapshot is missing gameplay_acceptance_status.state."
@@ -1069,6 +1097,13 @@ Write-Host ("real_session_v0_loop_gameplay_acceptance_state=" + $gameplayAccepta
 Write-Host ("real_session_v0_loop_gameplay_acceptance_reason=" + $gameplayAcceptanceReason)
 Write-Host ("real_session_v0_loop_status_center_state=" + $statusCenterState)
 Write-Host ("real_session_v0_loop_status_center_reason=" + $statusCenterReason)
+Write-Host ("real_session_v0_loop_campaign_library_plan_present=" + $campaignLibraryPlanPresent.ToString().ToLowerInvariant())
+Write-Host ("real_session_v0_loop_campaign_library_plan_path=" + $campaignLibraryPlanPath)
+Write-Host ("real_session_v0_loop_campaign_library_plan_source=" + $campaignLibraryPlanSource)
+Write-Host ("real_session_v0_loop_campaign_library_plan_readiness=" + $campaignLibraryPlanReadiness)
+Write-Host ("real_session_v0_loop_campaign_library_plan_reason=" + $campaignLibraryPlanReason)
+Write-Host ("real_session_v0_loop_campaign_library_limit_reached=" + $campaignLibraryLimitReached.ToString().ToLowerInvariant())
+Write-Host ("real_session_v0_loop_campaign_library_skipped_due_to_limit_count=" + $campaignLibrarySkippedDueToLimitCount)
 if (-not [string]::IsNullOrWhiteSpace($statusCenterSummaryText)) {
     Write-Host ("real_session_v0_loop_status_center_summary_present=true")
     Write-Host ("real_session_v0_loop_status_center_summary_text=" + $statusCenterSummaryText)
@@ -2251,6 +2286,15 @@ $sessionEvidence = [ordered]@{
         reason = $statusCenterReason
         summary_present = (-not [string]::IsNullOrWhiteSpace($statusCenterSummaryText))
         summary_text = $statusCenterSummaryText
+    }
+    campaign_library = [ordered]@{
+        plan_present = $campaignLibraryPlanPresent
+        plan_path = $campaignLibraryPlanPath
+        plan_source = $campaignLibraryPlanSource
+        plan_readiness = $campaignLibraryPlanReadiness
+        plan_reason = $campaignLibraryPlanReason
+        limit_reached = $campaignLibraryLimitReached
+        skipped_due_to_limit_count = $campaignLibrarySkippedDueToLimitCount
     }
     command_hints = [ordered]@{
         compare = $compareCommandHint

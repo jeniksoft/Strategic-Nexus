@@ -2666,6 +2666,13 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_status_snapshot_with_mp_readiness=not_exported"
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_status_center_state="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_status_center_reason="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_campaign_library_plan_present="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_campaign_library_plan_path="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_campaign_library_plan_source="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_campaign_library_plan_readiness="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_campaign_library_plan_reason="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_campaign_library_limit_reached="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_campaign_library_skipped_due_to_limit_count="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_reason="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source=loop_next_session"
@@ -2712,6 +2719,14 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"empire_brief_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"status_center":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"summary_present":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"campaign_library":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"plan_present":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"plan_path":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"plan_source":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"plan_readiness":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"plan_reason":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"limit_reached":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"skipped_due_to_limit_count":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"next_action":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"command_hint_source":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"loop_next_session"'

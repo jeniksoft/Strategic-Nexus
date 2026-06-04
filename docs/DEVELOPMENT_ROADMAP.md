@@ -666,6 +666,8 @@ Inventory diff now also emits explicit restored continuity when exactly one prev
 Campaign library plans now preserve explicit `save_root_available` state, and `--compile-campaign-library-overlay` fails closed with `save root unavailable` before mutating output when the local save root temporarily disappears.
 Campaign library plans and overlay compilation now also surface explicit active-library saturation (`limit_reached`, skipped-due-to-limit counts) in JSON and CLI output, so SNC/release flows can detect a bounded but truncated local campaign library instead of treating it as an unqualified ready state.
 SNC companion/tray readiness now also surfaces campaign-library sidecar saturation (`campaign_library_limit_reached`, skipped count, source path, owner note) and fails closed when the sidecar exists but is unreadable or uses an unsupported schema, so owner-facing coverage signals do not silently drift.
+`--snc-status-snapshot` stdout now also emits explicit campaign-library sidecar fields (`plan_present`, path, source, readiness, reason, `limit_reached`, skipped count), and the CLI now routes the staging-status path into the same post-play sidecar inspection path used by SNC JSON/Status Center instead of silently dropping those fields.
+`tools/run_real_session_v0_loop.ps1` now forwards campaign-library sidecar state into its stable CLI/evidence contract (`real_session_v0_loop_campaign_library_*` plus evidence JSON `campaign_library`), so release-companion or owner follow-up can read bounded local-library coverage from one run artifact even when the sidecar is absent.
 
 ---
 
@@ -993,13 +995,13 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
-Keep generated campaign library publication fail-safe and continuity-safe for real v0 save-root churn.
+ Keep generated campaign library visibility continuous across the real-session validation loop.
 
-The next slice should include:
+  The next slice should include:
 
-* surface explicit campaign-library sidecar path/readiness/reason/saturation fields in `--snc-status-snapshot` stdout and related machine-readable status outputs so automation consumers do not need to parse summary text blobs
+ * forward campaign-library sidecar state into compare/trend outputs and owner-facing next-steps artifacts so bounded-library drift is visible between real sessions without reopening raw SNC snapshots
 
----
+  ---
 
 # Updating This Document
 
