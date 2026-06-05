@@ -79,6 +79,13 @@ bool isAllowedMinistry(const std::string& ministry)
     return ministry == "military_ministry" || ministry == "research_ministry";
 }
 
+bool isAllowedSourceQuality(const std::string& sourceQuality)
+{
+    return sourceQuality == "history_backed" ||
+        sourceQuality == "zero_history_bootstrap" ||
+        sourceQuality == "generic_unknown_campaign_fallback";
+}
+
 bool isAllowedPreference(const DslPreference& preference)
 {
     if (preference.domain == "military_posture") {
@@ -163,6 +170,19 @@ DslValidationResult DslValidator::validate(const DslProgram& program) const
         }
         if (!isAllowedMinistry(rule.ministry)) {
             addError(errors, rule.ruleId, "unknown ministry");
+        }
+        if (!isAllowedSourceQuality(rule.sourceQuality)) {
+            addError(errors, rule.ruleId, "unsupported source quality");
+        }
+        if (!rule.bootstrapRotationSeedId.empty() && !isSafeIdentifier(rule.bootstrapRotationSeedId)) {
+            addError(errors, rule.ruleId, "unsafe bootstrap rotation seed id");
+        }
+        if (rule.bootstrapRotationEpoch < -1) {
+            addError(errors, rule.ruleId, "bootstrap rotation epoch must be -1 or greater");
+        }
+        if (rule.sourceQuality == "history_backed" &&
+            (!rule.bootstrapRotationSeedId.empty() || rule.bootstrapRotationEpoch >= 0)) {
+            addError(errors, rule.ruleId, "history-backed rules must not declare bootstrap rotation");
         }
         if (rule.rationale.empty()) {
             addError(errors, rule.ruleId, "rationale must not be empty");

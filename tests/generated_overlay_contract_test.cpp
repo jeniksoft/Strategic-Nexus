@@ -113,6 +113,12 @@ int main()
             files.manifestText.find("\"path\": \"events/strategic_nexus_generated_events.txt\"") != std::string::npos,
             "compiler manifest should include generated events file");
         requireCondition(
+            files.manifestText.find("\"source_qualities\": [\"history_backed\"]") != std::string::npos,
+            "compiler manifest should expose default history-backed source quality");
+        requireCondition(
+            files.manifestText.find("\"source_quality\": \"history_backed\"") != std::string::npos,
+            "compiler manifest should preserve per-campaign source quality");
+        requireCondition(
             files.manifestText.find("\"checksum_relevance\": \"gameplay_affecting\"") != std::string::npos,
             "compiler manifest should classify generated files as gameplay-affecting");
         requireCondition(
@@ -124,6 +130,37 @@ int main()
         const auto parseResult = parser.parse(std::string("\xEF\xBB\xBF") + validDsl());
         requireCondition(parseResult.ok, "valid DSL with UTF-8 BOM should parse");
         requireCondition(parseResult.program.rules.size() == 1, "BOM should not create an extra token");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_bootstrap" { empire "empire_001" { rule "bootstrap_default" { ministry = military_ministry source_quality = zero_history_bootstrap when campaign_marker = campaign_bootstrap prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.8 rationale = "bootstrap" } } })");
+        requireCondition(parseResult.ok, "zero-history bootstrap DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(validation.ok, "zero-history bootstrap DSL should validate");
+        const auto files = compiler.compile(parseResult.program);
+        requireCondition(
+            files.manifestText.find("\"source_qualities\": [\"zero_history_bootstrap\"]") != std::string::npos,
+            "manifest should advertise zero-history bootstrap source quality");
+        requireCondition(
+            files.manifestText.find("\"bootstrap_rotation_seed_id\": \"bootstrap_seed_") != std::string::npos,
+            "manifest should synthesize deterministic bootstrap seed when missing");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_bootstrap" { empire "empire_001" { rule "bootstrap_epoch" { ministry = military_ministry source_quality = generic_unknown_campaign_fallback bootstrap_rotation_seed_id = pack_epoch_12 bootstrap_rotation_epoch = 12 when campaign_marker = campaign_bootstrap prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.8 rationale = "fallback" } } })");
+        requireCondition(parseResult.ok, "generic fallback bootstrap DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(validation.ok, "generic fallback bootstrap DSL should validate");
+        const auto files = compiler.compile(parseResult.program);
+        requireCondition(
+            files.manifestText.find("\"source_quality\": \"generic_unknown_campaign_fallback\"") != std::string::npos,
+            "manifest should preserve generic fallback source quality");
+        requireCondition(
+            files.manifestText.find("\"bootstrap_rotation_seed_id\": \"pack_epoch_12\"") != std::string::npos,
+            "manifest should preserve explicit bootstrap seed id");
+        requireCondition(
+            files.manifestText.find("\"bootstrap_rotation_epoch\": 12") != std::string::npos,
+            "manifest should preserve explicit bootstrap rotation epoch");
     }
 
     {
@@ -164,6 +201,13 @@ int main()
         requireCondition(parseResult.ok, "syntactically valid condition with empty tail should still parse");
         const auto validation = validator.validate(parseResult.program);
         requireCondition(!validation.ok, "condition with empty dotted tail should fail validation");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "bad" { ministry = military_ministry source_quality = history_backed bootstrap_rotation_seed_id = pack_epoch_12 prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.9 rationale = "bad" } } })");
+        requireCondition(parseResult.ok, "history-backed bootstrap DSL should parse before validation");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(!validation.ok, "history-backed rules should reject bootstrap rotation metadata");
     }
 
     {

@@ -25,6 +25,9 @@ struct DslRule {
     std::string empireId;
     std::string ruleId;
     std::string ministry;
+    std::string sourceQuality = "history_backed";
+    std::string bootstrapRotationSeedId;
+    int bootstrapRotationEpoch = -1;
     std::vector<DslCondition> conditions;
     std::vector<DslPreference> preferences;
     std::string duration = "next_session";

@@ -142,6 +142,43 @@ struct ManifestEntry {
     std::string text;
 };
 
+struct CampaignManifestSource {
+    std::string campaignId;
+    std::string sourceQuality = "history_backed";
+    std::string bootstrapRotationSeedId;
+    int bootstrapRotationEpoch = -1;
+    std::size_t ruleCount = 0;
+};
+
+std::string defaultBootstrapRotationSeedId(const CampaignManifestSource& source, const DslProgram& program)
+{
+    std::vector<std::string> tokens;
+    for (const auto& rule : program.rules) {
+        if (rule.campaignId != source.campaignId || rule.sourceQuality != source.sourceQuality) {
+            continue;
+        }
+
+        tokens.push_back(rule.ruleId);
+        tokens.push_back(rule.empireId);
+        for (const auto& condition : rule.conditions) {
+            if (condition.source == "known.save_fingerprint" ||
+                condition.source == "known.save_date" ||
+                condition.source == "known.rule_scope") {
+                tokens.push_back(condition.source + "=" + condition.value);
+            }
+        }
+    }
+
+    std::sort(tokens.begin(), tokens.end());
+    std::ostringstream material;
+    material << source.campaignId << "|" << source.sourceQuality << "|" << source.ruleCount;
+    for (const auto& token : tokens) {
+        material << "|" << token;
+    }
+
+    return "bootstrap_seed_" + fnv1a64Hex(material.str()).substr(0, 16);
+}
+
 std::string buildManifest(const DslProgram& program, const std::vector<ManifestEntry>& entries)
 {
     std::vector<std::string> campaignIds;
@@ -151,6 +188,44 @@ std::string buildManifest(const DslProgram& program, const std::vector<ManifestE
         }
     }
     std::sort(campaignIds.begin(), campaignIds.end());
+
+    std::vector<std::string> sourceQualities;
+    std::vector<CampaignManifestSource> campaignSources;
+    for (const auto& rule : program.rules) {
+        if (std::find(sourceQualities.begin(), sourceQualities.end(), rule.sourceQuality) == sourceQualities.end()) {
+            sourceQualities.push_back(rule.sourceQuality);
+        }
+
+        auto existing = std::find_if(campaignSources.begin(), campaignSources.end(), [&](const CampaignManifestSource& source) {
+            return source.campaignId == rule.campaignId && source.sourceQuality == rule.sourceQuality;
+        });
+
+        if (existing == campaignSources.end()) {
+            CampaignManifestSource source;
+            source.campaignId = rule.campaignId;
+            source.sourceQuality = rule.sourceQuality;
+            source.bootstrapRotationSeedId = rule.bootstrapRotationSeedId;
+            source.bootstrapRotationEpoch = rule.bootstrapRotationEpoch;
+            source.ruleCount = 1;
+            campaignSources.push_back(std::move(source));
+        } else {
+            ++existing->ruleCount;
+            if (existing->bootstrapRotationSeedId.empty() && !rule.bootstrapRotationSeedId.empty()) {
+                existing->bootstrapRotationSeedId = rule.bootstrapRotationSeedId;
+            }
+            if (existing->bootstrapRotationEpoch < 0 && rule.bootstrapRotationEpoch >= 0) {
+                existing->bootstrapRotationEpoch = rule.bootstrapRotationEpoch;
+            }
+        }
+    }
+
+    std::sort(sourceQualities.begin(), sourceQualities.end());
+    std::sort(campaignSources.begin(), campaignSources.end(), [](const CampaignManifestSource& left, const CampaignManifestSource& right) {
+        if (left.campaignId != right.campaignId) {
+            return left.campaignId < right.campaignId;
+        }
+        return left.sourceQuality < right.sourceQuality;
+    });
 
     std::ostringstream manifest;
     manifest << "{\n";
@@ -166,6 +241,39 @@ std::string buildManifest(const DslProgram& program, const std::vector<ManifestE
         manifest << "\"" << jsonEscape(campaignIds[i]) << "\"";
     }
     manifest << "],\n";
+    manifest << "  \"source_qualities\": [";
+    for (std::size_t i = 0; i < sourceQualities.size(); ++i) {
+        if (i > 0) {
+            manifest << ", ";
+        }
+        manifest << "\"" << jsonEscape(sourceQualities[i]) << "\"";
+    }
+    manifest << "],\n";
+    manifest << "  \"campaign_rule_sources\": [\n";
+    for (std::size_t i = 0; i < campaignSources.size(); ++i) {
+        const auto& source = campaignSources[i];
+        const bool needsBootstrapSeed = source.sourceQuality == "zero_history_bootstrap" ||
+            source.sourceQuality == "generic_unknown_campaign_fallback";
+        const std::string bootstrapSeedId = needsBootstrapSeed && source.bootstrapRotationSeedId.empty()
+            ? defaultBootstrapRotationSeedId(source, program)
+            : source.bootstrapRotationSeedId;
+
+        manifest << "    {\n";
+        manifest << "      \"campaign_id\": \"" << jsonEscape(source.campaignId) << "\",\n";
+        manifest << "      \"source_quality\": \"" << jsonEscape(source.sourceQuality) << "\",\n";
+        manifest << "      \"rule_count\": " << source.ruleCount;
+        if (!bootstrapSeedId.empty()) {
+            manifest << ",\n";
+            manifest << "      \"bootstrap_rotation_seed_id\": \"" << jsonEscape(bootstrapSeedId) << "\"";
+        }
+        if (source.bootstrapRotationEpoch >= 0) {
+            manifest << ",\n";
+            manifest << "      \"bootstrap_rotation_epoch\": " << source.bootstrapRotationEpoch;
+        }
+        manifest << "\n";
+        manifest << "    }" << (i + 1 < campaignSources.size() ? "," : "") << "\n";
+    }
+    manifest << "  ],\n";
     manifest << "  \"multiplayer_requirement\": \"byte_identical_gameplay_affecting_files\",\n";
     manifest << "  \"checksum_policy\": \"generated_gameplay_files_assumed_checksum_relevant_until_proven_otherwise\",\n";
     manifest << "  \"files\": [\n";

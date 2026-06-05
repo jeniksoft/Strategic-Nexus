@@ -170,11 +170,39 @@ bool readNumber(const std::string& text, double& value)
     return end != text.c_str() && *end == '\0';
 }
 
+bool readInteger(const std::string& text, int& value)
+{
+    if (text.empty()) {
+        return false;
+    }
+
+    std::size_t index = 0;
+    if (text[0] == '-') {
+        index = 1;
+    }
+    if (index >= text.size()) {
+        return false;
+    }
+    for (; index < text.size(); ++index) {
+        if (std::isdigit(static_cast<unsigned char>(text[index])) == 0) {
+            return false;
+        }
+    }
+
+    try {
+        value = std::stoi(text);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool readAssignmentValue(ParserCursor& cursor, const std::string& key, std::string& value, std::string& error)
 {
     const std::string next = cursor.peek();
     if (next.empty() || next == "=" || next == "}" ||
-        next == "ministry" || next == "duration" || next == "confidence" || next == "rationale" ||
+        next == "ministry" || next == "source_quality" || next == "bootstrap_rotation_seed_id" ||
+        next == "bootstrap_rotation_epoch" || next == "duration" || next == "confidence" || next == "rationale" ||
         next == "prefer" || next == "when" || next == "rule" || next == "empire" || next == "campaign") {
         error = key + " assignment requires value";
         return false;
@@ -233,6 +261,30 @@ bool parseAssignment(ParserCursor& cursor, DslRule& rule, std::string& error)
 
     if (key == "ministry") {
         if (!readAssignmentValue(cursor, key, rule.ministry, error)) {
+            return false;
+        }
+        return true;
+    }
+    if (key == "source_quality") {
+        if (!readAssignmentValue(cursor, key, rule.sourceQuality, error)) {
+            return false;
+        }
+        return true;
+    }
+    if (key == "bootstrap_rotation_seed_id") {
+        if (!readAssignmentValue(cursor, key, rule.bootstrapRotationSeedId, error)) {
+            return false;
+        }
+        return true;
+    }
+    if (key == "bootstrap_rotation_epoch") {
+        std::string epochText;
+        if (!cursor.readAny(epochText)) {
+            error = "bootstrap_rotation_epoch assignment requires value";
+            return false;
+        }
+        if (!readInteger(epochText, rule.bootstrapRotationEpoch)) {
+            error = "bootstrap_rotation_epoch must be an integer";
             return false;
         }
         return true;
