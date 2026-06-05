@@ -240,6 +240,12 @@ std::string readStatusTextField(const std::string& statusText, const std::string
     return std::string();
 }
 
+bool hasDegradedMpHandoffContinuity(const CompanionStatusSnapshot& snapshot)
+{
+    return snapshot.mpOverlayPackage.state == "ready" &&
+           snapshot.mpOverlayPackage.handoffStatus == "degraded_previous_host_unavailable";
+}
+
 std::string pathString(const std::filesystem::path& path)
 {
     return path.generic_string();
@@ -1953,6 +1959,9 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     if (snapshot.mpOverlayPackage.identityMismatchWarning) {
         return "review_mp_package_mismatch_warning";
     }
+    if (hasDegradedMpHandoffContinuity(snapshot)) {
+        return "review_mp_handoff_continuity";
+    }
     if (snapshot.mpOverlayPackage.state == "needs_attention") {
         return "review_mp_overlay_package_warning";
     }
@@ -1987,6 +1996,9 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
 {
     if (snapshot.mpOverlayPackage.identityMismatchWarning) {
         return "package_identity_mismatch_detected";
+    }
+    if (hasDegradedMpHandoffContinuity(snapshot)) {
+        return "mp_handoff_degraded_previous_host_unavailable";
     }
     if (snapshot.mpOverlayPackage.state == "needs_attention") {
         return snapshot.mpOverlayPackage.mismatchWarningReason.empty() ? snapshot.mpOverlayPackage.reason
@@ -2026,6 +2038,14 @@ std::string buildCompanionNextActionCommandHint(const CompanionStatusSnapshot& s
             return snapshot.mpOverlayPackage.verifyCommand;
         }
     }
+    if (hasDegradedMpHandoffContinuity(snapshot)) {
+        if (!snapshot.mpOverlayPackage.strictVerifyCommand.empty()) {
+            return snapshot.mpOverlayPackage.strictVerifyCommand;
+        }
+        if (!snapshot.mpOverlayPackage.verifyCommand.empty()) {
+            return snapshot.mpOverlayPackage.verifyCommand;
+        }
+    }
     if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
         return snapshot.mpOverlayPackage.verifyCommand;
     }
@@ -2045,6 +2065,14 @@ std::string buildCompanionNextActionCommandHintSource(const CompanionStatusSnaps
             return "mp_overlay_package_verify_command";
         }
     }
+    if (hasDegradedMpHandoffContinuity(snapshot)) {
+        if (!snapshot.mpOverlayPackage.strictVerifyCommand.empty()) {
+            return "mp_overlay_package_strict_verify_command";
+        }
+        if (!snapshot.mpOverlayPackage.verifyCommand.empty()) {
+            return "mp_overlay_package_verify_command";
+        }
+    }
     if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
         return "mp_overlay_package_verify_command";
     }
@@ -2056,7 +2084,9 @@ std::string buildCompanionNextActionCommandHintSource(const CompanionStatusSnaps
 
 std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot& snapshot)
 {
-    if (snapshot.mpOverlayPackage.identityMismatchWarning || snapshot.mpOverlayPackage.state == "needs_attention") {
+    if (snapshot.mpOverlayPackage.identityMismatchWarning ||
+        hasDegradedMpHandoffContinuity(snapshot) ||
+        snapshot.mpOverlayPackage.state == "needs_attention") {
         return snapshot.mpOverlayPackage.path;
     }
     if (snapshot.generatedOverlayPublishGate.canPublish) {

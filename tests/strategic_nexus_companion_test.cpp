@@ -290,6 +290,21 @@ int main()
         "mp overlay package zip should expose handoff reason");
     requireCondition(ready.mpOverlayPackage.packageZipPath == mpPackageZipPath, "mp overlay package zip should expose path");
     requireCondition(ready.mpOverlayPackage.packageZipBytes > 0, "mp overlay package zip should expose byte count");
+    requireCondition(
+        ready.nextAction == "review_mp_handoff_continuity",
+        "degraded previous-host continuity should become the top-level next action");
+    requireCondition(
+        ready.nextActionReason == "mp_handoff_degraded_previous_host_unavailable",
+        "degraded previous-host continuity should expose a stable next-action reason");
+    requireCondition(
+        ready.nextActionCommandHint.find("Strategic Nexus.exe --verify-mp-overlay-package ") == 0,
+        "degraded previous-host continuity should expose a verify-oriented command hint");
+    requireCondition(
+        ready.nextActionCommandHintSource == "mp_overlay_package_strict_verify_command",
+        "degraded previous-host continuity should prefer strict verify command hints");
+    requireCondition(
+        ready.nextActionPath == mpPackageRoot,
+        "degraded previous-host continuity should point next-action path at the MP package");
     const auto missingMpPackageZipPath = root / "missing_mp_overlay_package.zip";
     const auto readyWithoutZip = companion.buildStatusSnapshot({
         archiveRoot,
@@ -321,6 +336,9 @@ int main()
     requireCondition(
         readyWithoutZip.mpOverlayPackage.packageZipReason == "mp overlay package zip not exported by current status source",
         "missing optional tray MP package zip should explain non-exported state");
+    requireCondition(
+        readyWithoutZip.nextAction == "review_mp_handoff_continuity",
+        "degraded previous-host continuity should still win when the optional tray zip is missing");
     requireCondition(ready.postPlayPipeline.state == "ready", "post-play pipeline should be ready when generated overlay staging verifies");
     requireCondition(
         ready.postPlayPipeline.reason == "generated overlay staging verified",
@@ -521,20 +539,20 @@ int main()
         ready.mpOverlayPackage.statusText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
         "mp overlay package status text should include strict import command");
     requireCondition(
-        ready.nextAction == "review_staged_overlay_status",
-        "ready snapshot should prioritize staged overlay review as next action when publish gate is not configured");
+        ready.nextAction == "review_mp_handoff_continuity",
+        "ready snapshot should prioritize degraded MP handoff continuity as next action");
     requireCondition(
-        ready.nextActionReason == "staged_overlay_written_but_publish_gate_not_ready",
-        "ready snapshot should expose staged-overlay next action reason");
+        ready.nextActionReason == "mp_handoff_degraded_previous_host_unavailable",
+        "ready snapshot should expose degraded MP handoff next-action reason");
     requireCondition(
-        ready.nextActionCommandHint.empty(),
-        "ready snapshot should not expose a publish command hint before publish gate configuration");
+        ready.nextActionCommandHint.find("Strategic Nexus.exe --verify-mp-overlay-package ") == 0,
+        "ready snapshot should expose a verify-oriented command hint for degraded MP handoff");
     requireCondition(
-        ready.nextActionCommandHintSource == "none",
-        "ready snapshot should expose no command hint source before publish gate configuration");
+        ready.nextActionCommandHintSource == "mp_overlay_package_strict_verify_command",
+        "ready snapshot should expose strict verify as the degraded-handoff command source");
     requireCondition(
-        ready.nextActionPath == generatedOverlayStagingStatusPath,
-        "ready snapshot should focus the staged overlay status path");
+        ready.nextActionPath == mpPackageRoot,
+        "ready snapshot should focus the MP package path for degraded handoff follow-up");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
     requireCondition(
         ready.statusCenterSummaryText.find("stav: starting - waiting for archive to become ready") != std::string::npos,
@@ -665,10 +683,10 @@ int main()
         ready.statusCenterSummaryText.find("gameplay_acceptance: starting - gameplay acceptance pending") != std::string::npos,
         "status center summary should include gameplay acceptance pending state");
     requireCondition(
-        ready.statusCenterSummaryText.find("next_action: review_staged_overlay_status") != std::string::npos,
+        ready.statusCenterSummaryText.find("next_action: review_mp_handoff_continuity") != std::string::npos,
         "status center summary should include next action");
     requireCondition(
-        ready.statusCenterSummaryText.find("next_action_command_hint_source: none") != std::string::npos,
+        ready.statusCenterSummaryText.find("next_action_command_hint_source: mp_overlay_package_strict_verify_command") != std::string::npos,
         "status center summary should include next action command hint source");
 
     const auto emptyOverlay = companion.buildStatusSnapshot({
@@ -1233,19 +1251,19 @@ int main()
         "ready MP package JSON should include empty mismatch alert");
     requireCondition(json.find("\"status_center\"") != std::string::npos, "JSON should include status center");
     requireCondition(
-        json.find("\"next_action\": \"review_staged_overlay_status\"") != std::string::npos,
+        json.find("\"next_action\": \"review_mp_handoff_continuity\"") != std::string::npos,
         "JSON should include next action");
     requireCondition(
-        json.find("\"next_action_reason\": \"staged_overlay_written_but_publish_gate_not_ready\"") != std::string::npos,
+        json.find("\"next_action_reason\": \"mp_handoff_degraded_previous_host_unavailable\"") != std::string::npos,
         "JSON should include next action reason");
     requireCondition(
-        json.find("\"next_action_command_hint\": \"\"") != std::string::npos,
-        "JSON should include next action command hint");
+        json.find("\"next_action_command_hint\": \"Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
+        "JSON should include degraded-handoff verify command hint");
     requireCondition(
-        json.find("\"next_action_command_hint_source\": \"none\"") != std::string::npos,
+        json.find("\"next_action_command_hint_source\": \"mp_overlay_package_strict_verify_command\"") != std::string::npos,
         "JSON should include next action command hint source");
     requireCondition(
-        json.find("\"next_action_path\": \"" + generatedOverlayStagingStatusPath.generic_string() + "\"") != std::string::npos,
+        json.find("\"next_action_path\": \"" + mpPackageRoot.generic_string() + "\"") != std::string::npos,
         "JSON should include next action path");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
