@@ -1407,6 +1407,8 @@ function Invoke-SncStatusSnapshotCase {
     }
 
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_state=ready"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_previous_host_available=false"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_previous_host_available_known=true"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_state=ready"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_reason=mp overlay package zip ready for handoff"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_path=$mpPackageZipCliPath"

@@ -1732,6 +1732,13 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_strategic_nexus_mod_version="
                       << sanitizeCliValue(snapshot.mpOverlayPackage.strategicNexusModVersion) << "\n";
             std::cout << "snc_mp_overlay_package_handoff_status=" << sanitizeCliValue(snapshot.mpOverlayPackage.handoffStatus) << "\n";
+            std::cout << "snc_mp_overlay_package_previous_host_available="
+                      << (snapshot.mpOverlayPackage.previousHostAvailableKnown
+                              ? (snapshot.mpOverlayPackage.previousHostAvailable ? "true" : "false")
+                              : "unknown")
+                      << "\n";
+            std::cout << "snc_mp_overlay_package_previous_host_available_known="
+                      << (snapshot.mpOverlayPackage.previousHostAvailableKnown ? "true" : "false") << "\n";
             std::cout << "snc_mp_overlay_package_readiness=" << sanitizeCliValue(snapshot.mpOverlayPackage.readiness) << "\n";
             std::cout << "snc_mp_overlay_package_host_readiness="
                       << sanitizeCliValue(snapshot.mpOverlayPackage.hostReadiness) << "\n";
