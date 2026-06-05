@@ -26,6 +26,9 @@ try {
             if (
                 $json.mode -eq "tray" -and
                 $json.state -and
+                $null -ne $json.window_close_behavior -and
+                $null -ne $json.explicit_exit_behavior -and
+                $null -ne $json.crash_restart_policy -and
                 $null -ne $json.status_center_summary_text -and
                 $null -ne $json.next_action -and
                 $null -ne $json.next_action_command_hint_source -and
@@ -39,6 +42,15 @@ try {
                 $null -ne $json.mp_overlay_package_directory -and
                 $null -ne $json.mp_overlay_package_state
             ) {
+                if ($json.window_close_behavior -ne "minimize_to_tray") {
+                    throw "SNC tray status JSON did not expose window_close_behavior=minimize_to_tray."
+                }
+                if ($json.explicit_exit_behavior -ne "stop_without_restart") {
+                    throw "SNC tray status JSON did not expose explicit_exit_behavior=stop_without_restart."
+                }
+                if ($json.crash_restart_policy -ne "bounded_backoff_with_crash_loop_guard") {
+                    throw "SNC tray status JSON did not expose crash_restart_policy=bounded_backoff_with_crash_loop_guard."
+                }
                 if ($null -eq $json.mp_overlay_package_previous_host_available) {
                     throw "SNC tray status JSON did not expose mp_overlay_package_previous_host_available."
                 }

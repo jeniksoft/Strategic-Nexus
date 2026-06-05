@@ -740,6 +740,7 @@ std::string buildStatusCenterSummaryText(
     const std::string& generatedOverlayManifestHash,
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const bool startWithWindowsEnabled,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason)
 {
@@ -855,7 +856,7 @@ std::string buildStatusCenterSummaryText(
     summary << "generated_overlay_publish_status_path: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     summary << "generated_overlay_publish_backup_root_directory: "
             << pathString(g_generatedOverlayPublishBackupRootDirectory) << "\n";
-    appendStartupRationaleLines(summary, companionSnapshot.lifecycle.startWithWindowsEnabled);
+    appendStartupRationaleLines(summary, startWithWindowsEnabled);
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -1287,6 +1288,7 @@ void writeStatus(
         effectiveGeneratedOverlayManifestHash,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
+        companionSnapshot.lifecycle.startWithWindowsEnabled,
         mpPackageRefreshState,
         mpPackageRefreshReason);
     writeNextStepsBrief(
@@ -1332,6 +1334,12 @@ void writeStatus(
     json << "  \"updated_at_local\": \"" << jsonEscape(formatLocalTimestamp()) << "\",\n";
     json << "  \"start_with_windows_enabled\": "
          << (companionSnapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << ",\n";
+    json << "  \"window_close_behavior\": \""
+         << jsonEscape(companionSnapshot.lifecycle.windowCloseBehavior) << "\",\n";
+    json << "  \"explicit_exit_behavior\": \""
+         << jsonEscape(companionSnapshot.lifecycle.explicitExitBehavior) << "\",\n";
+    json << "  \"crash_restart_policy\": \""
+         << jsonEscape(companionSnapshot.lifecycle.crashRestartPolicy) << "\",\n";
     json << "  \"startup_lifecycle_state\": \""
          << jsonEscape(buildStartupLifecycleState(companionSnapshot.lifecycle.startWithWindowsEnabled)) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
