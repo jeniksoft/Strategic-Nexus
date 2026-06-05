@@ -572,6 +572,14 @@ int main()
         "ready snapshot should focus the MP package path for degraded handoff follow-up");
     requireCondition(ready.statusCenter.state == "starting", "status center should start when any subsystem is starting");
     requireCondition(
+        ready.statusCenterSummaryText.find("startup_lifecycle_state: owner_enabled_start_with_windows") !=
+            std::string::npos,
+        "status center summary should expose start-with-Windows lifecycle state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("startup_start_with_windows_enabled: true") !=
+            std::string::npos,
+        "status center summary should expose start-with-Windows enabled flag");
+    requireCondition(
         ready.statusCenterSummaryText.find("stav: starting - waiting for archive to become ready") != std::string::npos,
         "status center summary should include overall state");
     requireCondition(
@@ -1294,6 +1302,12 @@ int main()
     requireCondition(
         json.find("\"next_action_path\": \"" + mpPackageRoot.generic_string() + "\"") != std::string::npos,
         "JSON should include next action path");
+    requireCondition(
+        json.find("\"start_with_windows_enabled\": true") != std::string::npos,
+        "JSON should include start-with-Windows enabled flag");
+    requireCondition(
+        json.find("\"startup_lifecycle_state\": \"owner_enabled_start_with_windows\"") != std::string::npos,
+        "JSON should include startup lifecycle state");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
     requireCondition(

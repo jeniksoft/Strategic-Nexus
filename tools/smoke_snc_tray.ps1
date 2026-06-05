@@ -56,6 +56,12 @@ try {
                 if ($summaryText -notlike "*startup_start_with_windows: optional_owner_setting_default_disabled*") {
                     throw "SNC tray summary text did not expose the default-disabled startup contract."
                 }
+                if ($summaryText -notlike "*startup_lifecycle_state: manual_start_only*") {
+                    throw "SNC tray summary text did not expose the startup lifecycle state."
+                }
+                if ($summaryText -notlike "*startup_start_with_windows_enabled: false*") {
+                    throw "SNC tray summary text did not expose the current start-with-Windows enabled flag."
+                }
                 if ($summaryText -notlike "*mp_previous_host_available:*") {
                     throw "SNC tray summary text did not expose mp_previous_host_available."
                 }
@@ -81,6 +87,9 @@ try {
                 }
                 if ($briefText -notlike "*Start with Windows: volitelne nastaveni, vychozi stav ma zustat vypnuty.*") {
                     throw "SNC tray next-steps brief did not expose the default-disabled start-with-Windows note."
+                }
+                if ($briefText -notlike "*Startup lifecycle state: manual start only (start with Windows disabled).*") {
+                    throw "SNC tray next-steps brief did not expose the current startup lifecycle state."
                 }
 
                 Write-Host "snc_tray_smoke_success=true"

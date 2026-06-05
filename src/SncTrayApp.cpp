@@ -435,10 +435,24 @@ void appendMpPackageSummaryLines(
     }
 }
 
-void appendStartupRationaleLines(std::ostringstream& output)
+std::string buildStartupLifecycleState(const bool startWithWindowsEnabled)
+{
+    return startWithWindowsEnabled ? "owner_enabled_start_with_windows" : "manual_start_only";
+}
+
+std::string buildStartupLifecycleBrief(const bool startWithWindowsEnabled)
+{
+    return startWithWindowsEnabled
+        ? "owner enabled start with Windows"
+        : "manual start only (start with Windows disabled)";
+}
+
+void appendStartupRationaleLines(std::ostringstream& output, const bool startWithWindowsEnabled)
 {
     output << "startup_rationale: start SNC before Stellaris to preserve more autosave history before the game rotates older saves away\n";
     output << "startup_start_with_windows: optional_owner_setting_default_disabled\n";
+    output << "startup_lifecycle_state: " << buildStartupLifecycleState(startWithWindowsEnabled) << "\n";
+    output << "startup_start_with_windows_enabled: " << (startWithWindowsEnabled ? "true" : "false") << "\n";
 }
 
 std::wstring utf8ToWide(const std::string& value)
@@ -841,7 +855,7 @@ std::string buildStatusCenterSummaryText(
     summary << "generated_overlay_publish_status_path: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     summary << "generated_overlay_publish_backup_root_directory: "
             << pathString(g_generatedOverlayPublishBackupRootDirectory) << "\n";
-    appendStartupRationaleLines(summary);
+    appendStartupRationaleLines(summary, companionSnapshot.lifecycle.startWithWindowsEnabled);
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -870,6 +884,7 @@ void writeNextStepsBrief(
     const bool generatedOverlayPublishAllowed,
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const bool startWithWindowsEnabled,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason,
     const std::string& nextAction,
@@ -955,6 +970,7 @@ void writeNextStepsBrief(
     brief << "- Current staged overlay already published: " << (generatedOverlayPublishGate.published ? "ano" : "ne") << "\n";
     brief << "- Startup note: Spusteni SNC pred Stellaris pomaha uchovat vic autosave historie driv, nez hra prepise starsi autosavy.\n";
     brief << "- Start with Windows: volitelne nastaveni, vychozi stav ma zustat vypnuty.\n";
+    brief << "- Startup lifecycle state: " << buildStartupLifecycleBrief(startWithWindowsEnabled) << ".\n";
     brief << "- Active overlay snapshot: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
     brief << "- Publish status output: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     if (!generatedOverlayPublishGate.manifestHash.empty()) {
@@ -1297,6 +1313,7 @@ void writeStatus(
         effectiveGeneratedOverlayPublishAllowed,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
+        companionSnapshot.lifecycle.startWithWindowsEnabled,
         mpPackageRefreshState,
         mpPackageRefreshReason,
         nextAction,
@@ -1313,6 +1330,10 @@ void writeStatus(
     json << "  \"state\": \"" << jsonEscape(state) << "\",\n";
     json << "  \"reason\": \"" << jsonEscape(reason) << "\",\n";
     json << "  \"updated_at_local\": \"" << jsonEscape(formatLocalTimestamp()) << "\",\n";
+    json << "  \"start_with_windows_enabled\": "
+         << (companionSnapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << ",\n";
+    json << "  \"startup_lifecycle_state\": \""
+         << jsonEscape(buildStartupLifecycleState(companionSnapshot.lifecycle.startWithWindowsEnabled)) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
     json << "  \"session_id\": \"" << jsonEscape(sessionId) << "\",\n";
     json << "  \"capture_session_directory\": \"" << jsonEscape(pathString(sessionDirectory)) << "\",\n";

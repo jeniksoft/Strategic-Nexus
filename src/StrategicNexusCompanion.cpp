@@ -1697,6 +1697,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
 
 std::string buildStatusCenterSummaryText(
     const std::string& generatedAtLocal,
+    const CompanionLifecycleStatus& lifecycle,
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay,
@@ -1716,6 +1717,10 @@ std::string buildStatusCenterSummaryText(
     if (!generatedAtLocal.empty()) {
         text << "generated_at_local: " << generatedAtLocal << "\n";
     }
+    text << "startup_lifecycle_state: "
+         << (lifecycle.startWithWindowsEnabled ? "owner_enabled_start_with_windows" : "manual_start_only") << "\n";
+    text << "startup_start_with_windows_enabled: "
+         << (lifecycle.startWithWindowsEnabled ? "true" : "false") << "\n";
     text << "stav: " << statusCenter.state << " - " << statusCenter.reason << "\n";
     text << "nalezeni_uloziste: " << saveDiscovery.state << " - " << saveDiscovery.reason << "\n";
     if (!saveDiscovery.path.empty()) {
@@ -2408,6 +2413,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.nextActionPath = buildCompanionNextActionPath(snapshot);
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
         snapshot.generatedAtLocal,
+        snapshot.lifecycle,
         snapshot.saveDiscovery,
         snapshot.archive,
         snapshot.generatedOverlay,
@@ -2442,6 +2448,12 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "    \"crash_restart_policy\": "
            << jsonString(snapshot.lifecycle.crashRestartPolicy) << "\n";
     output << "  },\n";
+    output << "  \"startup_lifecycle_state\": "
+           << jsonString(
+                  snapshot.lifecycle.startWithWindowsEnabled
+                      ? "owner_enabled_start_with_windows"
+                      : "manual_start_only")
+           << ",\n";
     output << "  \"archive_status\": ";
     writeSubsystemJson(output, snapshot.archive, "  ");
     output << ",\n";
