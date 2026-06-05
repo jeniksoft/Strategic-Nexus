@@ -316,6 +316,7 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
     std::ostringstream events;
     std::ostringstream effects;
     std::ostringstream triggers;
+    std::vector<std::string> monthlyDispatcherEffects;
 
     events << "# Strategic Nexus generated dispatcher surface\n";
     events << "# Complete replacement snapshot. Do not edit by hand.\n\n";
@@ -374,11 +375,21 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
         effects << "    }\n";
         effects << "}\n\n";
 
-        events << "        " << effectName << " = yes\n";
+        if (rule.eventFamily == "monthly_strategy_tick") {
+            monthlyDispatcherEffects.push_back(effectName);
+        }
+
     }
 
+    events << "        strategic_nexus_generated_monthly_strategy_tick_dispatch = yes\n";
     events << "    }\n";
     events << "}\n";
+
+    effects << "strategic_nexus_generated_monthly_strategy_tick_dispatch = {\n";
+    for (const auto& effectName : monthlyDispatcherEffects) {
+        effects << "    " << effectName << " = yes\n";
+    }
+    effects << "}\n\n";
 
     GeneratedOverlayFiles files;
     files.eventsText = events.str();

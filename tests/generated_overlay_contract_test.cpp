@@ -102,11 +102,17 @@ int main()
             files.scriptedEffectsText.find("set_country_flag = strategic_nexus_pref_military_posture_defensive") != std::string::npos,
             "compiler should emit allowlisted preference flag");
         requireCondition(
+            files.scriptedEffectsText.find("strategic_nexus_generated_monthly_strategy_tick_dispatch = {") != std::string::npos,
+            "compiler should emit the monthly reactive dispatcher effect");
+        requireCondition(
+            files.scriptedEffectsText.find("    strategic_nexus_generated_effect_campaign_001_empire_001_border_war_defense = yes") != std::string::npos,
+            "monthly reactive dispatcher should call the compiled rule effect");
+        requireCondition(
             files.scriptedEffectsText.find("remove_country_flag = strategic_nexus_pref_military_posture_aggressive") != std::string::npos,
             "compiler should clear conflicting military posture flag before applying the selected one");
         requireCondition(
-            files.eventsText.find("strategic_nexus_generated_effect_campaign_001_empire_001_border_war_defense = yes") != std::string::npos,
-            "compiler should emit dispatcher effect call");
+            files.eventsText.find("strategic_nexus_generated_monthly_strategy_tick_dispatch = yes") != std::string::npos,
+            "compiler should wire generated event surface to the monthly dispatcher effect");
         requireCondition(
             files.manifestText.find("\"snapshot_kind\": \"complete_replacement\"") != std::string::npos,
             "compiler should emit complete replacement manifest");

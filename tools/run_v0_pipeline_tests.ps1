@@ -701,15 +701,55 @@ function Invoke-GeneratedOverlayCompileCase {
     $effectsText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "common/scripted_effects/strategic_nexus_generated_effects.txt")
     $triggersText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "common/scripted_triggers/strategic_nexus_generated_triggers.txt")
     $manifestText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "strategic_nexus_generated_manifest.json")
+    $baseKernelEventText = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "mod/strategic_nexus_poc/events/strategic_nexus_poc_events.txt")
     $null = $manifestText | ConvertFrom-Json
 
-    Assert-Contains -Name "generated_overlay_compile events" -Text $eventsText -Expected "strategic_nexus_generated_effect_campaign_001_empire_001_border_war_defense = yes"
+    Assert-Contains -Name "generated_overlay_compile events" -Text $eventsText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = yes"
     Assert-Contains -Name "generated_overlay_compile effects" -Text $effectsText -Expected "set_country_flag = strategic_nexus_pref_military_posture_defensive"
+    Assert-Contains -Name "generated_overlay_compile effects" -Text $effectsText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = {"
     Assert-Contains -Name "generated_overlay_compile triggers" -Text $triggersText -Expected "has_global_flag = strategic_nexus_campaign_campaign_001"
+    Assert-Contains -Name "generated_overlay_compile base kernel" -Text $baseKernelEventText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = yes"
     Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"snapshot_kind": "complete_replacement"'
     Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"multiplayer_requirement": "byte_identical_gameplay_affecting_files"'
     Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"path": "common/scripted_effects/strategic_nexus_generated_effects.txt"'
     Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"hash_algorithm": "fnv1a64"'
+
+    $monthlyReactiveCasePath = Join-Path $repoRoot "dist/generated_overlay_compile_monthly_reactive.dsl"
+    $monthlyReactiveOutputPath = Join-Path $repoRoot "dist/generated_overlay_compile_monthly_reactive"
+    @'
+campaign "campaign_monthly" {
+  empire "empire_monthly" {
+    rule "monthly_dispatch_probe" {
+      ministry = military_ministry
+      event_family = monthly_strategy_tick
+      when campaign_marker = campaign_monthly
+      prefer military_posture defensive intensity 0.7
+      duration = next_session
+      confidence = 0.8
+      rationale = "Monthly reactive dispatcher proof."
+    }
+  }
+}
+'@ | Set-Content -LiteralPath $monthlyReactiveCasePath -Encoding UTF8
+    Remove-Item -LiteralPath $monthlyReactiveOutputPath -Recurse -Force -ErrorAction SilentlyContinue
+
+    $monthlyReactiveCompileOutput = & $exePath `
+        --compile-generated-overlay `
+        $monthlyReactiveCasePath `
+        $monthlyReactiveOutputPath
+    $monthlyReactiveCompileExitCode = $LASTEXITCODE
+    $monthlyReactiveCompileText = $monthlyReactiveCompileOutput -join "`n"
+    if ($monthlyReactiveCompileExitCode -ne 0) {
+        throw "generated_overlay_compile monthly reactive app failed. Actual output:`n$monthlyReactiveCompileText"
+    }
+
+    $monthlyReactiveEventsText = Get-Content -Raw -LiteralPath (Join-Path $monthlyReactiveOutputPath "events/strategic_nexus_generated_events.txt")
+    $monthlyReactiveEffectsText = Get-Content -Raw -LiteralPath (Join-Path $monthlyReactiveOutputPath "common/scripted_effects/strategic_nexus_generated_effects.txt")
+    $monthlyReactiveManifestText = Get-Content -Raw -LiteralPath (Join-Path $monthlyReactiveOutputPath "strategic_nexus_generated_manifest.json")
+    Assert-Contains -Name "generated_overlay_compile monthly events" -Text $monthlyReactiveEventsText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = yes"
+    Assert-Contains -Name "generated_overlay_compile monthly effects" -Text $monthlyReactiveEffectsText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = {"
+    Assert-Contains -Name "generated_overlay_compile monthly effects" -Text $monthlyReactiveEffectsText -Expected "strategic_nexus_generated_effect_campaign_monthly_empire_monthly_monthly_dispatch_probe = yes"
+    Assert-Contains -Name "generated_overlay_compile monthly manifest" -Text $monthlyReactiveManifestText -Expected '"event_families": ["monthly_strategy_tick"]'
 
     $verifyOutput = & $exePath `
         --verify-generated-overlay `
@@ -1179,10 +1219,12 @@ campaign "missing" {
     Assert-Contains -Name "campaign_library_overlay app" -Text $overlayText -Expected "campaign_library_overlay_campaigns_skipped_due_to_limit=0"
 
     $eventsText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "events/strategic_nexus_generated_events.txt")
+    $effectsText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "common/scripted_effects/strategic_nexus_generated_effects.txt")
     $planText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "strategic_nexus_campaign_library_plan.json")
     $null = $planText | ConvertFrom-Json
-    Assert-Contains -Name "campaign_library_overlay events" -Text $eventsText -Expected "strategic_nexus_generated_effect_alpha_empire_001_local_defense"
-    Assert-NotContains -Name "campaign_library_overlay events" -Text $eventsText -Unexpected "missing_aggression"
+    Assert-Contains -Name "campaign_library_overlay events" -Text $eventsText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = yes"
+    Assert-Contains -Name "campaign_library_overlay effects" -Text $effectsText -Expected "strategic_nexus_generated_effect_alpha_empire_001_local_defense = {"
+    Assert-NotContains -Name "campaign_library_overlay effects" -Text $effectsText -Unexpected "missing_aggression"
     Assert-Contains -Name "campaign_library_overlay plan" -Text $planText -Expected '"campaign_key": "alpha"'
     Assert-Contains -Name "campaign_library_overlay plan" -Text $planText -Expected '"limit_reached": false'
 

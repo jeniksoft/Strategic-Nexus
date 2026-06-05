@@ -55,6 +55,7 @@ function Assert-ObservableMarkerScaffold {
     $modifierText = Get-Content -LiteralPath $modifierPath -Raw
 
     Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "id = strategic_nexus.1450"
+    Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = yes"
     Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "has_country_flag = strategic_nexus_pref_military_posture_defensive"
     Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "modifier = strategic_nexus_poc_generated_military_posture_defensive"
     Assert-Contains -Name "observable event scaffold" -Text $eventText -Expected "modifier = strategic_nexus_poc_generated_research_bias_military_industry"
@@ -93,6 +94,7 @@ function Invoke-CompileAndVerifyCase {
         throw "$CaseId missing scripted effects output"
     }
     $effectsText = Get-Content -LiteralPath $effectsPath -Raw
+    Assert-Contains -Name "$CaseId effects" -Text $effectsText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = {"
     Assert-Contains -Name "$CaseId effects" -Text $effectsText -Expected $ExpectedFlag
     Assert-NotContains -Name "$CaseId effects" -Text $effectsText -Unexpected $ForbiddenFlag
 

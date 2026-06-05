@@ -475,6 +475,11 @@ country_event = {
     }
 
     immediate = {
+        # Stable handwritten monthly kernel touchpoint for allowlisted generated
+        # reactive policy-pack branches. The generated overlay owns the actual
+        # per-rule dispatch behind this effect name.
+        strategic_nexus_generated_monthly_strategy_tick_dispatch = yes
+
         remove_modifier = strategic_nexus_poc_generated_military_posture_defensive
         remove_modifier = strategic_nexus_poc_generated_military_posture_aggressive
         remove_modifier = strategic_nexus_poc_generated_research_bias_economy
