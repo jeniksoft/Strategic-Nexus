@@ -1,25 +1,24 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-05T03:14:00+02:00",
+  "updated_at": "2026-06-05T03:23:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after v0-sprint-029",
+  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after v0-sprint-031",
   "chunks": [
     {
-      "id": "v0-sprint-030-snc-mp-handoff-next-action",
-      "title": "Promote degraded MP handoff into SNC next action",
+      "id": "v0-sprint-032-snc-previous-host-availability-surface",
+      "title": "Surface previous host availability in SNC status",
       "status": "ready",
       "lane": "implementation",
       "roadmap_anchor": "Multiplayer Generated Overlay Distribution / StrategicNexusCompanion stable snapshot",
-      "goal": "Ensure stable SNC/tray status snapshots promote degraded `handoff_status` / `previous_host_available=false` into explicit owner-facing `next_action` guidance instead of falling through to generic package-ready or summary actions.",
+      "goal": "Expose explicit `previous_host_available` continuity state in stable SNC/tray status artifacts so owner-facing and automation consumers do not need to parse freeform MP status text for host-rotation continuity facts.",
       "acceptance": [
-        "Companion status snapshots emit `next_action=review_mp_handoff_continuity` with a stable reason when the current MP package reports degraded previous-host continuity.",
-        "A verify/import-oriented command hint source remains available for the degraded-handoff path.",
-        "MP identity mismatch warnings still outrank degraded handoff continuity in companion next-action selection.",
-        "tools/run_v0_pipeline_tests.ps1 fails closed if the SNC degraded-handoff next-action contract disappears."
+        "Companion JSON and tray-facing status output expose a structured `previous_host_available` field for the current MP package.",
+        "The new structured field stays consistent with `handoff_status` and the existing degraded-handoff next-action contract.",
+        "tools/run_v0_pipeline_tests.ps1 fails closed if the explicit previous-host continuity field disappears from SNC status artifacts."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
@@ -27,14 +26,14 @@
       "dependencies": []
     },
     {
-      "id": "v0-sprint-031-roadmap-progress-refresh-after-snc-handoff-next-action",
-      "title": "Refresh progress after SNC handoff next-action slice",
+      "id": "v0-sprint-033-roadmap-progress-refresh-after-snc-previous-host-availability-surface",
+      "title": "Refresh progress after SNC previous-host availability slice",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and owner-facing daily summary aligned after SNC degraded-handoff next-action guidance lands.",
+      "goal": "Keep roadmap notes, sprint queue, and owner-facing daily summary aligned after SNC previous-host availability surfacing lands.",
       "acceptance": [
-        "Roadmap next-worker-ready notes mention the shipped SNC degraded-handoff next-action contract once tests pass.",
+        "Roadmap next-worker-ready notes mention the shipped SNC previous-host availability surface once tests pass.",
         "The sprint queue is refreshed to the next bounded roadmap slice instead of leaving stale completed chunks.",
         "The daily freework report is replaced without creating report spam."
       ],
@@ -44,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-030-snc-mp-handoff-next-action"
+        "v0-sprint-032-snc-previous-host-availability-surface"
       ]
     }
   ]

@@ -969,6 +969,7 @@ Compare/trend/loop outputs now also expose structured MP handoff continuity drif
 Compare/trend outputs now also promote degraded MP handoff continuity into explicit `review_mp_handoff_continuity` recommendation state, and real-session loop now surfaces `mp_handoff_follow_up` plus top-level `next_action=review_mp_handoff_continuity`, so owner/release-companion follow-up can point at manual-save-recovery or host-rotation review without custom downstream interpretation.
 `StrategicNexusCompanionTray.exe` now refreshes a stable `dist/private_reports/snc_mp_overlay_package` export after `generated_overlay_staged`, removes stale tray ZIP handoff artifacts it did not regenerate, and surfaces structured MP package refresh/readiness/verify-import fields in `snc_tray_status.json`, Status Center summary text, and `snc_next_steps_brief.txt`.
 `StrategicNexusCompanion` status snapshots now also expose a top-level `next_action` contract (`next_action`, reason, command-hint source/path) and prioritize MP identity-mismatch review before ordinary staging follow-up, so release-companion or owner-facing status consumers do not need to reconstruct the next safe step from nested subsystem fields alone.
+`StrategicNexusCompanion` now also promotes `handoff_status=degraded_previous_host_unavailable` into top-level `next_action=review_mp_handoff_continuity` with a strict-verify command hint while still keeping identity-mismatch warnings higher priority, so stable SNC/tray owner-facing surfaces can flag host-rotation/manual-save-recovery follow-up without waiting for a real-session compare/trend run.
 `StrategicNexusCompanion` and SNC tray readiness surfaces now also expose `strategic_nexus_campaign_library_plan.json` saturation state (`campaign_library_limit_reached`, skipped count, source path, owner note) when the bounded active library contract is present beside SNC status artifacts, so owner-facing readiness can distinguish healthy bounded output from truncated local campaign coverage before the next real-session test.
 Compare/trend/loop auto outputs now also expose structured campaign/overlay mismatch drift fields (`*_mp_campaign_id_mismatch_warning_{previous,current,changed}`, `*_mp_overlay_version_mismatch_warning_{previous,current,changed}`), and loop evidence JSON mirrors those fields for release-companion one-file parsing.
 `tools/run_real_session_v0_loop.ps1` now also emits a deterministic aggregated next-action contract (`real_session_v0_loop_next_action*`) and stores it in evidence JSON `next_action`, prioritizing MP mismatch and identity-risk warnings before normal next-session compare guidance so owner/release-companion follow-up is actionable without manual field interpretation.
@@ -998,13 +999,13 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
- Promote degraded MP handoff continuity into SNC top-level next-action guidance.
+ Surface explicit previous-host continuity fields in SNC/tray status artifacts.
 
   The next slice should include:
 
-* make `StrategicNexusCompanion`/tray status snapshots prefer `review_mp_handoff_continuity` (with a stable reason and verify/import command hint) when the current MP package is degraded because the previous host is unavailable, instead of falling through to generic package-ready or summary actions
-* keep MP identity mismatch warnings higher priority than degraded handoff continuity, so unsafe package mismatch still wins over ordinary host-rotation follow-up
-* cover the new SNC next-action contract in `tools/run_v0_pipeline_tests.ps1` or equivalent companion-status regression so the owner-facing stable snapshot cannot silently lose the degraded-handoff signal
+* expose structured `previous_host_available` (and any needed companion mirror field) in `StrategicNexusCompanion` JSON / tray status output so downstream owner-facing consumers do not need to scrape `mp_overlay_package_status_text` to know whether continuity is degraded
+* keep the new structured continuity field consistent with `handoff_status` and the already-shipped `review_mp_handoff_continuity` top-level next-action contract
+* add regression coverage so SNC/tray status artifacts fail closed if the explicit previous-host continuity field disappears from the stable snapshot surface
 
   ---
 
