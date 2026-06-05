@@ -1,24 +1,24 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-05T11:27:00+02:00",
+  "updated_at": "2026-06-05T11:36:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after SNC tray previous-host continuity text surfacing",
+  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after SNC startup-rationale text surfacing",
   "chunks": [
     {
-      "id": "v0-sprint-042-snc-first-run-startup-rationale-text-surface",
-      "title": "Surface startup rationale in SNC text",
+      "id": "v0-sprint-044-snc-start-with-windows-lifecycle-text-surface",
+      "title": "Surface startup lifecycle state in SNC text",
       "status": "ready",
       "lane": "implementation",
-      "roadmap_anchor": "Core Runtime Skeleton / first-run explanation and owner-facing SNC readiness text",
-      "goal": "Expose a bounded owner-facing explanation for why early SNC startup preserves autosave history, while keeping start-with-Windows clearly optional and disabled by default.",
+      "roadmap_anchor": "Core Runtime Skeleton / optional start-with-Windows lifecycle visibility",
+      "goal": "Expose the current start-with-Windows lifecycle state in owner-facing SNC text so startup capture remains visible as an explicit owner-controlled setting.",
       "acceptance": [
-        "Owner-facing SNC text artifacts explain that early companion startup helps preserve autosave history before Stellaris rotates old saves away.",
-        "The explanation stays aligned with architecture: start-with-Windows is optional, default-disabled, and not represented as hidden persistence or a requirement.",
-        "Regression coverage fails closed if the owner-facing rationale text disappears from the chosen SNC text artifact surfaces."
+        "Owner-facing SNC text artifacts expose whether start-with-Windows is currently enabled or still manual-only.",
+        "The wording stays aligned with architecture: the lifecycle state is descriptive and owner-controlled, without implying hidden persistence or auto-enablement.",
+        "Regression coverage fails closed if the owner-facing lifecycle-state text disappears from the chosen SNC text artifact surfaces."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1",
@@ -27,14 +27,14 @@
       "dependencies": []
     },
     {
-      "id": "v0-sprint-043-roadmap-progress-refresh-after-snc-startup-rationale-text-surface",
-      "title": "Refresh progress after startup rationale slice",
+      "id": "v0-sprint-045-roadmap-progress-refresh-after-snc-startup-lifecycle-text-surface",
+      "title": "Refresh progress after startup lifecycle slice",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and owner-facing daily summary aligned after the SNC startup-rationale text slice lands.",
+      "goal": "Keep roadmap notes, sprint queue, and owner-facing daily summary aligned after the SNC startup-lifecycle text slice lands.",
       "acceptance": [
-        "Roadmap next-worker-ready notes mention the shipped SNC startup-rationale text surface once tests pass.",
+        "Roadmap next-worker-ready notes mention the shipped SNC startup-lifecycle text surface once tests pass.",
         "The sprint queue is refreshed to the next bounded roadmap slice instead of leaving stale completed chunks.",
         "The daily freework report is replaced without creating report spam."
       ],
@@ -44,7 +44,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-042-snc-first-run-startup-rationale-text-surface"
+        "v0-sprint-044-snc-start-with-windows-lifecycle-text-surface"
       ]
     }
   ]
