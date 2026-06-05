@@ -97,6 +97,8 @@ struct CompanionMpOverlayPackageStatus {
     std::string gameVersion;
     std::string strategicNexusModVersion;
     std::string handoffStatus;
+    bool previousHostAvailable = false;
+    bool previousHostAvailableKnown = false;
     std::string readiness;
     std::string hostReadiness;
     std::string clientReadinessGate;

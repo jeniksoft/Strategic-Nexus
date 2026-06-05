@@ -539,6 +539,12 @@ int main()
         ready.mpOverlayPackage.statusText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
         "mp overlay package status text should include strict import command");
     requireCondition(
+        ready.mpOverlayPackage.previousHostAvailableKnown,
+        "mp overlay package should expose whether previous-host continuity is known");
+    requireCondition(
+        !ready.mpOverlayPackage.previousHostAvailable,
+        "mp overlay package should expose degraded previous-host continuity explicitly");
+    requireCondition(
         ready.nextAction == "review_mp_handoff_continuity",
         "ready snapshot should prioritize degraded MP handoff continuity as next action");
     requireCondition(
@@ -563,6 +569,9 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_overlay_balicek: ready - mp overlay package verified") != std::string::npos,
         "status center summary should include mp overlay package state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_previous_host_available: false") != std::string::npos,
+        "status center summary should include explicit previous-host continuity state");
     requireCondition(
         ready.statusCenterSummaryText.find("mp_package_zip_state: ready") != std::string::npos,
         "status center summary should include MP package zip state");
@@ -1211,6 +1220,12 @@ int main()
     requireCondition(
         json.find("\"handoff_status\": \"degraded_previous_host_unavailable\"") != std::string::npos,
         "JSON should include mp overlay package handoff status");
+    requireCondition(
+        json.find("\"previous_host_available\": false") != std::string::npos,
+        "JSON should include explicit previous-host continuity field");
+    requireCondition(
+        json.find("\"previous_host_available_known\": true") != std::string::npos,
+        "JSON should include previous-host continuity known state");
     requireCondition(json.find("\"readiness\": \"ready_for_mp\"") != std::string::npos, "JSON should include mp overlay package readiness");
     requireCondition(json.find("\"host_readiness\": \"ready_for_mp\"") != std::string::npos, "JSON should include mp overlay package host readiness");
     requireCondition(

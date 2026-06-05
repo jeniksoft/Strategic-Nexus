@@ -1389,6 +1389,13 @@ void writeStatus(
     json << "  \"mp_overlay_package_game_version\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.gameVersion) << "\",\n";
     json << "  \"mp_overlay_package_mod_version\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.strategicNexusModVersion) << "\",\n";
     json << "  \"mp_overlay_package_handoff_status\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.handoffStatus) << "\",\n";
+    json << "  \"mp_overlay_package_previous_host_available\": "
+         << (companionSnapshot.mpOverlayPackage.previousHostAvailableKnown
+                 ? (companionSnapshot.mpOverlayPackage.previousHostAvailable ? "true" : "false")
+                 : "null")
+         << ",\n";
+    json << "  \"mp_overlay_package_previous_host_available_known\": "
+         << (companionSnapshot.mpOverlayPackage.previousHostAvailableKnown ? "true" : "false") << ",\n";
     json << "  \"mp_overlay_package_readiness\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.readiness) << "\",\n";
     json << "  \"mp_overlay_package_host_readiness\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.hostReadiness) << "\",\n";
     json << "  \"mp_overlay_package_client_readiness_gate\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.clientReadinessGate) << "\",\n";

@@ -246,6 +246,20 @@ bool hasDegradedMpHandoffContinuity(const CompanionStatusSnapshot& snapshot)
            snapshot.mpOverlayPackage.handoffStatus == "degraded_previous_host_unavailable";
 }
 
+bool tryParseStatusTextBoolField(const std::string& statusText, const std::string& key, bool& value)
+{
+    const auto rawValue = trimWhitespace(readStatusTextField(statusText, key));
+    if (rawValue == "true") {
+        value = true;
+        return true;
+    }
+    if (rawValue == "false") {
+        value = false;
+        return true;
+    }
+    return false;
+}
+
 std::string pathString(const std::filesystem::path& path)
 {
     return path.generic_string();
@@ -963,6 +977,8 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.gameVersion = verification.gameVersion;
     status.strategicNexusModVersion = verification.strategicNexusModVersion;
     status.handoffStatus = verification.handoffStatus;
+    status.previousHostAvailableKnown =
+        tryParseStatusTextBoolField(verification.statusText, "previous_host_available", status.previousHostAvailable);
     status.readiness = verification.readiness;
     status.hostReadiness = trimWhitespace(readStatusTextField(verification.statusText, "host_readiness"));
     status.clientReadinessGate = trimWhitespace(readStatusTextField(verification.statusText, "client_readiness_gate"));
@@ -1883,6 +1899,10 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.handoffStatus.empty()) {
         text << "handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
     }
+    if (mpOverlayPackage.previousHostAvailableKnown) {
+        text << "mp_previous_host_available: "
+             << (mpOverlayPackage.previousHostAvailable ? "true" : "false") << "\n";
+    }
     if (!mpOverlayPackage.readiness.empty()) {
         text << "mp_readiness: " << mpOverlayPackage.readiness << "\n";
     }
@@ -2186,6 +2206,10 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"game_version\": " << jsonString(status.gameVersion) << ",\n";
     output << indent << "  \"strategic_nexus_mod_version\": " << jsonString(status.strategicNexusModVersion) << ",\n";
     output << indent << "  \"handoff_status\": " << jsonString(status.handoffStatus) << ",\n";
+    output << indent << "  \"previous_host_available\": "
+           << (status.previousHostAvailableKnown ? (status.previousHostAvailable ? "true" : "false") : "null") << ",\n";
+    output << indent << "  \"previous_host_available_known\": "
+           << (status.previousHostAvailableKnown ? "true" : "false") << ",\n";
     output << indent << "  \"readiness\": " << jsonString(status.readiness) << ",\n";
     output << indent << "  \"host_readiness\": " << jsonString(status.hostReadiness) << ",\n";
     output << indent << "  \"client_readiness_gate\": " << jsonString(status.clientReadinessGate) << ",\n";
