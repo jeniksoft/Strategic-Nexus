@@ -991,6 +991,7 @@ SNC Status Center summary text, serialized snapshot JSON, tray status JSON, and 
 `snc_tray_status.json` now also exposes `window_close_behavior`, `explicit_exit_behavior`, and `crash_restart_policy`, and `tools/smoke_snc_tray.ps1` fails closed if the tray JSON lifecycle contract drifts or disappears.
 Generated overlay DSL now supports explicit `source_quality`, deterministic bootstrap rotation metadata, and allowlisted `event_family = monthly_strategy_tick`; the generated manifest now exposes reactive-policy capability/event-family coverage plus per-campaign source-quality/bootstrap metadata while rejecting raw `on_*`-style event family names.
 The first handwritten reactive monthly bridge is now wired: the generated overlay compiler emits a stable `strategic_nexus_generated_monthly_strategy_tick_dispatch` effect, the handwritten monthly policy kernel calls that touchpoint, and `tools/run_v0_pipeline_tests.ps1` now proves the generated overlay/base-kernel monthly branch path with both empty and populated event-family fixtures.
+SNC owner-facing readiness now also surfaces generated-overlay reactive capability (`post_session_only` vs `event_family_dispatch`), event-family coverage, source-quality summary, and bootstrap provenance count across companion JSON, Status Center summary text, tray status JSON, and stable `--snc-status-snapshot` stdout.
 `StrategicNexusCompanion` and SNC tray readiness surfaces now also expose `strategic_nexus_campaign_library_plan.json` saturation state (`campaign_library_limit_reached`, skipped count, source path, owner note) when the bounded active library contract is present beside SNC status artifacts, so owner-facing readiness can distinguish healthy bounded output from truncated local campaign coverage before the next real-session test.
 Compare/trend/loop auto outputs now also expose structured campaign/overlay mismatch drift fields (`*_mp_campaign_id_mismatch_warning_{previous,current,changed}`, `*_mp_overlay_version_mismatch_warning_{previous,current,changed}`), and loop evidence JSON mirrors those fields for release-companion one-file parsing.
 `tools/run_real_session_v0_loop.ps1` now also emits a deterministic aggregated next-action contract (`real_session_v0_loop_next_action*`) and stores it in evidence JSON `next_action`, prioritizing MP mismatch and identity-risk warnings before normal next-session compare guidance so owner/release-companion follow-up is actionable without manual field interpretation.
@@ -1020,13 +1021,13 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
-Surface reactive-policy capability and bootstrap/source-quality state in owner-facing readiness.
+Prepare the owner-ready monthly reactive real-session acceptance contract.
 
   The next slice should include:
 
-* expose whether the active/staged generated overlay is `post_session_only` or `event_family_dispatch` in Status Center, tray, and stable CLI/readiness surfaces
-* surface bounded owner-facing summary signals for generated-overlay `event_families` plus per-campaign `source_quality` / bootstrap provenance where the manifest already has them
-* fail closed when manifest metadata is missing or malformed so owner-facing readiness does not silently claim reactive capability or healthy bootstrap provenance
+* spell out exactly what Antonin should test in a real Stellaris session once the staged/generated overlay is published, with focus on the first monthly reactive branch and visible harmless markers
+* identify the precise artifacts Codex should inspect afterward (for example Status Center summary, staged/published overlay manifest hash, and real-session loop evidence) so the test is verifiable instead of anecdotal
+* fail closed when the active overlay is still unpublished or only `post_session_only`, so owner-facing guidance does not suggest a reactive in-session test before the runtime path is actually active
 
   ---
 
