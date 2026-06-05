@@ -83,9 +83,9 @@ Co to znamena pro architekturu a runtime interoperability research:
 
 Testy a stav overeni:
 
-* Dnesni continuity a handoff commit rada je uz pushnuta na `origin/master`; nejaktualnejsi implementacni head z teto vlny `Update dev diary for 2026-06-05` (`ec6ff94`) ma verejny GitHub Actions signal potvrzeny jako `success`.
-* Na tento denikovy refresh navazuje novy verejny head `Refresh dev diary CI status for 2026-06-05` (`c0d4a44`), ktery pouze dorovnava verejny zapis na aktualni push a CI realitu bez dalsi implementacni zmeny architektury.
-* GitHub Actions `Windows Tests` pro `ec6ff94` byly vytvoreny 5.6.2026 v 06:04:09 CEST a dokonceny se stavem `success` v 06:08:38 CEST. Navazujici run pro aktualni denikovy head `c0d4a44` byl vytvoren 5.6.2026 v 08:02:35 CEST a v okamziku tohoto zapisu jeste probiha.
+* Dnesni continuity a handoff commit rada je uz pushnuta na `origin/master`; implementacni head z teto vlny `Update dev diary for 2026-06-05` (`ec6ff94`) ma verejny GitHub Actions signal potvrzeny jako `success`.
+* Na tuto implementacni vlnu navazaly jeste kratke docs-only denikove refresh commity, ktere pouze dorovnavaji verejny zapis na aktualni push a CI realitu bez dalsi architekturni nebo runtime zmeny.
+* GitHub Actions `Windows Tests` pro `ec6ff94` byly vytvoreny 5.6.2026 v 06:04:09 CEST a dokonceny se stavem `success` v 06:08:38 CEST. Pro navazujici docs-only denikovy refresh byl v case tohoto zapisu vytvoren dalsi verejny `Windows Tests` run.
 * Tento denikovy beh nespoustel novy plny lokalni test run; zapis shrnuje dnesni commit historii, stav vetve vuci `origin/master` a aktualne dostupny verejny GitHub Actions signal.
 
 Blokery a rizika:
@@ -96,7 +96,7 @@ Blokery a rizika:
 
 Doporuceny dalsi krok:
 
-* Nejprve potvrdit dobeh `Windows Tests` pro aktualni verejny denikovy head `c0d4a44`, aby i verejny zdroj pravdy mel uzavreny CI signal pro dnesni stav.
+* Nejprve potvrdit dobeh navazujiciho `Windows Tests` runu pro dnesni docs-only denikovy refresh, aby i verejny zdroj pravdy mel uzavreny CI signal pro dnesni stav.
 * Potom navazat explicitnim end-to-end overenim toho, ze continuity signal, degraded MP handoff guidance a previous host availability vedou k jednoznacnemu owner-facing publish/verify/import rozhodnuti bez driftu na integration boundary.
 
 ## 2026-06-04
