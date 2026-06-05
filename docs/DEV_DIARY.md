@@ -83,9 +83,9 @@ Co to znamena pro architekturu a runtime interoperability research:
 
 Testy a stav overeni:
 
-* Dnesni continuity a handoff commit rada je uz pushnuta na `origin/master`; nejaktualnejsi verejny head je v okamziku tohoto zapisu denikovy commit `Update dev diary for 2026-06-05` (`ec6ff94`), ktery navazuje na ranni implementacni vlnu.
-* GitHub Actions `Windows Tests` pro tento verejny head byly vytvoreny 5.6.2026 v 06:04:09 CEST a dokonceny se stavem `success` v 06:08:38 CEST.
-* Predchozi verejny `Windows Tests` signal pro commit `Stabilize usage budget cadence helpers` (`363bcc0`) zustava take uspesny; dnesni verejny CI signal tak potvrzuje i publikovany stav po continuity a handoff zmenach.
+* Dnesni continuity a handoff commit rada je uz pushnuta na `origin/master`; nejaktualnejsi implementacni head z teto vlny `Update dev diary for 2026-06-05` (`ec6ff94`) ma verejny GitHub Actions signal potvrzeny jako `success`.
+* Na tento denikovy refresh navazuje novy verejny head `Refresh dev diary CI status for 2026-06-05` (`c0d4a44`), ktery pouze dorovnava verejny zapis na aktualni push a CI realitu bez dalsi implementacni zmeny architektury.
+* GitHub Actions `Windows Tests` pro `ec6ff94` byly vytvoreny 5.6.2026 v 06:04:09 CEST a dokonceny se stavem `success` v 06:08:38 CEST. Navazujici run pro aktualni denikovy head `c0d4a44` byl vytvoren 5.6.2026 v 08:02:35 CEST a v okamziku tohoto zapisu jeste probiha.
 * Tento denikovy beh nespoustel novy plny lokalni test run; zapis shrnuje dnesni commit historii, stav vetve vuci `origin/master` a aktualne dostupny verejny GitHub Actions signal.
 
 Blokery a rizika:
@@ -96,8 +96,8 @@ Blokery a rizika:
 
 Doporuceny dalsi krok:
 
-* Navazat explicitnim end-to-end overenim toho, ze continuity signal, degraded MP handoff guidance a previous host availability vedou k jednoznacnemu owner-facing publish/verify/import rozhodnuti bez driftu na integration boundary.
-* Pri tomto overeni potvrdit, ze verejne uspesny `Windows Tests` signal opravdu odpovida stejnemu publishovanemu decision surface, ktery ma byt podkladem pro dalsi checksum-safe multiplayer handoff krok.
+* Nejprve potvrdit dobeh `Windows Tests` pro aktualni verejny denikovy head `c0d4a44`, aby i verejny zdroj pravdy mel uzavreny CI signal pro dnesni stav.
+* Potom navazat explicitnim end-to-end overenim toho, ze continuity signal, degraded MP handoff guidance a previous host availability vedou k jednoznacnemu owner-facing publish/verify/import rozhodnuti bez driftu na integration boundary.
 
 ## 2026-06-04
 
