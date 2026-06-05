@@ -369,6 +369,10 @@ void appendMpPackageSummaryLines(
     if (!mpOverlayPackage.handoffStatus.empty()) {
         output << "mp_handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
     }
+    output << "mp_previous_host_available: "
+           << (mpOverlayPackage.previousHostAvailable ? "true" : "false") << "\n";
+    output << "mp_previous_host_available_known: "
+           << (mpOverlayPackage.previousHostAvailableKnown ? "true" : "false") << "\n";
     if (!mpOverlayPackage.readiness.empty()) {
         output << "mp_readiness: " << mpOverlayPackage.readiness << "\n";
     }
@@ -973,6 +977,10 @@ void writeNextStepsBrief(
         brief << " (" << mpOverlayPackage.reason << ")";
     }
     brief << "\n";
+    brief << "- MP previous host available: "
+          << (mpOverlayPackage.previousHostAvailable ? "ano" : "ne") << "\n";
+    brief << "- MP previous host availability known: "
+          << (mpOverlayPackage.previousHostAvailableKnown ? "ano" : "ne") << "\n";
     if (!mpOverlayPackage.readiness.empty()) {
         brief << "- MP readiness: " << mpOverlayPackage.readiness << "\n";
     }
