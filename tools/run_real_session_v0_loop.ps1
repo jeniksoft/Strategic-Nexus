@@ -329,6 +329,10 @@ function Get-NextActionSummary {
         [string]$MpMismatchWarningState,
         [string]$CompareRecommendation,
         [string]$TrendRecommendation,
+        [string]$CompareMpHandoffFollowUpActive,
+        [string]$CompareMpHandoffFollowUpReason,
+        [string]$TrendMpHandoffFollowUpActive,
+        [string]$TrendMpHandoffFollowUpReason,
         [string]$CompareCampaignLibraryFollowUpActive,
         [string]$CompareCampaignLibraryFollowUpReason,
         [string]$TrendCampaignLibraryFollowUpActive,
@@ -367,6 +371,33 @@ function Get-NextActionSummary {
             reason = "identity_risk_warning_active"
             command_hint = $preferredIdentityRiskHint.command_hint
             command_hint_source = $preferredIdentityRiskHint.command_hint_source
+        }
+    }
+
+    if ($CompareRecommendation -eq "review_mp_handoff_continuity" -or
+        $TrendRecommendation -eq "review_mp_handoff_continuity" -or
+        $CompareMpHandoffFollowUpActive -eq "true" -or
+        $TrendMpHandoffFollowUpActive -eq "true") {
+        $preferredHandoffHint = Get-FirstCommandHintChoice -Choices @(
+            (New-CommandHintChoice -CommandHint $CompareCommandHint -Source "compare_mp_handoff_follow_up"),
+            (New-CommandHintChoice -CommandHint $TrendLatestCompareCommandHint -Source "trend_mp_handoff_follow_up")
+        )
+        $handoffReason = "mp_handoff_follow_up_active"
+        if ($CompareMpHandoffFollowUpActive -eq "true" -and
+            -not [string]::IsNullOrWhiteSpace($CompareMpHandoffFollowUpReason) -and
+            $CompareMpHandoffFollowUpReason -ne "none") {
+            $handoffReason = "compare_" + $CompareMpHandoffFollowUpReason
+        }
+        elseif ($TrendMpHandoffFollowUpActive -eq "true" -and
+                -not [string]::IsNullOrWhiteSpace($TrendMpHandoffFollowUpReason) -and
+                $TrendMpHandoffFollowUpReason -ne "none") {
+            $handoffReason = "trend_" + $TrendMpHandoffFollowUpReason
+        }
+        return [ordered]@{
+            action = "review_mp_handoff_continuity"
+            reason = $handoffReason
+            command_hint = $preferredHandoffHint.command_hint
+            command_hint_source = $preferredHandoffHint.command_hint_source
         }
     }
 
@@ -1267,6 +1298,8 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareCampaignLibrarySkippedDueToLimitCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_current"
     $compareCampaignLibrarySkippedDueToLimitCountPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_previous"
     $compareCampaignLibrarySkippedDueToLimitCountChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed"
+    $compareMpHandoffFollowUpActive = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_handoff_follow_up_active"
+    $compareMpHandoffFollowUpReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_handoff_follow_up_reason"
     $compareCampaignLibraryFollowUpActive = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_follow_up_active"
     $compareCampaignLibraryFollowUpReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_follow_up_reason"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
@@ -1392,7 +1425,7 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     if ([string]::IsNullOrWhiteSpace($compareCommandHintLine)) {
         throw "Compare output is missing real_session_v0_compare_command_hint."
     }
-    $allowedCompareRecommendations = @("review_observable_deltas", "no_pipeline_delta_detected", "review_identity_risk_warning")
+    $allowedCompareRecommendations = @("review_observable_deltas", "no_pipeline_delta_detected", "review_identity_risk_warning", "review_mp_handoff_continuity")
     if ($allowedCompareRecommendations -notcontains $compareRecommendation) {
         throw "Compare output has unsupported recommendation '$compareRecommendation'."
     }
@@ -1521,6 +1554,8 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_mp_previous_host_available_current=" + $compareMpPreviousHostAvailableCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_mp_previous_host_available_previous=" + $compareMpPreviousHostAvailablePrevious)
     Write-Host ("real_session_v0_loop_compare_auto_mp_previous_host_available_changed=" + $compareMpPreviousHostAvailableChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_handoff_follow_up_active=" + $compareMpHandoffFollowUpActive)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_handoff_follow_up_reason=" + $compareMpHandoffFollowUpReason)
     if (-not [string]::IsNullOrWhiteSpace($compareMpVerifyCommandCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_verify_command_current=" + $compareMpVerifyCommandCurrent)
     }
@@ -1918,6 +1953,8 @@ if ($EmitTrendSummary) {
     $trendMpMismatchWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_mismatch_warning_codes_changed"
     $trendMpMismatchWarningCodesPrevious = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_mismatch_warning_code_previous"
     $trendMpMismatchWarningCodesCurrent = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_mismatch_warning_code_current"
+    $trendMpHandoffFollowUpActive = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_handoff_follow_up_active"
+    $trendMpHandoffFollowUpReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_handoff_follow_up_reason"
     $trendLatestCompareCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_latest_compare_command_hint"
     $trendNextSessionCommandHint = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_session_command_hint"
     $trendIdentityRiskWarningCodes = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_identity_risk_warning_code"
@@ -1937,7 +1974,7 @@ if ($EmitTrendSummary) {
         [string]::IsNullOrWhiteSpace($trendNextSessionCommandHint)) {
         throw "Trend output is missing required fields."
     }
-    $allowedTrendRecommendations = @("review_observable_deltas", "review_identity_risk_warning", "no_pipeline_delta_detected", "need_more_real_sessions")
+    $allowedTrendRecommendations = @("review_observable_deltas", "review_identity_risk_warning", "review_mp_handoff_continuity", "no_pipeline_delta_detected", "need_more_real_sessions")
     if ($allowedTrendRecommendations -notcontains $trendRecommendation) {
         throw "Trend output has unsupported recommendation '$trendRecommendation'."
     }
@@ -2110,6 +2147,8 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_mp_previous_host_available_current=" + $trendMpPreviousHostAvailableCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_mp_previous_host_available_previous=" + $trendMpPreviousHostAvailablePrevious)
     Write-Host ("real_session_v0_loop_trend_auto_mp_previous_host_available_changed=" + $trendMpPreviousHostAvailableChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_handoff_follow_up_active=" + $trendMpHandoffFollowUpActive)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_handoff_follow_up_reason=" + $trendMpHandoffFollowUpReason)
     if (-not [string]::IsNullOrWhiteSpace($trendMpVerifyCommandCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_verify_command_current=" + $trendMpVerifyCommandCurrent)
     }
@@ -2247,6 +2286,10 @@ $nextActionSummary = Get-NextActionSummary `
     -MpMismatchWarningState $mpPackageMismatchWarningState `
     -CompareRecommendation (Get-VariableOrDefault -Name "compareRecommendation") `
     -TrendRecommendation (Get-VariableOrDefault -Name "trendRecommendation") `
+    -CompareMpHandoffFollowUpActive (Get-VariableOrDefault -Name "compareMpHandoffFollowUpActive") `
+    -CompareMpHandoffFollowUpReason (Get-VariableOrDefault -Name "compareMpHandoffFollowUpReason") `
+    -TrendMpHandoffFollowUpActive (Get-VariableOrDefault -Name "trendMpHandoffFollowUpActive") `
+    -TrendMpHandoffFollowUpReason (Get-VariableOrDefault -Name "trendMpHandoffFollowUpReason") `
     -CompareCampaignLibraryFollowUpActive (Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpActive") `
     -CompareCampaignLibraryFollowUpReason (Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpReason") `
     -TrendCampaignLibraryFollowUpActive (Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpActive") `
@@ -2343,6 +2386,7 @@ if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "compareRecom
         "- Compare skipped-count previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibrarySkippedDueToLimitCountChanged")"
         "- Compare reason previous/current/changed: $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonPrevious") -> $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonCurrent") / $(Get-VariableOrDefault -Name "compareCampaignLibraryPlanReasonChanged")"
         "- Compare follow-up active/reason: $(Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpActive") / $(Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpReason")"
+        "- Compare MP handoff follow-up active/reason: $(Get-VariableOrDefault -Name "compareMpHandoffFollowUpActive") / $(Get-VariableOrDefault -Name "compareMpHandoffFollowUpReason")"
     )
 }
 if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "trendOutputJsonLine"))) {
@@ -2352,6 +2396,7 @@ if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "trendOutputJ
         "- Trend skipped-count previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibrarySkippedDueToLimitCountChanged")"
         "- Trend reason previous/current/changed: $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonPrevious") -> $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonCurrent") / $(Get-VariableOrDefault -Name "trendCampaignLibraryPlanReasonChanged")"
         "- Trend follow-up active/reason: $(Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpActive") / $(Get-VariableOrDefault -Name "trendCampaignLibraryFollowUpReason")"
+        "- Trend MP handoff follow-up active/reason: $(Get-VariableOrDefault -Name "trendMpHandoffFollowUpActive") / $(Get-VariableOrDefault -Name "trendMpHandoffFollowUpReason")"
     )
 }
 if ($ExportMpPackage) {
@@ -2646,6 +2691,8 @@ $sessionEvidence = [ordered]@{
             previous_host_available_current = (Get-VariableOrDefault -Name "compareMpPreviousHostAvailableCurrent")
             previous_host_available_previous = (Get-VariableOrDefault -Name "compareMpPreviousHostAvailablePrevious")
             previous_host_available_changed = (Get-VariableOrDefault -Name "compareMpPreviousHostAvailableChanged")
+            handoff_follow_up_active = (Get-VariableOrDefault -Name "compareMpHandoffFollowUpActive")
+            handoff_follow_up_reason = (Get-VariableOrDefault -Name "compareMpHandoffFollowUpReason")
             verify_command_current = (Get-VariableOrDefault -Name "compareMpVerifyCommandCurrent")
             verify_command_previous = (Get-VariableOrDefault -Name "compareMpVerifyCommandPrevious")
             verify_command_changed = (Get-VariableOrDefault -Name "compareMpVerifyCommandChanged")
@@ -2823,6 +2870,8 @@ $sessionEvidence = [ordered]@{
             previous_host_available_current = (Get-VariableOrDefault -Name "trendMpPreviousHostAvailableCurrent")
             previous_host_available_previous = (Get-VariableOrDefault -Name "trendMpPreviousHostAvailablePrevious")
             previous_host_available_changed = (Get-VariableOrDefault -Name "trendMpPreviousHostAvailableChanged")
+            handoff_follow_up_active = (Get-VariableOrDefault -Name "trendMpHandoffFollowUpActive")
+            handoff_follow_up_reason = (Get-VariableOrDefault -Name "trendMpHandoffFollowUpReason")
             verify_command_current = (Get-VariableOrDefault -Name "trendMpVerifyCommandCurrent")
             verify_command_previous = (Get-VariableOrDefault -Name "trendMpVerifyCommandPrevious")
             verify_command_changed = (Get-VariableOrDefault -Name "trendMpVerifyCommandChanged")

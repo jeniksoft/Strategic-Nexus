@@ -205,6 +205,8 @@ $latestMpMismatchWarningReasonChanged = ""
 $latestMpMismatchWarningCodesChanged = ""
 $latestMpMismatchWarningCodesPrevious = @()
 $latestMpMismatchWarningCodesCurrent = @()
+$latestMpHandoffFollowUpActive = "false"
+$latestMpHandoffFollowUpReason = "none"
 if ($sessionCount -ge 1) {
     $latest = $sessions[$sessionCount - 1]
     $latestSessionId = $latest.session_id
@@ -368,6 +370,8 @@ if ($sessionCount -ge 2) {
     $compareMpPreviousHostAvailableCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_previous_host_available_current=*" } | Select-Object -First 1
     $compareMpPreviousHostAvailablePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_previous_host_available_previous=*" } | Select-Object -First 1
     $compareMpPreviousHostAvailableChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_previous_host_available_changed=*" } | Select-Object -First 1
+    $compareMpHandoffFollowUpActiveLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_handoff_follow_up_active=*" } | Select-Object -First 1
+    $compareMpHandoffFollowUpReasonLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_handoff_follow_up_reason=*" } | Select-Object -First 1
     $compareMpVerifyCommandCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_current=*" } | Select-Object -First 1
     $compareMpVerifyCommandPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_previous=*" } | Select-Object -First 1
     $compareMpVerifyCommandChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_verify_command_changed=*" } | Select-Object -First 1
@@ -792,6 +796,12 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpPreviousHostAvailableChangedLine)) {
         $latestMpPreviousHostAvailableChanged = $compareMpPreviousHostAvailableChangedLine.Substring("real_session_v0_compare_mp_previous_host_available_changed=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHandoffFollowUpActiveLine)) {
+        $latestMpHandoffFollowUpActive = $compareMpHandoffFollowUpActiveLine.Substring("real_session_v0_compare_mp_handoff_follow_up_active=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpHandoffFollowUpReasonLine)) {
+        $latestMpHandoffFollowUpReason = $compareMpHandoffFollowUpReasonLine.Substring("real_session_v0_compare_mp_handoff_follow_up_reason=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpVerifyCommandCurrentLine)) {
         $latestMpVerifyCommandCurrent = $compareMpVerifyCommandCurrentLine.Substring("real_session_v0_compare_mp_verify_command_current=".Length)
     }
@@ -909,6 +919,9 @@ if ($sessionCount -ge 2) {
 
     if ($latestIdentityRiskWarning -eq "true") {
         $latestTrendRecommendation = "review_identity_risk_warning"
+    }
+    elseif ($latestMpHandoffFollowUpActive -eq "true") {
+        $latestTrendRecommendation = "review_mp_handoff_continuity"
     }
     elseif (($latestDeltaOverlayChanged -eq "true") -or ([int]$latestDeltaArchiveSaveCountDelta -ne 0) -or ($latestDeltaGameplayChanged -eq "true")) {
         $latestTrendRecommendation = "review_observable_deltas"
@@ -1340,6 +1353,8 @@ Write-Host ("real_session_v0_trend_mp_handoff_status_changed=" + $latestMpHandof
 Write-Host ("real_session_v0_trend_mp_previous_host_available_current=" + $latestMpPreviousHostAvailableCurrent)
 Write-Host ("real_session_v0_trend_mp_previous_host_available_previous=" + $latestMpPreviousHostAvailablePrevious)
 Write-Host ("real_session_v0_trend_mp_previous_host_available_changed=" + $latestMpPreviousHostAvailableChanged)
+Write-Host ("real_session_v0_trend_mp_handoff_follow_up_active=" + $latestMpHandoffFollowUpActive)
+Write-Host ("real_session_v0_trend_mp_handoff_follow_up_reason=" + $latestMpHandoffFollowUpReason)
 if (-not [string]::IsNullOrWhiteSpace($latestMpVerifyCommandCurrent)) {
     Write-Host ("real_session_v0_trend_mp_verify_command_current=" + $latestMpVerifyCommandCurrent)
 }

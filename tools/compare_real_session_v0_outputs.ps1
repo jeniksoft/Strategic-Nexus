@@ -438,6 +438,31 @@ if (-not $overlayChanged -and $previousArchiveCount -eq $currentArchiveCount -an
 if ($identityRiskWarning) {
     $recommendation = "review_identity_risk_warning"
 }
+$mpHandoffFollowUpActive = $false
+$mpHandoffFollowUpReason = "none"
+if ($currentMpPreviousHostAvailable -eq "false") {
+    $mpHandoffFollowUpActive = $true
+    $mpHandoffFollowUpReason = "current_previous_host_unavailable"
+}
+elseif (-not [string]::IsNullOrWhiteSpace($currentMpHandoffStatus) -and $currentMpHandoffStatus -ne "complete") {
+    $mpHandoffFollowUpActive = $true
+    $mpHandoffFollowUpReason = "current_handoff_status_not_complete"
+}
+elseif ($previousMpHandoffStatus -ne $currentMpHandoffStatus -and
+        (-not [string]::IsNullOrWhiteSpace($previousMpHandoffStatus) -or
+         -not [string]::IsNullOrWhiteSpace($currentMpHandoffStatus))) {
+    $mpHandoffFollowUpActive = $true
+    $mpHandoffFollowUpReason = "handoff_status_changed_between_sessions"
+}
+elseif ($previousMpPreviousHostAvailable -ne $currentMpPreviousHostAvailable -and
+        (-not [string]::IsNullOrWhiteSpace($previousMpPreviousHostAvailable) -or
+         -not [string]::IsNullOrWhiteSpace($currentMpPreviousHostAvailable))) {
+    $mpHandoffFollowUpActive = $true
+    $mpHandoffFollowUpReason = "previous_host_availability_changed_between_sessions"
+}
+if (-not $identityRiskWarning -and $mpHandoffFollowUpActive) {
+    $recommendation = "review_mp_handoff_continuity"
+}
 $campaignLibraryFollowUpActive = $false
 $campaignLibraryFollowUpReason = "none"
 $previousCampaignLibrarySkippedDueToLimitCountParsed = Parse-OptionalInt -Value $previousCampaignLibrarySkippedDueToLimitCount
@@ -722,6 +747,11 @@ $result = [ordered]@{
         current = $currentMpPreviousHostAvailable
         changed = ($previousMpPreviousHostAvailable -ne $currentMpPreviousHostAvailable)
     }
+    mp_handoff_follow_up = [ordered]@{
+        active = $mpHandoffFollowUpActive
+        reason = $mpHandoffFollowUpReason
+        command_hint = $compareCommandHint
+    }
     mp_verify_command = [ordered]@{
         previous = $previousMpVerifyCommand
         current = $currentMpVerifyCommand
@@ -917,6 +947,9 @@ Write-Host ("real_session_v0_compare_mp_handoff_status_changed=" + ((($previousM
 Write-Host ("real_session_v0_compare_mp_previous_host_available_current=" + $currentMpPreviousHostAvailable)
 Write-Host ("real_session_v0_compare_mp_previous_host_available_previous=" + $previousMpPreviousHostAvailable)
 Write-Host ("real_session_v0_compare_mp_previous_host_available_changed=" + ((($previousMpPreviousHostAvailable -ne $currentMpPreviousHostAvailable).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_handoff_follow_up_active=" + ($mpHandoffFollowUpActive.ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_handoff_follow_up_reason=" + $mpHandoffFollowUpReason)
+Write-Host ("real_session_v0_compare_mp_handoff_follow_up_command_hint=" + $compareCommandHint)
 Write-Host ("real_session_v0_compare_mp_verify_command_current=" + $currentMpVerifyCommand)
 Write-Host ("real_session_v0_compare_mp_verify_command_previous=" + $previousMpVerifyCommand)
 Write-Host ("real_session_v0_compare_mp_verify_command_changed=" + ((($previousMpVerifyCommand -ne $currentMpVerifyCommand).ToString().ToLowerInvariant())))

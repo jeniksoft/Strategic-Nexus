@@ -2213,6 +2213,50 @@ function Invoke-RealSessionTrendIdentityRiskPriorityCase {
     Write-Host "[PASS] real_session_trend_identity_risk_priority"
 }
 
+function Invoke-RealSessionTrendHandoffContinuityPriorityCase {
+    $sourceSessionDir = Join-Path $repoRoot "dist/real_session_v0_loop/session_manual_smoke_mp5"
+    $trendFixtureRoot = Join-Path $repoRoot "dist/test_trend_mp_handoff_priority"
+    $sessionA = Join-Path $trendFixtureRoot "session_a"
+    $sessionB = Join-Path $trendFixtureRoot "session_b"
+
+    Remove-Item -LiteralPath $trendFixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Copy-Item -LiteralPath $sourceSessionDir -Destination $sessionA -Recurse
+    Copy-Item -LiteralPath $sourceSessionDir -Destination $sessionB -Recurse
+
+    $sessionBStatusWithMpPath = Join-Path $sessionB "snc_status_snapshot_with_mp.json"
+    $sessionBStatusWithMp = Get-Content -Raw -LiteralPath $sessionBStatusWithMpPath | ConvertFrom-Json
+    $sessionBStatusWithMp.mp_overlay_package_status.handoff_status = "degraded_previous_host_unavailable"
+    $sessionBStatusWithMp | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $sessionBStatusWithMpPath -Encoding UTF8
+
+    # Force an additional observable delta so recommendation priority is exercised.
+    $summaryBPath = Join-Path $sessionB "work/archive_summary.json"
+    $summaryB = Get-Content -Raw -LiteralPath $summaryBPath | ConvertFrom-Json
+    $summaryB.copied_save_count = [int]$summaryB.copied_save_count + 1
+    $summaryB | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $summaryBPath -Encoding UTF8
+
+    $compareOutputPath = Join-Path $trendFixtureRoot "compare_output.json"
+    $compareOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "compare_real_session_v0_outputs.ps1") $sessionA $sessionB $compareOutputPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "real session trend handoff continuity case failed running compare (exit code $LASTEXITCODE)."
+    }
+    $compareText = $compareOutput -join "`n"
+    Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_recommendation=review_mp_handoff_continuity"
+    Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_mp_handoff_follow_up_active=true"
+    Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_mp_handoff_follow_up_reason=current_previous_host_unavailable"
+
+    $trendOutputPath = Join-Path $trendFixtureRoot "trend_output.json"
+    $trendOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1") $trendFixtureRoot $trendOutputPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "real session trend handoff continuity case failed running trend analyzer (exit code $LASTEXITCODE)."
+    }
+    $trendText = $trendOutput -join "`n"
+    Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_recommendation=review_mp_handoff_continuity"
+    Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_mp_handoff_follow_up_active=true"
+    Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_mp_handoff_follow_up_reason=current_previous_host_unavailable"
+    Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_observable_effect_signal=true"
+    Write-Host "[PASS] real_session_trend_handoff_continuity_priority"
+}
+
 function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     $fixtureRoot = Join-Path $repoRoot "dist/test_compare_identity_risk"
     $prevDir = Join-Path $fixtureRoot "prev"
@@ -2351,7 +2395,15 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     $saveRoot = Join-Path $repoRoot "dist/test_real_session_loop_saves"
     $archiveRoot = Join-Path $repoRoot "dist/test_real_session_loop_archive"
     $dslPath = Join-Path $repoRoot "resources/generated_overlay_valid.dsl"
-    $previousSessionDir = Join-Path $repoRoot "dist/real_session_v0_loop/session_manual_smoke_mp5"
+    $previousSessionSourceDir = Join-Path $repoRoot "dist/real_session_v0_loop/session_manual_smoke_mp5"
+    $previousSessionFixtureRoot = Join-Path $repoRoot "dist/test_real_session_loop_previous_for_handoff"
+    Remove-Item -LiteralPath $previousSessionFixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Copy-Item -LiteralPath $previousSessionSourceDir -Destination $previousSessionFixtureRoot -Recurse
+    $previousStatusWithMpPath = Join-Path $previousSessionFixtureRoot "snc_status_snapshot_with_mp.json"
+    $previousStatusWithMp = Get-Content -Raw -LiteralPath $previousStatusWithMpPath | ConvertFrom-Json
+    $previousStatusWithMp.mp_overlay_package_status.handoff_status = "degraded_previous_host_unavailable"
+    $previousStatusWithMp | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $previousStatusWithMpPath -Encoding UTF8
+    $previousSessionDir = $previousSessionFixtureRoot
     $sessionId = "session_test_mismatch_forwarding_" + [DateTime]::UtcNow.ToString("yyyyMMdd_HHmmss")
 
     $output = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "run_real_session_v0_loop.ps1") `
@@ -2408,6 +2460,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_package_zip_bytes_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_handoff_status_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_previous_host_available_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_recommendation=review_mp_handoff_continuity"
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_handoff_follow_up_active=true"
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_mp_handoff_follow_up_reason=handoff_status_changed_between_sessions"
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_game_version_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_campaign_id_mismatch_warning_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_mp_overlay_version_mismatch_warning_current="
@@ -2463,8 +2518,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_reason="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source="
-    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action=review_campaign_library_coverage"
-    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source=compare_campaign_library_follow_up"
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action=review_mp_handoff_continuity"
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_reason=compare_handoff_status_changed_between_sessions"
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_action_command_hint_source=compare_mp_handoff_follow_up"
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected 'real_session_v0_loop_next_action_command_hint=cmd /c tools\compare_real_session_v0_outputs.cmd "'
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_path_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_next_action_path_previous="
@@ -2571,6 +2627,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Trend readiness previous/current/changed:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Compare follow-up active/reason:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Trend follow-up active/reason:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Compare MP handoff follow-up active/reason:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Trend MP handoff follow-up active/reason:"
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"archive"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"copied_save_count"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence archive" -Text $evidenceText -Expected '"last_archived_path"'
@@ -2603,6 +2661,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"limit_reached_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"follow_up_active"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"follow_up_reason"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"handoff_follow_up_active"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"handoff_follow_up_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_state_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_reason_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto compare" -Text $evidenceText -Expected '"package_zip_sha256_current"'
@@ -2639,6 +2699,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"limit_reached_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"follow_up_active"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"follow_up_reason"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"handoff_follow_up_active"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"handoff_follow_up_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence status center" -Text $evidenceText -Expected '"status_center"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence status center" -Text $evidenceText -Expected '"summary_present"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"entry_point_reason"'
@@ -2653,8 +2715,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"generated_overlay_staging_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"next_action"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"command_hint_source"'
-    Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"review_campaign_library_coverage"'
-    Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"compare_campaign_library_follow_up"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"review_mp_handoff_continuity"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence next action" -Text $evidenceText -Expected '"compare_mp_handoff_follow_up"'
     if ($evidenceText -match [regex]::Escape("System.Object[]")) {
         throw "real session loop mismatch forwarding evidence arrays contains serialized System.Object[] placeholder."
     }
@@ -3323,6 +3385,7 @@ Invoke-SncStatusSnapshotCase
 Invoke-AutosaveArchiveCase
 Invoke-AutosaveArchiveVerifyMismatchCase
 Invoke-RealSessionTrendIdentityRiskPriorityCase
+Invoke-RealSessionTrendHandoffContinuityPriorityCase
 Invoke-RealSessionWarningCodeDriftSurfaceCase
 Invoke-RealSessionLoopMpSnapshotContractCase
 Invoke-RealSessionLoopNextActionStrictVerifySourceContractCase
