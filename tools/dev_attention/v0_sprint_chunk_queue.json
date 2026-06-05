@@ -1,41 +1,41 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-05T17:10:00+02:00",
+  "updated_at": "2026-06-05T20:48:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. New approved direction: prove the smallest legal reactive policy-pack slice so a loaded mod can react in-session through precompiled branches.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "Reactive policy-pack manifest/status groundwork shipped; next bounded work is handwritten-kernel monthly dispatcher wiring plus roadmap/report refresh",
+  "current_source": "Monthly dispatcher bridge shipped; next bounded work is owner-facing reactive capability/source-quality visibility plus follow-up refresh",
   "chunks": [
     {
-      "id": "v0-sprint-054-reactive-policy-pack-monthly-dispatcher-kernel-bridge",
-      "title": "Wire monthly reactive branch into base policy kernel",
+      "id": "v0-sprint-056-reactive-policy-pack-status-center-capability-signal",
+      "title": "Surface reactive capability in Status Center",
       "status": "ready",
       "lane": "implementation",
-      "roadmap_anchor": "Core Runtime Skeleton / generated reactive policy pack",
-      "goal": "Connect the first allowlisted `event_family = monthly_strategy_tick` branch to the handwritten monthly policy-kernel path so reactive-capable generated overlays are not manifest-only.",
+      "roadmap_anchor": "Status Center visibility / generated reactive policy pack",
+      "goal": "Expose generated-overlay reactive capability (`post_session_only` vs `event_family_dispatch`), event-family coverage, and bounded bootstrap/source-quality signals in owner-facing Status Center, tray, and stable CLI surfaces.",
       "acceptance": [
-        "The handwritten base mod / monthly dispatcher path has a stable allowlisted touchpoint for generated `monthly_strategy_tick` rules.",
-        "Generated evidence proves the monthly reactive branch is wired intentionally, not only recorded in manifest metadata.",
-        "Raw `on_*` names remain compiler-owned and still fail closed in DSL validation.",
-        "Targeted regression coverage verifies the generated overlay and handwritten kernel stay aligned on the monthly reactive branch path."
+        "Owner-facing readiness surfaces can distinguish a post-session-only overlay from an event-family-dispatch reactive overlay without opening the manifest by hand.",
+        "At least one bounded source-quality/bootstrap provenance signal from the generated manifest is surfaced where the owner can actually see it.",
+        "Missing or malformed manifest metadata fails closed to an unknown/attention signal instead of silently claiming reactive capability.",
+        "Regression coverage proves the surfaced capability/source-quality fields stay aligned with generated-overlay manifest metadata."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1",
-        "tools/run_generated_overlay_gameplay_acceptance.ps1"
+        "tools/smoke_snc_tray.ps1"
       ],
       "dependencies": []
     },
     {
-      "id": "v0-sprint-055-roadmap-progress-refresh-after-reactive-policy-groundwork",
-      "title": "Refresh progress after reactive policy groundwork",
+      "id": "v0-sprint-057-roadmap-progress-refresh-after-reactive-capability-signal",
+      "title": "Refresh progress after reactive capability signal",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after chunks 050/052/053 landed.",
+      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after the reactive capability/source-quality visibility slice lands.",
       "acceptance": [
-        "Roadmap notes mention the shipped tray lifecycle JSON surface and generated-overlay source-quality/reactive manifest metadata.",
+        "Roadmap notes mention the shipped handwritten monthly dispatcher bridge and the owner-facing reactive capability/source-quality visibility state.",
         "The sprint queue advances to the next missing bounded roadmap slice instead of leaving completed lifecycle/reactive groundwork chunks as ready.",
         "The daily freework report for 2026-06-05 is replaced, not duplicated."
       ],
@@ -45,7 +45,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-054-reactive-policy-pack-monthly-dispatcher-kernel-bridge"
+        "v0-sprint-056-reactive-policy-pack-status-center-capability-signal"
       ]
     }
   ]
