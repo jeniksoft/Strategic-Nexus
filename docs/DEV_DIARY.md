@@ -64,6 +64,41 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-05
+
+Projekt dnes posunul hlavne citelnost continuity a handoff signalu na SNC a real-session vrstve. Nejde o rozsirovani runtime pravomoci; jde o dalsi zpresneni integration boundary mezi post-play evidenci, multiplayer handoff pripravou a owner-facing dalsim krokem v host-authoritative modelu.
+
+Co pribylo v repozitari:
+
+* Lokalni head od posledniho verejneho denikoveho zapisu pridal souvislou commit radu `Surface MP handoff continuity across real-session evidence`, `Promote MP handoff continuity follow-up guidance`, `Promote degraded MP handoff into SNC next action` a `Surface previous host availability in SNC status`, prubezne doplnenou navazujicimi roadmap refresh commity.
+* Real-session trend, compare a loop skripty byly upraveny tak, aby lepe nesly continuity signal kolem MP handoff stavu a navazujiciho follow-up guidance. To zmensuje interpretacni mezeru mezi archivovanou post-play evidenci a tim, co ma SNC doporucit jako dalsi krok.
+* `StrategicNexusCompanion` a tray surface nove vystavuji nejen degradovany MP handoff jako explicitni next-action signal, ale i informaci o predchozi dostupnosti hosta. Owner-facing status tak lepe odlisuje bezny navazujici krok od situace, kdy continuity nebo handoff zustavaji jen castecne potvrzene.
+* `docs/DEVELOPMENT_ROADMAP.md` byl prubezne sladen s touto zmenou, aby continuity surface a handoff guidance nezustaly jen implicitni v implementaci a pomocnych skriptech.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt se posouva od prostych readiness poli k presnejsimu vykladu continuity mezi real-session evidenci, handoff pripravenosti a dalsim owner-approved krokem. To je dulezite hlavne na integration boundary, kde je potreba jasne odlisit pripraveny stav od degradovaneho, ale stale interpretovatelneho stavu.
+* Explicitni signal predchozi host availability pomaha host-authoritative modelu lepe vylozit, zda je scripted event/effect path pripraveny na dalsi session, nebo zda ma byt dalsi doporuceni konzervativnejsi a vice zamerene na potvrzeni continuity.
+* Dnesni posun je stale interoperabilni a observability-focused: zpresnuje rozhodovaci rozhrani a handoff vyklad, ale sam o sobe jeste neuzavira finalni export/import contract ani checksum-safe multiplayer distribucni workflow.
+
+Testy a stav overeni:
+
+* Lokalni pracovni strom byl pred touto denikovou upravou cisty, ale `HEAD` je v okamziku zapisu `ahead 7` oproti `origin/master`; dnesni implementacni commity tedy jeste nejsou na verejnem GitHub headu.
+* Posledni verejne dohledatelny GitHub Actions `Windows Tests` signal je pro commit `Stabilize usage budget cadence helpers` (`363bcc0`) vytvoreny 4.6.2026 ve 23:50:34 CEST a dokoncen se stavem `success` ve 23:54:21 CEST.
+* Pro dnesni ranni commit radu od `Surface MP handoff continuity across real-session evidence` po `Refresh roadmap after SNC continuity surface` nebyl v tomto behu jeste dostupny odpovidajici verejny CI vysledek, protoze tyto commity zatim nejsou pushnute.
+* Tento denikovy beh nespoustel novy plny lokalni test run; zapis shrnuje lokalni commit historii, stav vetve vuci `origin/master` a posledni verejne dostupny GitHub Actions signal.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi plne uzavreny checksum-safe multiplayer distribucni workflow mezi owner-approved publish krokem a dalsimi ucastniky.
+* Continuity a host-availability surface zlepsuji interpretaci stavu, ale samy o sobe jeste neuzaviraji finalni export/import contract, campaign marker handshake ani empire identity resolver.
+* Rizikem zustava, ze owner-facing handoff guidance bude presnejsi rychleji nez posledni interoperabilni krok skutecneho publish/verify/import doruceni; bez dalsiho end-to-end potvrzeni muze byt rozhodovaci rozhrani citelnejsi nez samotne finalni predani artefaktu.
+
+Doporuceny dalsi krok:
+
+* Pushnout aktualni lokalni head vcetne teto denikove aktualizace a potvrdit navazujici verejny `Windows Tests` signal pro continuity a handoff zmeny z 5.6.2026.
+* Potom navazat explicitnim end-to-end overenim toho, ze continuity signal, degraded MP handoff guidance a previous host availability vedou k jednoznacnemu owner-facing publish/verify/import rozhodnuti bez driftu na integration boundary.
+
 ## 2026-06-04
 
 Projekt dnes posunul hlavne fail-closed chovani generated overlay cesty pri nepodporovanych runtime podminkach a soucasne zpresnil owner-facing dalsi krok, ktery SNC a tray vrstva vystavuji po dobehnuti post-play pipeline. Nejde o rozsireni runtime pravomoci; jde o dalsi zpevneni integration boundary mezi staged generated overlay artefaktem, post-play observability a explicitnim owner-facing rozhodnutim, co ma nasledovat.
