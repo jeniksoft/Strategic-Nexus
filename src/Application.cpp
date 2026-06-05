@@ -1723,6 +1723,8 @@ int Application::run(const RunConfig& config) const
                       << sanitizeCliValue(snapshot.mpOverlayPackage.packageZipReason) << "\n";
             std::cout << "snc_mp_overlay_package_zip_path="
                       << sanitizeCliValue(stdoutPath(snapshot.mpOverlayPackage.packageZipPath)) << "\n";
+            std::cout << "snc_mp_overlay_package_zip_hash="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.packageZipHash) << "\n";
             std::cout << "snc_mp_overlay_package_zip_bytes=" << snapshot.mpOverlayPackage.packageZipBytes << "\n";
             std::cout << "snc_mp_overlay_package_campaign_id=" << sanitizeCliValue(snapshot.mpOverlayPackage.campaignId) << "\n";
             std::cout << "snc_mp_overlay_package_overlay_version=" << sanitizeCliValue(snapshot.mpOverlayPackage.overlayVersion) << "\n";

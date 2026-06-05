@@ -42,6 +42,14 @@ struct MpOverlayPackageExportResult {
     std::vector<MpOverlayPackageFileVerification> files;
 };
 
+struct MpOverlayPackageZipExportResult {
+    bool ok = false;
+    std::string reason;
+    std::filesystem::path packageZipPath;
+    std::string packageZipHash;
+    std::uintmax_t packageZipBytes = 0;
+};
+
 struct MpOverlayPackageImportResult {
     bool ok = false;
     std::string reason;
@@ -66,6 +74,10 @@ public:
         const std::string& strategicNexusModVersion,
         const std::filesystem::path& outputPackageDirectory,
         bool previousHostAvailable) const;
+
+    MpOverlayPackageZipExportResult exportPackageZip(
+        const std::filesystem::path& packageDirectory,
+        const std::filesystem::path& outputZipPath) const;
 };
 
 class MpOverlayPackageVerifier {

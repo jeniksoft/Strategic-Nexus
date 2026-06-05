@@ -1076,6 +1076,19 @@ void populateMpOverlayPackageZipStatus(
     status.packageZipReason = "mp overlay package zip ready for handoff";
 }
 
+std::filesystem::path resolveMpOverlayPackageZipPath(
+    const CompanionMpOverlayPackageStatus& status,
+    const std::filesystem::path& configuredZipPath)
+{
+    if (!configuredZipPath.empty()) {
+        return configuredZipPath;
+    }
+    if (status.path.empty()) {
+        return std::filesystem::path();
+    }
+    return status.path.parent_path() / "snc_mp_overlay_package.zip";
+}
+
 CompanionSubsystemStatus buildGameplayAcceptanceStatus(const std::filesystem::path& reportPath)
 {
     CompanionSubsystemStatus status;
@@ -1771,6 +1784,9 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.packageZipPath.empty()) {
         text << "mp_package_zip_path: " << pathString(mpOverlayPackage.packageZipPath) << "\n";
     }
+    if (!mpOverlayPackage.packageZipHash.empty()) {
+        text << "mp_package_zip_hash: " << mpOverlayPackage.packageZipHash << "\n";
+    }
     if (!mpOverlayPackage.packageZipState.empty()) {
         text << "mp_package_zip_bytes: " << mpOverlayPackage.packageZipBytes << "\n";
     }
@@ -2200,6 +2216,7 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"package_zip_state\": " << jsonString(status.packageZipState) << ",\n";
     output << indent << "  \"package_zip_reason\": " << jsonString(status.packageZipReason) << ",\n";
     output << indent << "  \"package_zip_path\": " << jsonString(pathString(status.packageZipPath)) << ",\n";
+    output << indent << "  \"package_zip_hash\": " << jsonString(status.packageZipHash) << ",\n";
     output << indent << "  \"package_zip_bytes\": " << status.packageZipBytes << ",\n";
     output << indent << "  \"campaign_id\": " << jsonString(status.campaignId) << ",\n";
     output << indent << "  \"overlay_version\": " << jsonString(status.overlayVersion) << ",\n";
@@ -2350,7 +2367,29 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.generatedOverlay = buildGeneratedOverlayStatus(config.generatedOverlayDirectory);
     snapshot.generatedOverlayPublishGate = buildGeneratedOverlayPublishGateStatus(snapshot.generatedOverlay, config);
     snapshot.mpOverlayPackage = buildMpOverlayPackageStatus(config.mpOverlayPackageDirectory);
-    populateMpOverlayPackageZipStatus(snapshot.mpOverlayPackage, config.mpOverlayPackageZipPath);
+    const auto effectiveMpPackageZipPath =
+        resolveMpOverlayPackageZipPath(snapshot.mpOverlayPackage, config.mpOverlayPackageZipPath);
+    if (snapshot.mpOverlayPackage.state == "ready" && !effectiveMpPackageZipPath.empty()) {
+        const generated_overlay::MpOverlayPackageExporter exporter;
+        const auto zipExportResult = exporter.exportPackageZip(snapshot.mpOverlayPackage.path, effectiveMpPackageZipPath);
+        if (zipExportResult.ok) {
+            snapshot.mpOverlayPackage.packageZipPath = zipExportResult.packageZipPath;
+            snapshot.mpOverlayPackage.packageZipHash = zipExportResult.packageZipHash;
+            snapshot.mpOverlayPackage.packageZipBytes = zipExportResult.packageZipBytes;
+            snapshot.mpOverlayPackage.packageZipState = "ready";
+            snapshot.mpOverlayPackage.packageZipReason = "mp overlay package zip ready for handoff";
+        } else {
+            snapshot.mpOverlayPackage.packageZipPath = zipExportResult.packageZipPath;
+            snapshot.mpOverlayPackage.packageZipState = "needs_attention";
+            snapshot.mpOverlayPackage.packageZipReason = zipExportResult.reason.empty()
+                ? "mp overlay package zip export failed"
+                : zipExportResult.reason;
+            snapshot.mpOverlayPackage.state = "needs_attention";
+            snapshot.mpOverlayPackage.reason = snapshot.mpOverlayPackage.packageZipReason;
+        }
+    } else {
+        populateMpOverlayPackageZipStatus(snapshot.mpOverlayPackage, effectiveMpPackageZipPath);
+    }
     snapshot.postPlayPipeline = buildPostPlayPipelineStatus(config);
     snapshot.gameplayAcceptance = buildGameplayAcceptanceStatus(config.gameplayAcceptanceReportPath);
     snapshot.statusCenter =

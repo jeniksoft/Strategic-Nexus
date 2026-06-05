@@ -1290,14 +1290,20 @@ function Invoke-SncStatusSnapshotCase {
     $archiveRoot = Join-Path $repoRoot "dist/snc_status_archive"
     $overlayRoot = Join-Path $repoRoot "dist/snc_status_overlay"
     $postPlayStatusRoot = Join-Path $repoRoot "dist/snc_status_post_play"
+    $mpPackageRoot = Join-Path $repoRoot "dist/snc_status_mp_package"
     $outputPath = Join-Path $repoRoot "dist/snc_status_snapshot.json"
+    $mpOutputPath = Join-Path $repoRoot "dist/snc_status_snapshot_with_mp.json"
     $stagingStatusPath = Join-Path $postPlayStatusRoot "generated_overlay_staging_status.json"
     $campaignLibraryPlanPath = Join-Path $postPlayStatusRoot "strategic_nexus_campaign_library_plan.json"
     $campaignLibraryPlanCliPath = $campaignLibraryPlanPath -replace '\\','/'
+    $mpPackageZipPath = Join-Path $repoRoot "dist/snc_mp_overlay_package.zip"
+    $mpPackageZipCliPath = $mpPackageZipPath -replace '\\','/'
     Remove-Item -LiteralPath $archiveRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $overlayRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $postPlayStatusRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $mpPackageRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $outputPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $mpOutputPath -Force -ErrorAction SilentlyContinue
 
     New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
     New-Item -ItemType Directory -Force -Path $overlayRoot | Out-Null
@@ -1369,6 +1375,50 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_plan_readiness": "ready"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_skipped_due_to_limit_count": 2'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"status_center":'
+
+    $mpExportOutput = & $exePath `
+        --export-mp-overlay-package `
+        $overlayRoot `
+        "campaign_mp_status_case" `
+        "overlay_v1" `
+        "stellaris_4.x" `
+        "strategic_nexus_v0" `
+        $mpPackageRoot `
+        false
+    if ($LASTEXITCODE -ne 0) {
+        $mpExportText = $mpExportOutput -join "`n"
+        throw "snc_status_snapshot mp package export failed. Actual output:`n$mpExportText"
+    }
+
+    $sncMpOutput = & $exePath `
+        --snc-status-snapshot `
+        $archiveRoot `
+        $overlayRoot `
+        $mpOutputPath `
+        true `
+        $mpPackageRoot `
+        false `
+        $stagingStatusPath
+    $sncMpExitCode = $LASTEXITCODE
+    $sncMpText = $sncMpOutput -join "`n"
+
+    if ($sncMpExitCode -ne 0) {
+        throw "snc_status_snapshot app with mp package failed. Actual output:`n$sncMpText"
+    }
+
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_state=ready"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_state=ready"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_reason=mp overlay package zip ready for handoff"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_path=$mpPackageZipCliPath"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_hash="
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_bytes="
+    if (-not (Test-Path -LiteralPath $mpPackageZipPath)) {
+        throw "snc_status_snapshot current status source did not export expected mp zip: $mpPackageZipPath"
+    }
+    $snapshotWithMpJson = Get-Content -Raw -LiteralPath $mpOutputPath
+    Assert-Contains -Name "snc_status_snapshot mp json" -Text $snapshotWithMpJson -Expected '"package_zip_state": "ready"'
+    Assert-Contains -Name "snc_status_snapshot mp json" -Text $snapshotWithMpJson -Expected '"package_zip_hash": "'
+    Assert-Contains -Name "snc_status_snapshot mp json" -Text $snapshotWithMpJson -Expected '"package_zip_bytes": '
 
     @'
 {

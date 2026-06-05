@@ -121,6 +121,7 @@ struct CompanionMpOverlayPackageStatus {
     std::string packageZipState;
     std::string packageZipReason;
     std::filesystem::path packageZipPath;
+    std::string packageZipHash;
     std::uintmax_t packageZipBytes = 0;
 };
 

@@ -7,7 +7,13 @@
 #include "common/FileUtil.h"
 #include "common/JsonSanity.h"
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <bcrypt.h>
 #include <filesystem>
+#include <fstream>
 #include <optional>
 #include <regex>
 #include <sstream>
@@ -18,6 +24,8 @@
 
 namespace strategic_nexus::generated_overlay {
 namespace {
+
+#pragma comment(lib, "bcrypt.lib")
 
 constexpr const char* generatedManifestFileName = "strategic_nexus_generated_manifest.json";
 constexpr const char* packageManifestFileName = "strategic_nexus_mp_overlay_package_manifest.json";
@@ -31,6 +39,130 @@ struct PackageIdentity {
     std::string strategicNexusModVersion;
     std::string packageManifestHash;
 };
+
+struct ZipFileEntry {
+    std::string relativePath;
+    std::vector<unsigned char> content;
+    std::uint32_t crc32 = 0;
+    std::uint32_t localHeaderOffset = 0;
+};
+
+constexpr std::uint16_t kZipDosTime = 0;
+constexpr std::uint16_t kZipDosDate = 33; // 1980-01-01
+
+void appendLittleEndian16(std::vector<unsigned char>& bytes, const std::uint16_t value)
+{
+    bytes.push_back(static_cast<unsigned char>(value & 0xffu));
+    bytes.push_back(static_cast<unsigned char>((value >> 8u) & 0xffu));
+}
+
+void appendLittleEndian32(std::vector<unsigned char>& bytes, const std::uint32_t value)
+{
+    bytes.push_back(static_cast<unsigned char>(value & 0xffu));
+    bytes.push_back(static_cast<unsigned char>((value >> 8u) & 0xffu));
+    bytes.push_back(static_cast<unsigned char>((value >> 16u) & 0xffu));
+    bytes.push_back(static_cast<unsigned char>((value >> 24u) & 0xffu));
+}
+
+bool tryReadBinaryFile(const std::filesystem::path& path, std::vector<unsigned char>& output)
+{
+    std::ifstream input(path, std::ios::binary);
+    if (!input) {
+        return false;
+    }
+
+    input.seekg(0, std::ios::end);
+    const auto size = input.tellg();
+    if (size < 0) {
+        return false;
+    }
+    input.seekg(0, std::ios::beg);
+
+    output.resize(static_cast<std::size_t>(size));
+    if (!output.empty()) {
+        input.read(reinterpret_cast<char*>(output.data()), static_cast<std::streamsize>(output.size()));
+        if (!input) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::uint32_t crc32(const std::vector<unsigned char>& bytes)
+{
+    std::uint32_t crc = 0xffffffffu;
+    for (const unsigned char value : bytes) {
+        crc ^= value;
+        for (int bit = 0; bit < 8; ++bit) {
+            const std::uint32_t mask = 0u - (crc & 1u);
+            crc = (crc >> 1u) ^ (0xedb88320u & mask);
+        }
+    }
+    return crc ^ 0xffffffffu;
+}
+
+std::optional<std::string> sha256Hex(const std::vector<unsigned char>& bytes)
+{
+    BCRYPT_ALG_HANDLE algorithm = nullptr;
+    BCRYPT_HASH_HANDLE hash = nullptr;
+    DWORD objectLength = 0;
+    DWORD hashLength = 0;
+    DWORD bytesWritten = 0;
+
+    if (BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_SHA256_ALGORITHM, nullptr, 0) != 0) {
+        return std::nullopt;
+    }
+
+    std::optional<std::string> result;
+    std::vector<unsigned char> hashObject;
+    std::vector<unsigned char> hashBytes;
+
+    if (BCryptGetProperty(
+            algorithm,
+            BCRYPT_OBJECT_LENGTH,
+            reinterpret_cast<PUCHAR>(&objectLength),
+            sizeof(objectLength),
+            &bytesWritten,
+            0) == 0 &&
+        BCryptGetProperty(
+            algorithm,
+            BCRYPT_HASH_LENGTH,
+            reinterpret_cast<PUCHAR>(&hashLength),
+            sizeof(hashLength),
+            &bytesWritten,
+            0) == 0) {
+        hashObject.resize(objectLength);
+        hashBytes.resize(hashLength);
+        if (BCryptCreateHash(algorithm, &hash, hashObject.data(), objectLength, nullptr, 0, 0) == 0 &&
+            BCryptHashData(hash, const_cast<PUCHAR>(bytes.data()), static_cast<ULONG>(bytes.size()), 0) == 0 &&
+            BCryptFinishHash(hash, hashBytes.data(), hashLength, 0) == 0) {
+            static constexpr char kHex[] = "0123456789abcdef";
+            std::string text;
+            text.reserve(hashBytes.size() * 2);
+            for (const unsigned char byte : hashBytes) {
+                text.push_back(kHex[(byte >> 4u) & 0x0fu]);
+                text.push_back(kHex[byte & 0x0fu]);
+            }
+            result = text;
+        }
+    }
+
+    if (hash != nullptr) {
+        BCryptDestroyHash(hash);
+    }
+    BCryptCloseAlgorithmProvider(algorithm, 0);
+    return result;
+}
+
+std::filesystem::path zipPathOrDefault(
+    const std::filesystem::path& packageDirectory,
+    const std::filesystem::path& outputZipPath)
+{
+    if (!outputZipPath.empty()) {
+        return outputZipPath;
+    }
+    return packageDirectory.parent_path() / "snc_mp_overlay_package.zip";
+}
 
 std::string jsonEscape(const std::string& value)
 {
@@ -424,6 +556,140 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
     result.ok = true;
     result.reason = previousHostAvailable ? "accepted" : "accepted_degraded_previous_host_unavailable";
     result.files = files;
+    return result;
+}
+
+MpOverlayPackageZipExportResult MpOverlayPackageExporter::exportPackageZip(
+    const std::filesystem::path& packageDirectory,
+    const std::filesystem::path& outputZipPath) const
+{
+    MpOverlayPackageZipExportResult result;
+    const auto effectiveZipPath = zipPathOrDefault(packageDirectory, outputZipPath);
+    result.packageZipPath = effectiveZipPath;
+
+    if (packageDirectory.empty()) {
+        result.reason = "missing package directory";
+        return result;
+    }
+    if (effectiveZipPath.empty()) {
+        result.reason = "missing zip output path";
+        return result;
+    }
+
+    const MpOverlayPackageVerifier verifier;
+    const auto verification = verifier.verify(packageDirectory);
+    if (!verification.ok) {
+        result.reason = "package verification failed: " + verification.reason;
+        return result;
+    }
+
+    std::vector<ZipFileEntry> entries;
+    entries.reserve(verification.files.size());
+    for (const auto& file : verification.files) {
+        ZipFileEntry entry;
+        entry.relativePath = file.path;
+        if (!tryReadBinaryFile(packageDirectory / std::filesystem::path(file.path), entry.content)) {
+            result.reason = "failed to read package file for zip export";
+            return result;
+        }
+        entry.crc32 = crc32(entry.content);
+        entries.push_back(std::move(entry));
+    }
+
+    std::sort(
+        entries.begin(),
+        entries.end(),
+        [](const ZipFileEntry& left, const ZipFileEntry& right) { return left.relativePath < right.relativePath; });
+
+    std::vector<unsigned char> zipBytes;
+    for (auto& entry : entries) {
+        const auto pathLength = static_cast<std::uint16_t>(entry.relativePath.size());
+        if (pathLength != entry.relativePath.size() || entry.content.size() > 0xffffffffu) {
+            result.reason = "package zip export input exceeds v0 zip bounds";
+            return result;
+        }
+
+        entry.localHeaderOffset = static_cast<std::uint32_t>(zipBytes.size());
+        appendLittleEndian32(zipBytes, 0x04034b50u);
+        appendLittleEndian16(zipBytes, 20u);
+        appendLittleEndian16(zipBytes, 0u);
+        appendLittleEndian16(zipBytes, 0u);
+        appendLittleEndian16(zipBytes, kZipDosTime);
+        appendLittleEndian16(zipBytes, kZipDosDate);
+        appendLittleEndian32(zipBytes, entry.crc32);
+        appendLittleEndian32(zipBytes, static_cast<std::uint32_t>(entry.content.size()));
+        appendLittleEndian32(zipBytes, static_cast<std::uint32_t>(entry.content.size()));
+        appendLittleEndian16(zipBytes, pathLength);
+        appendLittleEndian16(zipBytes, 0u);
+        zipBytes.insert(zipBytes.end(), entry.relativePath.begin(), entry.relativePath.end());
+        zipBytes.insert(zipBytes.end(), entry.content.begin(), entry.content.end());
+    }
+
+    const std::uint32_t centralDirectoryOffset = static_cast<std::uint32_t>(zipBytes.size());
+    for (const auto& entry : entries) {
+        const auto pathLength = static_cast<std::uint16_t>(entry.relativePath.size());
+        appendLittleEndian32(zipBytes, 0x02014b50u);
+        appendLittleEndian16(zipBytes, 20u);
+        appendLittleEndian16(zipBytes, 20u);
+        appendLittleEndian16(zipBytes, 0u);
+        appendLittleEndian16(zipBytes, 0u);
+        appendLittleEndian16(zipBytes, kZipDosTime);
+        appendLittleEndian16(zipBytes, kZipDosDate);
+        appendLittleEndian32(zipBytes, entry.crc32);
+        appendLittleEndian32(zipBytes, static_cast<std::uint32_t>(entry.content.size()));
+        appendLittleEndian32(zipBytes, static_cast<std::uint32_t>(entry.content.size()));
+        appendLittleEndian16(zipBytes, pathLength);
+        appendLittleEndian16(zipBytes, 0u);
+        appendLittleEndian16(zipBytes, 0u);
+        appendLittleEndian16(zipBytes, 0u);
+        appendLittleEndian16(zipBytes, 0u);
+        appendLittleEndian32(zipBytes, 0u);
+        appendLittleEndian32(zipBytes, entry.localHeaderOffset);
+        zipBytes.insert(zipBytes.end(), entry.relativePath.begin(), entry.relativePath.end());
+    }
+
+    const std::uint32_t centralDirectorySize = static_cast<std::uint32_t>(zipBytes.size()) - centralDirectoryOffset;
+    appendLittleEndian32(zipBytes, 0x06054b50u);
+    appendLittleEndian16(zipBytes, 0u);
+    appendLittleEndian16(zipBytes, 0u);
+    appendLittleEndian16(zipBytes, static_cast<std::uint16_t>(entries.size()));
+    appendLittleEndian16(zipBytes, static_cast<std::uint16_t>(entries.size()));
+    appendLittleEndian32(zipBytes, centralDirectorySize);
+    appendLittleEndian32(zipBytes, centralDirectoryOffset);
+    appendLittleEndian16(zipBytes, 0u);
+
+    std::error_code directoryError;
+    if (!effectiveZipPath.parent_path().empty()) {
+        std::filesystem::create_directories(effectiveZipPath.parent_path(), directoryError);
+        if (directoryError) {
+            result.reason = "failed to create zip output directory";
+            return result;
+        }
+    }
+
+    {
+        std::ofstream output(effectiveZipPath, std::ios::binary | std::ios::trunc);
+        if (!output) {
+            result.reason = "failed to open zip output path";
+            return result;
+        }
+        output.write(reinterpret_cast<const char*>(zipBytes.data()), static_cast<std::streamsize>(zipBytes.size()));
+        if (!output) {
+            result.reason = "failed to write zip output";
+            return result;
+        }
+    }
+
+    const auto hash = sha256Hex(zipBytes);
+    if (!hash.has_value()) {
+        result.reason = "failed to hash exported zip";
+        return result;
+    }
+
+    result.ok = true;
+    result.reason = "zip_exported";
+    result.packageZipHash = *hash;
+    result.packageZipBytes = zipBytes.size();
     return result;
 }
 

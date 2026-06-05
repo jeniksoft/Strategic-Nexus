@@ -426,6 +426,9 @@ void appendMpPackageSummaryLines(
     if (!mpOverlayPackage.packageZipPath.empty()) {
         output << "mp_package_zip_runtime_path: " << pathString(mpOverlayPackage.packageZipPath) << "\n";
     }
+    if (!mpOverlayPackage.packageZipHash.empty()) {
+        output << "mp_package_zip_hash: " << mpOverlayPackage.packageZipHash << "\n";
+    }
 }
 
 std::wstring utf8ToWide(const std::string& value)
@@ -953,6 +956,9 @@ void writeNextStepsBrief(
     brief << "- MP package refresh: " << mpPackageRefreshState << " (" << mpPackageRefreshReason << ")\n";
     brief << "- MP overlay package directory: " << pathString(g_mpOverlayPackageDirectory) << "\n";
     brief << "- MP package zip path: " << pathString(g_mpOverlayPackageZipPath) << "\n";
+    if (!mpOverlayPackage.packageZipHash.empty()) {
+        brief << "- MP package zip hash: " << mpOverlayPackage.packageZipHash << "\n";
+    }
     if (!mpOverlayPackage.packageZipState.empty()) {
         brief << "- MP package zip state: " << mpOverlayPackage.packageZipState << "\n";
     }
@@ -1423,6 +1429,7 @@ void writeStatus(
     json << "  \"mp_overlay_package_identity_mismatch_alert\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.identityMismatchAlert) << "\",\n";
     json << "  \"mp_overlay_package_zip_state\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageZipState) << "\",\n";
     json << "  \"mp_overlay_package_zip_reason\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageZipReason) << "\",\n";
+    json << "  \"mp_overlay_package_zip_hash\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageZipHash) << "\",\n";
     json << "  \"mp_overlay_package_zip_runtime_path\": \"" << jsonEscape(pathString(companionSnapshot.mpOverlayPackage.packageZipPath)) << "\",\n";
     json << "  \"mp_overlay_package_zip_bytes\": " << companionSnapshot.mpOverlayPackage.packageZipBytes << ",\n";
     json << "  \"status_center_state\": \"" << jsonEscape(state) << "\",\n";

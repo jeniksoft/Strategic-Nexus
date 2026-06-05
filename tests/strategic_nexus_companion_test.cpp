@@ -289,7 +289,9 @@ int main()
         ready.mpOverlayPackage.packageZipReason == "mp overlay package zip ready for handoff",
         "mp overlay package zip should expose handoff reason");
     requireCondition(ready.mpOverlayPackage.packageZipPath == mpPackageZipPath, "mp overlay package zip should expose path");
+    requireCondition(!ready.mpOverlayPackage.packageZipHash.empty(), "mp overlay package zip should expose hash");
     requireCondition(ready.mpOverlayPackage.packageZipBytes > 0, "mp overlay package zip should expose byte count");
+    requireCondition(std::filesystem::exists(mpPackageZipPath), "mp overlay package zip should be created on disk");
     requireCondition(
         ready.nextAction == "review_mp_handoff_continuity",
         "degraded previous-host continuity should become the top-level next action");
@@ -329,13 +331,22 @@ int main()
     });
     requireCondition(
         readyWithoutZip.mpOverlayPackage.state == "ready",
-        "missing optional tray MP package zip should not downgrade verified MP package readiness");
+        "auto-exported tray MP package zip should keep verified MP package readiness");
     requireCondition(
-        readyWithoutZip.mpOverlayPackage.packageZipState == "not_exported",
-        "missing optional tray MP package zip should be reported as not exported");
+        readyWithoutZip.mpOverlayPackage.packageZipState == "ready",
+        "missing tray MP package zip should be exported by current status source");
     requireCondition(
-        readyWithoutZip.mpOverlayPackage.packageZipReason == "mp overlay package zip not exported by current status source",
-        "missing optional tray MP package zip should explain non-exported state");
+        readyWithoutZip.mpOverlayPackage.packageZipReason == "mp overlay package zip ready for handoff",
+        "exported tray MP package zip should expose handoff-ready reason");
+    requireCondition(
+        readyWithoutZip.mpOverlayPackage.packageZipPath == missingMpPackageZipPath,
+        "current status source should export missing tray MP package zip to requested path");
+    requireCondition(
+        !readyWithoutZip.mpOverlayPackage.packageZipHash.empty(),
+        "current status source should expose exported tray MP package zip hash");
+    requireCondition(
+        std::filesystem::exists(missingMpPackageZipPath),
+        "current status source should create the missing tray MP package zip");
     requireCondition(
         readyWithoutZip.nextAction == "review_mp_handoff_continuity",
         "degraded previous-host continuity should still win when the optional tray zip is missing");
@@ -581,6 +592,9 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_package_zip_path: " + mpPackageZipPath.generic_string()) != std::string::npos,
         "status center summary should include MP package zip path");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_package_zip_hash: " + ready.mpOverlayPackage.packageZipHash) != std::string::npos,
+        "status center summary should include MP package zip hash");
     requireCondition(
         ready.statusCenterSummaryText.find("post_play_pipeline: ready - generated overlay staging verified") != std::string::npos,
         "status center summary should include post-play pipeline state");
@@ -1295,6 +1309,9 @@ int main()
     requireCondition(
         json.find("\"package_zip_path\": \"" + mpPackageZipPath.generic_string() + "\"") != std::string::npos,
         "JSON should include MP package zip path");
+    requireCondition(
+        json.find("\"package_zip_hash\": \"" + ready.mpOverlayPackage.packageZipHash + "\"") != std::string::npos,
+        "JSON should include MP package zip hash");
     requireCondition(json.find("generated_at_local: ") != std::string::npos, "status center summary should include generated_at_local timestamp");
     requireCondition(json.find("mp_warning_count: 0") != std::string::npos, "ready status center summary should include zero MP warning count");
     requireCondition(
