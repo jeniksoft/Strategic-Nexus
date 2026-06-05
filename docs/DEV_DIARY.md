@@ -70,7 +70,7 @@ Projekt dnes posunul hlavne citelnost continuity a handoff signalu na SNC a real
 
 Co pribylo v repozitari:
 
-* Lokalni head od posledniho verejneho denikoveho zapisu pridal souvislou commit radu `Surface MP handoff continuity across real-session evidence`, `Promote MP handoff continuity follow-up guidance`, `Promote degraded MP handoff into SNC next action` a `Surface previous host availability in SNC status`, prubezne doplnenou navazujicimi roadmap refresh commity.
+* Verejny head od posledniho denikoveho zapisu pridal souvislou commit radu `Surface MP handoff continuity across real-session evidence`, `Promote MP handoff continuity follow-up guidance`, `Promote degraded MP handoff into SNC next action` a `Surface previous host availability in SNC status`, prubezne doplnenou navazujicimi roadmap refresh commity.
 * Real-session trend, compare a loop skripty byly upraveny tak, aby lepe nesly continuity signal kolem MP handoff stavu a navazujiciho follow-up guidance. To zmensuje interpretacni mezeru mezi archivovanou post-play evidenci a tim, co ma SNC doporucit jako dalsi krok.
 * `StrategicNexusCompanion` a tray surface nove vystavuji nejen degradovany MP handoff jako explicitni next-action signal, ale i informaci o predchozi dostupnosti hosta. Owner-facing status tak lepe odlisuje bezny navazujici krok od situace, kdy continuity nebo handoff zustavaji jen castecne potvrzene.
 * `docs/DEVELOPMENT_ROADMAP.md` byl prubezne sladen s touto zmenou, aby continuity surface a handoff guidance nezustaly jen implicitni v implementaci a pomocnych skriptech.
@@ -83,10 +83,10 @@ Co to znamena pro architekturu a runtime interoperability research:
 
 Testy a stav overeni:
 
-* Lokalni pracovni strom byl pred touto denikovou upravou cisty, ale `HEAD` je v okamziku zapisu `ahead 7` oproti `origin/master`; dnesni implementacni commity tedy jeste nejsou na verejnem GitHub headu.
-* Posledni verejne dohledatelny GitHub Actions `Windows Tests` signal je pro commit `Stabilize usage budget cadence helpers` (`363bcc0`) vytvoreny 4.6.2026 ve 23:50:34 CEST a dokoncen se stavem `success` ve 23:54:21 CEST.
-* Pro dnesni ranni commit radu od `Surface MP handoff continuity across real-session evidence` po `Refresh roadmap after SNC continuity surface` nebyl v tomto behu jeste dostupny odpovidajici verejny CI vysledek, protoze tyto commity zatim nejsou pushnute.
-* Tento denikovy beh nespoustel novy plny lokalni test run; zapis shrnuje lokalni commit historii, stav vetve vuci `origin/master` a posledni verejne dostupny GitHub Actions signal.
+* Dnesni continuity a handoff commit rada je uz pushnuta na `origin/master`; nejaktualnejsi verejny head je v okamziku tohoto zapisu denikovy commit `Update dev diary for 2026-06-05` (`ec6ff94`), ktery navazuje na ranni implementacni vlnu.
+* GitHub Actions `Windows Tests` pro tento verejny head byly vytvoreny 5.6.2026 v 06:04:09 CEST a dokonceny se stavem `success` v 06:08:38 CEST.
+* Predchozi verejny `Windows Tests` signal pro commit `Stabilize usage budget cadence helpers` (`363bcc0`) zustava take uspesny; dnesni verejny CI signal tak potvrzuje i publikovany stav po continuity a handoff zmenach.
+* Tento denikovy beh nespoustel novy plny lokalni test run; zapis shrnuje dnesni commit historii, stav vetve vuci `origin/master` a aktualne dostupny verejny GitHub Actions signal.
 
 Blokery a rizika:
 
@@ -96,8 +96,8 @@ Blokery a rizika:
 
 Doporuceny dalsi krok:
 
-* Pushnout aktualni lokalni head vcetne teto denikove aktualizace a potvrdit navazujici verejny `Windows Tests` signal pro continuity a handoff zmeny z 5.6.2026.
-* Potom navazat explicitnim end-to-end overenim toho, ze continuity signal, degraded MP handoff guidance a previous host availability vedou k jednoznacnemu owner-facing publish/verify/import rozhodnuti bez driftu na integration boundary.
+* Navazat explicitnim end-to-end overenim toho, ze continuity signal, degraded MP handoff guidance a previous host availability vedou k jednoznacnemu owner-facing publish/verify/import rozhodnuti bez driftu na integration boundary.
+* Pri tomto overeni potvrdit, ze verejne uspesny `Windows Tests` signal opravdu odpovida stejnemu publishovanemu decision surface, ktery ma byt podkladem pro dalsi checksum-safe multiplayer handoff krok.
 
 ## 2026-06-04
 
