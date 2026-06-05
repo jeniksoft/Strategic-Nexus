@@ -973,6 +973,7 @@ SNC status snapshots and companion/tray owner-facing surfaces now also auto-expo
 `StrategicNexusCompanion` now also promotes `handoff_status=degraded_previous_host_unavailable` into top-level `next_action=review_mp_handoff_continuity` with a strict-verify command hint while still keeping identity-mismatch warnings higher priority, so stable SNC/tray owner-facing surfaces can flag host-rotation/manual-save-recovery follow-up without waiting for a real-session compare/trend run.
 `StrategicNexusCompanion` JSON, Status Center summary text, and `snc_tray_status.json` now also expose structured `previous_host_available` continuity state (plus a known/not-known flag), so downstream owner-facing or automation consumers no longer need to scrape `mp_overlay_package_status_text` to detect degraded previous-host continuity.
 `Strategic Nexus.exe --snc-status-snapshot` stable stdout now also emits explicit `snc_mp_overlay_package_previous_host_available` and `snc_mp_overlay_package_previous_host_available_known` fields, so terminal-driven or automation consumers can read host-rotation continuity directly from the CLI contract without reparsing JSON blobs or free-form status text.
+`StrategicNexusCompanionTray.exe` raw status text and `snc_next_steps_brief.txt` now also expose explicit previous-host continuity lines (`mp_previous_host_available`, `mp_previous_host_available_known`, plus Czech owner-facing brief labels), and `tools/smoke_snc_tray.ps1` fails closed if those owner-facing text artifacts lose the continuity lines.
 `StrategicNexusCompanion` and SNC tray readiness surfaces now also expose `strategic_nexus_campaign_library_plan.json` saturation state (`campaign_library_limit_reached`, skipped count, source path, owner note) when the bounded active library contract is present beside SNC status artifacts, so owner-facing readiness can distinguish healthy bounded output from truncated local campaign coverage before the next real-session test.
 Compare/trend/loop auto outputs now also expose structured campaign/overlay mismatch drift fields (`*_mp_campaign_id_mismatch_warning_{previous,current,changed}`, `*_mp_overlay_version_mismatch_warning_{previous,current,changed}`), and loop evidence JSON mirrors those fields for release-companion one-file parsing.
 `tools/run_real_session_v0_loop.ps1` now also emits a deterministic aggregated next-action contract (`real_session_v0_loop_next_action*`) and stores it in evidence JSON `next_action`, prioritizing MP mismatch and identity-risk warnings before normal next-session compare guidance so owner/release-companion follow-up is actionable without manual field interpretation.
@@ -1002,13 +1003,13 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
- Surface previous-host continuity in tray raw status and brief output.
+ Surface first-run startup rationale in SNC owner-facing text.
 
   The next slice should include:
 
-* add explicit `mp_previous_host_available` and `mp_previous_host_available_known` lines to the flat tray status text surface alongside the existing MP readiness and ZIP fields
-* mirror the continuity state in `snc_next_steps_brief.txt` near the MP package handoff section so owner/release-companion follow-up does not need JSON parsing for host-rotation continuity
-* add regression coverage so tray/raw-text continuity visibility fails closed if those explicit fields disappear from owner-facing text artifacts
+* add a bounded owner-facing explanation in SNC status/brief surfaces for why early companion startup preserves autosave history before Stellaris rotates saves away
+* keep the message aligned with architecture rules: start-with-Windows remains optional, first-install default disabled, and the rationale must not imply forced startup or hidden persistence
+* add regression coverage so the rationale text remains present in owner-facing artifacts once introduced
 
   ---
 
