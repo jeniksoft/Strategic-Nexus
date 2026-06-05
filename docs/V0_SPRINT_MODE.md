@@ -30,7 +30,7 @@ The desired loop is:
 ```text
 SNC preserves session saves
 -> offline spine builds bounded evidence
--> generated overlay/package is staged or reported
+-> generated overlay/reactive policy pack/package is staged or reported
 -> Status Center tells the owner what is ready or unsafe
 -> owner can run another real game session
 -> Codex can compare whether the intended v0 effect is observable
@@ -68,6 +68,7 @@ A sprint chunk is good enough when it is:
 * testable locally or document-verifiable
 * independent of new owner decisions
 * useful for the first real-session v0 loop
+* aligned with the approved reactive policy-pack direction when it touches generated overlay gameplay behavior
 * safe to stop after without leaving ambiguous dirty state
 
 If a chunk becomes broader than this, split it.
@@ -139,7 +140,7 @@ The helper writes only local runtime claim state under `.codex_local/`; it does 
 For each implemented chunk:
 
 1. Run the smallest meaningful targeted validation.
-2. Run broader v0 pipeline tests when the chunk touches shared contracts, command surfaces, generated overlay output, Status Center output, save/archive behavior, or release-companion evidence.
+2. Run broader v0 pipeline tests when the chunk touches shared contracts, command surfaces, generated overlay output, reactive policy-pack compiler/dispatcher behavior, Status Center output, save/archive behavior, or release-companion evidence.
 3. Ensure malformed, missing, stale, or mismatched inputs fail safely where the chunk accepts external or generated data.
 4. Commit the chunk before starting the next implementation chunk.
 5. Push when safe and useful for continuity.

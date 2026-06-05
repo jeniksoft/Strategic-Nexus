@@ -12,6 +12,7 @@ Strategic Nexus must remain:
 * performance-aware
 * multiplayer-safe
 * session-to-session by default
+* event-reactive only through precompiled mod script
 
 The project must avoid realtime inference and continuous gameplay control.
 
@@ -38,12 +39,16 @@ It does NOT exist to:
 
 Strategic Nexus is a strategic overlay system, not a realtime control layer.
 
+The approved near-realtime design is a precompiled reactive policy pack.
+That means Strategic Nexus may prepare multiple validated strategic branches before play, and ordinary Stellaris script may select among those already-loaded branches during play.
+It does not mean live LLM decisions enter the running game.
+
 The preferred production model is offline campaign analysis:
 
 ```text
 archive autosaves during play
 -> analyze after play
--> update generated mod overlay for the next launch
+-> update generated reactive policy pack for the next launch
 ```
 
 ---
@@ -108,8 +113,9 @@ Developer console reload/testing commands are not a production transport path.
 
 Current target:
 
-* maximum one generated strategic overlay refresh per play session by default
-* optional scripted in-game cadence may consume already-generated values at low frequency
+* maximum one active generated strategic overlay refresh per play session by default
+* scripted in-game cadence and event handlers may consume already-generated reactive policy branches
+* no live LLM refresh inside the active game session
 
 This may be slower under:
 
@@ -142,6 +148,10 @@ The worker:
 * delivers updates for a later session
 
 Strategic Nexus is eventually-consistent, not realtime-consistent.
+
+Reactive policy packs are the main exception to pure session-to-session behavior:
+they may react in-session, but only by choosing from precompiled, validated branches that were already loaded with the mod.
+This is event-reactive consistency, not live inference consistency.
 
 The default offline analysis input is the latest play session's archived autosaves plus prior durable memory.
 It should not reprocess all historical autosaves after every session.
@@ -221,6 +231,9 @@ Responsible for:
 * bounded runtime delivery
 * predefined event triggering
 * synchronization safety
+
+In production, "bounded runtime delivery" means delivery of already-validated, already-loaded generated overlay state through ordinary Stellaris script.
+It must not be reinterpreted as a live daemon-to-game transport for fresh LLM output.
 
 ## Vanilla AI
 
@@ -305,6 +318,7 @@ Including:
 * diplomacy systems
 
 No future feature may assume realtime inference capability.
+Future features may assume only precompiled reactive policy-pack capability once that capability is implemented and verified.
 
 ---
 
@@ -320,6 +334,18 @@ not:
 
 ```text
 a realtime tactical AI controller
+```
+
+With reactive policy packs, it may also feel like:
+
+```text
+a prepared strategic doctrine system that reacts to major events
+```
+
+not:
+
+```text
+a live external mind steering the simulation
 ```
 
 The project succeeds if civilizations:

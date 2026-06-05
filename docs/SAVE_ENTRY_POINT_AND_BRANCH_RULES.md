@@ -29,6 +29,9 @@ The active generated overlay may contain multiple rulesets for the same campaign
 
 Those rulesets must be gated so that loading the wrong save does not activate rules for a different state.
 
+Reactive policy packs follow the same rule.
+A policy branch that reacts to war, attack, first contact, fleet loss, planet conquest, or monthly strategy cadence is still valid only for its guarded campaign, empire, and entry point.
+
 ## Archive History Rule
 
 Live autosave capture exists to preserve the campaign timeline while Stellaris rotates or deletes autosaves.
@@ -90,6 +93,7 @@ Required identity anchors should include, as implementation matures:
 * branch or timeline segment id when derivable
 
 The mod should activate only the ruleset whose marker and entry-point checks match the loaded save.
+After a ruleset matches, the mod may select among that ruleset's precompiled reactive policy branches during play.
 
 If the loaded save cannot be matched confidently, the generated overlay must stay inert for that ruleset and the base mod fallback should run.
 
@@ -108,7 +112,7 @@ Stellaris exits
    -> parse the entry-point save
    -> build bounded entry-point brief
    -> ask/derive validated DSL candidate
-   -> compile marker-gated generated rules
+   -> compile marker-gated generated rules and reactive policy branches
 -> publish complete generated overlay snapshot while Stellaris is closed
 ```
 

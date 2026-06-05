@@ -7,6 +7,7 @@ This document defines the revised architecture direction for Strategic Nexus aft
 The mod remains an overlay on top of vanilla Stellaris AI.
 
 Strategic Nexus improves future sessions by analyzing local campaign history after play, then preparing a bounded mod update for the next launch.
+That update should evolve toward a generated reactive policy pack: a set of validated strategic contingencies that the loaded mod can select during the next session through ordinary Stellaris script.
 
 It must not depend on live LLM decisions entering an already-running game.
 
@@ -25,8 +26,9 @@ player starts Stellaris with Strategic Nexus enabled
 -> player exits Stellaris
 -> local analysis reads archived save snapshots
 -> campaign-scoped memory and personality state are updated
--> a staged Strategic Nexus mod update is prepared
+-> a staged Strategic Nexus reactive policy pack is prepared
 -> next launch uses the updated campaign-specific strategic overlay
+-> during play, ordinary on_actions/events/triggers select among already-loaded policy branches
 ```
 
 The runtime game remains controlled by vanilla Stellaris AI and normal mod scripts.
@@ -35,10 +37,14 @@ The LLM must not generate Stellaris script directly.
 It may propose bounded Strategic Nexus DSL rules.
 Those rules must pass validation and deterministic compilation before they can appear in the generated overlay.
 
+The LLM should increasingly propose bounded policy branches rather than only one static recommendation for the next launch.
+The compiler, not the LLM, maps allowlisted event families to concrete Stellaris on_actions, events, triggers, effects, flags, variables, or modifiers.
+
 Detailed rules:
 
 * [META_RULE_LANGUAGE_AND_COMPILER.md](META_RULE_LANGUAGE_AND_COMPILER.md)
 * [CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md](CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md)
+* [REACTIVE_POLICY_PACK_ARCHITECTURE.md](REACTIVE_POLICY_PACK_ARCHITECTURE.md)
 
 The release companion app should be understood as a campaign orchestrator:
 
@@ -87,7 +93,7 @@ verified archived autosaves from latest session
 -> LLM interpretation
 -> validated structured deltas
 -> durable memory update
--> generated overlay snapshot
+-> generated reactive policy pack snapshot
 ```
 
 The LLM should interpret bounded briefs, not raw full saves, in the normal path.
@@ -151,7 +157,7 @@ The companion app may:
 * wait until files are stable before copying
 * analyze archived saves after the game exits
 * maintain campaign-scoped memory outside the save file as durable on-disk state
-* prepare a staged mod update for the next session
+* prepare a staged reactive policy pack for the next session
 * automatically publish a validated staged overlay when confidence is high and Stellaris is closed
 * help the user choose, download, configure, verify, and switch supported local LLM models
 * show a quiet Status Center warning when user action is needed
@@ -165,6 +171,7 @@ The companion app must not:
 * block the game while inference runs
 * rename, delete, overwrite, or edit active autosaves
 * modify the active mod package while Stellaris is running
+* inject fresh LLM decisions into the current active session
 * bundle LLM model weights with the Stellaris mod
 * bypass model license acceptance, gated access, authentication, or user consent
 * run LLM interpretation when no supported model is installed and selected
@@ -225,6 +232,9 @@ If no supported model is installed:
 * existing verified generated overlays can remain active
 * new offline LLM interpretation is disabled
 * Status Center must explain that Strategic Nexus is running in reduced mode
+
+If no supported model is installed, existing reactive policy packs may remain active only if they were previously verified.
+SNC must not invent new reactive branches without the approved model/validation path.
 
 Strategic Nexus should not imply that a model is included with the mod.
 It should explain the dependency plainly and offer one-click setup for supported models where license terms allow it.

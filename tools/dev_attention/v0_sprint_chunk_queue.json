@@ -1,13 +1,32 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-05T13:24:00+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
-  "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; then verify and record evidence.",
+  "updated_at": "2026-06-05T13:04:11+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. New approved direction: prove the smallest legal reactive policy-pack slice so a loaded mod can react in-session through precompiled branches.",
+  "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after SNC lifecycle-contract CLI surface",
+  "current_source": "REACTIVE_POLICY_PACK_ARCHITECTURE.md next worker-ready slice after owner approval",
   "chunks": [
+    {
+      "id": "v0-sprint-052-reactive-policy-pack-event-family-dsl-slice",
+      "title": "Add minimal reactive policy-pack event-family DSL slice",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Core Runtime Skeleton / generated reactive policy pack",
+      "goal": "Prove the smallest safe near-realtime path: validated DSL can represent one allowlisted event-family branch, the compiler rejects unknown/raw event families, and generated overlay/status evidence shows whether the pack is reactive-capable.",
+      "acceptance": [
+        "DSL/validator supports at least one allowlisted event family without exposing raw Stellaris script or raw on_action names to model output.",
+        "Generated overlay manifest or status evidence records reactive policy-pack/event-family coverage.",
+        "Unknown event family, raw on_action-like names, or tactical/live-control branch requests fail closed.",
+        "Targeted regression coverage verifies accepted and rejected event-family branches."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1",
+        "tools/run_generated_overlay_gameplay_acceptance.ps1"
+      ],
+      "dependencies": []
+    },
     {
       "id": "v0-sprint-050-snc-lifecycle-contract-tray-json-surface",
       "title": "Surface SNC lifecycle contract in tray JSON",

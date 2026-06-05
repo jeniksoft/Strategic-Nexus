@@ -7,6 +7,7 @@ This document defines the target release architecture for minimizing mandatory u
 The goal is that a normal user should mostly just play Stellaris.
 
 Strategic Nexus should quietly preserve campaign history, analyze the latest play session, and prepare the next-session generated overlay without requiring routine manual decisions.
+The generated overlay should evolve into a reactive policy pack so the next active session can respond to major events through already-loaded normal mod script.
 
 This document refines, but does not replace, `OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md`.
 
@@ -25,6 +26,7 @@ The orchestrator coordinates:
 * validated DSL rule generation
 * deterministic generated overlay compilation
 * safe next-launch staging
+* precompiled reactive policy-pack coverage for major event families
 
 It must not:
 
@@ -65,8 +67,9 @@ Windows starts
 -> deterministic extractor builds a latest-session delta ledger
 -> local LLM interprets bounded empire-specific briefs
 -> validator accepts only structured memory/personality/rule deltas
--> compiler emits a complete replacement generated overlay snapshot
+-> compiler emits a complete replacement generated reactive policy pack snapshot
 -> next launch uses the updated overlay
+-> during play, ordinary mod script selects among already-loaded policy branches
 ```
 
 The app should prefer automatic safe action over asking the user.
@@ -242,6 +245,7 @@ It should answer:
 * is Stellaris currently running, preventing staging?
 * is multiplayer packaging/export required before play?
 * did validation reject generated rules and fall back safely?
+* is the active overlay post-session-only or reactive-policy-pack capable?
 
 Example states:
 
@@ -426,11 +430,13 @@ The kernel owns:
 * marker guard logic
 
 The generated overlay should stay small.
+Reactive policy-pack output is allowed, but it must remain a compact set of validated contingency branches rather than a generated script archive.
 
 The generated overlay owns:
 
 * campaign marker expectations
 * empire policy selections
+* entry-point-scoped reactive policy branches
 * bounded intensity/cadence values
 * compact generated triggers/effects when needed
 * audit-friendly metadata

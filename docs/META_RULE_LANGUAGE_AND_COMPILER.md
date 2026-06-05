@@ -36,7 +36,9 @@ Forbidden DSL features:
 Allowed DSL features:
 
 * campaign-scoped rules
+* entry-point-scoped rules
 * empire-scoped rules
+* allowlisted event-family policy branches
 * bounded ministry domains
 * bounded strategic preferences
 * marker-guarded activation
@@ -68,6 +70,7 @@ The compiler must not reinterpret invalid LLM output into unrelated behavior.
 
 After a DSL program is validated, clamped, and compiled, the generated overlay is the next-session artifact.
 The runtime mod does not ask the LLM to revise behavior during the active session.
+It may, however, select among already-compiled reactive policy branches through ordinary Stellaris script.
 
 ---
 
@@ -148,9 +151,11 @@ This example is illustrative, not final syntax.
 Required concepts:
 
 * campaign id
+* entry-point guard when available
 * empire id
 * rule id
 * ministry
+* optional allowlisted event family
 * optional validated conditions
 * bounded strategic actions
 * intensity/confidence where relevant
@@ -183,6 +188,7 @@ Forbidden condition inputs:
 * unknown empires outside target perspective
 * fleet-level tactical state outside allowed strategic summaries
 * raw Stellaris script conditions from the LLM
+* raw on_action names from the LLM
 
 ---
 
@@ -205,6 +211,10 @@ Actions must compile into one or more of:
 * allowlisted base modifiers
 * allowlisted flags or variables
 
+Reactive policy branches must use allowlisted Strategic Nexus event-family names.
+The compiler owns the mapping from event family to concrete Stellaris script surfaces.
+The LLM must not provide raw on_action names, event ids, scripted effect bodies, or arbitrary Stellaris script.
+
 The LLM must not define raw modifier values in v0.
 The generated DSL should select from allowlisted modifier/bias names defined by the base mod or compiler configuration.
 
@@ -222,6 +232,16 @@ base handwritten on_actions
 -> generated campaign/empire scripted triggers
 -> generated campaign/empire scripted effects
 -> allowlisted base static modifiers
+```
+
+Reactive policy-pack backend:
+
+```text
+base handwritten on_actions for known event families
+-> base handwritten reactive dispatcher event
+-> generated entry-point/campaign/empire triggers
+-> generated policy-branch effects
+-> allowlisted base modifiers or flags
 ```
 
 Generated overlay updates are full rewrites, not append-only updates.
@@ -252,8 +272,9 @@ Use this priority order:
 1. Prefer generated scripted triggers for marker checks, campaign/empire guards, and cheap boolean eligibility checks.
 2. Prefer generated scripted effects for applying bounded state, flags, variables, or selecting allowlisted base behavior.
 3. Prefer one or a small number of handwritten dispatcher events to call generated effects at controlled low-frequency moments.
-4. Prefer allowlisted handwritten modifiers for actual gameplay bias values.
-5. Avoid generated modifier values in v0 unless reviewed, tested, and proven checksum/package safe.
+4. Prefer one or a small number of handwritten reactive dispatcher events for allowlisted event families.
+5. Prefer allowlisted handwritten modifiers for actual gameplay bias values.
+6. Avoid generated modifier values in v0 unless reviewed, tested, and proven checksum/package safe.
 
 Generated events should be dispatch surfaces, not a growing archive of unique behavior history.
 

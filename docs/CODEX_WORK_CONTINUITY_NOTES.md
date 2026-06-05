@@ -81,6 +81,35 @@ Do not redo the broad offline-vs-realtime reconciliation unless new docs or code
 
 Follow-up should focus on remaining concrete watch items.
 
+## 2026-06-05 - Reactive Policy Pack Direction
+
+Status:
+
+```text
+APPROVED - APPLIED
+```
+
+Recorded in:
+
+* `REACTIVE_POLICY_PACK_ARCHITECTURE.md`
+* `TECHNICAL_RUNTIME_LIMITATIONS.md`
+* `OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md`
+* `META_RULE_LANGUAGE_AND_COMPILER.md`
+* `GENERATED_OVERLAY_LAYOUT_CONTRACT.md`
+* `SAVE_ENTRY_POINT_AND_BRANCH_RULES.md`
+* `DEVELOPMENT_ROADMAP.md`
+
+Result:
+
+* Strategic Nexus remains forbidden from live LLM injection into a running game.
+* The approved near-realtime path is a precompiled reactive policy pack.
+* The LLM may propose allowlisted event-family branches in bounded DSL.
+* The compiler owns mapping event families to concrete Stellaris script surfaces.
+* The loaded mod may select among already-compiled branches during a session through ordinary on_actions/events/triggers.
+* Future v0 implementation should prove the smallest useful reactive branch before broad strategy expansion.
+
+Do not reinterpret this as permission for game-process hooks, address-space inspection, raw on_action names from the LLM, live mod-file publishing while Stellaris is running, or per-client multiplayer generation.
+
 ---
 
 # Current High-Value Resume Items
@@ -260,6 +289,7 @@ Likely docs to update:
 The following points are already settled unless new evidence appears:
 
 * no live LLM control path into a running Stellaris session
+* no hidden live LLM injection path disguised as near-realtime behavior
 * no lower-level game integration outside ordinary mod files, save files, launcher-visible configuration, and companion-app file handling
 * no full replacement of vanilla AI
 * no independent per-client LLM decision generation for multiplayer

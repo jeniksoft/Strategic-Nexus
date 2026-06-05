@@ -21,7 +21,7 @@ empire snapshot
 -> clerk-reduced input brief U
 -> lightweight cabinet review
 -> validated strategy_dimensions payload
--> generated overlay or bridge-core validation artifact
+-> generated overlay / reactive policy-pack artifact or bridge-core validation artifact
 ```
 
 The goal is architectural proof, not strategic depth.
@@ -35,7 +35,7 @@ Do not optimize v0 for final polish before this loop exists:
 ```text
 real save/session
 -> archive/analyze
--> produce validated v0 output or generated overlay
+-> produce validated v0 output or generated reactive policy pack
 -> expose readiness/status
 -> owner runs another game/session
 -> compare whether intended behavior is observable
@@ -251,6 +251,7 @@ v0 tests must cover:
 * stale payload rejection remains intact
 * bridge-core tests still pass
 * generated overlay contract verification remains distinct from gameplay behavior verification
+* reactive policy-pack branch verification remains distinct from broad strategic quality
 
 Testing should be local and deterministic where possible.
 When local deterministic tests cannot prove real Stellaris behavior, the gap must be recorded as an acceptance-test requirement instead of silently counted as done.
@@ -331,6 +332,17 @@ Current progress:
 * `Strategic Nexus.exe --diff-save-campaigns <previous_save_root> <current_save_root> <diff_output.json>` emits a deterministic read-only availability diff for generated campaign library maintenance.
 * `Strategic Nexus.exe --plan-campaign-library <save_root> <max_campaigns> <plan_output.json>` emits a bounded include/skip plan for the active generated campaign library.
 * `Strategic Nexus.exe --compile-campaign-library-overlay <input.dsl> <save_root> <max_campaigns> <output_dir>` compiles a generated overlay snapshot filtered to included local campaign keys.
+* Architecture direction update: the generated overlay should evolve from a single post-session strategic state into a precompiled reactive policy pack. This means validated DSL should be able to represent allowlisted event-family branches, and the mod should select among already-loaded branches during play through ordinary Stellaris script. It still must not accept live LLM decisions during the active session.
+
+Next worker-ready reactive-policy slice:
+
+```text
+validated DSL event-family branch
+-> compiler allowlist/rejection tests
+-> generated trigger/effect branch
+-> base on_action dispatcher path
+-> Status Center/reactive capability signal
+```
 
 Validation note:
 Preserving an existing agenda under low confidence must still validate the existing agenda values.

@@ -173,3 +173,94 @@ This pass was verified with:
 tools/check_docs_encoding.ps1
 tools/run_safety_audit.ps1
 ```
+
+---
+
+# 2026-06-05 Reactive Policy Pack Architecture Pass
+
+Status:
+
+```text
+APPROVED - APPLIED
+```
+
+## Trigger
+
+The project owner identified a product flaw in the pure session-to-session model:
+
+```text
+If the player runs one long session, Strategic Nexus may not affect gameplay until a later session.
+Strategy updates are not regular or event-reactive enough.
+```
+
+The owner approved a safer near-realtime direction that remains legal and ordinary-mod based.
+
+## Audit Focus
+
+The audit focused on docs that could incorrectly force Strategic Nexus to stay post-session-only:
+
+* runtime limitation docs
+* offline analysis architecture
+* DSL/compiler boundary
+* generated overlay layout
+* roadmap and sprint-mode work selection
+* entry-point/branch safety rules
+
+## Findings
+
+### Fixed
+
+The canonical direction now distinguishes:
+
+```text
+forbidden: live LLM decisions entering the already-running game
+allowed: precompiled reactive policy branches loaded before play and selected by ordinary Stellaris script
+```
+
+Updated architecture wording now points future work toward a generated reactive policy pack.
+
+The policy pack is still:
+
+* generated only from validated DSL
+* compiled deterministically
+* published only while Stellaris is closed
+* entry-point scoped
+* manifest verified
+* multiplayer byte-identity aware
+
+### New Canonical Document
+
+Added:
+
+* `REACTIVE_POLICY_PACK_ARCHITECTURE.md`
+
+## Current Canonical Interpretation
+
+Current production direction is now:
+
+```text
+companion app archives autosaves
+-> offline analysis after session
+-> validated DSL with allowlisted event-family branches
+-> deterministic generated reactive policy pack
+-> next launch consumes ordinary mod files
+-> active session selects among already-loaded branches through ordinary on_actions/events/triggers
+```
+
+This remains incompatible with:
+
+* game-process address-space hooks
+* loading external binary code into the running game process
+* live game patching
+* process command/control
+* raw LLM Stellaris script
+* per-client multiplayer LLM generation
+
+## Remaining Watch Items
+
+Future audits should watch for:
+
+* docs that treat "not realtime" as forbidding precompiled event-reactive behavior
+* docs that imply SNC may publish gameplay files while Stellaris is running
+* DSL features that expose raw on_action names or raw Stellaris script to the LLM
+* roadmap chunks that add broad strategy complexity before the first reactive branch is verified

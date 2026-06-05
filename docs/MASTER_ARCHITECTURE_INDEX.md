@@ -76,6 +76,7 @@ Core documents:
 * [ARCHITECTURE.md](ARCHITECTURE.md) - four-layer architecture and fail-safe split
 * [V0_SCOPE_AND_PIPELINE_PLAN.md](V0_SCOPE_AND_PIPELINE_PLAN.md) - bounded v0 scope and offline validator pipeline boundary
 * [OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md](OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md) - revised session-to-session architecture, autosave archiving, campaign analysis, and next-session mod refresh
+* [REACTIVE_POLICY_PACK_ARCHITECTURE.md](REACTIVE_POLICY_PACK_ARCHITECTURE.md) - approved legal near-realtime design using precompiled event-driven strategy branches, not live LLM injection
 * [CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md](CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md) - target release orchestrator architecture for minimal mandatory user interaction
 * [STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md](STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md) - verified non-Steam distribution surfaces and provider-neutral save-root contract
 * [SAVE_ENTRY_POINT_AND_BRANCH_RULES.md](SAVE_ENTRY_POINT_AND_BRANCH_RULES.md) - entry-point-scoped generated rules and branch/reload handling for captured autosaves
@@ -111,6 +112,7 @@ SNC is provider-neutral: it detects Stellaris and save roots, not Steam as a req
 SNC acts as a campaign orchestrator and should automate safe staging decisions where confidence is high.
 Local analysis updates campaign-scoped memory between play sessions.
 The generated mod overlay applies bounded strategic state on the next launch.
+The preferred near-realtime path is a precompiled reactive policy pack: the LLM prepares multiple validated contingency branches before play, and ordinary Stellaris script selects among those already-loaded branches during the active session.
 Generated rules are entry-point scoped: they must match the loaded save state, not merely the latest captured autosave.
 The LLM proposes only bounded DSL rules; the compiler validates and translates them.
 LLM model weights are external user-selected dependencies and are never distributed with the mod.

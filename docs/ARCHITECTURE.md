@@ -19,12 +19,13 @@ The safe production architecture has four layers:
 1. Vanilla Stellaris mod
 2. Companion app
 3. Offline campaign analysis pipeline
-4. Generated campaign-specific mod overlay
+4. Generated campaign-specific reactive policy pack
 
 The vanilla mod owns all in-game behavior.
 Strategic Nexus Companion (SNC), the release companion app, observes the play session lifecycle and archives autosaves with read-only access.
 The offline analysis pipeline reasons after play and prepares bounded campaign-specific state.
 The generated mod overlay influences the next play session through normal mod scripting.
+The approved near-realtime direction is that the overlay contains a precompiled reactive policy pack: multiple validated contingency branches selected by ordinary Stellaris script during the active session.
 The LLM proposes bounded Strategic Nexus DSL rules, not raw Stellaris script.
 A deterministic compiler validates and translates those rules into the generated overlay.
 
@@ -46,7 +47,7 @@ Windows/user starts Strategic Nexus Companion (SNC)
     -> app archives stable autosaves using read-only access
     -> app waits for Stellaris to exit
     -> app analyzes archived saves locally
-    -> app stages generated mod overlay for the next launch
+    -> app stages generated reactive policy pack for the next launch
     -> app returns to idle
 ```
 
@@ -73,6 +74,7 @@ Generated Mod Overlay
     -> maps only bounded validated values to scripted mod data
     -> is compiled from validated Strategic Nexus DSL
     -> updates only between sessions
+    -> may contain already-loaded event-driven policy branches for the active session
     -> fails closed to vanilla scripted fallback
 ```
 
@@ -88,6 +90,7 @@ mod depends on external file reads
 companion app edits active autosaves
 companion app modifies active mod files while Stellaris is running
 local LLM output enters the current play session directly
+raw on_action/script selection comes from the LLM
 ```
 
 The game remains the master.
@@ -165,7 +168,7 @@ The local LLM ecosystem is layered:
 - model weights: external artifacts chosen by the user, never bundled with the mod
 - model runtime: replaceable local execution backend
 - companion app: model setup, prompt construction, offline inference, validation, cache invalidation, and Status Center reporting
-- Stellaris mod: stable policy kernel, validated generated overlay, and fallback behavior
+- Stellaris mod: stable policy kernel, validated reactive policy pack, and fallback behavior
 
 The LLM client does not create trusted gameplay state by itself.
 Model output is always untrusted until it passes schema validation, allowlists, DSL validation, deterministic compilation, manifest verification, and any relevant multiplayer package verification.
@@ -178,6 +181,7 @@ Responsible for:
 - graceful fallback behavior
 - treating generated overlay values as optional hints, not authoritative commands
 - refreshing generated files only while Stellaris is not running
+- selecting among already-loaded reactive policy branches through ordinary on_actions/events/triggers
 
 ### 8. Offline Strategic Worker
 Responsible for:
@@ -248,6 +252,7 @@ Version 0.1:
 - campaign identity fingerprinting
 - empire-scoped memory and personality summaries
 - bounded generated overlay output
+- first precompiled reactive policy-pack branch
 - safe next-session mod refresh
 
 No realtime control.
@@ -266,7 +271,7 @@ The first MVP may run as:
 4. offline analysis extracts campaign and empire summaries
 5. validator emits bounded generated overlay state
 6. companion app refreshes generated mod files for the next launch
-7. mod uses generated values if valid, otherwise scripted fallback
+7. mod uses generated values and precompiled policy branches if valid, otherwise scripted fallback
 ```
 
 Current request-file MVP:
@@ -284,7 +289,7 @@ Strategic Nexus.exe --daemon exchange
 ```
 
 This is also a local development harness.
-The production direction is offline archived-save analysis and next-session overlay refresh.
+The production direction is offline archived-save analysis plus next-session reactive policy-pack refresh.
 
 Expected exchange directory:
 

@@ -20,6 +20,10 @@ They must be generated from validated Strategic Nexus DSL, not raw LLM text or r
 
 The active generated overlay is a complete replacement snapshot.
 
+After Stellaris loads the generated overlay, ordinary mod script may select among already-loaded reactive policy branches during that session.
+This is allowed only for precompiled validated branches.
+It is not a live update path for new LLM output.
+
 ---
 
 # Current CLI Harness
@@ -90,6 +94,7 @@ Future layout changes must update:
 * `src/generated_overlay/`
 * `tests/generated_overlay_contract_test.cpp`
 * `tools/run_v0_pipeline_tests.ps1`
+* [REACTIVE_POLICY_PACK_ARCHITECTURE.md](REACTIVE_POLICY_PACK_ARCHITECTURE.md) when event-family policy branches are added
 
 ---
 
@@ -128,7 +133,7 @@ The gameplay-affecting generated files listed inside the manifest are the checks
 
 It should remain small.
 
-It should call generated scripted effects at controlled low-frequency moments.
+It should call generated scripted effects at controlled low-frequency moments and approved event-family dispatch points.
 
 Generated events must not become an append-only behavior history.
 
@@ -157,6 +162,7 @@ In v0 this means:
 * empire marker guard
 
 Future conditions may be added only if they remain cheap and validated.
+Event-family conditions must be selected from compiler-owned allowlists, not raw LLM-provided Stellaris script.
 
 ---
 
@@ -189,6 +195,7 @@ The current v0 layout does not yet define:
 
 * final gameplay balancing values
 * final allowlisted modifier catalog
+* final reactive policy-pack event-family catalog
 * final multiplayer export archive format
 * launcher integration
 * campaign library cleanup implementation

@@ -26,6 +26,8 @@ Use `V0_SCOPE_AND_PIPELINE_PLAN.md` as the current implementation boundary for t
 
 Use `OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md` as the revised production direction for autosave archiving, offline analysis, campaign memory, and next-session mod refresh.
 
+Use `REACTIVE_POLICY_PACK_ARCHITECTURE.md` as the approved legal near-realtime direction: precompile event-driven strategy branches into the generated overlay instead of injecting live LLM decisions into a running game.
+
 Use `CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md` as the target release UX/automation direction for minimizing mandatory user interaction.
 
 Use `MULTIPLAYER_SEASON_ORCHESTRATOR.md` as the target release direction for low-friction host-coordinated MP seasons.
@@ -83,7 +85,7 @@ Each step should be implemented, verified, documented when needed, and either ma
 Default stabilization slice:
 
 ```text
-verified archive -> season delta ledger -> empire brief -> validated DSL -> generated overlay -> Status Center visibility
+verified archive -> season delta ledger -> empire brief -> validated DSL -> generated reactive policy pack -> Status Center visibility
 ```
 
 Until that path is robust enough to feel like a real product spine, new strategic intelligence features should usually be recorded as `Navrhy` instead of immediately implemented.
@@ -257,6 +259,7 @@ Required:
 * entry-point-scoped generated rules for every known loadable save
 * payload schema
 * Strategic Nexus DSL parser/validator/compiler skeleton
+* reactive policy-pack DSL/compiler support for allowlisted event-family branches
 * payload validation
 * campaign identity handling
 * sequence handling
@@ -286,6 +289,8 @@ Generated overlays should come from validated DSL programs, not raw LLM script.
 Generated overlay work must include functional behavior verification, not only parser, schema, manifest, or file hash verification.
 
 Realtime LLM decisions entering an already-running game are no longer a production architecture goal.
+The approved near-realtime path is a precompiled reactive policy pack: the LLM prepares multiple validated contingency branches before play, and the loaded Stellaris mod selects among those branches through ordinary on_actions/events/triggers during the active session.
+This should become the next observable gameplay-effect direction after the current generated-overlay spine can stage and verify safe output.
 
 Current progress:
 The first generated overlay contract skeleton exists under `src/generated_overlay/`.
