@@ -1698,6 +1698,25 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_generated_overlay_reason=" << sanitizeCliValue(snapshot.generatedOverlay.reason) << "\n";
             std::cout << "snc_generated_overlay_path=" << sanitizeCliValue(stdoutPath(snapshot.generatedOverlay.path)) << "\n";
             std::cout << "snc_generated_overlay_manifest_hash=" << sanitizeCliValue(snapshot.generatedOverlay.manifestHash) << "\n";
+            std::cout << "snc_generated_overlay_reactive_capability="
+                      << sanitizeCliValue(snapshot.generatedOverlay.reactivePolicyPackCapability.empty()
+                                             ? "unknown"
+                                             : snapshot.generatedOverlay.reactivePolicyPackCapability)
+                      << "\n";
+            std::cout << "snc_generated_overlay_event_family_count="
+                      << snapshot.generatedOverlay.eventFamilies.size() << "\n";
+            for (const auto& eventFamily : snapshot.generatedOverlay.eventFamilies) {
+                std::cout << "snc_generated_overlay_event_family="
+                          << sanitizeCliValue(eventFamily) << "\n";
+            }
+            std::cout << "snc_generated_overlay_source_quality_count="
+                      << snapshot.generatedOverlay.sourceQualities.size() << "\n";
+            for (const auto& sourceQuality : snapshot.generatedOverlay.sourceQualities) {
+                std::cout << "snc_generated_overlay_source_quality="
+                          << sanitizeCliValue(sourceQuality) << "\n";
+            }
+            std::cout << "snc_generated_overlay_bootstrap_campaign_count="
+                      << snapshot.generatedOverlay.bootstrapCampaignCount << "\n";
             std::cout << "snc_generated_overlay_publish_gate_state="
                       << sanitizeCliValue(snapshot.generatedOverlayPublishGate.state) << "\n";
             std::cout << "snc_generated_overlay_publish_gate_reason="

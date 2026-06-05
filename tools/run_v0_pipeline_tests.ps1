@@ -1400,6 +1400,11 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_state=ready"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_manifest_hash="
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_reactive_capability=post_session_only"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_event_family_count=0"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_source_quality_count=1"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_source_quality=history_backed"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_bootstrap_campaign_count=0"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_publish_gate_state=needs_setup"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_publish_gate_reason=generated overlay publish status path not configured"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_plan_present=true"
@@ -1418,6 +1423,9 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"abbreviation": "SNC"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"window_close_behavior": "minimize_to_tray"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"manifest_hash": "'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"reactive_policy_pack_capability": "post_session_only"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"source_qualities": ["history_backed"]'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"bootstrap_campaign_count": 0'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"generated_overlay_publish_gate_status":'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_plan_readiness": "ready"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_skipped_due_to_limit_count": 2'

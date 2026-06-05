@@ -41,6 +41,7 @@
 #include <regex>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <thread>
 #include <vector>
@@ -102,6 +103,18 @@ std::string jsonEscape(const std::string& value)
             }
             break;
         }
+    }
+    return output.str();
+}
+
+std::string joinStrings(const std::vector<std::string>& values, const std::string_view delimiter)
+{
+    std::ostringstream output;
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        if (index > 0) {
+            output << delimiter;
+        }
+        output << values[index];
     }
     return output.str();
 }
@@ -738,6 +751,7 @@ std::string buildStatusCenterSummaryText(
     const bool generatedOverlayManifestVerified,
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayManifestHash,
+    const strategic_nexus::CompanionSubsystemStatus& generatedOverlayStatus,
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const bool startWithWindowsEnabled,
@@ -833,6 +847,25 @@ std::string buildStatusCenterSummaryText(
     if (!generatedOverlayManifestHash.empty()) {
         summary << "generated_overlay_manifest_hash: " << generatedOverlayManifestHash << "\n";
     }
+    summary << "generated_overlay_reactive_capability: "
+            << (generatedOverlayStatus.reactivePolicyPackCapability.empty()
+                    ? "unknown"
+                    : generatedOverlayStatus.reactivePolicyPackCapability)
+            << "\n";
+    summary << "generated_overlay_event_family_count: "
+            << generatedOverlayStatus.eventFamilies.size() << "\n";
+    if (!generatedOverlayStatus.eventFamilies.empty()) {
+        summary << "generated_overlay_event_families: "
+                << joinStrings(generatedOverlayStatus.eventFamilies, ",") << "\n";
+    }
+    summary << "generated_overlay_source_quality_count: "
+            << generatedOverlayStatus.sourceQualities.size() << "\n";
+    if (!generatedOverlayStatus.sourceQualities.empty()) {
+        summary << "generated_overlay_source_qualities: "
+                << joinStrings(generatedOverlayStatus.sourceQualities, ",") << "\n";
+    }
+    summary << "generated_overlay_bootstrap_campaign_count: "
+            << generatedOverlayStatus.bootstrapCampaignCount << "\n";
     summary << "generated_overlay_publish_gate_state: " << generatedOverlayPublishGate.state << "\n";
     summary << "generated_overlay_publish_gate_reason: " << generatedOverlayPublishGate.reason << "\n";
     summary << "generated_overlay_publish_gate_published: "
@@ -1286,6 +1319,7 @@ void writeStatus(
         effectiveGeneratedOverlayManifestVerified,
         effectiveGeneratedOverlayPublishAllowed,
         effectiveGeneratedOverlayManifestHash,
+        companionSnapshot.generatedOverlay,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
         companionSnapshot.lifecycle.startWithWindowsEnabled,
@@ -1411,6 +1445,33 @@ void writeStatus(
          << (effectiveGeneratedOverlayPublishAllowed ? "true" : "false") << ",\n";
     json << "  \"generated_overlay_manifest_hash\": \""
          << jsonEscape(effectiveGeneratedOverlayManifestHash) << "\",\n";
+    json << "  \"generated_overlay_reactive_capability\": \""
+         << jsonEscape(companionSnapshot.generatedOverlay.reactivePolicyPackCapability.empty()
+                           ? "unknown"
+                           : companionSnapshot.generatedOverlay.reactivePolicyPackCapability)
+         << "\",\n";
+    json << "  \"generated_overlay_event_family_count\": "
+         << companionSnapshot.generatedOverlay.eventFamilies.size() << ",\n";
+    json << "  \"generated_overlay_event_families\": [";
+    for (std::size_t index = 0; index < companionSnapshot.generatedOverlay.eventFamilies.size(); ++index) {
+        if (index > 0) {
+            json << ", ";
+        }
+        json << "\"" << jsonEscape(companionSnapshot.generatedOverlay.eventFamilies[index]) << "\"";
+    }
+    json << "],\n";
+    json << "  \"generated_overlay_source_quality_count\": "
+         << companionSnapshot.generatedOverlay.sourceQualities.size() << ",\n";
+    json << "  \"generated_overlay_source_qualities\": [";
+    for (std::size_t index = 0; index < companionSnapshot.generatedOverlay.sourceQualities.size(); ++index) {
+        if (index > 0) {
+            json << ", ";
+        }
+        json << "\"" << jsonEscape(companionSnapshot.generatedOverlay.sourceQualities[index]) << "\"";
+    }
+    json << "],\n";
+    json << "  \"generated_overlay_bootstrap_campaign_count\": "
+         << companionSnapshot.generatedOverlay.bootstrapCampaignCount << ",\n";
     json << "  \"generated_overlay_publish_gate_state\": \""
          << jsonEscape(companionSnapshot.generatedOverlayPublishGate.state) << "\",\n";
     json << "  \"generated_overlay_publish_gate_reason\": \""

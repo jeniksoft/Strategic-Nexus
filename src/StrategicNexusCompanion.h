@@ -86,6 +86,10 @@ struct CompanionSubsystemStatus {
     std::string reason;
     std::filesystem::path path;
     std::string manifestHash;
+    std::string reactivePolicyPackCapability;
+    std::vector<std::string> eventFamilies;
+    std::vector<std::string> sourceQualities;
+    std::size_t bootstrapCampaignCount = 0;
 };
 
 struct CompanionMpOverlayPackageStatus {

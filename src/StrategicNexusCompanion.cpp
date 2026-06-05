@@ -19,6 +19,7 @@
 #include <regex>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <thread>
 #include <set>
@@ -72,6 +73,18 @@ std::string escapeJson(const std::string& value)
 std::string jsonString(const std::string& value)
 {
     return "\"" + escapeJson(value) + "\"";
+}
+
+std::string joinStrings(const std::vector<std::string>& values, const std::string_view delimiter)
+{
+    std::ostringstream output;
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        if (index > 0) {
+            output << delimiter;
+        }
+        output << values[index];
+    }
+    return output.str();
 }
 
 std::string trimWhitespace(const std::string& value)
@@ -183,6 +196,43 @@ bool isIdentityMismatchWarningCode(const std::string& warningCode)
            warningCode == "package_game_version_mismatch" || warningCode == "package_mod_version_mismatch" ||
            warningCode == "package_manifest_hash_mismatch" ||
            warningCode == "mp_overlay_package_files_mismatch_manifest";
+}
+
+std::size_t countBootstrapCampaignSignals(const std::string& manifestJson)
+{
+    const std::regex bootstrapSeedPattern("\"bootstrap_rotation_seed_id\"\\s*:");
+    return static_cast<std::size_t>(std::distance(
+        std::sregex_iterator(manifestJson.begin(), manifestJson.end(), bootstrapSeedPattern),
+        std::sregex_iterator()));
+}
+
+void populateGeneratedOverlayManifestSignals(
+    CompanionSubsystemStatus& status,
+    const std::filesystem::path& overlayDirectory)
+{
+    status.reactivePolicyPackCapability = "unknown";
+    status.eventFamilies.clear();
+    status.sourceQualities.clear();
+    status.bootstrapCampaignCount = 0;
+
+    if (overlayDirectory.empty()) {
+        return;
+    }
+
+    std::string manifestJson;
+    if (!common::tryReadTextFile(
+            overlayDirectory / "strategic_nexus_generated_manifest.json",
+            manifestJson)) {
+        return;
+    }
+
+    if (const auto capability = common::extractJsonString(manifestJson, "reactive_policy_pack_capability");
+        capability.has_value() && !capability->empty()) {
+        status.reactivePolicyPackCapability = *capability;
+    }
+    status.eventFamilies = common::extractJsonStringArray(manifestJson, "event_families");
+    status.sourceQualities = common::extractJsonStringArray(manifestJson, "source_qualities");
+    status.bootstrapCampaignCount = countBootstrapCampaignSignals(manifestJson);
 }
 
 void finalizeMpOverlayPackageWarnings(CompanionMpOverlayPackageStatus& status)
@@ -863,6 +913,7 @@ CompanionSubsystemStatus buildGeneratedOverlayStatus(const std::filesystem::path
     const auto verification = verifier.verify(overlayDirectory);
     status.manifestHash = verification.manifestHash;
     if (verification.ok) {
+        populateGeneratedOverlayManifestSignals(status, overlayDirectory);
         status.state = "ready";
         status.reason = "generated overlay verified";
         return status;
@@ -1905,6 +1956,22 @@ std::string buildStatusCenterSummaryText(
     if (!generatedOverlay.manifestHash.empty()) {
         text << "generated_overlay_manifest_hash: " << generatedOverlay.manifestHash << "\n";
     }
+    text << "generated_overlay_reactive_capability: "
+         << (generatedOverlay.reactivePolicyPackCapability.empty() ? "unknown"
+                                                                   : generatedOverlay.reactivePolicyPackCapability)
+         << "\n";
+    text << "generated_overlay_event_family_count: " << generatedOverlay.eventFamilies.size() << "\n";
+    if (!generatedOverlay.eventFamilies.empty()) {
+        text << "generated_overlay_event_families: "
+             << joinStrings(generatedOverlay.eventFamilies, ",") << "\n";
+    }
+    text << "generated_overlay_source_quality_count: " << generatedOverlay.sourceQualities.size() << "\n";
+    if (!generatedOverlay.sourceQualities.empty()) {
+        text << "generated_overlay_source_qualities: "
+             << joinStrings(generatedOverlay.sourceQualities, ",") << "\n";
+    }
+    text << "generated_overlay_bootstrap_campaign_count: "
+         << generatedOverlay.bootstrapCampaignCount << "\n";
     if (!mpOverlayPackage.campaignId.empty()) {
         text << "campaign_id: " << mpOverlayPackage.campaignId << "\n";
     }
@@ -2172,6 +2239,38 @@ void writeSubsystemJson(
     } else {
         output << "\n";
     }
+    output << indent << "}";
+}
+
+void writeGeneratedOverlayJson(
+    std::ostringstream& output,
+    const CompanionSubsystemStatus& status,
+    const std::string& indent)
+{
+    output << indent << "{\n";
+    output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
+    output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
+    output << indent << "  \"path\": " << jsonString(pathString(status.path)) << ",\n";
+    output << indent << "  \"manifest_hash\": " << jsonString(status.manifestHash) << ",\n";
+    output << indent << "  \"reactive_policy_pack_capability\": "
+           << jsonString(status.reactivePolicyPackCapability) << ",\n";
+    output << indent << "  \"event_families\": [";
+    for (std::size_t index = 0; index < status.eventFamilies.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << jsonString(status.eventFamilies[index]);
+    }
+    output << "],\n";
+    output << indent << "  \"source_qualities\": [";
+    for (std::size_t index = 0; index < status.sourceQualities.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << jsonString(status.sourceQualities[index]);
+    }
+    output << "],\n";
+    output << indent << "  \"bootstrap_campaign_count\": " << status.bootstrapCampaignCount << "\n";
     output << indent << "}";
 }
 
@@ -2461,7 +2560,7 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     writeSubsystemJson(output, snapshot.saveDiscovery, "  ");
     output << ",\n";
     output << "  \"generated_overlay_status\": ";
-    writeSubsystemJson(output, snapshot.generatedOverlay, "  ", true);
+    writeGeneratedOverlayJson(output, snapshot.generatedOverlay, "  ");
     output << ",\n";
     output << "  \"generated_overlay_publish_gate_status\": ";
     writeGeneratedOverlayPublishGateJson(output, snapshot.generatedOverlayPublishGate, "  ");

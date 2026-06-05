@@ -115,6 +115,23 @@ int main()
         manifest
             << "{\n"
             << "  \"schema_version\": 1,\n"
+            << "  \"reactive_policy_pack_capability\": \"event_family_dispatch\",\n"
+            << "  \"event_families\": [\"monthly_strategy_tick\"],\n"
+            << "  \"source_qualities\": [\"history_backed\", \"zero_history_bootstrap\"],\n"
+            << "  \"campaign_rule_sources\": [\n"
+            << "    {\n"
+            << "      \"campaign_id\": \"campaign_mp_001\",\n"
+            << "      \"source_quality\": \"history_backed\",\n"
+            << "      \"rule_count\": 1\n"
+            << "    },\n"
+            << "    {\n"
+            << "      \"campaign_id\": \"campaign_bootstrap\",\n"
+            << "      \"source_quality\": \"zero_history_bootstrap\",\n"
+            << "      \"rule_count\": 1,\n"
+            << "      \"bootstrap_rotation_seed_id\": \"bootstrap_seed_fixture\",\n"
+            << "      \"bootstrap_rotation_epoch\": 4\n"
+            << "    }\n"
+            << "  ],\n"
             << "  \"files\": [\n"
             << "    {\n"
             << "      \"path\": \"events/strategic_nexus_generated_events.txt\",\n"
@@ -279,6 +296,18 @@ int main()
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest verifies");
     requireCondition(!ready.generatedOverlay.manifestHash.empty(), "overlay status should expose generated overlay manifest hash");
+    requireCondition(
+        ready.generatedOverlay.reactivePolicyPackCapability == "event_family_dispatch",
+        "overlay status should expose reactive capability");
+    requireCondition(
+        ready.generatedOverlay.eventFamilies.size() == 1 && ready.generatedOverlay.eventFamilies.front() == "monthly_strategy_tick",
+        "overlay status should expose event-family coverage");
+    requireCondition(
+        ready.generatedOverlay.sourceQualities.size() == 2,
+        "overlay status should expose source qualities");
+    requireCondition(
+        ready.generatedOverlay.bootstrapCampaignCount == 1,
+        "overlay status should expose bootstrap provenance count");
     requireCondition(ready.generatedOverlayPublishGate.state == "ready", "publish gate should be ready when Stellaris is not running");
     requireCondition(
         ready.generatedOverlayPublishGate.reason == "Stellaris is not running; generated overlay publish allowed",
@@ -671,6 +700,18 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("generated_overlay_manifest_hash: " + ready.generatedOverlay.manifestHash) != std::string::npos,
         "status center summary should include generated overlay manifest hash");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_reactive_capability: event_family_dispatch") != std::string::npos,
+        "status center summary should include reactive capability");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_event_families: monthly_strategy_tick") != std::string::npos,
+        "status center summary should include event-family coverage");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_source_qualities: history_backed,zero_history_bootstrap") != std::string::npos,
+        "status center summary should include source qualities");
+    requireCondition(
+        ready.statusCenterSummaryText.find("generated_overlay_bootstrap_campaign_count: 1") != std::string::npos,
+        "status center summary should include bootstrap provenance count");
     requireCondition(
         ready.statusCenterSummaryText.find("campaign_id: campaign_mp_001") != std::string::npos,
         "status center summary should include MP campaign id");
@@ -1173,6 +1214,18 @@ int main()
     requireCondition(json.find("\"save_discovery_status\"") != std::string::npos, "JSON should include save discovery status");
     requireCondition(json.find("\"generated_overlay_status\"") != std::string::npos, "JSON should include overlay status");
     requireCondition(json.find("\"manifest_hash\": \"") != std::string::npos, "JSON should include generated overlay manifest hash");
+    requireCondition(
+        json.find("\"reactive_policy_pack_capability\": \"event_family_dispatch\"") != std::string::npos,
+        "JSON should include generated overlay reactive capability");
+    requireCondition(
+        json.find("\"event_families\": [\"monthly_strategy_tick\"]") != std::string::npos,
+        "JSON should include generated overlay event families");
+    requireCondition(
+        json.find("\"source_qualities\": [\"history_backed\", \"zero_history_bootstrap\"]") != std::string::npos,
+        "JSON should include generated overlay source qualities");
+    requireCondition(
+        json.find("\"bootstrap_campaign_count\": 1") != std::string::npos,
+        "JSON should include generated overlay bootstrap provenance count");
     requireCondition(json.find("\"generated_overlay_publish_gate_status\"") != std::string::npos, "JSON should include generated overlay publish gate status");
     requireCondition(json.find("\"mp_overlay_package_status\"") != std::string::npos, "JSON should include mp overlay package status");
     requireCondition(json.find("\"post_play_pipeline_status\"") != std::string::npos, "JSON should include post-play pipeline status");
