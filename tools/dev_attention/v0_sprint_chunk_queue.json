@@ -1,24 +1,24 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-05T09:20:00+02:00",
+  "updated_at": "2026-06-05T09:34:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after SNC MP ZIP handoff export",
+  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after SNC CLI previous-host continuity surfacing",
   "chunks": [
     {
-      "id": "v0-sprint-038-snc-cli-previous-host-availability-surface",
-      "title": "Surface previous host availability in SNC CLI",
+      "id": "v0-sprint-040-snc-tray-previous-host-availability-text-surface",
+      "title": "Surface previous host continuity in tray text",
       "status": "ready",
       "lane": "implementation",
-      "roadmap_anchor": "Multiplayer Generated Overlay Distribution / SNC CLI status surfaces",
-      "goal": "Expose explicit previous-host continuity state in stable SNC CLI/stdout status output so terminal-driven and automation consumers do not need to reparse JSON or freeform MP status text for host-rotation continuity facts.",
+      "roadmap_anchor": "Multiplayer Generated Overlay Distribution / SNC tray owner-facing text surfaces",
+      "goal": "Expose explicit previous-host continuity state in flat SNC tray status and next-steps brief output so owner/release-companion flows can read host-rotation continuity without JSON parsing.",
       "acceptance": [
-        "Stable SNC CLI/stdout status output exposes explicit `snc_mp_overlay_package_previous_host_available` and `snc_mp_overlay_package_previous_host_available_known` fields for the current MP package.",
-        "The CLI/stdout field names stay aligned with the existing JSON/tray continuity contract and degraded-handoff next-action semantics.",
-        "tools/run_v0_pipeline_tests.ps1 fails closed if the explicit previous-host continuity fields disappear from SNC CLI/stdout status surfaces."
+        "Flat tray status text exposes explicit `mp_previous_host_available` and `mp_previous_host_available_known` lines alongside the existing MP readiness/ZIP fields.",
+        "snc_next_steps_brief.txt mirrors previous-host continuity near the MP package handoff section so owner-facing follow-up can stay in text artifacts.",
+        "Regression coverage fails closed if explicit previous-host continuity lines disappear from owner-facing tray text artifacts."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
@@ -26,14 +26,14 @@
       "dependencies": []
     },
     {
-      "id": "v0-sprint-039-roadmap-progress-refresh-after-snc-cli-previous-host-availability-surface",
-      "title": "Refresh progress after SNC CLI continuity slice",
+      "id": "v0-sprint-041-roadmap-progress-refresh-after-snc-tray-previous-host-availability-text-surface",
+      "title": "Refresh progress after tray continuity text slice",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and owner-facing daily summary aligned after SNC CLI previous-host availability surfacing lands.",
+      "goal": "Keep roadmap notes, sprint queue, and owner-facing daily summary aligned after SNC tray previous-host continuity text surfacing lands.",
       "acceptance": [
-        "Roadmap next-worker-ready notes mention the shipped SNC CLI previous-host availability surface once tests pass.",
+        "Roadmap next-worker-ready notes mention the shipped SNC tray previous-host continuity text surface once tests pass.",
         "The sprint queue is refreshed to the next bounded roadmap slice instead of leaving stale completed chunks.",
         "The daily freework report is replaced without creating report spam."
       ],
@@ -43,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-038-snc-cli-previous-host-availability-surface"
+        "v0-sprint-040-snc-tray-previous-host-availability-text-surface"
       ]
     }
   ]
