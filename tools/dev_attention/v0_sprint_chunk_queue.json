@@ -1,24 +1,24 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-05T12:55:00+02:00",
+  "updated_at": "2026-06-05T13:10:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after SNC startup lifecycle owner-facing text surfacing",
+  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after SNC startup lifecycle CLI surface",
   "chunks": [
     {
-      "id": "v0-sprint-046-snc-start-with-windows-lifecycle-cli-surface",
-      "title": "Surface startup lifecycle state in SNC CLI",
+      "id": "v0-sprint-048-snc-lifecycle-contract-cli-surface",
+      "title": "Surface SNC lifecycle contract in CLI",
       "status": "ready",
       "lane": "implementation",
-      "roadmap_anchor": "Core Runtime Skeleton / optional start-with-Windows lifecycle visibility",
-      "goal": "Expose explicit startup lifecycle state fields in `--snc-status-snapshot` stdout so terminal and automation consumers can read the current owner-enabled vs manual-only state without reparsing summary text.",
+      "roadmap_anchor": "Core Runtime Skeleton / companion lifecycle skeleton visibility",
+      "goal": "Expose the remaining lifecycle skeleton fields in `--snc-status-snapshot` stdout so terminal and automation consumers can read the close-to-tray, explicit-exit, and crash-restart contract without opening snapshot JSON.",
       "acceptance": [
-        "`Strategic Nexus.exe --snc-status-snapshot` stdout exposes explicit startup lifecycle state and enabled-flag fields.",
-        "The CLI vocabulary stays aligned with the owner-facing text surfaces: explicit owner-enabled vs manual-only state, without implying hidden persistence or auto-enablement.",
-        "Regression coverage fails closed if the lifecycle stdout fields disappear from the stable SNC CLI contract."
+        "`Strategic Nexus.exe --snc-status-snapshot` stdout exposes `window_close_behavior`, `explicit_exit_behavior`, and `crash_restart_policy` fields.",
+        "The CLI field names and values stay aligned with the existing snapshot JSON lifecycle object.",
+        "Regression coverage fails closed if the lifecycle stdout contract drifts or disappears."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
@@ -26,14 +26,14 @@
       "dependencies": []
     },
     {
-      "id": "v0-sprint-047-roadmap-progress-refresh-after-snc-startup-lifecycle-cli-surface",
-      "title": "Refresh progress after startup lifecycle CLI slice",
+      "id": "v0-sprint-049-roadmap-progress-refresh-after-snc-lifecycle-contract-cli-surface",
+      "title": "Refresh progress after SNC lifecycle CLI slice",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and owner-facing daily summary aligned after the SNC startup-lifecycle CLI slice lands.",
+      "goal": "Keep roadmap notes, sprint queue, and owner-facing daily summary aligned after the SNC lifecycle-contract CLI slice lands.",
       "acceptance": [
-        "Roadmap next-worker-ready notes mention the shipped SNC startup-lifecycle CLI surface once tests pass.",
+        "Roadmap next-worker-ready notes mention the shipped SNC lifecycle-contract CLI surface once tests pass.",
         "The sprint queue is refreshed to the next bounded roadmap slice instead of leaving stale completed chunks.",
         "The daily freework report is replaced without creating report spam."
       ],
@@ -43,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-046-snc-start-with-windows-lifecycle-cli-surface"
+        "v0-sprint-048-snc-lifecycle-contract-cli-surface"
       ]
     }
   ]
