@@ -1685,6 +1685,12 @@ int Application::run(const RunConfig& config) const
                       << "\n";
             std::cout << "snc_start_with_windows_enabled="
                       << (snapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << "\n";
+            std::cout << "snc_window_close_behavior="
+                      << sanitizeCliValue(snapshot.lifecycle.windowCloseBehavior) << "\n";
+            std::cout << "snc_explicit_exit_behavior="
+                      << sanitizeCliValue(snapshot.lifecycle.explicitExitBehavior) << "\n";
+            std::cout << "snc_crash_restart_policy="
+                      << sanitizeCliValue(snapshot.lifecycle.crashRestartPolicy) << "\n";
             std::cout << "snc_archive_state=" << sanitizeCliValue(snapshot.archive.state) << "\n";
             std::cout << "snc_archive_reason=" << sanitizeCliValue(snapshot.archive.reason) << "\n";
             std::cout << "snc_archive_path=" << sanitizeCliValue(stdoutPath(snapshot.archive.path)) << "\n";
