@@ -1677,6 +1677,14 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_status_success=" << (success ? "true" : "false") << "\n";
             std::cout << "snc_app_name=" << sanitizeCliValue(snapshot.appName) << "\n";
             std::cout << "snc_abbreviation=" << sanitizeCliValue(snapshot.abbreviation) << "\n";
+            std::cout << "snc_startup_lifecycle_state="
+                      << sanitizeCliValue(
+                             snapshot.lifecycle.startWithWindowsEnabled
+                                 ? "owner_enabled_start_with_windows"
+                                 : "manual_start_only")
+                      << "\n";
+            std::cout << "snc_start_with_windows_enabled="
+                      << (snapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << "\n";
             std::cout << "snc_archive_state=" << sanitizeCliValue(snapshot.archive.state) << "\n";
             std::cout << "snc_archive_reason=" << sanitizeCliValue(snapshot.archive.reason) << "\n";
             std::cout << "snc_archive_path=" << sanitizeCliValue(stdoutPath(snapshot.archive.path)) << "\n";

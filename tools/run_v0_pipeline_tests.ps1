@@ -1350,6 +1350,8 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_success=true"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_app_name=Strategic Nexus Companion"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_abbreviation=SNC"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_startup_lifecycle_state=owner_enabled_start_with_windows"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_start_with_windows_enabled=true"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_archive_state=starting"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_state=ready"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_generated_overlay_manifest_hash="
@@ -1407,6 +1409,8 @@ function Invoke-SncStatusSnapshotCase {
     }
 
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_state=ready"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_startup_lifecycle_state=owner_enabled_start_with_windows"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_start_with_windows_enabled=true"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_previous_host_available=false"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_previous_host_available_known=true"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_zip_state=ready"
