@@ -1,24 +1,24 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-05T03:31:00+02:00",
+  "updated_at": "2026-06-05T09:20:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after v0-sprint-033",
+  "current_source": "DEVELOPMENT_ROADMAP.md next worker-ready slice after SNC MP ZIP handoff export",
   "chunks": [
     {
-      "id": "v0-sprint-034-snc-cli-previous-host-availability-surface",
+      "id": "v0-sprint-038-snc-cli-previous-host-availability-surface",
       "title": "Surface previous host availability in SNC CLI",
       "status": "ready",
       "lane": "implementation",
       "roadmap_anchor": "Multiplayer Generated Overlay Distribution / SNC CLI status surfaces",
-      "goal": "Expose explicit `previous_host_available` continuity state in stable SNC CLI/stdout status output so terminal-driven and automation consumers do not need to reparse JSON or freeform MP status text for host-rotation continuity facts.",
+      "goal": "Expose explicit previous-host continuity state in stable SNC CLI/stdout status output so terminal-driven and automation consumers do not need to reparse JSON or freeform MP status text for host-rotation continuity facts.",
       "acceptance": [
-        "Stable SNC CLI/stdout status output exposes an explicit `previous_host_available` field for the current MP package.",
+        "Stable SNC CLI/stdout status output exposes explicit `snc_mp_overlay_package_previous_host_available` and `snc_mp_overlay_package_previous_host_available_known` fields for the current MP package.",
         "The CLI/stdout field names stay aligned with the existing JSON/tray continuity contract and degraded-handoff next-action semantics.",
-        "tools/run_v0_pipeline_tests.ps1 fails closed if the explicit previous-host continuity field disappears from SNC CLI/stdout status surfaces."
+        "tools/run_v0_pipeline_tests.ps1 fails closed if the explicit previous-host continuity fields disappear from SNC CLI/stdout status surfaces."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
@@ -26,7 +26,7 @@
       "dependencies": []
     },
     {
-      "id": "v0-sprint-035-roadmap-progress-refresh-after-snc-cli-previous-host-availability-surface",
+      "id": "v0-sprint-039-roadmap-progress-refresh-after-snc-cli-previous-host-availability-surface",
       "title": "Refresh progress after SNC CLI continuity slice",
       "status": "ready",
       "lane": "verification",
@@ -43,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-034-snc-cli-previous-host-availability-surface"
+        "v0-sprint-038-snc-cli-previous-host-availability-surface"
       ]
     }
   ]

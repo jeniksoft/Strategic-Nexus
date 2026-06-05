@@ -968,6 +968,7 @@ Compare/trend/loop outputs now also expose structured MP ZIP `path` and `bytes` 
 Compare/trend/loop outputs now also expose structured MP handoff continuity drift fields (`*_mp_handoff_status_{previous,current,changed}`, `*_mp_previous_host_available_{previous,current,changed}`), and real-session loop evidence now mirrors export-side `handoff_status` plus `previous_host_available`, so host-rotation follow-up can detect degraded previous-host continuity from one output artifact instead of reparsing status text.
 Compare/trend outputs now also promote degraded MP handoff continuity into explicit `review_mp_handoff_continuity` recommendation state, and real-session loop now surfaces `mp_handoff_follow_up` plus top-level `next_action=review_mp_handoff_continuity`, so owner/release-companion follow-up can point at manual-save-recovery or host-rotation review without custom downstream interpretation.
 `StrategicNexusCompanionTray.exe` now refreshes a stable `dist/private_reports/snc_mp_overlay_package` export after `generated_overlay_staged`, removes stale tray ZIP handoff artifacts it did not regenerate, and surfaces structured MP package refresh/readiness/verify-import fields in `snc_tray_status.json`, Status Center summary text, and `snc_next_steps_brief.txt`.
+SNC status snapshots and companion/tray owner-facing surfaces now also auto-export a deterministic MP package ZIP handoff artifact from an already verified package root, using a stable SHA-256 hash plus byte-count contract across JSON, Status Center summary text, tray status/brief output, and stable CLI stdout so waiting-for-Stellaris checks no longer regress to `zip not exported`.
 `StrategicNexusCompanion` status snapshots now also expose a top-level `next_action` contract (`next_action`, reason, command-hint source/path) and prioritize MP identity-mismatch review before ordinary staging follow-up, so release-companion or owner-facing status consumers do not need to reconstruct the next safe step from nested subsystem fields alone.
 `StrategicNexusCompanion` now also promotes `handoff_status=degraded_previous_host_unavailable` into top-level `next_action=review_mp_handoff_continuity` with a strict-verify command hint while still keeping identity-mismatch warnings higher priority, so stable SNC/tray owner-facing surfaces can flag host-rotation/manual-save-recovery follow-up without waiting for a real-session compare/trend run.
 `StrategicNexusCompanion` JSON, Status Center summary text, and `snc_tray_status.json` now also expose structured `previous_host_available` continuity state (plus a known/not-known flag), so downstream owner-facing or automation consumers no longer need to scrape `mp_overlay_package_status_text` to detect degraded previous-host continuity.
@@ -1004,9 +1005,9 @@ Next worker-ready slice:
 
   The next slice should include:
 
-* expose explicit `previous_host_available` lines in `Strategic Nexus.exe --snc-status-snapshot` and any related stable stdout surfaces so terminal-driven or automation consumers can read continuity state without reparsing JSON blobs
-* keep the stdout field names aligned with the just-shipped JSON / tray continuity contract and existing degraded-handoff next-action semantics
-* add regression coverage so the stable CLI/stdout surface fails closed if explicit previous-host continuity output disappears
+* expose explicit `snc_mp_overlay_package_previous_host_available` and `snc_mp_overlay_package_previous_host_available_known` lines in `Strategic Nexus.exe --snc-status-snapshot`
+* keep the stable CLI/stdout field names aligned with the already-shipped JSON / Status Center continuity contract and degraded-handoff next-action semantics
+* add regression coverage so terminal-driven or automation consumers fail closed if explicit previous-host continuity output disappears from the stable SNC stdout surface
 
   ---
 
