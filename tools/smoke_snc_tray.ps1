@@ -50,6 +50,12 @@ try {
                     throw "SNC tray publish-ready status did not surface the publish/review next action."
                 }
                 $summaryText = [string]$json.status_center_summary_text
+                if ($summaryText -notlike "*startup_rationale:*") {
+                    throw "SNC tray summary text did not expose startup_rationale."
+                }
+                if ($summaryText -notlike "*startup_start_with_windows: optional_owner_setting_default_disabled*") {
+                    throw "SNC tray summary text did not expose the default-disabled startup contract."
+                }
                 if ($summaryText -notlike "*mp_previous_host_available:*") {
                     throw "SNC tray summary text did not expose mp_previous_host_available."
                 }
@@ -69,6 +75,12 @@ try {
                 }
                 if ($briefText -notlike "*MP previous host availability known:*") {
                     throw "SNC tray next-steps brief did not expose MP previous host availability known."
+                }
+                if ($briefText -notlike "*Startup note:*") {
+                    throw "SNC tray next-steps brief did not expose the startup rationale note."
+                }
+                if ($briefText -notlike "*Start with Windows: volitelne nastaveni, vychozi stav ma zustat vypnuty.*") {
+                    throw "SNC tray next-steps brief did not expose the default-disabled start-with-Windows note."
                 }
 
                 Write-Host "snc_tray_smoke_success=true"

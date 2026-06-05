@@ -435,6 +435,12 @@ void appendMpPackageSummaryLines(
     }
 }
 
+void appendStartupRationaleLines(std::ostringstream& output)
+{
+    output << "startup_rationale: start SNC before Stellaris to preserve more autosave history before the game rotates older saves away\n";
+    output << "startup_start_with_windows: optional_owner_setting_default_disabled\n";
+}
+
 std::wstring utf8ToWide(const std::string& value)
 {
     if (value.empty()) {
@@ -835,6 +841,7 @@ std::string buildStatusCenterSummaryText(
     summary << "generated_overlay_publish_status_path: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     summary << "generated_overlay_publish_backup_root_directory: "
             << pathString(g_generatedOverlayPublishBackupRootDirectory) << "\n";
+    appendStartupRationaleLines(summary);
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -946,6 +953,8 @@ void writeNextStepsBrief(
     brief << "- Owner approval required: "
           << (generatedOverlayPublishGate.ownerApprovalRequired ? "ano" : "ne") << "\n";
     brief << "- Current staged overlay already published: " << (generatedOverlayPublishGate.published ? "ano" : "ne") << "\n";
+    brief << "- Startup note: Spusteni SNC pred Stellaris pomaha uchovat vic autosave historie driv, nez hra prepise starsi autosavy.\n";
+    brief << "- Start with Windows: volitelne nastaveni, vychozi stav ma zustat vypnuty.\n";
     brief << "- Active overlay snapshot: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
     brief << "- Publish status output: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     if (!generatedOverlayPublishGate.manifestHash.empty()) {
