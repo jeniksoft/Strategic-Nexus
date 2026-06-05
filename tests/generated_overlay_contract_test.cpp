@@ -34,6 +34,7 @@ std::string validDsl()
   empire "empire_001" {
     rule "border_war_defense" {
       ministry = military_ministry
+      event_family = monthly_strategy_tick
       when campaign_marker = campaign_001
       when known.save_fingerprint = h_abcdef123456
       when known.save_date = d_2200_03_01
@@ -112,6 +113,12 @@ int main()
         requireCondition(
             files.manifestText.find("\"path\": \"events/strategic_nexus_generated_events.txt\"") != std::string::npos,
             "compiler manifest should include generated events file");
+        requireCondition(
+            files.manifestText.find("\"reactive_policy_pack_capability\": \"event_family_dispatch\"") != std::string::npos,
+            "compiler manifest should expose reactive event-family capability when requested");
+        requireCondition(
+            files.manifestText.find("\"event_families\": [\"monthly_strategy_tick\"]") != std::string::npos,
+            "compiler manifest should list covered event families");
         requireCondition(
             files.manifestText.find("\"source_qualities\": [\"history_backed\"]") != std::string::npos,
             "compiler manifest should expose default history-backed source quality");
@@ -208,6 +215,13 @@ int main()
         requireCondition(parseResult.ok, "history-backed bootstrap DSL should parse before validation");
         const auto validation = validator.validate(parseResult.program);
         requireCondition(!validation.ok, "history-backed rules should reject bootstrap rotation metadata");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "bad_event_family" { ministry = military_ministry event_family = on_monthly_pulse_country prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.9 rationale = "bad" } } })");
+        requireCondition(parseResult.ok, "raw on_action-like event family should parse before validation");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(!validation.ok, "raw on_action-like event family should fail validation");
     }
 
     {

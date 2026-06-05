@@ -86,6 +86,11 @@ bool isAllowedSourceQuality(const std::string& sourceQuality)
         sourceQuality == "generic_unknown_campaign_fallback";
 }
 
+bool isAllowedEventFamily(const std::string& eventFamily)
+{
+    return eventFamily.empty() || eventFamily == "monthly_strategy_tick";
+}
+
 bool isAllowedPreference(const DslPreference& preference)
 {
     if (preference.domain == "military_posture") {
@@ -170,6 +175,9 @@ DslValidationResult DslValidator::validate(const DslProgram& program) const
         }
         if (!isAllowedMinistry(rule.ministry)) {
             addError(errors, rule.ruleId, "unknown ministry");
+        }
+        if (!isAllowedEventFamily(rule.eventFamily)) {
+            addError(errors, rule.ruleId, "unsupported event family");
         }
         if (!isAllowedSourceQuality(rule.sourceQuality)) {
             addError(errors, rule.ruleId, "unsupported source quality");

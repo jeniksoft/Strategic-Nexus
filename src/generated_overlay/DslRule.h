@@ -25,6 +25,7 @@ struct DslRule {
     std::string empireId;
     std::string ruleId;
     std::string ministry;
+    std::string eventFamily;
     std::string sourceQuality = "history_backed";
     std::string bootstrapRotationSeedId;
     int bootstrapRotationEpoch = -1;

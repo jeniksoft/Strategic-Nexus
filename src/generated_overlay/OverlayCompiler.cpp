@@ -182,12 +182,18 @@ std::string defaultBootstrapRotationSeedId(const CampaignManifestSource& source,
 std::string buildManifest(const DslProgram& program, const std::vector<ManifestEntry>& entries)
 {
     std::vector<std::string> campaignIds;
+    std::vector<std::string> eventFamilies;
     for (const auto& rule : program.rules) {
         if (std::find(campaignIds.begin(), campaignIds.end(), rule.campaignId) == campaignIds.end()) {
             campaignIds.push_back(rule.campaignId);
         }
+        if (!rule.eventFamily.empty() &&
+            std::find(eventFamilies.begin(), eventFamilies.end(), rule.eventFamily) == eventFamilies.end()) {
+            eventFamilies.push_back(rule.eventFamily);
+        }
     }
     std::sort(campaignIds.begin(), campaignIds.end());
+    std::sort(eventFamilies.begin(), eventFamilies.end());
 
     std::vector<std::string> sourceQualities;
     std::vector<CampaignManifestSource> campaignSources;
@@ -239,6 +245,16 @@ std::string buildManifest(const DslProgram& program, const std::vector<ManifestE
             manifest << ", ";
         }
         manifest << "\"" << jsonEscape(campaignIds[i]) << "\"";
+    }
+    manifest << "],\n";
+    manifest << "  \"reactive_policy_pack_capability\": \""
+             << (eventFamilies.empty() ? "post_session_only" : "event_family_dispatch") << "\",\n";
+    manifest << "  \"event_families\": [";
+    for (std::size_t i = 0; i < eventFamilies.size(); ++i) {
+        if (i > 0) {
+            manifest << ", ";
+        }
+        manifest << "\"" << jsonEscape(eventFamilies[i]) << "\"";
     }
     manifest << "],\n";
     manifest << "  \"source_qualities\": [";

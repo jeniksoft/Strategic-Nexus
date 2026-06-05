@@ -201,7 +201,7 @@ bool readAssignmentValue(ParserCursor& cursor, const std::string& key, std::stri
 {
     const std::string next = cursor.peek();
     if (next.empty() || next == "=" || next == "}" ||
-        next == "ministry" || next == "source_quality" || next == "bootstrap_rotation_seed_id" ||
+        next == "ministry" || next == "event_family" || next == "source_quality" || next == "bootstrap_rotation_seed_id" ||
         next == "bootstrap_rotation_epoch" || next == "duration" || next == "confidence" || next == "rationale" ||
         next == "prefer" || next == "when" || next == "rule" || next == "empire" || next == "campaign") {
         error = key + " assignment requires value";
@@ -261,6 +261,12 @@ bool parseAssignment(ParserCursor& cursor, DslRule& rule, std::string& error)
 
     if (key == "ministry") {
         if (!readAssignmentValue(cursor, key, rule.ministry, error)) {
+            return false;
+        }
+        return true;
+    }
+    if (key == "event_family") {
+        if (!readAssignmentValue(cursor, key, rule.eventFamily, error)) {
             return false;
         }
         return true;
