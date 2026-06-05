@@ -22,6 +22,10 @@ Every empire in every known campaign must have a Strategic Nexus personality pro
 
 When the companion app archives autosaves from a campaign that Strategic Nexus does not recognize, it must create a new campaign profile and bootstrap personality for each detected empire.
 
+Unknown campaign does not mean "no Strategic Nexus rules".
+It means a zero-history campaign: Strategic Nexus has identity and empire facts, but no durable history yet.
+The generated policy pack should therefore contain conservative zero-history rules and personality defaults, not an empty or permanently identical fallback.
+
 This happens from archived save analysis, not from active save editing.
 
 ---
@@ -34,8 +38,9 @@ When an autosave belongs to an unknown campaign:
 2. derive or assign a campaign marker/fingerprint
 3. enumerate detectable empires from the archived save
 4. create one personality profile per empire
-5. initialize memory and adaptive state from available save history
-6. stage only bounded generated mod overlay data for the next launch
+5. initialize a zero-history personality from empire facts and the current bootstrap rotation seed
+6. initialize memory and adaptive state from available save history, or as empty low-confidence state when no history exists
+7. stage only bounded generated mod overlay data for the next launch
 
 If campaign identity confidence is low, Strategic Nexus must avoid merging with existing campaign memory.
 It should create a separate candidate profile or ask for user confirmation.
@@ -55,6 +60,18 @@ Each empire profile should contain:
     "source_save": "archived autosave",
     "confidence": 0.82
   },
+  "bootstrap_basis": {
+    "source_quality": "zero_history_bootstrap",
+    "generation_seed_id": "policy-pack-2026-06-05T13-31-50Z",
+    "rotation_epoch": 12,
+    "facts_used": [
+      "ethics",
+      "civics",
+      "authority",
+      "species_traits",
+      "empire_type"
+    ]
+  },
   "base_traits": {
     "boldness": 0.55,
     "paranoia": 0.35,
@@ -73,6 +90,103 @@ Each empire profile should contain:
 ```
 
 The exact fields may evolve, but the profile must remain bounded, schema-versioned, and campaign-scoped.
+
+---
+
+# Zero-History Bootstrap Rule
+
+A new or unknown campaign must receive rules like a known campaign with no history, not like an unsupported campaign.
+
+Allowed zero-history inputs:
+
+* campaign marker or candidate campaign fingerprint
+* empire id or generated empire marker
+* ethics
+* civics
+* authority type
+* species traits
+* origin
+* empire type
+* safe initial diplomacy or starting-state facts when available
+* current generated policy-pack id or bootstrap rotation epoch
+
+Zero-history output should be marked explicitly:
+
+```text
+source_quality = zero_history_bootstrap
+history_confidence = none_or_low
+```
+
+This lets the Status Center explain that the rules are safe defaults, not learned history.
+
+Zero-history rules may be used for:
+
+* a newly discovered campaign before any meaningful history exists
+* a restored save whose campaign identity is new to SNC
+* a generic unknown-campaign fallback pack when the mod has no campaign-specific profile yet
+
+They must remain conservative.
+They must not pretend to know prior wars, betrayals, relationships, player habits, or hidden intent.
+
+---
+
+# Bootstrap Variation Rule
+
+Default empire personalities must not be a fixed table where, for example, the fifth empire slot is always bold, stubborn, or paranoid.
+
+Strategic Nexus should generate a bounded bootstrap variation seed for each generated policy-pack update.
+The seed or rotation epoch must be recorded in the manifest or audit metadata so the generated output is explainable and reproducible.
+
+Valid seed inputs:
+
+* generated policy-pack id
+* Strategic Nexus mod/app version
+* bootstrap rotation epoch
+* campaign marker or candidate fingerprint when available
+* empire facts listed in the zero-history rule
+* empire ordinal only as a tie-breaker, never as the sole personality source
+
+Invalid seed inputs:
+
+* Windows username
+* machine id
+* Steam account id
+* local folder names that identify the owner
+* private personal notes
+* raw player names as logic
+
+The combination space for bootstrap personalities should be comfortably larger than the maximum supported empire count.
+Stellaris can host up to 32 player slots in multiplayer, so Strategic Nexus should be able to assign 32 distinct bounded bootstrap profiles without making new campaigns feel identical.
+
+Variation must remain constrained by empire facts.
+For example, two militarist-authoritarian empires may differ as cautious militarists, honor militarists, opportunistic militarists, or paranoid militarists, but they should not receive a pacifist personality that contradicts their known civic/ethic basis.
+
+---
+
+# Established Campaign Continuity Rule
+
+Once a campaign has durable history, policy-pack updates must not reroll personality merely for novelty.
+
+Correct behavior:
+
+```text
+known campaign + validated history
+-> preserve established personality
+-> apply gradual bounded drift from new evidence
+```
+
+Incorrect behavior:
+
+```text
+known campaign + new mod update
+-> replace personality with a new random bootstrap profile
+```
+
+Bootstrap variation is for zero-history or unknown-campaign defaults.
+History-backed campaign profiles use continuity first and novelty only as a weak influence where no evidence exists.
+
+Human-controlled empires may still have campaign-empire personality profiles for analysis context, but this is not a profile of the real human player.
+Gameplay-affecting generated rules must still obey the human-control activation guards defined in the multiplayer and generated-overlay rules.
 
 ---
 

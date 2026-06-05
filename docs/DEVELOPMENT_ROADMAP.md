@@ -260,6 +260,7 @@ Required:
 * payload schema
 * Strategic Nexus DSL parser/validator/compiler skeleton
 * reactive policy-pack DSL/compiler support for allowlisted event-family branches
+* zero-history bootstrap policy-pack support for unknown or new campaigns
 * payload validation
 * campaign identity handling
 * sequence handling
@@ -433,6 +434,7 @@ Required:
 * empire-specific snapshots
 * multiple empire-perspective analyses over the same archived save sequence
 * one personality profile per detected campaign empire
+* zero-history personality defaults for newly discovered campaigns, with manifest-recorded bootstrap rotation
 
 Notes:
 No global galaxy AI brain allowed.
@@ -734,6 +736,7 @@ Required:
 * campaign-empire scoped personality profiles
 * observer-target predictive profiles for important other empires
 * unknown campaign personality bootstrap from archived saves
+* zero-history bootstrap profiles that vary across generated policy-pack updates without becoming random or slot-fixed
 * personality traits
 * doctrine inertia
 * risk tolerance
@@ -747,6 +750,7 @@ Notes:
 Different civilizations should react differently to the same situation.
 The same civilization template in a different campaign is a different personality instance.
 LLM conversation may support offline interpretation, but v0 should persist only validated personality state, source save/date, concise update summary, and confidence.
+Unknown or new campaigns should receive conservative zero-history profiles and policy rules marked as `zero_history_bootstrap`; once history exists, personality continuity must override bootstrap variation.
 Structured deltas may be added later for audit and rollback.
 
 ---
@@ -900,6 +904,7 @@ Required:
 * treat client-provided manual saves as recovery anchors when host autosave archive or handoff is missing
 * persist small campaign/empire/human-control markers into saves through normal mod flags/variables
 * avoid binding empire personality to a specific human user or host machine
+* generate host-owned deterministic bootstrap personalities for zero-history MP campaigns, with byte-identical package output for clients
 * generate MP campaign rules for all detected empires, but guard gameplay activation so rules never apply to an empire currently controlled by a human player
 * treat single-player-founded campaign player empire as a stable do-not-apply target unless future parser evidence safely proves otherwise
 

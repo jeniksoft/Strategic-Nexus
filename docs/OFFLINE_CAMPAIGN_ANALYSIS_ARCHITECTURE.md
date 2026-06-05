@@ -671,6 +671,15 @@ There is no single global objective LLM brain.
 Every detected empire in every campaign must have its own personality profile.
 
 When the companion app sees an autosave from an unknown campaign, it must bootstrap personality profiles for all detectable empires before generating campaign-specific overlay rules.
+Those profiles are zero-history profiles until validated archive evidence exists.
+The generated overlay should still provide conservative zero-history reactive policy branches, so a new campaign is not left with no Strategic Nexus behavior.
+
+Zero-history bootstrap must vary across generated policy-pack updates through a deterministic manifest-recorded seed or rotation epoch.
+The variation should be constrained by empire facts such as ethics, civics, authority, species traits, origin, and empire type.
+It must not bind a fixed personality to a fixed empire slot, and it must not use local user, machine, account, or personal player data.
+
+Once a campaign has durable history, future analysis must preserve established campaign-empire personality and apply only gradual validated drift.
+Policy-pack updates must not reroll known campaign personalities merely for variety.
 
 Personality identity is:
 

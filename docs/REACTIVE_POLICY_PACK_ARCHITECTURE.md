@@ -135,6 +135,64 @@ It must remain:
 
 ---
 
+# Unknown Campaign Bootstrap Policy Pack
+
+The generated overlay should include a conservative zero-history bootstrap policy path for campaigns that do not yet have durable Strategic Nexus history.
+
+Unknown campaign must mean:
+
+```text
+campaign facts known or partially known
++ zero history
+-> bounded bootstrap personality
+-> conservative reactive policy branches
+```
+
+not:
+
+```text
+no rules
+```
+
+and not:
+
+```text
+the same default archetype table forever
+```
+
+For each generated policy-pack update, SNC should record a bootstrap rotation seed or epoch in the manifest.
+That seed may vary the default empire personality mix for new or unknown campaigns while staying deterministic and reproducible for the generated pack.
+
+The bootstrap policy pack may use:
+
+* empire facts such as ethics, civics, authority, species traits, origin, and empire type
+* campaign marker or candidate fingerprint when available
+* generated policy-pack id or bootstrap rotation epoch
+* empire ordinal only as a tie-breaker
+
+It must not use:
+
+* local username
+* machine id
+* account id
+* raw private folder names
+* personal profile data about the human player
+
+Known campaigns with validated history must not be rerolled by this mechanism.
+Their policy branches should use the established campaign-empire personality and gradual validated drift.
+
+The Status Center should expose whether a ruleset is:
+
+```text
+history_backed
+zero_history_bootstrap
+generic_unknown_campaign_fallback
+```
+
+so the owner can tell whether Strategic Nexus is using learned history or safe defaults.
+
+---
+
 # Event Families
 
 The compiler should expose allowlisted Strategic Nexus event families rather than raw Stellaris script names from the LLM.

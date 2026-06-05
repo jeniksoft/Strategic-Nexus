@@ -333,6 +333,7 @@ Current progress:
 * `Strategic Nexus.exe --plan-campaign-library <save_root> <max_campaigns> <plan_output.json>` emits a bounded include/skip plan for the active generated campaign library.
 * `Strategic Nexus.exe --compile-campaign-library-overlay <input.dsl> <save_root> <max_campaigns> <output_dir>` compiles a generated overlay snapshot filtered to included local campaign keys.
 * Architecture direction update: the generated overlay should evolve from a single post-session strategic state into a precompiled reactive policy pack. This means validated DSL should be able to represent allowlisted event-family branches, and the mod should select among already-loaded branches during play through ordinary Stellaris script. It still must not accept live LLM decisions during the active session.
+* Zero-history campaign direction update: an unknown or new campaign should receive conservative generated defaults marked as `zero_history_bootstrap`, including bounded personality variation constrained by empire facts and recorded in the generated manifest. Known campaign personalities must not be rerolled by this bootstrap path.
 
 Next worker-ready reactive-policy slice:
 
@@ -341,7 +342,7 @@ validated DSL event-family branch
 -> compiler allowlist/rejection tests
 -> generated trigger/effect branch
 -> base on_action dispatcher path
--> Status Center/reactive capability signal
+-> Status Center/reactive capability and bootstrap source-quality signal
 ```
 
 Validation note:

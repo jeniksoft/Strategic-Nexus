@@ -76,7 +76,7 @@ Core documents:
 * [ARCHITECTURE.md](ARCHITECTURE.md) - four-layer architecture and fail-safe split
 * [V0_SCOPE_AND_PIPELINE_PLAN.md](V0_SCOPE_AND_PIPELINE_PLAN.md) - bounded v0 scope and offline validator pipeline boundary
 * [OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md](OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md) - revised session-to-session architecture, autosave archiving, campaign analysis, and next-session mod refresh
-* [REACTIVE_POLICY_PACK_ARCHITECTURE.md](REACTIVE_POLICY_PACK_ARCHITECTURE.md) - approved legal near-realtime design using precompiled event-driven strategy branches, not live LLM injection
+* [REACTIVE_POLICY_PACK_ARCHITECTURE.md](REACTIVE_POLICY_PACK_ARCHITECTURE.md) - approved legal near-realtime design using precompiled event-driven strategy branches, not live LLM injection; also covers zero-history bootstrap policy packs for unknown campaigns
 * [CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md](CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md) - target release orchestrator architecture for minimal mandatory user interaction
 * [STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md](STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md) - verified non-Steam distribution surfaces and provider-neutral save-root contract
 * [SAVE_ENTRY_POINT_AND_BRANCH_RULES.md](SAVE_ENTRY_POINT_AND_BRANCH_RULES.md) - entry-point-scoped generated rules and branch/reload handling for captured autosaves
@@ -100,7 +100,7 @@ Core documents:
 * [FREE_WORK_AND_USAGE_BUDGET_RULES.md](FREE_WORK_AND_USAGE_BUDGET_RULES.md) - rules for autonomous Codex work based on declared usage budget
 * [AUTOMATION_CANDIDATES.md](AUTOMATION_CANDIDATES.md) - proposed recurring Codex automation candidates and recommended cadences
 * [DEV_DIARY.md](DEV_DIARY.md) - daily human-readable development diary for project continuity and external feedback
-* [CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md](CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md) - campaign-empire personality creation, evolution, and LLM conversation boundaries
+* [CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md](CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md) - campaign-empire personality creation, zero-history bootstrap variation, evolution, and LLM conversation boundaries
 
 Core rule:
 

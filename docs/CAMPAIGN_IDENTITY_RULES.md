@@ -71,6 +71,10 @@ If the loaded save does not match the expected entry-point fingerprint, in-game 
 
 The active generated mod overlay may contain rules for multiple known campaigns, but each ruleset must remain marker-guarded.
 It may also contain multiple rulesets for different known entry points within the same campaign, as long as each ruleset is bounded and clearly gated.
+It may also contain a conservative zero-history fallback policy pack for unknown campaigns.
+That fallback is not allowed to claim a specific campaign history.
+It may use only current in-game facts available to ordinary mod script, candidate campaign markers, and manifest-recorded bootstrap defaults.
+Once SNC identifies the campaign and builds a campaign-specific profile, marker-guarded campaign rules supersede the generic unknown-campaign fallback.
 The companion app should remove campaign rules from the active generated overlay when the corresponding local Stellaris save campaign is no longer present.
 This cleanup must not delete archived Strategic Nexus memory unless explicitly requested.
 Strategic Nexus campaign memory is durable on-disk app state; the active generated mod overlay is only a rebuildable projection of that memory.

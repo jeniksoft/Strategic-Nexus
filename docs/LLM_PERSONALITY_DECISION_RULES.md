@@ -92,6 +92,16 @@ campaign_id + empire_id
 An unknown archived campaign must bootstrap a fresh personality profile for every detected empire.
 Do not reuse personality state from another campaign merely because an empire name, portrait, civic set, or player template looks similar.
 
+Unknown campaign bootstrap is a zero-history mode.
+It should create real bounded personality defaults and conservative rules, but mark them as `zero_history_bootstrap` until validated campaign history exists.
+
+The default bootstrap must not be a permanent slot table.
+Generated policy-pack updates should rotate the zero-history bootstrap seed or epoch so new campaigns do not repeatedly assign the same personality to the same empire position.
+That variation must remain constrained by ethics, civics, authority, species traits, origin, and empire type.
+
+Once a campaign has validated history, the LLM must preserve personality continuity and propose only bounded drift from evidence.
+It must not reroll established personalities just because the generated mod overlay was updated.
+
 ---
 
 # Personality Persistence Rule

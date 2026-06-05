@@ -110,6 +110,38 @@ Result:
 
 Do not reinterpret this as permission for game-process hooks, address-space inspection, raw on_action names from the LLM, live mod-file publishing while Stellaris is running, or per-client multiplayer generation.
 
+## 2026-06-05 - Zero-History Bootstrap For Unknown Campaigns
+
+Status:
+
+```text
+APPROVED - APPLIED TO ARCHITECTURE
+```
+
+Recorded in:
+
+* `CAMPAIGN_EMPIRE_PERSONALITY_BOOTSTRAP_RULES.md`
+* `PERSONALITY_SYSTEM.md`
+* `LLM_PERSONALITY_DECISION_RULES.md`
+* `REACTIVE_POLICY_PACK_ARCHITECTURE.md`
+* `OFFLINE_CAMPAIGN_ANALYSIS_ARCHITECTURE.md`
+* `CAMPAIGN_IDENTITY_RULES.md`
+* `MULTIPLAYER_SEASON_ORCHESTRATOR.md`
+* `DEVELOPMENT_ROADMAP.md`
+* `V0_SCOPE_AND_PIPELINE_PLAN.md`
+* `tools/dev_attention/v0_sprint_chunk_queue.json`
+
+Result:
+
+* Unknown campaign means zero-history campaign, not no rules.
+* New or unknown campaigns should receive conservative bootstrap personality/rule defaults marked as `zero_history_bootstrap`.
+* Bootstrap defaults should vary across generated policy-pack updates through a deterministic manifest-recorded seed or rotation epoch.
+* Variation must be constrained by empire facts such as ethics, civics, authority, species traits, origin, and empire type.
+* Fixed slot personalities are rejected; empire ordinal may be only a tie-breaker.
+* Known/history-backed campaign personalities must not be rerolled on mod update.
+* Multiplayer bootstrap is host-owned and byte-identical for clients; no client-local personality generation.
+* Human-controlled empire personality is an empire-state interpretation, not a personal profile of the real player.
+
 ---
 
 # Current High-Value Resume Items

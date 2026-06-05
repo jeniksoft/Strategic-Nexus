@@ -233,6 +233,13 @@ Empire personality belongs to the campaign empire.
 
 Player participation is session metadata.
 
+For a newly discovered or zero-history MP-capable campaign, the host may generate bootstrap personalities and conservative rules for every detected empire.
+Those bootstrap defaults must be deterministic, package-manifest visible, and byte-identical for all clients.
+Clients must not generate their own local bootstrap personalities or policy-pack variations.
+
+Bootstrap variation may make a new campaign feel different from the previous one, but it must not profile the human players.
+It belongs to campaign empires only and remains subject to the human-control activation guard.
+
 MP generated overlays should be prepared for all known campaign empires, because any AI empire may later be selected by a joining player or become AI-controlled again.
 Activation must be conditional on current human-control state.
 
