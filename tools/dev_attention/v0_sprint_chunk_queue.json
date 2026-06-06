@@ -1,24 +1,24 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-06T17:59:23+02:00",
+  "updated_at": "2026-06-06T18:04:20+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. New approved direction: prove the smallest legal reactive policy-pack slice so a loaded mod can react in-session through precompiled branches.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "Tray smoke now verifies both the empty baseline and the ready-state tray JSON playbook path; the next bounded owner-facing gap is surfacing that same path in the tray next-steps brief only when the owner-test contract is truly ready.",
+  "current_source": "Tray JSON and tray brief now both surface the ready-state owner-test playbook path while non-ready states stay silent; the next bounded owner-facing gap is aligning tray next_action metadata with that ready monthly reactive owner-test contract.",
   "chunks": [
     {
-      "id": "v0-sprint-072-tray-brief-owner-test-playbook-path",
-      "title": "Surface tray brief playbook path",
+      "id": "v0-sprint-074-tray-owner-test-next-action-alignment",
+      "title": "Align tray owner-test next action",
       "status": "ready",
       "lane": "implementation",
       "roadmap_anchor": "Owner readiness / real-session loop evidence",
-      "goal": "Surface owner_test_playbook_path in the tray next-steps brief when the monthly reactive owner-test contract is genuinely ready, while keeping non-ready states silent.",
+      "goal": "When the monthly reactive owner-test contract is genuinely ready and no higher-priority blocker exists, align tray next_action metadata with that owner-test state instead of leaving review_tray_status.",
       "acceptance": [
-        "The tray next-steps brief includes docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md when owner_test_playbook_path is ready.",
-        "The brief stays silent about the playbook path in the non-ready baseline state.",
-        "The brief reuses the existing owner_test_playbook_path contract instead of duplicating owner-test instructions into a second source of truth."
+        "Ready-state tray JSON exposes next_action metadata for the monthly reactive owner test instead of the generic review_tray_status fallback.",
+        "The tray keeps fail-closed behavior for non-ready states and for higher-priority MP mismatch or publish-gate blockers.",
+        "Action path and command-hint choices reuse the existing owner_test_playbook_path or acceptance artifact instead of inventing a parallel owner-test surface."
       ],
       "preferred_tests": [
         "tools/smoke_snc_tray.ps1"
@@ -26,15 +26,15 @@
       "dependencies": []
     },
     {
-      "id": "v0-sprint-073-refresh-progress-after-tray-brief-playbook-path",
-      "title": "Refresh progress after tray brief playbook path",
+      "id": "v0-sprint-075-refresh-progress-after-tray-owner-test-next-action",
+      "title": "Refresh progress after tray owner-test next action",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after the tray next-steps brief surfaces owner_test_playbook_path in ready state.",
+      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after tray next_action metadata is aligned with the owner-test contract.",
       "acceptance": [
-        "Roadmap notes mention the shipped tray brief owner_test_playbook_path surface.",
-        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving the tray-brief playbook-path chunk as the head item.",
+        "Roadmap notes mention the shipped tray next_action owner-test alignment.",
+        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving the tray owner-test next-action chunk as the head item.",
         "The daily freework report for 2026-06-06 is replaced, not duplicated."
       ],
       "preferred_tests": [
@@ -43,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-072-tray-brief-owner-test-playbook-path"
+        "v0-sprint-074-tray-owner-test-next-action-alignment"
       ]
     }
   ]
