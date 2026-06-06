@@ -1,24 +1,24 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-06T13:34:00+02:00",
+  "updated_at": "2026-06-06T13:39:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. New approved direction: prove the smallest legal reactive policy-pack slice so a loaded mod can react in-session through precompiled branches.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "Owner-facing monthly reactive session test playbook now exists; next bounded work is surfacing that playbook path directly from ready runtime artifacts",
+  "current_source": "Owner-facing monthly reactive session test playbook path now appears in ready runtime artifacts; next bounded work is promoting it into a stable machine-readable SNC field",
   "chunks": [
     {
-      "id": "v0-sprint-064-surface-owner-test-playbook-path",
-      "title": "Surface owner test playbook path",
+      "id": "v0-sprint-066-stable-owner-test-playbook-field",
+      "title": "Add stable owner test playbook field",
       "status": "ready",
       "lane": "implementation",
       "roadmap_anchor": "Owner readiness / real-session loop evidence",
-      "goal": "Surface the new monthly reactive owner-test playbook path directly in owner-facing ready states that already advertise `run_monthly_reactive_owner_test`.",
+      "goal": "Expose the monthly reactive owner-test playbook path as a stable machine-readable SNC field instead of only embedding it in summary text and loop prose.",
       "acceptance": [
-        "SNC and/or real-session loop owner-facing ready output includes the playbook path when the monthly reactive owner-test contract is ready.",
-        "The playbook path is hidden in fail-closed states where the owner-test contract is not actually ready.",
-        "Regression coverage proves the surfaced path stays tied to the ready-state contract rather than unconditional prose."
+        "SNC snapshot/tray surface exposes a dedicated owner-test playbook path field when the monthly reactive owner-test contract is ready.",
+        "The field stays absent or empty in fail-closed states where the owner-test contract is not actually ready.",
+        "Regression coverage proves the stable field remains tied to the ready-state contract."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
@@ -26,14 +26,14 @@
       "dependencies": []
     },
     {
-      "id": "v0-sprint-065-refresh-progress-after-playbook-path",
-      "title": "Refresh progress after playbook path",
+      "id": "v0-sprint-067-refresh-progress-after-playbook-field",
+      "title": "Refresh progress after playbook field",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after the owner-facing playbook path lands in ready runtime artifacts.",
+      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after the stable owner-test playbook field lands.",
       "acceptance": [
-        "Roadmap notes mention the shipped owner-facing playbook-path state.",
+        "Roadmap notes mention the shipped stable owner-test playbook-field state.",
         "The sprint queue advances to the next missing bounded roadmap slice instead of leaving completed lifecycle/reactive groundwork chunks as ready.",
         "The daily freework report for 2026-06-06 is replaced, not duplicated."
       ],
@@ -43,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-064-surface-owner-test-playbook-path"
+        "v0-sprint-066-stable-owner-test-playbook-field"
       ]
     }
   ]

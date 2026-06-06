@@ -995,6 +995,7 @@ SNC owner-facing readiness now also surfaces generated-overlay reactive capabili
 Published reactive monthly overlays now fail-closed advertise an owner-ready real-session test contract only when the active overlay is already published, reports `event_family_dispatch` coverage for `monthly_strategy_tick`, and the gameplay acceptance report is verified. In that ready state the top-level SNC `next_action` becomes `run_monthly_reactive_owner_test`, and the Status Center summary spells out the exact monthly-pulse test scope, harmless visible marker names, concrete Codex follow-up artifacts, and current limitations.
 That same fail-closed monthly reactive owner-test contract now also flows through `tools/run_real_session_v0_loop.ps1` stdout, `real_session_v0_next_steps.md`, and evidence JSON `snc_owner_test_contract` / `next_action.path`, so one real-session loop artifact can tell the owner when the published reactive monthly path is truly ready to test and where Codex should inspect follow-up evidence.
 The owner-facing monthly reactive session test recipe is now documented in `docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md`, including the exact ready trigger, Stellaris steps, harmless visible marker set, Codex evidence checklist, and the current fail-closed limitation that this is branch-visibility validation rather than full strategic-quality proof.
+Owner-ready monthly reactive runtime artifacts now also surface that playbook path directly in SNC summary text plus real-session loop ready stdout/brief/evidence, while fail-closed states keep the path hidden until `run_monthly_reactive_owner_test` is actually ready.
 `StrategicNexusCompanion` and SNC tray readiness surfaces now also expose `strategic_nexus_campaign_library_plan.json` saturation state (`campaign_library_limit_reached`, skipped count, source path, owner note) when the bounded active library contract is present beside SNC status artifacts, so owner-facing readiness can distinguish healthy bounded output from truncated local campaign coverage before the next real-session test.
 Compare/trend/loop auto outputs now also expose structured campaign/overlay mismatch drift fields (`*_mp_campaign_id_mismatch_warning_{previous,current,changed}`, `*_mp_overlay_version_mismatch_warning_{previous,current,changed}`), and loop evidence JSON mirrors those fields for release-companion one-file parsing.
 `tools/run_real_session_v0_loop.ps1` now also emits a deterministic aggregated next-action contract (`real_session_v0_loop_next_action*`) and stores it in evidence JSON `next_action`, prioritizing MP mismatch and identity-risk warnings before normal next-session compare guidance so owner/release-companion follow-up is actionable without manual field interpretation.
@@ -1024,13 +1025,13 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
-Surface the monthly reactive playbook path in owner-facing runtime artifacts.
+Expose the monthly reactive playbook path as a stable SNC field.
 
   The next slice should include:
 
-* add the playbook path to owner-facing ready states that already surface `run_monthly_reactive_owner_test`, so the owner does not need to search `docs/` manually
-* keep the surfaced path fail-closed and only show it when the same monthly reactive owner-test contract is truly ready
-* reuse the existing playbook as the source of truth instead of duplicating divergent prose across status surfaces
+* expose the playbook path as a stable machine-readable SNC/tray/status field, not only inside summary text and loop prose
+* keep the field fail-closed so it is absent or empty unless `run_monthly_reactive_owner_test` is actually ready
+* preserve the playbook document as the single source of truth instead of copying test instructions into more runtime strings
 
   ---
 
