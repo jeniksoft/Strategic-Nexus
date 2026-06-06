@@ -1496,6 +1496,14 @@ int Application::run(const RunConfig& config) const
             if (!result.packageManifestHash.empty()) {
                 std::cout << "mp_overlay_package_manifest_hash=" << sanitizeCliValue(result.packageManifestHash) << "\n";
             }
+            if (!result.provenanceState.empty()) {
+                std::cout << "mp_overlay_package_provenance_state=" << sanitizeCliValue(result.provenanceState) << "\n";
+            }
+            std::cout << "mp_overlay_package_source_quality_count=" << result.sourceQualities.size() << "\n";
+            for (const auto& sourceQuality : result.sourceQualities) {
+                std::cout << "mp_overlay_package_source_quality=" << sanitizeCliValue(sourceQuality) << "\n";
+            }
+            std::cout << "mp_overlay_package_bootstrap_campaign_count=" << result.bootstrapCampaignCount << "\n";
             if (!result.statusText.empty()) {
                 std::cout << "mp_overlay_package_status_text=" << sanitizeCliValue(result.statusText) << "\n";
                 const auto verifyCommand = readStatusTextField(result.statusText, "verify_command");
@@ -1624,6 +1632,15 @@ int Application::run(const RunConfig& config) const
                 std::cout << "mp_overlay_package_import_manifest_hash="
                           << sanitizeCliValue(result.packageManifestHash) << "\n";
             }
+            if (!result.provenanceState.empty()) {
+                std::cout << "mp_overlay_package_import_provenance_state="
+                          << sanitizeCliValue(result.provenanceState) << "\n";
+            }
+            std::cout << "mp_overlay_package_import_source_quality_count=" << result.sourceQualities.size() << "\n";
+            for (const auto& sourceQuality : result.sourceQualities) {
+                std::cout << "mp_overlay_package_import_source_quality=" << sanitizeCliValue(sourceQuality) << "\n";
+            }
+            std::cout << "mp_overlay_package_import_bootstrap_campaign_count=" << result.bootstrapCampaignCount << "\n";
             if (!result.readiness.empty()) {
                 std::cout << "mp_overlay_package_import_readiness="
                           << sanitizeCliValue(result.readiness) << "\n";
@@ -1830,6 +1847,15 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_mp_overlay_package_client_next_step="
                       << sanitizeCliValue(snapshot.mpOverlayPackage.clientNextStep) << "\n";
             std::cout << "snc_mp_overlay_package_manifest_hash=" << sanitizeCliValue(snapshot.mpOverlayPackage.packageManifestHash) << "\n";
+            std::cout << "snc_mp_overlay_package_provenance_state="
+                      << sanitizeCliValue(snapshot.mpOverlayPackage.provenanceState) << "\n";
+            std::cout << "snc_mp_overlay_package_source_quality_count="
+                      << snapshot.mpOverlayPackage.sourceQualities.size() << "\n";
+            for (const auto& sourceQuality : snapshot.mpOverlayPackage.sourceQualities) {
+                std::cout << "snc_mp_overlay_package_source_quality=" << sanitizeCliValue(sourceQuality) << "\n";
+            }
+            std::cout << "snc_mp_overlay_package_bootstrap_campaign_count="
+                      << snapshot.mpOverlayPackage.bootstrapCampaignCount << "\n";
             std::cout << "snc_mp_overlay_package_verify_command=" << sanitizeCliValue(snapshot.mpOverlayPackage.verifyCommand) << "\n";
             std::cout << "snc_mp_overlay_package_import_command=" << sanitizeCliValue(snapshot.mpOverlayPackage.importCommand) << "\n";
             std::cout << "snc_mp_overlay_package_strict_verify_command="

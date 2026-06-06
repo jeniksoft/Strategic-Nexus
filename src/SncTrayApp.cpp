@@ -405,6 +405,14 @@ void appendMpPackageSummaryLines(
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         output << "mp_package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
+    if (!mpOverlayPackage.provenanceState.empty()) {
+        output << "mp_provenance_state: " << mpOverlayPackage.provenanceState << "\n";
+    }
+    output << "mp_source_quality_count: " << mpOverlayPackage.sourceQualities.size() << "\n";
+    for (const auto& sourceQuality : mpOverlayPackage.sourceQualities) {
+        output << "mp_source_quality: " << sourceQuality << "\n";
+    }
+    output << "mp_bootstrap_campaign_count: " << mpOverlayPackage.bootstrapCampaignCount << "\n";
     if (!mpOverlayPackage.verifyCommand.empty()) {
         output << "mp_verify_command: " << mpOverlayPackage.verifyCommand << "\n";
     }
@@ -1575,6 +1583,13 @@ void writeStatus(
     json << "  \"mp_overlay_package_host_next_step\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.hostNextStep) << "\",\n";
     json << "  \"mp_overlay_package_client_next_step\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.clientNextStep) << "\",\n";
     json << "  \"mp_overlay_package_manifest_hash\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageManifestHash) << "\",\n";
+    json << "  \"mp_overlay_package_provenance_state\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.provenanceState) << "\",\n";
+    json << "  \"mp_overlay_package_source_quality_count\": " << companionSnapshot.mpOverlayPackage.sourceQualities.size() << ",\n";
+    json << "  \"mp_overlay_package_source_qualities\": ";
+    writeStringArrayJson(json, companionSnapshot.mpOverlayPackage.sourceQualities);
+    json << ",\n";
+    json << "  \"mp_overlay_package_bootstrap_campaign_count\": "
+         << companionSnapshot.mpOverlayPackage.bootstrapCampaignCount << ",\n";
     json << "  \"mp_overlay_package_verify_command\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.verifyCommand) << "\",\n";
     json << "  \"mp_overlay_package_import_command\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.importCommand) << "\",\n";
     json << "  \"mp_overlay_package_strict_verify_command\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.strictVerifyCommand) << "\",\n";

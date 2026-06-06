@@ -110,6 +110,9 @@ struct CompanionMpOverlayPackageStatus {
     std::string hostNextStep;
     std::string clientNextStep;
     std::string packageManifestHash;
+    std::string provenanceState;
+    std::vector<std::string> sourceQualities;
+    std::size_t bootstrapCampaignCount = 0;
     std::string verifyCommand;
     std::string importCommand;
     std::string strictVerifyCommand;

@@ -1058,6 +1058,9 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.hostNextStep = trimWhitespace(readStatusTextField(verification.statusText, "host_next_step"));
     status.clientNextStep = trimWhitespace(readStatusTextField(verification.statusText, "client_next_step"));
     status.packageManifestHash = verification.packageManifestHash;
+    status.provenanceState = verification.provenanceState;
+    status.sourceQualities = verification.sourceQualities;
+    status.bootstrapCampaignCount = verification.bootstrapCampaignCount;
     if (!status.campaignId.empty() && !status.overlayVersion.empty() && !status.gameVersion.empty() &&
         !status.strategicNexusModVersion.empty() && !status.packageManifestHash.empty()) {
         status.strictVerifyCommand =
@@ -2076,6 +2079,14 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
+    if (!mpOverlayPackage.provenanceState.empty()) {
+        text << "mp_provenance_state: " << mpOverlayPackage.provenanceState << "\n";
+    }
+    text << "mp_source_quality_count: " << mpOverlayPackage.sourceQualities.size() << "\n";
+    for (const auto& sourceQuality : mpOverlayPackage.sourceQualities) {
+        text << "mp_source_quality: " << sourceQuality << "\n";
+    }
+    text << "mp_bootstrap_campaign_count: " << mpOverlayPackage.bootstrapCampaignCount << "\n";
     if (!mpOverlayPackage.verifyCommand.empty()) {
         text << "mp_verify_command: " << mpOverlayPackage.verifyCommand << "\n";
     }
@@ -2479,6 +2490,16 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"host_next_step\": " << jsonString(status.hostNextStep) << ",\n";
     output << indent << "  \"client_next_step\": " << jsonString(status.clientNextStep) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
+    output << indent << "  \"provenance_state\": " << jsonString(status.provenanceState) << ",\n";
+    output << indent << "  \"source_qualities\": [";
+    for (std::size_t index = 0; index < status.sourceQualities.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << jsonString(status.sourceQualities[index]);
+    }
+    output << "],\n";
+    output << indent << "  \"bootstrap_campaign_count\": " << status.bootstrapCampaignCount << ",\n";
     output << indent << "  \"verify_command\": " << jsonString(status.verifyCommand) << ",\n";
     output << indent << "  \"import_command\": " << jsonString(status.importCommand) << ",\n";
     output << indent << "  \"strict_verify_command\": " << jsonString(status.strictVerifyCommand) << ",\n";

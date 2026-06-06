@@ -282,6 +282,32 @@ std::vector<std::string> extractFileObjects(const std::string& text)
     return objects;
 }
 
+std::vector<std::string> extractStringArrayFromObject(const std::string& text, const char* key)
+{
+    const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*\\[([\\s\\S]*?)\\]");
+    std::smatch match;
+    if (!std::regex_search(text, match, pattern)) {
+        return {};
+    }
+
+    std::vector<std::string> values;
+    const std::regex valuePattern("\"([^\"]+)\"");
+    auto begin = std::sregex_iterator(match[1].first, match[1].second, valuePattern);
+    const auto end = std::sregex_iterator();
+    for (auto it = begin; it != end; ++it) {
+        values.push_back((*it)[1].str());
+    }
+    return values;
+}
+
+std::size_t countBootstrapCampaignSignals(const std::string& manifestText)
+{
+    const std::regex bootstrapSeedPattern("\"bootstrap_rotation_seed_id\"\\s*:");
+    return static_cast<std::size_t>(std::distance(
+        std::sregex_iterator(manifestText.begin(), manifestText.end(), bootstrapSeedPattern),
+        std::sregex_iterator()));
+}
+
 std::string buildCopyableStatusText(
     const std::string& campaignId,
     const std::string& overlayVersion,
@@ -291,7 +317,10 @@ std::string buildCopyableStatusText(
     const std::string& readiness,
     const std::string& packageManifestHash,
     bool previousHostAvailable,
-    const std::filesystem::path& packageDirectory)
+    const std::filesystem::path& packageDirectory,
+    const std::string& provenanceState,
+    const std::vector<std::string>& sourceQualities,
+    const std::size_t bootstrapCampaignCount)
 {
     const bool handoffComplete = handoffStatus == "complete" && previousHostAvailable;
     const bool handoffDegraded = handoffStatus == "degraded_previous_host_unavailable" && !previousHostAvailable;
@@ -305,6 +334,12 @@ std::string buildCopyableStatusText(
     text << "handoff_status: " << handoffStatus << "\n";
     text << "readiness: " << readiness << "\n";
     text << "package_manifest_hash: " << packageManifestHash << "\n";
+    text << "provenance_state: " << provenanceState << "\n";
+    text << "source_quality_count: " << sourceQualities.size() << "\n";
+    for (const auto& sourceQuality : sourceQualities) {
+        text << "source_quality: " << sourceQuality << "\n";
+    }
+    text << "bootstrap_campaign_count: " << bootstrapCampaignCount << "\n";
     text << "previous_host_available: " << (previousHostAvailable ? "true" : "false") << "\n";
     text << "host_readiness: " << readiness << "\n";
     text << "host_next_step: share this package and package_manifest_hash with every joining player\n";
@@ -420,6 +455,8 @@ std::string buildPackageManifest(
     const std::string& gameVersion,
     const std::string& strategicNexusModVersion,
     bool previousHostAvailable,
+    const std::vector<std::string>& sourceQualities,
+    const std::size_t bootstrapCampaignCount,
     const std::vector<MpOverlayPackageFileVerification>& files)
 {
     std::ostringstream manifest;
@@ -432,6 +469,15 @@ std::string buildPackageManifest(
     manifest << "  \"strategic_nexus_mod_version\": \"" << jsonEscape(strategicNexusModVersion) << "\",\n";
     manifest << "  \"previous_host_available\": " << (previousHostAvailable ? "true" : "false") << ",\n";
     manifest << "  \"handoff_status\": \"" << (previousHostAvailable ? "complete" : "degraded_previous_host_unavailable") << "\",\n";
+    manifest << "  \"source_qualities\": [";
+    for (std::size_t index = 0; index < sourceQualities.size(); ++index) {
+        if (index > 0) {
+            manifest << ", ";
+        }
+        manifest << "\"" << jsonEscape(sourceQualities[index]) << "\"";
+    }
+    manifest << "],\n";
+    manifest << "  \"bootstrap_campaign_count\": " << bootstrapCampaignCount << ",\n";
     manifest << "  \"files\": [\n";
     for (std::size_t index = 0; index < files.size(); ++index) {
         const auto& file = files[index];
@@ -500,6 +546,12 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
         result.reason = "failed to read generated overlay manifest";
         return result;
     }
+    const auto sourceQualities = extractStringArrayFromObject(generatedManifestText, "source_qualities");
+    if (sourceQualities.empty()) {
+        result.reason = "source overlay manifest missing source provenance";
+        return result;
+    }
+    const auto bootstrapCampaignCount = countBootstrapCampaignSignals(generatedManifestText);
 
     MpOverlayPackageFileVerification generatedManifestEntry;
     generatedManifestEntry.path = generatedManifestFileName;
@@ -547,6 +599,8 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
         gameVersion,
         strategicNexusModVersion,
         previousHostAvailable,
+        sourceQualities,
+        bootstrapCampaignCount,
         files);
     if (!common::writeTextFileAtomically(outputPackageDirectory / packageManifestFileName, packageManifestText)) {
         result.reason = "failed to write package manifest";
@@ -775,6 +829,11 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     result.gameVersion = *gameVersion;
     result.strategicNexusModVersion = *strategicNexusModVersion;
     result.handoffStatus = *handoffStatus;
+    result.sourceQualities = extractStringArrayFromObject(manifestText, "source_qualities");
+    const auto bootstrapCampaignCount = extractSizeFromObject(manifestText, "bootstrap_campaign_count");
+    result.bootstrapCampaignCount = bootstrapCampaignCount.value_or(0);
+    result.provenanceState =
+        bootstrapCampaignCount.has_value() ? "present" : (result.sourceQualities.empty() ? "missing" : "malformed");
     const PackageIdentity identity{
         result.campaignId,
         result.overlayVersion,
@@ -861,7 +920,10 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
             result.readiness,
             result.packageManifestHash,
             *previousHostAvailable,
-            packageDirectory);
+            packageDirectory,
+            result.provenanceState,
+            result.sourceQualities,
+            result.bootstrapCampaignCount);
         result.reason = "accepted";
     } else if (unexpected) {
         result.readiness = "not_ready";
@@ -901,6 +963,9 @@ MpOverlayPackageImportResult MpOverlayPackageImporter::importPackage(
     result.strategicNexusModVersion = packageVerification.strategicNexusModVersion;
     result.handoffStatus = packageVerification.handoffStatus;
     result.packageManifestHash = packageVerification.packageManifestHash;
+    result.provenanceState = packageVerification.provenanceState;
+    result.sourceQualities = packageVerification.sourceQualities;
+    result.bootstrapCampaignCount = packageVerification.bootstrapCampaignCount;
     result.readiness = packageVerification.readiness;
     result.statusText = packageVerification.statusText;
     if (!packageVerification.ok) {

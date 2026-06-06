@@ -673,6 +673,15 @@ int main()
         ready.mpOverlayPackage.clientNextStep == "import package, verify package_manifest_hash, then join lobby",
         "mp overlay package should expose client next step");
     requireCondition(!ready.mpOverlayPackage.packageManifestHash.empty(), "mp overlay package should expose package manifest hash");
+    requireCondition(ready.mpOverlayPackage.provenanceState == "present", "mp overlay package should expose provenance state");
+    requireCondition(
+        ready.mpOverlayPackage.sourceQualities.size() == 2 &&
+            ready.mpOverlayPackage.sourceQualities.front() == "history_backed" &&
+            ready.mpOverlayPackage.sourceQualities.back() == "zero_history_bootstrap",
+        "mp overlay package should expose source provenance qualities");
+    requireCondition(
+        ready.mpOverlayPackage.bootstrapCampaignCount == 1,
+        "mp overlay package should expose bootstrap provenance count");
     requireCondition(
         ready.mpOverlayPackage.verifyCommand.find("Strategic Nexus.exe --verify-mp-overlay-package ") == 0,
         "mp overlay package should expose verify command");
@@ -691,6 +700,15 @@ int main()
     requireCondition(
         ready.mpOverlayPackage.statusText.find("package_manifest_hash: " + ready.mpOverlayPackage.packageManifestHash) != std::string::npos,
         "mp overlay package status text should include package manifest hash");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("provenance_state: present") != std::string::npos,
+        "mp overlay package status text should include provenance state");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("source_quality: zero_history_bootstrap") != std::string::npos,
+        "mp overlay package status text should include zero-history bootstrap provenance");
+    requireCondition(
+        ready.mpOverlayPackage.statusText.find("bootstrap_campaign_count: 1") != std::string::npos,
+        "mp overlay package status text should include bootstrap provenance count");
     requireCondition(
         ready.mpOverlayPackage.statusText.find("readiness: ready_for_mp") != std::string::npos,
         "mp overlay package status text should include readiness");
@@ -846,6 +864,15 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("package_manifest_hash: " + ready.mpOverlayPackage.packageManifestHash) != std::string::npos,
         "status center summary should include MP package manifest hash");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_provenance_state: present") != std::string::npos,
+        "status center summary should include MP provenance state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_source_quality: zero_history_bootstrap") != std::string::npos,
+        "status center summary should include zero-history MP provenance");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_bootstrap_campaign_count: 1") != std::string::npos,
+        "status center summary should include MP bootstrap provenance count");
     requireCondition(
         ready.statusCenterSummaryText.find("mp_verify_command: " + ready.mpOverlayPackage.verifyCommand) != std::string::npos,
         "status center summary should include MP verify command");
@@ -1509,6 +1536,15 @@ int main()
         json.find("\"client_next_step\": \"import package, verify package_manifest_hash, then join lobby\"") != std::string::npos,
         "JSON should include mp overlay package client next step");
     requireCondition(json.find("\"package_manifest_hash\": \"") != std::string::npos, "JSON should include mp overlay package manifest hash");
+    requireCondition(
+        json.find("\"provenance_state\": \"present\"") != std::string::npos,
+        "JSON should include MP provenance state");
+    requireCondition(
+        json.find("\"source_qualities\": [\"history_backed\", \"zero_history_bootstrap\"]") != std::string::npos,
+        "JSON should include MP source provenance qualities");
+    requireCondition(
+        json.find("\"bootstrap_campaign_count\": 1") != std::string::npos,
+        "JSON should include MP bootstrap provenance count");
     requireCondition(
         json.find("\"verify_command\": \"Strategic Nexus.exe --verify-mp-overlay-package ") != std::string::npos,
         "JSON should include mp overlay package verify command");

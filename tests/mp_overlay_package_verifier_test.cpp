@@ -116,6 +116,14 @@ int main()
         std::cerr << "package manifest missing local-only diagnostic classification\n";
         return 1;
     }
+    if (packageManifest.find("\"source_qualities\": [\"history_backed\"]") == std::string::npos) {
+        std::cerr << "package manifest missing source provenance classification\n";
+        return 1;
+    }
+    if (packageManifest.find("\"bootstrap_campaign_count\": 0") == std::string::npos) {
+        std::cerr << "package manifest missing bootstrap provenance count\n";
+        return 1;
+    }
 
     const MpOverlayPackageVerifier verifier;
     {
@@ -146,6 +154,11 @@ int main()
         std::cerr << "verify did not expose package manifest hash\n";
         return 1;
     }
+    if (verifyResult.provenanceState != "present" || verifyResult.sourceQualities.size() != 1 ||
+        verifyResult.sourceQualities.front() != "history_backed" || verifyResult.bootstrapCampaignCount != 0) {
+        std::cerr << "verify did not expose stable package provenance fields\n";
+        return 1;
+    }
     if (verifyResult.statusText.find("package_manifest_hash: " + verifyResult.packageManifestHash) == std::string::npos) {
         std::cerr << "copyable status text did not include package manifest hash\n";
         return 1;
@@ -168,6 +181,10 @@ int main()
             std::string::npos ||
         verifyResult.statusText.find("host_handoff_state: previous host unavailable; manual save recovery may be needed") ==
             std::string::npos ||
+        verifyResult.statusText.find("provenance_state: present") == std::string::npos ||
+        verifyResult.statusText.find("source_quality_count: 1") == std::string::npos ||
+        verifyResult.statusText.find("source_quality: history_backed") == std::string::npos ||
+        verifyResult.statusText.find("bootstrap_campaign_count: 0") == std::string::npos ||
         verifyResult.statusText.find("mp_join_check: every player must use this same package_manifest_hash before joining") ==
             std::string::npos) {
         std::cerr << "verify did not expose MP readiness in copyable status text\n";

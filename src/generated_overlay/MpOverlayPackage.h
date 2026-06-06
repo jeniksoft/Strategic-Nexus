@@ -31,6 +31,9 @@ struct MpOverlayPackageVerificationResult {
     std::string handoffStatus;
     std::string readiness;
     std::string packageManifestHash;
+    std::string provenanceState;
+    std::vector<std::string> sourceQualities;
+    std::size_t bootstrapCampaignCount = 0;
     std::string statusText;
     std::vector<MpOverlayPackageFileVerification> files;
     std::vector<std::string> unexpectedFiles;
@@ -59,6 +62,9 @@ struct MpOverlayPackageImportResult {
     std::string strategicNexusModVersion;
     std::string handoffStatus;
     std::string packageManifestHash;
+    std::string provenanceState;
+    std::vector<std::string> sourceQualities;
+    std::size_t bootstrapCampaignCount = 0;
     std::string readiness;
     std::string statusText;
     std::vector<MpOverlayPackageFileVerification> importedFiles;
