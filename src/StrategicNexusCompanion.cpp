@@ -582,6 +582,19 @@ bool startsWith(const std::string& value, const std::string& prefix)
     return value.rfind(prefix, 0) == 0;
 }
 
+bool containsExactString(const std::vector<std::string>& values, const std::string& needle)
+{
+    return std::find(values.begin(), values.end(), needle) != values.end();
+}
+
+bool isPublishedMonthlyReactiveOwnerTestReady(const CompanionStatusSnapshot& snapshot)
+{
+    return snapshot.generatedOverlayPublishGate.state == "published" &&
+           snapshot.generatedOverlay.reactivePolicyPackCapability == "event_family_dispatch" &&
+           containsExactString(snapshot.generatedOverlay.eventFamilies, "monthly_strategy_tick") &&
+           snapshot.gameplayAcceptance.state == "ready";
+}
+
 std::string stateFromReadiness(const std::string& readiness)
 {
     if (startsWith(readiness, "ready")) {
@@ -1764,6 +1777,11 @@ std::string buildStatusCenterSummaryText(
     const std::filesystem::path& nextActionPath)
 {
     std::ostringstream text;
+    const bool monthlyReactiveOwnerTestReady =
+        generatedOverlayPublishGate.state == "published" &&
+        generatedOverlay.reactivePolicyPackCapability == "event_family_dispatch" &&
+        containsExactString(generatedOverlay.eventFamilies, "monthly_strategy_tick") &&
+        gameplayAcceptance.state == "ready";
     text << "Strategic Nexus Status Center\n";
     if (!generatedAtLocal.empty()) {
         text << "generated_at_local: " << generatedAtLocal << "\n";
@@ -2044,6 +2062,14 @@ std::string buildStatusCenterSummaryText(
     if (!gameplayAcceptance.path.empty()) {
         text << "gameplay_acceptance_report_path: " << pathString(gameplayAcceptance.path) << "\n";
     }
+    if (monthlyReactiveOwnerTestReady) {
+        text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
+        text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
+        text << "owner_test_visible_markers: Strategic Nexus v0: Defensive military posture|Strategic Nexus v0: Aggressive military posture|Strategic Nexus v0: Economy research bias|Strategic Nexus v0: Military industry research bias\n";
+        text << "owner_test_expected_log_prefixes: Strategic Nexus: generated overlay projected military_posture|Strategic Nexus: generated overlay projected research_bias\n";
+        text << "owner_test_codex_artifacts: generated_overlay_publish_status.json|generated_overlay_gameplay_acceptance_v0.json|Stellaris logs/error.log\n";
+        text << "owner_test_known_limitations: marker proves published monthly reactive branch visibility only; it is gameplay-neutral and not full strategic quality validation\n";
+    }
     if (!nextAction.empty()) {
         text << "next_action: " << nextAction << "\n";
     }
@@ -2075,6 +2101,9 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     }
     if (snapshot.generatedOverlayPublishGate.canPublish) {
         return "review_staged_overlay_and_publish_if_desired";
+    }
+    if (isPublishedMonthlyReactiveOwnerTestReady(snapshot)) {
+        return "run_monthly_reactive_owner_test";
     }
     if (snapshot.generatedOverlayPublishGate.state == "published") {
         return "review_published_overlay_status";
@@ -2114,6 +2143,9 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
     }
     if (snapshot.generatedOverlayPublishGate.canPublish) {
         return "staged_overlay_ready_owner_gate_available";
+    }
+    if (isPublishedMonthlyReactiveOwnerTestReady(snapshot)) {
+        return "published_monthly_reactive_overlay_ready_for_owner_test";
     }
     if (snapshot.generatedOverlayPublishGate.state == "published") {
         return "current_staged_overlay_already_published";
@@ -2203,6 +2235,9 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
             : snapshot.generatedOverlayPublishGate.stagingStatusPath;
     }
     if (snapshot.generatedOverlayPublishGate.state == "published") {
+        if (isPublishedMonthlyReactiveOwnerTestReady(snapshot) && !snapshot.gameplayAcceptance.path.empty()) {
+            return snapshot.gameplayAcceptance.path;
+        }
         return snapshot.generatedOverlayPublishGate.publishStatusPath.empty()
             ? snapshot.generatedOverlayPublishGate.path
             : snapshot.generatedOverlayPublishGate.publishStatusPath;

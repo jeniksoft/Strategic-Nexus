@@ -64,6 +64,7 @@ int main()
     const auto generatedOverlayStagingStatusPath = root / "snc_generated_overlay_staging_status.json";
     const auto mpPackageZipPath = root / "mp_overlay_package.zip";
     const auto missingGameplayAcceptanceReport = root / "missing_gameplay_acceptance_v0.json";
+    const auto readyGameplayAcceptanceReport = root / "generated_overlay_gameplay_acceptance_v0.json";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
     std::filesystem::create_directories(overlayRoot);
@@ -261,6 +262,21 @@ int main()
         "  \"dsl_rule_count\": 1,\n"
         "  \"manifest_verified\": true,\n"
         "  \"publish_allowed\": false\n"
+        "}\n");
+    writeTextFileAtomically(
+        readyGameplayAcceptanceReport,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"acceptance_state\": \"verified_for_v0_domains\",\n"
+        "  \"summary\": \"gameplay acceptance verified for monthly reactive v0 markers\",\n"
+        "  \"cases\": [\n"
+        "    { \"case_id\": \"case_a_defensive_military_posture\", \"result\": \"pass\" },\n"
+        "    { \"case_id\": \"case_b_aggressive_military_posture\", \"result\": \"pass\" },\n"
+        "    { \"case_id\": \"case_c_economy_research_bias\", \"result\": \"pass\" },\n"
+        "    { \"case_id\": \"case_d_military_industry_research_bias\", \"result\": \"pass\" },\n"
+        "    { \"case_id\": \"case_e_invalid_tactical_domain\", \"result\": \"pass\" },\n"
+        "    { \"case_id\": \"case_f_manifest_drift_before_publish\", \"result\": \"pass\" }\n"
+        "  ]\n"
         "}\n");
 
     const strategic_nexus::StrategicNexusCompanion companion;
@@ -1080,6 +1096,55 @@ int main()
     requireCondition(
         publishedSnapshot.statusCenterSummaryText.find("publish_gate_backup_directory: ") != std::string::npos,
         "status center summary should expose backup directory");
+    requireCondition(
+        publishedSnapshot.nextAction == "review_published_overlay_status",
+        "published snapshot without ready acceptance should stay fail-closed on owner test guidance");
+    requireCondition(
+        publishedSnapshot.statusCenterSummaryText.find("owner_test_contract_state: ready_for_monthly_reactive_session_test") ==
+            std::string::npos,
+        "published snapshot without ready acceptance should not advertise owner test contract");
+
+    const auto publishedOwnerTestReady = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        activeOverlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        false,
+        readyGameplayAcceptanceReport,
+        stagedOverlayStatusPath,
+        activeOverlayRoot,
+        publishStatusPath,
+        publishBackupRoot
+    });
+    requireCondition(
+        publishedOwnerTestReady.nextAction == "run_monthly_reactive_owner_test",
+        "published reactive overlay with verified acceptance should advertise owner test");
+    requireCondition(
+        publishedOwnerTestReady.nextActionReason == "published_monthly_reactive_overlay_ready_for_owner_test",
+        "published reactive owner test should expose stable next-action reason");
+    requireCondition(
+        publishedOwnerTestReady.nextActionPath == readyGameplayAcceptanceReport,
+        "published reactive owner test should focus the acceptance contract artifact");
+    requireCondition(
+        publishedOwnerTestReady.statusCenterSummaryText.find(
+            "owner_test_contract_state: ready_for_monthly_reactive_session_test") != std::string::npos,
+        "status center summary should expose owner test readiness");
+    requireCondition(
+        publishedOwnerTestReady.statusCenterSummaryText.find(
+            "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse") !=
+            std::string::npos,
+        "status center summary should describe the monthly reactive test scope");
+    requireCondition(
+        publishedOwnerTestReady.statusCenterSummaryText.find(
+            "owner_test_visible_markers: Strategic Nexus v0: Defensive military posture|Strategic Nexus v0: Aggressive military posture|Strategic Nexus v0: Economy research bias|Strategic Nexus v0: Military industry research bias") !=
+            std::string::npos,
+        "status center summary should enumerate visible harmless owner-test markers");
+    requireCondition(
+        publishedOwnerTestReady.statusCenterSummaryText.find(
+            "owner_test_codex_artifacts: generated_overlay_publish_status.json|generated_overlay_gameplay_acceptance_v0.json|Stellaris logs/error.log") !=
+            std::string::npos,
+        "status center summary should name concrete post-test artifacts for Codex review");
 
     const auto missingMpPackage = companion.buildStatusSnapshot({
         archiveSessionRoot,
