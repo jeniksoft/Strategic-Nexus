@@ -1,24 +1,24 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-07T00:38:17+02:00",
+  "updated_at": "2026-06-07T00:54:30+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. New approved direction: prove the smallest legal reactive policy-pack slice so a loaded mod can react in-session through precompiled branches.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "Tray JSON now aligns ready-state next_action metadata with the monthly reactive owner-test contract while non-ready states stay fail-closed; the next bounded multiplayer/runtime gap is surfacing zero-history bootstrap provenance in MP handoff status so host-visible artifacts can distinguish history-backed output from bootstrap fallback.",
+  "current_source": "MP export/verify/import plus SNC/tray now surface fail-closed bootstrap provenance for handoff packages; the next bounded gap is forwarding that provenance into real-session loop artifacts so compareable owner-facing outputs do not need to reopen SNC snapshot or the MP manifest.",
   "chunks": [
     {
-      "id": "v0-sprint-076-mp-bootstrap-provenance-surface",
-      "title": "Surface MP bootstrap provenance",
+      "id": "v0-sprint-078-forward-mp-bootstrap-provenance-into-real-session-loop",
+      "title": "Forward MP bootstrap provenance into loop",
       "status": "ready",
       "lane": "implementation",
-      "roadmap_anchor": "Multiplayer Generated Overlay Distribution",
-      "goal": "Surface whether an MP package carries zero-history/bootstrap-generated policy data so multiplayer handoff artifacts can distinguish history-backed output from conservative bootstrap fallback.",
+      "roadmap_anchor": "Owner readiness / real-session loop evidence",
+      "goal": "Forward the new MP package bootstrap provenance fields into real-session loop stdout/brief/evidence so owner-facing follow-up artifacts can tell whether the latest handoff package is bootstrap-backed.",
       "acceptance": [
-        "Ready MP package status exposes source-quality/bootstrap provenance in a stable machine-readable form.",
-        "SNC or MP verify owner-facing output can show when the handoff package includes zero_history_bootstrap data without reopening the generated overlay manifest manually.",
-        "Missing or malformed provenance data stays fail-closed instead of being guessed."
+        "Real-session loop surfaces MP provenance state/source qualities/bootstrap count from the selected package or export surface in stable machine-readable output.",
+        "Owner-facing loop artifacts no longer require reopening SNC snapshot or the MP package manifest just to inspect bootstrap provenance.",
+        "Absent provenance data remains explicit and fail-closed."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
@@ -26,15 +26,15 @@
       "dependencies": []
     },
     {
-      "id": "v0-sprint-077-refresh-progress-after-mp-bootstrap-provenance-surface",
-      "title": "Refresh progress after MP bootstrap provenance surface",
+      "id": "v0-sprint-079-refresh-progress-after-loop-bootstrap-provenance-forwarding",
+      "title": "Refresh progress after loop bootstrap provenance",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after MP bootstrap provenance is surfaced in handoff status.",
+      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after loop/bootstrap provenance forwarding lands.",
       "acceptance": [
-        "Roadmap notes mention the shipped MP bootstrap provenance surface.",
-        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving the MP bootstrap provenance chunk as the head item.",
+        "Roadmap notes mention the shipped loop/bootstrap provenance forwarding.",
+        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving the loop/bootstrap provenance chunk as the head item.",
         "The daily freework report for 2026-06-06 is replaced, not duplicated."
       ],
       "preferred_tests": [
@@ -43,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-076-mp-bootstrap-provenance-surface"
+        "v0-sprint-078-forward-mp-bootstrap-provenance-into-real-session-loop"
       ]
     }
   ]

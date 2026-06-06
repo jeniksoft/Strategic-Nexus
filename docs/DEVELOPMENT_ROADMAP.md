@@ -1006,6 +1006,7 @@ Owner-ready monthly reactive runtime artifacts now also surface that playbook pa
 A stable machine-readable `owner_test_playbook_path` field now also ships across SNC snapshot JSON, stable `--snc-status-snapshot` stdout, tray status JSON, and real-session loop/evidence forwarding, while fail-closed states keep that field empty until the owner-test contract is truly ready.
 `tools/smoke_snc_tray.ps1` now covers both sides of that tray contract: the default non-ready baseline still fails closed with an empty `owner_test_playbook_path`, the ready-state fixture proves tray JSON exposes `docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md` directly from the top-level field instead of reconstructing readiness from summary text, and the ready brief now points at the same playbook path without leaking it into non-ready states.
 `snc_tray_status.json` ready-state metadata now also aligns its top-level `next_action`, `next_action_reason`, `next_action_command_hint`, `next_action_command_hint_source`, and `next_action_path` with the monthly reactive owner-test contract when the published overlay is genuinely ready and no higher-priority blocker wins, while the non-ready baseline remains fail-closed on the existing brief/status follow-up.
+MP package export/verify/import plus SNC/tray surfaces now also expose fail-closed bootstrap provenance (`provenance_state`, `source_quality*`, `bootstrap_campaign_count`) so host-visible handoff artifacts can distinguish history-backed overlays from `zero_history_bootstrap` fallback without reopening the generated overlay manifest manually.
 `StrategicNexusCompanion` and SNC tray readiness surfaces now also expose `strategic_nexus_campaign_library_plan.json` saturation state (`campaign_library_limit_reached`, skipped count, source path, owner note) when the bounded active library contract is present beside SNC status artifacts, so owner-facing readiness can distinguish healthy bounded output from truncated local campaign coverage before the next real-session test.
 Compare/trend/loop auto outputs now also expose structured campaign/overlay mismatch drift fields (`*_mp_campaign_id_mismatch_warning_{previous,current,changed}`, `*_mp_overlay_version_mismatch_warning_{previous,current,changed}`), and loop evidence JSON mirrors those fields for release-companion one-file parsing.
 `tools/run_real_session_v0_loop.ps1` now also emits a deterministic aggregated next-action contract (`real_session_v0_loop_next_action*`) and stores it in evidence JSON `next_action`, prioritizing MP mismatch and identity-risk warnings before normal next-session compare guidance so owner/release-companion follow-up is actionable without manual field interpretation.
@@ -1035,13 +1036,13 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
-Surface zero-history bootstrap provenance in MP handoff status.
+Forward MP bootstrap provenance into real-session loop artifacts.
 
   The next slice should include:
 
-* carry generated-overlay `source_quality` / bootstrap provenance into MP package status so host-visible handoff artifacts can distinguish history-backed output from `zero_history_bootstrap`
-* expose that provenance through SNC/CLI or MP verify surfaces without requiring the owner to reopen the generated overlay manifest separately
-* keep fail-closed behavior when the package or manifest does not provide trustworthy bootstrap provenance data
+* real-session loop stdout, next-steps brief, or evidence JSON should forward the new MP bootstrap provenance fields from the currently selected package/export surface
+* compare/trend follow-up should not need to reopen SNC snapshot or MP manifest just to tell whether the latest handoff package is bootstrap-backed
+* absent provenance data must stay explicit and fail-closed instead of being converted into fake history-backed certainty
 
   ---
 
