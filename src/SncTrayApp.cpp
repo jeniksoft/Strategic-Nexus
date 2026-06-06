@@ -925,7 +925,8 @@ void writeNextStepsBrief(
     const std::string& nextActionReason,
     const std::string& nextActionCommandHint,
     const std::string& nextActionCommandHintSource,
-    const std::filesystem::path& nextActionPath)
+    const std::filesystem::path& nextActionPath,
+    const std::filesystem::path& ownerTestPlaybookPath)
 {
     std::ostringstream brief;
     brief << "Strategic Nexus Companion - dalsi kroky\n";
@@ -940,6 +941,9 @@ void writeNextStepsBrief(
     }
     if (!nextActionPath.empty()) {
         brief << "Action path: " << pathString(nextActionPath) << "\n\n";
+    }
+    if (!ownerTestPlaybookPath.empty()) {
+        brief << "Owner test playbook: " << pathString(ownerTestPlaybookPath) << "\n\n";
     }
     brief << "- Entry point analysis: " << pathString(entryPointAnalysisPath);
     if (!entryPointReadiness.empty()) {
@@ -1356,7 +1360,8 @@ void writeStatus(
         nextActionReason,
         nextActionCommandHint,
         nextActionCommandHintSource,
-        nextActionPath);
+        nextActionPath,
+        companionSnapshot.ownerTestPlaybookPath);
 
     std::ostringstream json;
     json << "{\n";

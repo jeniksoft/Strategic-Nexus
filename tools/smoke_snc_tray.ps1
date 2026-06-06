@@ -325,6 +325,14 @@ try {
                 if ($briefText -notlike "*Startup lifecycle state: manual start only (start with Windows disabled).*") {
                     throw "SNC tray next-steps brief did not expose the current startup lifecycle state."
                 }
+                if ($ReadyOwnerTestFixture -and
+                    $briefText -notlike "*Owner test playbook: docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md*") {
+                    throw "SNC tray ready-state next-steps brief did not expose the owner-test playbook path."
+                }
+                if (-not $ReadyOwnerTestFixture -and
+                    $briefText -like "*Owner test playbook:*") {
+                    throw "SNC tray non-ready baseline should keep the owner-test playbook path hidden in the next-steps brief."
+                }
                 Write-Host "snc_tray_smoke_success=true"
                 Write-Host ("snc_tray_smoke_state=" + $json.state)
                 Write-Host ("snc_tray_smoke_next_action=" + $json.next_action)
