@@ -357,6 +357,7 @@ MP overlay package verification now exposes `readiness`; copyable MP package sta
 `tools/run_end_to_end_spine_smoke_tests.ps1` is repeatable and clears only its own smoke output directories before rerunning the spine through staged overlay publish, active overlay verification, MP package export, and SNC status snapshot.
 `tools/run_generated_overlay_gameplay_acceptance.ps1` now runs bounded v0 gameplay acceptance cases (A-F), records pass/fail evidence with manifest hashes into `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`, and fails closed when any acceptance case fails.
 SNC status snapshots now include `gameplay_acceptance_status`; the copyable Status Center summary also surfaces gameplay acceptance state/reason and report path for owner-facing visibility.
+SNC status snapshots and tray summary now include `local_llm_model_status` / `local_llm_*` readiness fields. The first companion Model Manager slice can load local model state, evaluate it against a curated supported-model catalog, surface no-model reduced mode, accept explicitly approved ready local models, and fail closed on unknown selected models before any LLM inference is allowed.
 
 ---
 

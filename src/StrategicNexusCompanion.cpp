@@ -8,6 +8,7 @@
 #include "common/JsonExtract.h"
 #include "generated_overlay/ManifestVerifier.h"
 #include "generated_overlay/MpOverlayPackage.h"
+#include "LocalLlmModelManager.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 
@@ -1613,6 +1614,32 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
     return status;
 }
 
+CompanionLocalLlmStatus buildLocalLlmStatus(const CompanionStatusConfig& config)
+{
+    const auto catalog = defaultLocalLlmCatalog();
+    const auto state = loadLocalLlmModelState(config.localLlmModelStatePath);
+    const LocalLlmHardwareProfile hardware;
+    const auto readiness = evaluateLocalLlmReadiness(catalog, state, hardware);
+
+    CompanionLocalLlmStatus status;
+    status.state = readiness.state;
+    status.reason = readiness.reason;
+    status.selectedModelId = readiness.selectedModelId;
+    status.selectedDisplayName = readiness.selectedDisplayName;
+    status.runtime = readiness.runtime;
+    status.catalogStatus = readiness.catalogStatus;
+    status.localPath = readiness.localPath;
+    status.hardwareFit = readiness.hardwareFit;
+    status.recommendedModelId = readiness.recommendedModelId;
+    status.recommendedDisplayName = readiness.recommendedDisplayName;
+    status.recommendedRuntime = readiness.recommendedRuntime;
+    status.canRunInference = readiness.canRunInference;
+    status.reducedMode = readiness.reducedMode;
+    status.userActionRequired = readiness.userActionRequired;
+    status.downloadAllowed = readiness.downloadAllowed;
+    return status;
+}
+
 CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
@@ -1620,7 +1647,8 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const CompanionPostPlayPipelineStatus& postPlayPipeline,
-    const CompanionSubsystemStatus& gameplayAcceptance)
+    const CompanionSubsystemStatus& gameplayAcceptance,
+    const CompanionLocalLlmStatus& localLlm)
 {
     CompanionSubsystemStatus status;
     status.state = "ready";
@@ -1635,9 +1663,15 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const bool mpNeedsAttention = mpOverlayPackage.state == "needs_attention";
     const bool postPlayNeedsAttention = postPlayPipeline.state == "needs_attention";
     const bool gameplayAcceptanceNeedsAttention = gameplayAcceptance.state == "needs_attention";
+    const bool localLlmNeedsAttention =
+        localLlm.state == "model_incompatible_with_hardware"
+        || localLlm.state == "model_license_not_supported"
+        || localLlm.state == "model_license_requires_user_action"
+        || localLlm.state == "model_runtime_failed"
+        || localLlm.state == "model_changed_revalidation_needed";
 
     if (archiveNeedsAttention || overlayNeedsAttention || publishGateNeedsAttention || mpNeedsAttention ||
-        postPlayNeedsAttention || gameplayAcceptanceNeedsAttention) {
+        postPlayNeedsAttention || gameplayAcceptanceNeedsAttention || localLlmNeedsAttention) {
         status.state = "attention_required";
         if (archiveNeedsAttention && overlayNeedsAttention && publishGateNeedsAttention && mpNeedsAttention) {
             status.reason = "archive, generated overlay, publish gate, and mp overlay package need attention";
@@ -1693,6 +1727,11 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         if (gameplayAcceptanceNeedsAttention) {
             status.reason = "gameplay acceptance needs attention";
             status.path = gameplayAcceptance.path;
+            return status;
+        }
+        if (localLlmNeedsAttention) {
+            status.reason = "local LLM model manager needs attention";
+            status.path = localLlm.localPath;
             return status;
         }
         status.reason = "mp overlay package needs attention";
@@ -1777,6 +1816,7 @@ std::string buildStatusCenterSummaryText(
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const CompanionPostPlayPipelineStatus& postPlayPipeline,
     const CompanionSubsystemStatus& gameplayAcceptance,
+    const CompanionLocalLlmStatus& localLlm,
     const CompanionSubsystemStatus& statusCenter,
     const std::string& nextAction,
     const std::string& nextActionReason,
@@ -2071,6 +2111,38 @@ std::string buildStatusCenterSummaryText(
     if (!gameplayAcceptance.path.empty()) {
         text << "gameplay_acceptance_report_path: " << pathString(gameplayAcceptance.path) << "\n";
     }
+    text << "local_llm_model: " << localLlm.state << " - " << localLlm.reason << "\n";
+    text << "local_llm_reduced_mode: " << (localLlm.reducedMode ? "true" : "false") << "\n";
+    text << "local_llm_can_run_inference: " << (localLlm.canRunInference ? "true" : "false") << "\n";
+    text << "local_llm_user_action_required: " << (localLlm.userActionRequired ? "true" : "false") << "\n";
+    text << "local_llm_download_allowed: " << (localLlm.downloadAllowed ? "true" : "false") << "\n";
+    if (!localLlm.selectedModelId.empty()) {
+        text << "local_llm_selected_model_id: " << localLlm.selectedModelId << "\n";
+    }
+    if (!localLlm.selectedDisplayName.empty()) {
+        text << "local_llm_selected_display_name: " << localLlm.selectedDisplayName << "\n";
+    }
+    if (!localLlm.runtime.empty()) {
+        text << "local_llm_runtime: " << localLlm.runtime << "\n";
+    }
+    if (!localLlm.catalogStatus.empty()) {
+        text << "local_llm_catalog_status: " << localLlm.catalogStatus << "\n";
+    }
+    if (!localLlm.localPath.empty()) {
+        text << "local_llm_local_path: " << pathString(localLlm.localPath) << "\n";
+    }
+    if (!localLlm.hardwareFit.empty()) {
+        text << "local_llm_hardware_fit: " << localLlm.hardwareFit << "\n";
+    }
+    if (!localLlm.recommendedModelId.empty()) {
+        text << "local_llm_recommended_model_id: " << localLlm.recommendedModelId << "\n";
+    }
+    if (!localLlm.recommendedDisplayName.empty()) {
+        text << "local_llm_recommended_display_name: " << localLlm.recommendedDisplayName << "\n";
+    }
+    if (!localLlm.recommendedRuntime.empty()) {
+        text << "local_llm_recommended_runtime: " << localLlm.recommendedRuntime << "\n";
+    }
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
@@ -2319,6 +2391,31 @@ void writeGeneratedOverlayJson(
     output << indent << "}";
 }
 
+void writeLocalLlmJson(
+    std::ostringstream& output,
+    const CompanionLocalLlmStatus& status,
+    const std::string& indent)
+{
+    output << indent << "{\n";
+    output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
+    output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
+    output << indent << "  \"selected_model_id\": " << jsonString(status.selectedModelId) << ",\n";
+    output << indent << "  \"selected_display_name\": " << jsonString(status.selectedDisplayName) << ",\n";
+    output << indent << "  \"runtime\": " << jsonString(status.runtime) << ",\n";
+    output << indent << "  \"catalog_status\": " << jsonString(status.catalogStatus) << ",\n";
+    output << indent << "  \"local_path\": " << jsonString(pathString(status.localPath)) << ",\n";
+    output << indent << "  \"hardware_fit\": " << jsonString(status.hardwareFit) << ",\n";
+    output << indent << "  \"recommended_model_id\": " << jsonString(status.recommendedModelId) << ",\n";
+    output << indent << "  \"recommended_display_name\": " << jsonString(status.recommendedDisplayName) << ",\n";
+    output << indent << "  \"recommended_runtime\": " << jsonString(status.recommendedRuntime) << ",\n";
+    output << indent << "  \"can_run_inference\": " << (status.canRunInference ? "true" : "false") << ",\n";
+    output << indent << "  \"reduced_mode\": " << (status.reducedMode ? "true" : "false") << ",\n";
+    output << indent << "  \"user_action_required\": "
+           << (status.userActionRequired ? "true" : "false") << ",\n";
+    output << indent << "  \"download_allowed\": " << (status.downloadAllowed ? "true" : "false") << "\n";
+    output << indent << "}";
+}
+
 void writeGeneratedOverlayPublishGateJson(
     std::ostringstream& output,
     const CompanionGeneratedOverlayPublishGateStatus& status,
@@ -2541,6 +2638,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     }
     snapshot.postPlayPipeline = buildPostPlayPipelineStatus(config);
     snapshot.gameplayAcceptance = buildGameplayAcceptanceStatus(config.gameplayAcceptanceReportPath);
+    snapshot.localLlm = buildLocalLlmStatus(config);
     snapshot.statusCenter =
         buildStatusCenterStatus(
             snapshot.saveDiscovery,
@@ -2549,7 +2647,8 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
             snapshot.generatedOverlayPublishGate,
             snapshot.mpOverlayPackage,
             snapshot.postPlayPipeline,
-            snapshot.gameplayAcceptance);
+            snapshot.gameplayAcceptance,
+            snapshot.localLlm);
     snapshot.nextAction = buildCompanionNextAction(snapshot);
     snapshot.nextActionReason = buildCompanionNextActionReason(snapshot);
     snapshot.nextActionCommandHint = buildCompanionNextActionCommandHint(snapshot);
@@ -2566,6 +2665,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
         snapshot.mpOverlayPackage,
         snapshot.postPlayPipeline,
         snapshot.gameplayAcceptance,
+        snapshot.localLlm,
         snapshot.statusCenter,
         snapshot.nextAction,
         snapshot.nextActionReason,
@@ -2619,6 +2719,9 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << ",\n";
     output << "  \"gameplay_acceptance_status\": ";
     writeSubsystemJson(output, snapshot.gameplayAcceptance, "  ");
+    output << ",\n";
+    output << "  \"local_llm_model_status\": ";
+    writeLocalLlmJson(output, snapshot.localLlm, "  ");
     output << ",\n";
     output << "  \"status_center\": ";
     writeSubsystemJson(output, snapshot.statusCenter, "  ");

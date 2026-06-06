@@ -173,6 +173,7 @@
     <ClCompile Include="src\generated_overlay\MpOverlayPackage.cpp" />
     <ClCompile Include="src\generated_overlay\OverlayCompiler.cpp" />
     <ClCompile Include="src\LlmClient.cpp" />
+    <ClCompile Include="src\LocalLlmModelManager.cpp" />
     <ClCompile Include="src\strategic_pipeline\DeterministicMinistry.cpp" />
     <ClCompile Include="src\strategic_pipeline\EmpireProcessingQueue.cpp" />
     <ClCompile Include="src\strategic_pipeline\LightweightCabinet.cpp" />
@@ -233,6 +234,7 @@
     <ClInclude Include="src\generated_overlay\MpOverlayPackage.h" />
     <ClInclude Include="src\generated_overlay\OverlayCompiler.h" />
     <ClInclude Include="src\LlmClient.h" />
+    <ClInclude Include="src\LocalLlmModelManager.h" />
     <ClInclude Include="src\strategic_pipeline\DeterministicMinistry.h" />
     <ClInclude Include="src\strategic_pipeline\EmpireProcessingQueue.h" />
     <ClInclude Include="src\strategic_pipeline\LightweightCabinet.h" />

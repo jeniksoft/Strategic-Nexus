@@ -754,6 +754,7 @@ std::string buildStatusCenterSummaryText(
     const strategic_nexus::CompanionSubsystemStatus& generatedOverlayStatus,
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const strategic_nexus::CompanionLocalLlmStatus& localLlm,
     const bool startWithWindowsEnabled,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason)
@@ -889,6 +890,32 @@ std::string buildStatusCenterSummaryText(
     summary << "generated_overlay_publish_status_path: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     summary << "generated_overlay_publish_backup_root_directory: "
             << pathString(g_generatedOverlayPublishBackupRootDirectory) << "\n";
+    summary << "local_llm_model: " << localLlm.state << " - " << localLlm.reason << "\n";
+    summary << "local_llm_reduced_mode: " << (localLlm.reducedMode ? "true" : "false") << "\n";
+    summary << "local_llm_can_run_inference: " << (localLlm.canRunInference ? "true" : "false") << "\n";
+    summary << "local_llm_user_action_required: " << (localLlm.userActionRequired ? "true" : "false") << "\n";
+    summary << "local_llm_download_allowed: " << (localLlm.downloadAllowed ? "true" : "false") << "\n";
+    if (!localLlm.selectedModelId.empty()) {
+        summary << "local_llm_selected_model_id: " << localLlm.selectedModelId << "\n";
+    }
+    if (!localLlm.selectedDisplayName.empty()) {
+        summary << "local_llm_selected_display_name: " << localLlm.selectedDisplayName << "\n";
+    }
+    if (!localLlm.runtime.empty()) {
+        summary << "local_llm_runtime: " << localLlm.runtime << "\n";
+    }
+    if (!localLlm.catalogStatus.empty()) {
+        summary << "local_llm_catalog_status: " << localLlm.catalogStatus << "\n";
+    }
+    if (!localLlm.recommendedModelId.empty()) {
+        summary << "local_llm_recommended_model_id: " << localLlm.recommendedModelId << "\n";
+    }
+    if (!localLlm.recommendedDisplayName.empty()) {
+        summary << "local_llm_recommended_display_name: " << localLlm.recommendedDisplayName << "\n";
+    }
+    if (!localLlm.recommendedRuntime.empty()) {
+        summary << "local_llm_recommended_runtime: " << localLlm.recommendedRuntime << "\n";
+    }
     appendStartupRationaleLines(summary, startWithWindowsEnabled);
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
@@ -1326,6 +1353,7 @@ void writeStatus(
         companionSnapshot.generatedOverlay,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
+        companionSnapshot.localLlm,
         companionSnapshot.lifecycle.startWithWindowsEnabled,
         mpPackageRefreshState,
         mpPackageRefreshReason);

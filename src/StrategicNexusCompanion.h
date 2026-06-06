@@ -39,6 +39,7 @@ struct CompanionStatusConfig {
     std::filesystem::path postPlayGeneratedOverlayStagingStatusPath =
         "dist/private_reports/snc_generated_overlay_staging_status.json";
     std::filesystem::path mpOverlayPackageZipPath;
+    std::filesystem::path localLlmModelStatePath;
 };
 
 struct CompanionStatusLoopConfig {
@@ -210,6 +211,24 @@ struct CompanionLifecycleStatus {
     std::string crashRestartPolicy = "bounded_backoff_with_crash_loop_guard";
 };
 
+struct CompanionLocalLlmStatus {
+    std::string state;
+    std::string reason;
+    std::string selectedModelId;
+    std::string selectedDisplayName;
+    std::string runtime;
+    std::string catalogStatus;
+    std::filesystem::path localPath;
+    std::string hardwareFit;
+    std::string recommendedModelId;
+    std::string recommendedDisplayName;
+    std::string recommendedRuntime;
+    bool canRunInference = false;
+    bool reducedMode = true;
+    bool userActionRequired = false;
+    bool downloadAllowed = false;
+};
+
 struct CompanionStatusSnapshot {
     std::string appName = "Strategic Nexus Companion";
     std::string abbreviation = "SNC";
@@ -222,6 +241,7 @@ struct CompanionStatusSnapshot {
     CompanionMpOverlayPackageStatus mpOverlayPackage;
     CompanionPostPlayPipelineStatus postPlayPipeline;
     CompanionSubsystemStatus gameplayAcceptance;
+    CompanionLocalLlmStatus localLlm;
     CompanionSubsystemStatus statusCenter;
     std::string nextAction;
     std::string nextActionReason;

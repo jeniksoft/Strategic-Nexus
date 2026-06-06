@@ -280,7 +280,7 @@ int main()
         "}\n");
 
     const strategic_nexus::StrategicNexusCompanion companion;
-    const auto ready = companion.buildStatusSnapshot({
+    const strategic_nexus::CompanionStatusConfig readyConfig{
         archiveRoot,
         overlayRoot,
         mpPackageRoot,
@@ -300,7 +300,8 @@ int main()
         dslDraftAuditPath,
         generatedOverlayStagingStatusPath,
         mpPackageZipPath
-    });
+    };
+    const auto ready = companion.buildStatusSnapshot(readyConfig);
 
     requireCondition(ready.appName == "Strategic Nexus Companion", "SNC app name should be stable");
     requireCondition(ready.abbreviation == "SNC", "SNC abbreviation should be stable");
@@ -352,6 +353,72 @@ int main()
     requireCondition(
         ready.nextActionPath == mpPackageRoot,
         "degraded previous-host continuity should point next-action path at the MP package");
+    requireCondition(
+        ready.localLlm.state == "no_model_installed",
+        "local LLM status should default to reduced mode when no model state is configured");
+    requireCondition(
+        ready.localLlm.reducedMode,
+        "local LLM should explicitly report reduced mode when no supported model is installed");
+    requireCondition(
+        !ready.localLlm.canRunInference,
+        "local LLM should not allow inference without a ready selected model");
+    requireCondition(
+        ready.statusCenterSummaryText.find("local_llm_reduced_mode: true") != std::string::npos,
+        "status center summary should expose local LLM reduced mode");
+
+    const auto readyLocalModelStatePath = root / "snc_local_model_state_ready.json";
+    writeTextFileAtomically(
+        readyLocalModelStatePath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"selected_model_id\": \"ollama:llama3.2:3b\",\n"
+        "  \"model_version\": \"3b\",\n"
+        "  \"runtime\": \"ollama\",\n"
+        "  \"status\": \"model_ready\",\n"
+        "  \"user_license_accepted\": true,\n"
+        "  \"runtime_available\": true,\n"
+        "  \"runtime_model_present\": true\n"
+        "}\n");
+    auto readyModelConfig = readyConfig;
+    readyModelConfig.localLlmModelStatePath = readyLocalModelStatePath;
+    const auto readyWithModel = companion.buildStatusSnapshot(readyModelConfig);
+    requireCondition(
+        readyWithModel.localLlm.state == "model_ready",
+        "accepted supported local LLM state should be ready");
+    requireCondition(
+        readyWithModel.localLlm.canRunInference,
+        "accepted supported local LLM state should allow inference wiring");
+    requireCondition(
+        !readyWithModel.localLlm.reducedMode,
+        "accepted supported local LLM state should leave reduced mode");
+    requireCondition(
+        readyWithModel.statusCenterSummaryText.find("local_llm_can_run_inference: true") != std::string::npos,
+        "status center summary should expose local LLM inference readiness");
+
+    const auto unsupportedLocalModelStatePath = root / "snc_local_model_state_unsupported.json";
+    writeTextFileAtomically(
+        unsupportedLocalModelStatePath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"selected_model_id\": \"unknown:unsafe-model\",\n"
+        "  \"runtime\": \"unknown\",\n"
+        "  \"status\": \"model_ready\",\n"
+        "  \"runtime_available\": true,\n"
+        "  \"runtime_model_present\": true\n"
+        "}\n");
+    auto unsupportedModelConfig = readyConfig;
+    unsupportedModelConfig.localLlmModelStatePath = unsupportedLocalModelStatePath;
+    const auto unsupportedModel = companion.buildStatusSnapshot(unsupportedModelConfig);
+    requireCondition(
+        unsupportedModel.localLlm.state == "model_license_not_supported",
+        "unknown local LLM model should fail closed as unsupported");
+    requireCondition(
+        unsupportedModel.statusCenter.state == "attention_required",
+        "unsupported selected local LLM model should surface in Status Center");
+    requireCondition(
+        unsupportedModel.statusCenterSummaryText.find("local_llm_model: model_license_not_supported") !=
+            std::string::npos,
+        "status center summary should expose unsupported local LLM model state");
     const auto missingMpPackageZipPath = root / "missing_mp_overlay_package.zip";
     const auto readyWithoutZip = companion.buildStatusSnapshot({
         archiveRoot,

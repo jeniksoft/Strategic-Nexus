@@ -310,6 +310,7 @@ $sncGeneratedOverlayPublishGateSourceFiles = @(
 $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_companion_test.exe"
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
+    (Join-Path $repoRoot "src/LocalLlmModelManager.cpp"),
     (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp"),
     (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),
     (Join-Path $repoRoot "src/StellarisProcessDetector.cpp"),
