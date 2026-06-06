@@ -228,6 +228,7 @@ struct CompanionStatusSnapshot {
     std::string nextActionCommandHint;
     std::string nextActionCommandHintSource;
     std::filesystem::path nextActionPath;
+    std::filesystem::path ownerTestPlaybookPath;
     std::string statusCenterSummaryText;
 };
 

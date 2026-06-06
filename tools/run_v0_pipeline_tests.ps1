@@ -1415,6 +1415,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_limit_reached=true"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_campaign_library_skipped_due_to_limit_count=2"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_center_state=attention_required"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_owner_test_playbook_path="
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_status_output_written=true"
 
     $snapshotJson = Get-Content -Raw -LiteralPath $outputPath
@@ -1429,6 +1430,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"generated_overlay_publish_gate_status":'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_plan_readiness": "ready"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_skipped_due_to_limit_count": 2'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"owner_test_playbook_path": ""'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"status_center":'
 
     $mpExportOutput = & $exePath `
@@ -2899,7 +2901,7 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_snc_next_action="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_owner_test_ready=false"
-    Assert-NotContains -Name "real session loop mp snapshot contract output" -Text $text -Unexpected "real_session_v0_loop_owner_test_playbook_path="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_owner_test_playbook_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_analysis_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_readiness="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_path="
@@ -3017,7 +3019,7 @@ function Invoke-RealSessionLoopNextActionStrictVerifySourceContractCase {
     Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'run_monthly_reactive_owner_test'
     Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'published_monthly_reactive_overlay_ready_for_owner_test'
     Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'snc_owner_test_contract'
-    Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md'
+    Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'owner_test_playbook_path'
 
     Write-Host "[PASS] real_session_loop_next_action_strict_verify_source_contract"
 }

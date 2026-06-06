@@ -595,6 +595,14 @@ bool isPublishedMonthlyReactiveOwnerTestReady(const CompanionStatusSnapshot& sna
            snapshot.gameplayAcceptance.state == "ready";
 }
 
+std::filesystem::path buildCompanionOwnerTestPlaybookPath(const CompanionStatusSnapshot& snapshot)
+{
+    if (!isPublishedMonthlyReactiveOwnerTestReady(snapshot)) {
+        return {};
+    }
+    return std::filesystem::path("docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md");
+}
+
 std::string stateFromReadiness(const std::string& readiness)
 {
     if (startsWith(readiness, "ready")) {
@@ -1777,11 +1785,12 @@ std::string buildStatusCenterSummaryText(
     const std::filesystem::path& nextActionPath)
 {
     std::ostringstream text;
-    const bool monthlyReactiveOwnerTestReady =
-        generatedOverlayPublishGate.state == "published" &&
-        generatedOverlay.reactivePolicyPackCapability == "event_family_dispatch" &&
-        containsExactString(generatedOverlay.eventFamilies, "monthly_strategy_tick") &&
-        gameplayAcceptance.state == "ready";
+    CompanionStatusSnapshot ownerTestSnapshot;
+    ownerTestSnapshot.generatedOverlay = generatedOverlay;
+    ownerTestSnapshot.generatedOverlayPublishGate = generatedOverlayPublishGate;
+    ownerTestSnapshot.gameplayAcceptance = gameplayAcceptance;
+    const bool monthlyReactiveOwnerTestReady = isPublishedMonthlyReactiveOwnerTestReady(ownerTestSnapshot);
+    const auto ownerTestPlaybookPath = buildCompanionOwnerTestPlaybookPath(ownerTestSnapshot);
     text << "Strategic Nexus Status Center\n";
     if (!generatedAtLocal.empty()) {
         text << "generated_at_local: " << generatedAtLocal << "\n";
@@ -2065,7 +2074,7 @@ std::string buildStatusCenterSummaryText(
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
-        text << "owner_test_playbook_path: docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md\n";
+        text << "owner_test_playbook_path: " << pathString(ownerTestPlaybookPath) << "\n";
         text << "owner_test_visible_markers: Strategic Nexus v0: Defensive military posture|Strategic Nexus v0: Aggressive military posture|Strategic Nexus v0: Economy research bias|Strategic Nexus v0: Military industry research bias\n";
         text << "owner_test_expected_log_prefixes: Strategic Nexus: generated overlay projected military_posture|Strategic Nexus: generated overlay projected research_bias\n";
         text << "owner_test_codex_artifacts: generated_overlay_publish_status.json|generated_overlay_gameplay_acceptance_v0.json|Stellaris logs/error.log\n";
@@ -2546,6 +2555,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.nextActionCommandHint = buildCompanionNextActionCommandHint(snapshot);
     snapshot.nextActionCommandHintSource = buildCompanionNextActionCommandHintSource(snapshot);
     snapshot.nextActionPath = buildCompanionNextActionPath(snapshot);
+    snapshot.ownerTestPlaybookPath = buildCompanionOwnerTestPlaybookPath(snapshot);
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
         snapshot.generatedAtLocal,
         snapshot.lifecycle,
@@ -2618,6 +2628,7 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"next_action_command_hint\": " << jsonString(snapshot.nextActionCommandHint) << ",\n";
     output << "  \"next_action_command_hint_source\": " << jsonString(snapshot.nextActionCommandHintSource) << ",\n";
     output << "  \"next_action_path\": " << jsonString(pathString(snapshot.nextActionPath)) << ",\n";
+    output << "  \"owner_test_playbook_path\": " << jsonString(pathString(snapshot.ownerTestPlaybookPath)) << ",\n";
     output << "  \"status_center_summary_text\": " << jsonString(snapshot.statusCenterSummaryText) << "\n";
     output << "}\n";
     return output.str();

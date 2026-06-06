@@ -1547,6 +1547,7 @@ void writeStatus(
     json << "  \"next_action_command_hint\": \"" << jsonEscape(nextActionCommandHint) << "\",\n";
     json << "  \"next_action_command_hint_source\": \"" << jsonEscape(nextActionCommandHintSource) << "\",\n";
     json << "  \"next_action_path\": \"" << jsonEscape(pathString(nextActionPath)) << "\",\n";
+    json << "  \"owner_test_playbook_path\": \"" << jsonEscape(pathString(companionSnapshot.ownerTestPlaybookPath)) << "\",\n";
     json << "  \"next_steps_brief_path\": \"" << jsonEscape(pathString(g_nextStepsBriefPath)) << "\"\n";
     json << "}\n";
 

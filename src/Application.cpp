@@ -1881,6 +1881,8 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
             std::cout << "snc_status_center_path=" << sanitizeCliValue(stdoutPath(snapshot.statusCenter.path)) << "\n";
+            std::cout << "snc_owner_test_playbook_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.ownerTestPlaybookPath)) << "\n";
             std::cout << "snc_status_center_summary_text=" << sanitizeCliValue(snapshot.statusCenterSummaryText) << "\n";
             std::cout << "snc_status_output_written=" << (outputRequested && written ? "true" : "false") << "\n";
             if (!written) {

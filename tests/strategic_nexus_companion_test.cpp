@@ -1107,6 +1107,9 @@ int main()
         publishedSnapshot.statusCenterSummaryText.find("owner_test_playbook_path: docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md") ==
             std::string::npos,
         "published snapshot without ready acceptance should keep the owner-test playbook path hidden");
+    requireCondition(
+        publishedSnapshot.ownerTestPlaybookPath.empty(),
+        "published snapshot without ready acceptance should keep owner test playbook field empty");
 
     const auto publishedOwnerTestReady = companion.buildStatusSnapshot({
         archiveSessionRoot,
@@ -1131,6 +1134,9 @@ int main()
         publishedOwnerTestReady.nextActionPath == readyGameplayAcceptanceReport,
         "published reactive owner test should focus the acceptance contract artifact");
     requireCondition(
+        publishedOwnerTestReady.ownerTestPlaybookPath == std::filesystem::path("docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md"),
+        "published reactive owner test should expose stable owner test playbook field");
+    requireCondition(
         publishedOwnerTestReady.statusCenterSummaryText.find(
             "owner_test_contract_state: ready_for_monthly_reactive_session_test") != std::string::npos,
         "status center summary should expose owner test readiness");
@@ -1153,6 +1159,11 @@ int main()
             "owner_test_codex_artifacts: generated_overlay_publish_status.json|generated_overlay_gameplay_acceptance_v0.json|Stellaris logs/error.log") !=
             std::string::npos,
         "status center summary should name concrete post-test artifacts for Codex review");
+    const auto publishedOwnerTestReadyJson = strategic_nexus::serializeCompanionStatusSnapshot(publishedOwnerTestReady);
+    requireCondition(
+        publishedOwnerTestReadyJson.find("\"owner_test_playbook_path\": \"docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md\"") !=
+            std::string::npos,
+        "published reactive owner test JSON should expose stable owner test playbook field");
 
     const auto missingMpPackage = companion.buildStatusSnapshot({
         archiveSessionRoot,
@@ -1428,6 +1439,9 @@ int main()
     requireCondition(
         json.find("\"next_action_path\": \"" + mpPackageRoot.generic_string() + "\"") != std::string::npos,
         "JSON should include next action path");
+    requireCondition(
+        json.find("\"owner_test_playbook_path\": \"\"") != std::string::npos,
+        "JSON should include empty owner test playbook path when not ready");
     requireCondition(
         json.find("\"start_with_windows_enabled\": true") != std::string::npos,
         "JSON should include start-with-Windows enabled flag");

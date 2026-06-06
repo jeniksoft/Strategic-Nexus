@@ -1120,6 +1120,9 @@ if ($null -ne $statusJson.next_action_command_hint_source) {
 if ($null -ne $statusJson.next_action_path) {
     $sncNextActionPath = [string]$statusJson.next_action_path
 }
+if ($null -ne $statusJson.owner_test_playbook_path) {
+    $sncMonthlyReactiveOwnerTestPlaybookPath = [string]$statusJson.owner_test_playbook_path
+}
 if ($null -ne $statusJson.campaign_library_plan_present) {
     $campaignLibraryPlanPresent = [bool]$statusJson.campaign_library_plan_present
 }
@@ -1169,9 +1172,9 @@ $sncMonthlyReactiveOwnerTestArtifacts = @(
     $gameplayAcceptancePath,
     "Stellaris logs/error.log"
 )
-$sncMonthlyReactiveOwnerTestPlaybookPath = ""
-if ($sncMonthlyReactiveOwnerTestReady) {
-    $sncMonthlyReactiveOwnerTestPlaybookPath = "docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md"
+$sncMonthlyReactiveOwnerTestPlaybookPath = [string]$sncMonthlyReactiveOwnerTestPlaybookPath
+if (-not $sncMonthlyReactiveOwnerTestReady) {
+    $sncMonthlyReactiveOwnerTestPlaybookPath = ""
 }
 $sncMonthlyReactiveOwnerTestLimitations = "Marker proves published monthly reactive branch visibility only; it stays gameplay-neutral and is not full strategic quality validation."
 
@@ -1257,9 +1260,7 @@ Write-Host ("real_session_v0_loop_snc_next_action_reason=" + $sncNextActionReaso
 Write-Host ("real_session_v0_loop_snc_next_action_command_hint_source=" + $sncNextActionCommandHintSource)
 Write-Host ("real_session_v0_loop_snc_next_action_path=" + $sncNextActionPath)
 Write-Host ("real_session_v0_loop_owner_test_ready=" + $sncMonthlyReactiveOwnerTestReady.ToString().ToLowerInvariant())
-if ($sncMonthlyReactiveOwnerTestReady) {
-    Write-Host ("real_session_v0_loop_owner_test_playbook_path=" + $sncMonthlyReactiveOwnerTestPlaybookPath)
-}
+Write-Host ("real_session_v0_loop_owner_test_playbook_path=" + $sncMonthlyReactiveOwnerTestPlaybookPath)
 Write-Host ("real_session_v0_loop_compare_previous_session_dir_hint=dist\\real_session_v0_loop\\<previous_session_id>")
 $compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "dist\real_session_v0_loop\<previous_session_id>" "' + $defaultRunRoot + '" "dist\private_reports\real_session_v0_compare_' + $SessionId + '.json"'
 Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
