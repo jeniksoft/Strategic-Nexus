@@ -197,6 +197,18 @@ Changing catalog status for a model can change what users are allowed to install
 
 The companion app should persist local model state separately from the mod.
 
+The first implementation path is a companion/CLI prepare step:
+
+```text
+Strategic Nexus.exe --prepare-local-llm-model <model-id> <state-json> <accept-license|no-license> <download|no-download> [runtime-url]
+```
+
+The prepare step may only operate on a supported catalog model, currently an
+Ollama model id such as `ollama:llama3.2:3b`. It must not download anything
+unless the user has explicitly accepted the provider terms and the caller
+passes `download`. If the runtime is missing, the model is not installed, or
+the state file cannot be written, SNC remains in reduced mode.
+
 Recommended state fields:
 
 ```text

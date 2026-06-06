@@ -359,6 +359,12 @@ MP overlay package verification now exposes `readiness`; copyable MP package sta
 SNC status snapshots now include `gameplay_acceptance_status`; the copyable Status Center summary also surfaces gameplay acceptance state/reason and report path for owner-facing visibility.
 SNC status snapshots and tray summary now include `local_llm_model_status` / `local_llm_*` readiness fields. The first companion Model Manager slice can load local model state, evaluate it against a curated supported-model catalog, surface no-model reduced mode, accept explicitly approved ready local models, and fail closed on unknown selected models before any LLM inference is allowed.
 
+The second Model Manager slice adds the first practical prepare path:
+`--prepare-local-llm-model <model-id> <state-json> <accept-license|no-license> <download|no-download> [runtime-url]`.
+It targets Ollama through the local runtime API, checks `/api/tags`, optionally
+pulls the allowlisted model only after explicit license acceptance, and writes
+the local model state JSON that SNC readiness consumes.
+
 ---
 
 ## 2. Minimal Strategy Dimensions

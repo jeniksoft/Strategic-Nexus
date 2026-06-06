@@ -8,8 +8,10 @@
 
 #include <algorithm>
 #include <cctype>
+#include <iomanip>
 #include <optional>
 #include <regex>
+#include <sstream>
 #include <string>
 
 namespace strategic_nexus {
@@ -45,18 +47,6 @@ bool fileExistsIfConfigured(const std::filesystem::path& path)
 
     std::error_code error;
     return std::filesystem::exists(path, error) && !error;
-}
-
-const LocalLlmCatalogEntry* findCatalogEntry(
-    const std::vector<LocalLlmCatalogEntry>& catalog,
-    const std::string& modelId)
-{
-    for (const auto& entry : catalog) {
-        if (entry.modelId == modelId) {
-            return &entry;
-        }
-    }
-    return nullptr;
 }
 
 bool hardwareMeetsMinimum(const LocalLlmCatalogEntry& entry, const LocalLlmHardwareProfile& hardware)
@@ -109,6 +99,33 @@ LocalLlmReadinessStatus reducedStatus(
     return status;
 }
 
+std::string escapeJsonString(const std::string& value)
+{
+    std::ostringstream output;
+    for (const unsigned char character : value) {
+        switch (character) {
+        case '"': output << "\\\""; break;
+        case '\\': output << "\\\\"; break;
+        case '\b': output << "\\b"; break;
+        case '\f': output << "\\f"; break;
+        case '\n': output << "\\n"; break;
+        case '\r': output << "\\r"; break;
+        case '\t': output << "\\t"; break;
+        default:
+            if (character < 0x20) {
+                output << "\\u"
+                       << std::hex << std::setw(4) << std::setfill('0')
+                       << static_cast<int>(character)
+                       << std::dec << std::setfill(' ');
+            } else {
+                output << static_cast<char>(character);
+            }
+            break;
+        }
+    }
+    return output.str();
+}
+
 } // namespace
 
 std::vector<LocalLlmCatalogEntry> defaultLocalLlmCatalog()
@@ -157,6 +174,18 @@ std::vector<LocalLlmCatalogEntry> defaultLocalLlmCatalog()
     };
 }
 
+const LocalLlmCatalogEntry* findLocalLlmCatalogEntry(
+    const std::vector<LocalLlmCatalogEntry>& catalog,
+    const std::string& modelId)
+{
+    for (const auto& entry : catalog) {
+        if (entry.modelId == modelId) {
+            return &entry;
+        }
+    }
+    return nullptr;
+}
+
 LocalLlmModelState loadLocalLlmModelState(const std::filesystem::path& path)
 {
     LocalLlmModelState state;
@@ -188,6 +217,40 @@ LocalLlmModelState loadLocalLlmModelState(const std::filesystem::path& path)
     return state;
 }
 
+std::string serializeLocalLlmModelState(const LocalLlmModelState& state)
+{
+    std::ostringstream output;
+    output << "{\n";
+    output << "  \"selected_model_id\": \"" << escapeJsonString(state.selectedModelId) << "\",\n";
+    output << "  \"model_version\": \"" << escapeJsonString(state.modelVersion) << "\",\n";
+    output << "  \"runtime\": \"" << escapeJsonString(state.runtime) << "\",\n";
+    output << "  \"source_url\": \"" << escapeJsonString(state.sourceUrl) << "\",\n";
+    output << "  \"license_url\": \"" << escapeJsonString(state.licenseUrl) << "\",\n";
+    output << "  \"use_policy_url\": \"" << escapeJsonString(state.usePolicyUrl) << "\",\n";
+    output << "  \"local_path\": \"" << escapeJsonString(state.localPath.generic_string()) << "\",\n";
+    output << "  \"content_hash\": \"" << escapeJsonString(state.contentHash) << "\",\n";
+    output << "  \"installed_at\": \"" << escapeJsonString(state.installedAt) << "\",\n";
+    output << "  \"last_verified_at\": \"" << escapeJsonString(state.lastVerifiedAt) << "\",\n";
+    output << "  \"hardware_fit\": \"" << escapeJsonString(state.hardwareFit) << "\",\n";
+    output << "  \"status\": \"" << escapeJsonString(state.status) << "\",\n";
+    output << "  \"user_license_accepted\": " << (state.userLicenseAccepted ? "true" : "false") << ",\n";
+    output << "  \"runtime_available\": " << (state.runtimeAvailable ? "true" : "false") << ",\n";
+    output << "  \"runtime_model_present\": " << (state.runtimeModelPresent ? "true" : "false") << "\n";
+    output << "}\n";
+    return output.str();
+}
+
+bool writeLocalLlmModelState(
+    const std::filesystem::path& path,
+    const LocalLlmModelState& state)
+{
+    if (path.empty()) {
+        return false;
+    }
+
+    return common::writeTextFileAtomically(path, serializeLocalLlmModelState(state));
+}
+
 LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     const std::vector<LocalLlmCatalogEntry>& catalog,
     const LocalLlmModelState& state,
@@ -201,7 +264,7 @@ LocalLlmReadinessStatus evaluateLocalLlmReadiness(
             recommended);
     }
 
-    const auto* entry = findCatalogEntry(catalog, state.selectedModelId);
+    const auto* entry = findLocalLlmCatalogEntry(catalog, state.selectedModelId);
     if (entry == nullptr) {
         auto status = reducedStatus(
             "model_license_not_supported",

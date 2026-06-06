@@ -108,6 +108,9 @@
     <ClCompile Include="src\LocalLlmModelManager.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\LocalLlmRuntimeAdapter.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\strategic_pipeline\DeterministicMinistry.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -285,6 +288,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\LocalLlmModelManager.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LocalLlmRuntimeAdapter.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\strategic_pipeline\DeterministicMinistry.h">

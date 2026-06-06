@@ -25,6 +25,7 @@
 #include "StellarisSavePathResolver.h"
 #include "StrategicNexusCompanion.h"
 #include "StrategicWorker.h"
+#include "LocalLlmRuntimeAdapter.h"
 #include "bridge_core/BridgeCorePipeline.h"
 #include "common/FileUtil.h"
 #include "generated_overlay/DslParser.h"
@@ -274,6 +275,28 @@ RunConfig parseRunConfig(int argc, char* argv[])
             config.v0PriorityQueueInputPaths.push_back(argv[index]);
         }
 
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--prepare-local-llm-model") {
+        config.prepareLocalLlmModelMode = true;
+
+        if (argc > 2) {
+            config.localLlmPrepareModelId = argv[2];
+        }
+        if (argc > 3) {
+            config.localLlmPrepareStateOutputPath = argv[3];
+        }
+        if (argc > 4) {
+            config.localLlmPrepareUserLicenseAccepted = std::string(argv[4]) == "accept-license";
+        }
+        if (argc > 5) {
+            const std::string value = argv[5];
+            config.localLlmPrepareAllowDownload = value == "download" || parseBoolArg(argv[5], false);
+        }
+        if (argc > 6) {
+            config.localLlmPrepareRuntimeUrl = argv[6];
+        }
         return config;
     }
 
@@ -947,6 +970,31 @@ int Application::run(const RunConfig& config) const
                 config.daemonPollInterval,
                 config.daemonMaxIterations
             });
+        }
+
+        if (config.prepareLocalLlmModelMode) {
+            const auto result = prepareLocalLlmModel({
+                config.localLlmPrepareModelId,
+                config.localLlmPrepareStateOutputPath,
+                config.localLlmPrepareRuntimeUrl,
+                config.localLlmPrepareUserLicenseAccepted,
+                config.localLlmPrepareAllowDownload
+            });
+
+            std::cout << "local_llm_prepare_ok=" << (result.ok ? "true" : "false") << "\n";
+            std::cout << "local_llm_prepare_state=" << sanitizeCliValue(result.state) << "\n";
+            std::cout << "local_llm_prepare_reason=" << sanitizeCliValue(result.reason) << "\n";
+            std::cout << "local_llm_prepare_model_id=" << sanitizeCliValue(result.modelId) << "\n";
+            std::cout << "local_llm_prepare_runtime=" << sanitizeCliValue(result.runtime) << "\n";
+            std::cout << "local_llm_prepare_runtime_model_name=" << sanitizeCliValue(result.runtimeModelName) << "\n";
+            std::cout << "local_llm_prepare_runtime_url=" << sanitizeCliValue(result.runtimeUrl) << "\n";
+            std::cout << "local_llm_prepare_runtime_available=" << (result.runtimeAvailable ? "true" : "false") << "\n";
+            std::cout << "local_llm_prepare_runtime_model_present=" << (result.runtimeModelPresent ? "true" : "false") << "\n";
+            std::cout << "local_llm_prepare_download_attempted=" << (result.downloadAttempted ? "true" : "false") << "\n";
+            std::cout << "local_llm_prepare_download_succeeded=" << (result.downloadSucceeded ? "true" : "false") << "\n";
+            std::cout << "local_llm_prepare_state_written=" << (result.stateWritten ? "true" : "false") << "\n";
+            std::cout << "local_llm_prepare_state_output_path=" << sanitizeCliValue(result.stateOutputPath.generic_string()) << "\n";
+            return result.ok ? 0 : 2;
         }
 
         if (config.bridgePipelineMode) {

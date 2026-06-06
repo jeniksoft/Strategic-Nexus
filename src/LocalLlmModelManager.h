@@ -72,7 +72,14 @@ struct LocalLlmReadinessStatus {
 };
 
 std::vector<LocalLlmCatalogEntry> defaultLocalLlmCatalog();
+const LocalLlmCatalogEntry* findLocalLlmCatalogEntry(
+    const std::vector<LocalLlmCatalogEntry>& catalog,
+    const std::string& modelId);
 LocalLlmModelState loadLocalLlmModelState(const std::filesystem::path& path);
+std::string serializeLocalLlmModelState(const LocalLlmModelState& state);
+bool writeLocalLlmModelState(
+    const std::filesystem::path& path,
+    const LocalLlmModelState& state);
 LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     const std::vector<LocalLlmCatalogEntry>& catalog,
     const LocalLlmModelState& state,

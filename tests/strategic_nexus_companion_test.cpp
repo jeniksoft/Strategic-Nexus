@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Antonin Jenik
 
 #include "StrategicNexusCompanion.h"
+#include "LocalLlmModelManager.h"
+#include "LocalLlmRuntimeAdapter.h"
 
 #include "common/FileUtil.h"
 #include "generated_overlay/ManifestVerifier.h"
@@ -419,6 +421,49 @@ int main()
         unsupportedModel.statusCenterSummaryText.find("local_llm_model: model_license_not_supported") !=
             std::string::npos,
         "status center summary should expose unsupported local LLM model state");
+
+    requireCondition(
+        strategic_nexus::ollamaModelNameFromCatalogId("ollama:llama3.2:3b") == "llama3.2:3b",
+        "Ollama catalog id should map to runtime model name");
+    requireCondition(
+        strategic_nexus::ollamaModelNameFromCatalogId("llama3.2:3b").empty(),
+        "non-Ollama catalog id should not map to runtime model name");
+    requireCondition(
+        strategic_nexus::ollamaTagsContainModel(
+            "{\"models\":[{\"name\":\"llama3.2:3b\"},{\"name\":\"qwen2.5:7b\"}]}",
+            "llama3.2:3b"),
+        "Ollama tags parser should recognize installed catalog model");
+    requireCondition(
+        !strategic_nexus::ollamaTagsContainModel(
+            "{\"models\":[{\"name\":\"llama3.2:latest\"}]}",
+            "llama3.2:3b"),
+        "Ollama tags parser should not confuse a different tag with the selected model");
+
+    strategic_nexus::LocalLlmModelState serializedState;
+    serializedState.selectedModelId = "ollama:llama3.2:3b";
+    serializedState.runtime = "ollama";
+    serializedState.status = "model_ready";
+    serializedState.userLicenseAccepted = true;
+    serializedState.runtimeAvailable = true;
+    serializedState.runtimeModelPresent = true;
+    const auto localLlmSerializedStatePath = root / "local_llm_model_state_serialized.json";
+    requireCondition(
+        strategic_nexus::writeLocalLlmModelState(localLlmSerializedStatePath, serializedState),
+        "local LLM model state should serialize to disk");
+    const auto loadedSerializedState =
+        strategic_nexus::loadLocalLlmModelState(localLlmSerializedStatePath);
+    requireCondition(
+        loadedSerializedState.selectedModelId == serializedState.selectedModelId,
+        "serialized local LLM state should preserve selected model id");
+    requireCondition(
+        loadedSerializedState.runtime == "ollama",
+        "serialized local LLM state should preserve runtime");
+    requireCondition(
+        loadedSerializedState.userLicenseAccepted &&
+            loadedSerializedState.runtimeAvailable &&
+            loadedSerializedState.runtimeModelPresent,
+        "serialized local LLM state should preserve readiness booleans");
+
     const auto missingMpPackageZipPath = root / "missing_mp_overlay_package.zip";
     const auto readyWithoutZip = companion.buildStatusSnapshot({
         archiveRoot,
