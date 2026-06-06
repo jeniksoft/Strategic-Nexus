@@ -99,6 +99,41 @@ Doporuceny dalsi krok:
 * Nejprve potvrdit dobeh navazujiciho `Windows Tests` runu pro dnesni docs-only denikovy refresh, aby i verejny zdroj pravdy mel uzavreny CI signal pro dnesni stav.
 * Potom navazat explicitnim end-to-end overenim toho, ze continuity signal, degraded MP handoff guidance a previous host availability vedou k jednoznacnemu owner-facing publish/verify/import rozhodnuti bez driftu na integration boundary.
 
+## 2026-06-06
+
+Projekt dnes posunul hlavne reactive policy a lifecycle vrstvu kolem Strategic Nexus Companion, generated overlay pripravy a owner-facing status surface. Neslo o rozsirovani aktivni runtime pravomoci; jde o dalsi zpresneni integration boundary mezi offline analyzou, staged generated overlay artefaktem, MP handoff pripravou a tim, jak host-authoritative model vystavuje dalsi doporuceny krok.
+
+Co pribylo v repozitari:
+
+* Verejny head od posledniho denikoveho zapisu pridal souvislou commit radu kolem `Auto-export SNC MP package ZIP handoff`, `Expose previous host availability in SNC CLI`, `Surface previous-host continuity in SNC tray text`, `Surface SNC startup lifecycle state`, `Expose SNC lifecycle state in CLI`, `Adopt reactive policy pack architecture`, `Add zero-history campaign bootstrap rules`, `Add generated overlay source-quality metadata`, `Add allowlisted reactive event family metadata`, `Wire monthly reactive overlay dispatcher` a `Surface reactive overlay capability in SNC status`.
+* MP package vrstva nyni umi pripraveny handoff artefakt automaticky vyvest i jako ZIP balicek pro dalsi kontrolovany owner-approved krok. To je dulezite hlavne pro checksum-citlivou distribucni hranu, i kdyz finalni interoperabilni doruceni mezi vsemi ucastniky jeste neni uzavrene.
+* SNC CLI, tray a status snapshot byly rozsireny o lifecycle state, lifecycle contract, startup rationale a continuity signaly kolem previous host availability. Owner-facing povrch tak lepe rozlisuje bootstrap kampane, bezny navazujici handoff i degradovany stav, ktery stale vyzaduje potvrzeni continuity.
+* Reactive policy pack architektura, zero-history bootstrap rules a generated overlay metadata doplnily bounded vrstvu pro runtime interoperability research: source-quality metadata, allowlisted reactive event family metadata a monthly reactive overlay dispatcher zpresnuji, jak ma byt scripted event/effect path pripravovan a auditovan mezi sezenimi.
+* Roadmapa a souvisejici architekturni dokumentace byly prubezne sladene s touto vlnou, aby reactive policy, bootstrap pravidla a lifecycle surface nezustaly jen implicitni v implementaci.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt se posouva od jednotlivych status a handoff signalu k souvislejsimu lifecycle vykladu cele companion vrstvy. To pomaha hlavne tam, kde je treba jasne odlisit nulovou historii kampane, pripraveny handoff, degradovany continuity stav a reactive overlay pripravenost bez rozsireni pravomoci do bezici session.
+* Reactive policy pack a allowlisted event metadata dale potvrzuji smer k malemu, kontrolovanemu DSL a ke konzervativni priprave generated overlay artefaktu. Prakticky jde o zpevneni vyzkumne a interoperabilni vrstvy, nikoli o runtime reverse engineering nebo nizkourovnovy zasah do hry.
+* Auto-export ZIP handoff zmensuje mezeru mezi staged generated overlay artefaktem a dalsim owner-approved distribucnim krokem, ale sam o sobe jeste neuzavira finalni export/import contract ani uplne checksum-safe multiplayer predani.
+
+Testy a stav overeni:
+
+* Pracovni strom byl pred touto denikovou upravou cisty a lokalni vetev byla ve shode s `origin/master`.
+* Verejny GitHub Actions `Windows Tests` pro aktualni head `Refresh next reactive sprint slice` (`330edec`) je potvrzen jako `success`. Run byl vytvoren 5.6.2026 ve 21:02:26 CEST a dokoncen 5.6.2026 ve 21:06:52 CEST.
+* Posledni vyrazna implementacni vlna, ktera zavedla `Surface reactive overlay capability in SNC status` (`48ce559`), je uz soucasti dnesniho verejneho headu; tento denikovy beh vsak sam nespoustel novy plny lokalni test run a shrnuje commit historii spolu s verejne dostupnym CI signalem pro aktualni pushnuty stav.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi plne uzavreny checksum-safe multiplayer distribucni workflow mezi owner-approved publish krokem a dalsimi ucastniky.
+* Reactive policy, lifecycle surface a ZIP handoff zlepsuji interpretaci a pripravenost artefaktu, ale samy o sobe jeste neuzaviraji finalni export/import contract, campaign marker handshake ani empire identity resolver.
+* Rizikem zustava, ze owner-facing lifecycle a reactive guidance budou presnejsi rychleji nez posledni interoperabilni krok skutecneho publish/verify/import doruceni. Bez dalsiho end-to-end potvrzeni muze byt rozhodovaci rozhrani velmi citelne, ale finalni predani artefaktu stale jen castecne uzavrene.
+
+Doporuceny dalsi krok:
+
+* Navazat prvnim explicitnim end-to-end overenim toho, ze zero-history bootstrap, lifecycle contract, reactive overlay capability a ZIP handoff vedou k jednoznacnemu owner-facing publish/verify/import rozhodnuti bez driftu na integration boundary.
+* Pri tomto overeni se soustredit hlavne na finalni export/import contract, campaign marker handshake a na to, zda reactive policy pack zustava plne bounded i v pripade degradovane continuity nebo nulove kampanove historie.
+
 ## 2026-06-04
 
 Projekt dnes posunul hlavne fail-closed chovani generated overlay cesty pri nepodporovanych runtime podminkach a soucasne zpresnil owner-facing dalsi krok, ktery SNC a tray vrstva vystavuji po dobehnuti post-play pipeline. Nejde o rozsireni runtime pravomoci; jde o dalsi zpevneni integration boundary mezi staged generated overlay artefaktem, post-play observability a explicitnim owner-facing rozhodnutim, co ma nasledovat.
