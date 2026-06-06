@@ -1169,6 +1169,10 @@ $sncMonthlyReactiveOwnerTestArtifacts = @(
     $gameplayAcceptancePath,
     "Stellaris logs/error.log"
 )
+$sncMonthlyReactiveOwnerTestPlaybookPath = ""
+if ($sncMonthlyReactiveOwnerTestReady) {
+    $sncMonthlyReactiveOwnerTestPlaybookPath = "docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md"
+}
 $sncMonthlyReactiveOwnerTestLimitations = "Marker proves published monthly reactive branch visibility only; it stays gameplay-neutral and is not full strategic quality validation."
 
 Write-Host "real_session_v0_loop_ok=true"
@@ -1253,6 +1257,9 @@ Write-Host ("real_session_v0_loop_snc_next_action_reason=" + $sncNextActionReaso
 Write-Host ("real_session_v0_loop_snc_next_action_command_hint_source=" + $sncNextActionCommandHintSource)
 Write-Host ("real_session_v0_loop_snc_next_action_path=" + $sncNextActionPath)
 Write-Host ("real_session_v0_loop_owner_test_ready=" + $sncMonthlyReactiveOwnerTestReady.ToString().ToLowerInvariant())
+if ($sncMonthlyReactiveOwnerTestReady) {
+    Write-Host ("real_session_v0_loop_owner_test_playbook_path=" + $sncMonthlyReactiveOwnerTestPlaybookPath)
+}
 Write-Host ("real_session_v0_loop_compare_previous_session_dir_hint=dist\\real_session_v0_loop\\<previous_session_id>")
 $compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "dist\real_session_v0_loop\<previous_session_id>" "' + $defaultRunRoot + '" "dist\private_reports\real_session_v0_compare_' + $SessionId + '.json"'
 Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
@@ -2463,6 +2470,7 @@ if ($sncMonthlyReactiveOwnerTestReady) {
         "- Source action: $sncNextAction"
         "- Source reason: $sncNextActionReason"
         "- Source path: $sncNextActionPath"
+        "- Playbook: $sncMonthlyReactiveOwnerTestPlaybookPath"
         "- What to do: Load or resume a real non-ironman session with the current published overlay and wait for the next monthly pulse."
         "- Visible harmless markers: $([string]::Join('; ', $sncMonthlyReactiveOwnerTestMarkers))"
         "- Codex post-test artifacts: $([string]::Join('; ', $sncMonthlyReactiveOwnerTestArtifacts))"
@@ -2650,6 +2658,7 @@ $sessionEvidence = [ordered]@{
         command_hint = $sncNextActionCommandHint
         command_hint_source = $sncNextActionCommandHintSource
         path = $sncNextActionPath
+        playbook_path = $sncMonthlyReactiveOwnerTestPlaybookPath
         visible_markers = @($sncMonthlyReactiveOwnerTestMarkers)
         codex_artifacts = @($sncMonthlyReactiveOwnerTestArtifacts)
         known_limitations = $sncMonthlyReactiveOwnerTestLimitations

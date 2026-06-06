@@ -2899,6 +2899,7 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_next_action_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_snc_next_action="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_owner_test_ready=false"
+    Assert-NotContains -Name "real session loop mp snapshot contract output" -Text $text -Unexpected "real_session_v0_loop_owner_test_playbook_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_analysis_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_readiness="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_path="
@@ -2955,6 +2956,7 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"loop_next_session"'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"snc_owner_test_contract":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"playbook_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"next_steps_brief":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"mismatch_warning_state":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"mismatch_warning_reason":'
@@ -2971,6 +2973,9 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     }
     if ([string]$evidenceJson.snc_owner_test_contract.reason -eq "published_monthly_reactive_overlay_ready_for_owner_test") {
         throw "real_session_loop_mp_snapshot_contract unexpectedly reported the owner-test readiness reason in the fail-closed case."
+    }
+    if (-not [string]::IsNullOrWhiteSpace([string]$evidenceJson.snc_owner_test_contract.playbook_path)) {
+        throw "real_session_loop_mp_snapshot_contract unexpectedly exposed a playbook path in the fail-closed case."
     }
     $nextStepsBriefPathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_next_steps_brief=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($nextStepsBriefPathLine)) {
@@ -3012,6 +3017,7 @@ function Invoke-RealSessionLoopNextActionStrictVerifySourceContractCase {
     Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'run_monthly_reactive_owner_test'
     Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'published_monthly_reactive_overlay_ready_for_owner_test'
     Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'snc_owner_test_contract'
+    Assert-Contains -Name "real session loop next-action source contract" -Text $scriptText -Expected 'docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md'
 
     Write-Host "[PASS] real_session_loop_next_action_strict_verify_source_contract"
 }

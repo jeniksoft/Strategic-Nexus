@@ -1103,6 +1103,10 @@ int main()
         publishedSnapshot.statusCenterSummaryText.find("owner_test_contract_state: ready_for_monthly_reactive_session_test") ==
             std::string::npos,
         "published snapshot without ready acceptance should not advertise owner test contract");
+    requireCondition(
+        publishedSnapshot.statusCenterSummaryText.find("owner_test_playbook_path: docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md") ==
+            std::string::npos,
+        "published snapshot without ready acceptance should keep the owner-test playbook path hidden");
 
     const auto publishedOwnerTestReady = companion.buildStatusSnapshot({
         archiveSessionRoot,
@@ -1135,6 +1139,10 @@ int main()
             "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse") !=
             std::string::npos,
         "status center summary should describe the monthly reactive test scope");
+    requireCondition(
+        publishedOwnerTestReady.statusCenterSummaryText.find(
+            "owner_test_playbook_path: docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md") != std::string::npos,
+        "status center summary should point owner-ready state at the monthly reactive playbook");
     requireCondition(
         publishedOwnerTestReady.statusCenterSummaryText.find(
             "owner_test_visible_markers: Strategic Nexus v0: Defensive military posture|Strategic Nexus v0: Aggressive military posture|Strategic Nexus v0: Economy research bias|Strategic Nexus v0: Military industry research bias") !=

@@ -2065,6 +2065,7 @@ std::string buildStatusCenterSummaryText(
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
+        text << "owner_test_playbook_path: docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md\n";
         text << "owner_test_visible_markers: Strategic Nexus v0: Defensive military posture|Strategic Nexus v0: Aggressive military posture|Strategic Nexus v0: Economy research bias|Strategic Nexus v0: Military industry research bias\n";
         text << "owner_test_expected_log_prefixes: Strategic Nexus: generated overlay projected military_posture|Strategic Nexus: generated overlay projected research_bias\n";
         text << "owner_test_codex_artifacts: generated_overlay_publish_status.json|generated_overlay_gameplay_acceptance_v0.json|Stellaris logs/error.log\n";
