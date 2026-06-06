@@ -77,6 +77,7 @@ std::filesystem::path g_generatedOverlayStagingStatusPath;
 std::filesystem::path g_generatedOverlayActiveDirectory;
 std::filesystem::path g_generatedOverlayPublishStatusPath;
 std::filesystem::path g_generatedOverlayPublishBackupRootDirectory;
+std::filesystem::path g_gameplayAcceptanceReportPath;
 std::filesystem::path g_mpOverlayPackageDirectory;
 std::filesystem::path g_mpOverlayPackageZipPath;
 constexpr const char* kTrayMpOverlayVersion = "overlay_v0_session";
@@ -569,13 +570,17 @@ std::string buildNextAction(
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayStagingReadiness,
     const std::string& dslDraftReadiness,
-    const std::string& candidateDecisionPackageReadiness)
+    const std::string& candidateDecisionPackageReadiness,
+    const std::string& companionNextAction)
 {
     if (state == "capturing") {
         return "keep_playing_capture_active";
     }
     if (generatedOverlayPublishAllowed || generatedOverlayPublishGateCanPublish) {
         return "review_staged_overlay_and_publish_if_desired";
+    }
+    if (companionNextAction == "run_monthly_reactive_owner_test") {
+        return companionNextAction;
     }
     if (generatedOverlayPublishGateState == "published") {
         return "review_tray_status";
@@ -609,13 +614,18 @@ std::string buildNextActionReason(
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayStagingReadiness,
     const std::string& dslDraftReadiness,
-    const std::string& candidateDecisionPackageReadiness)
+    const std::string& candidateDecisionPackageReadiness,
+    const std::string& companionNextAction,
+    const std::string& companionNextActionReason)
 {
     if (state == "capturing") {
         return "stellaris_running_capture_window_active";
     }
     if (generatedOverlayPublishAllowed || generatedOverlayPublishGateCanPublish) {
         return "staged_overlay_ready_owner_gate_available";
+    }
+    if (companionNextAction == "run_monthly_reactive_owner_test") {
+        return companionNextActionReason;
     }
     if (generatedOverlayPublishGateState == "published") {
         return "current_staged_overlay_already_published";
@@ -643,8 +653,12 @@ std::string buildNextActionReason(
 
 std::string buildNextActionCommandHint(
     const std::string& nextAction,
-    const std::filesystem::path& nextStepsBriefPath)
+    const std::filesystem::path& nextStepsBriefPath,
+    const std::filesystem::path& ownerTestPlaybookPath)
 {
+    if (nextAction == "run_monthly_reactive_owner_test" && !ownerTestPlaybookPath.empty()) {
+        return "open " + pathString(ownerTestPlaybookPath);
+    }
     if (nextAction == "review_staged_overlay_and_publish_if_desired" ||
         nextAction == "review_staged_overlay_status" ||
         nextAction == "review_dsl_draft" ||
@@ -660,6 +674,9 @@ std::string buildNextActionCommandHint(
 std::string buildNextActionCommandHintSource(const std::string& nextActionCommandHint)
 {
     if (!nextActionCommandHint.empty()) {
+        if (nextActionCommandHint.rfind("open docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md", 0) == 0) {
+            return "owner_test_playbook_path";
+        }
         return "snc_next_steps_brief";
     }
     return "none";
@@ -674,8 +691,12 @@ std::filesystem::path buildNextActionPath(
     const std::filesystem::path& dslDraftAuditPath,
     const std::filesystem::path& dslDraftPath,
     const std::filesystem::path& generatedOverlayStagingStatusPath,
-    const std::filesystem::path& statusPath)
+    const std::filesystem::path& statusPath,
+    const std::filesystem::path& companionNextActionPath)
 {
+    if (nextAction == "run_monthly_reactive_owner_test" && !companionNextActionPath.empty()) {
+        return companionNextActionPath;
+    }
     if (nextAction == "review_staged_overlay_and_publish_if_desired") {
         return generatedOverlayPublishGate.stagingStatusPath.empty()
             ? generatedOverlayPublishGate.path
@@ -1163,6 +1184,7 @@ void writeStatus(
     companionConfig.generatedOverlayActiveDirectory = g_generatedOverlayActiveDirectory;
     companionConfig.generatedOverlayPublishStatusPath = g_generatedOverlayPublishStatusPath;
     companionConfig.generatedOverlayPublishBackupRootDirectory = g_generatedOverlayPublishBackupRootDirectory;
+    companionConfig.gameplayAcceptanceReportPath = g_gameplayAcceptanceReportPath;
     companionConfig.entryPointAnalysisPath = g_entryPointAnalysisPath;
     companionConfig.postPlayPackagePath = g_postPlayPackagePath;
     companionConfig.decisionInputPackagePath = g_decisionInputPackagePath;
@@ -1283,7 +1305,8 @@ void writeStatus(
         effectiveGeneratedOverlayPublishAllowed,
         effectiveGeneratedOverlayStagingReadiness,
         effectiveDslDraftReadiness,
-        effectiveCandidateDecisionPackageReadiness);
+        effectiveCandidateDecisionPackageReadiness,
+        companionSnapshot.nextAction);
     const auto nextActionReason = buildNextActionReason(
         state,
         effectivePostPlayState,
@@ -1292,8 +1315,11 @@ void writeStatus(
         effectiveGeneratedOverlayPublishAllowed,
         effectiveGeneratedOverlayStagingReadiness,
         effectiveDslDraftReadiness,
-        effectiveCandidateDecisionPackageReadiness);
-    const auto nextActionCommandHint = buildNextActionCommandHint(nextAction, g_nextStepsBriefPath);
+        effectiveCandidateDecisionPackageReadiness,
+        companionSnapshot.nextAction,
+        companionSnapshot.nextActionReason);
+    const auto nextActionCommandHint =
+        buildNextActionCommandHint(nextAction, g_nextStepsBriefPath, companionSnapshot.ownerTestPlaybookPath);
     const auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextActionCommandHint);
     const auto nextActionPath = buildNextActionPath(
         nextAction,
@@ -1304,7 +1330,8 @@ void writeStatus(
         effectiveDslDraftAuditPath,
         effectiveDslDraftPath,
         effectiveGeneratedOverlayStagingStatusPath,
-        g_trayStatusPath);
+        g_trayStatusPath,
+        companionSnapshot.nextActionPath);
     const auto statusCenterSummaryText = buildStatusCenterSummaryText(
         state,
         reason,
@@ -2339,6 +2366,8 @@ void initializePaths()
     g_generatedOverlayActiveDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_active";
     g_generatedOverlayPublishStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_publish_status.json";
     g_generatedOverlayPublishBackupRootDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_backups";
+    g_gameplayAcceptanceReportPath =
+        g_repoRoot / "dist" / "private_reports" / "generated_overlay_gameplay_acceptance_v0.json";
     g_mpOverlayPackageDirectory = g_repoRoot / "dist" / "private_reports" / "snc_mp_overlay_package";
     g_mpOverlayPackageZipPath = g_repoRoot / "dist" / "private_reports" / "snc_mp_overlay_package.zip";
 }

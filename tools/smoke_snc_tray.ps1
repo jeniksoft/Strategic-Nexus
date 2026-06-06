@@ -200,6 +200,22 @@ function Initialize-ReadyOwnerTestFixture {
 "@
     Set-Content -LiteralPath $gameplayAcceptanceReportPath -Value $gameplayAcceptanceReportText -NoNewline
 
+    $seedPackageDirectory = Join-Path $repoRoot "dist\generated_overlay_mp_package_cli"
+    if (-not (Test-Path -LiteralPath $seedPackageDirectory)) {
+        throw "Ready-owner-test tray smoke fixture needs dist\\generated_overlay_mp_package_cli as a valid MP package seed."
+    }
+
+    Copy-Item -LiteralPath $seedPackageDirectory -Destination $mpOverlayPackageDirectory -Recurse -Force
+    $mpManifestPath = Join-Path $mpOverlayPackageDirectory "strategic_nexus_mp_overlay_package_manifest.json"
+    $mpManifestText = Get-Content -Raw -LiteralPath $mpManifestPath
+    $mpManifestText = $mpManifestText.Replace('"previous_host_available": false', '"previous_host_available": true')
+    $mpManifestText = $mpManifestText.Replace(
+        '"handoff_status": "degraded_previous_host_unavailable"',
+        '"handoff_status": "complete"')
+    Set-Content -LiteralPath $mpManifestPath -Value $mpManifestText -NoNewline
+
+    Set-Content -LiteralPath $mpOverlayPackageZipPath -Value "ready owner-test mp package zip fixture`n" -NoNewline
+
     return $backedUpPaths
 }
 
@@ -279,6 +295,22 @@ try {
                     }
                     if ([string]$json.generated_overlay_publish_gate_state -ne "published") {
                         throw "SNC tray ready-state fixture did not expose generated_overlay_publish_gate_state=published."
+                    }
+                    if ([string]$json.next_action -ne "run_monthly_reactive_owner_test") {
+                        throw "SNC tray ready-state fixture did not align next_action with the monthly reactive owner test contract."
+                    }
+                    if ([string]$json.next_action_reason -ne "published_monthly_reactive_overlay_ready_for_owner_test") {
+                        throw "SNC tray ready-state fixture did not expose the stable owner-test next_action_reason."
+                    }
+                    if ([string]$json.next_action_command_hint_source -ne "owner_test_playbook_path") {
+                        throw "SNC tray ready-state fixture did not reuse owner_test_playbook_path as the next_action command-hint source."
+                    }
+                    if ([string]$json.next_action_command_hint -ne "open docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md") {
+                        throw "SNC tray ready-state fixture did not point the next_action command hint at the owner-test playbook."
+                    }
+                    $normalizedExpectedAcceptancePath = $gameplayAcceptanceReportPath.Replace('\', '/')
+                    if ([string]$json.next_action_path -ne $normalizedExpectedAcceptancePath) {
+                        throw "SNC tray ready-state fixture did not reuse the gameplay acceptance artifact as next_action_path."
                     }
                 } elseif (-not [string]::IsNullOrWhiteSpace($ownerTestPlaybookPath)) {
                     throw "SNC tray smoke expected owner_test_playbook_path to stay empty in the non-ready baseline state."
