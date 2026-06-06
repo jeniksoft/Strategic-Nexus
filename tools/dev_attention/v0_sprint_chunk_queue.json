@@ -1,43 +1,42 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-05T21:18:00+02:00",
+  "updated_at": "2026-06-06T13:05:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. New approved direction: prove the smallest legal reactive policy-pack slice so a loaded mod can react in-session through precompiled branches.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "Reactive capability visibility shipped; next bounded work is owner-ready monthly reactive acceptance guidance plus follow-up refresh",
+  "current_source": "Owner-ready monthly reactive SNC contract shipped; next bounded work is forwarding that fail-closed contract into real-session loop evidence and next-step artifacts",
   "chunks": [
     {
-      "id": "v0-sprint-058-owner-ready-monthly-reactive-acceptance-contract",
-      "title": "Prepare monthly reactive owner test contract",
+      "id": "v0-sprint-060-real-session-loop-monthly-reactive-owner-test-forwarding",
+      "title": "Forward monthly reactive owner test into loop artifacts",
       "status": "ready",
-      "lane": "verification",
-      "roadmap_anchor": "Owner readiness / generated reactive policy pack",
-      "goal": "Prepare explicit owner-facing monthly reactive session-test guidance that is only offered when the generated overlay is actually reactive-capable and published, with a clear evidence contract for post-test verification.",
+      "lane": "implementation",
+      "roadmap_anchor": "Owner readiness / real-session loop evidence",
+      "goal": "Mirror the SNC published-monthly-reactive owner-test contract into tools/run_real_session_v0_loop.ps1 next-step markdown and evidence JSON so one run artifact can tell the owner exactly when and how to perform the first reactive monthly session test.",
       "acceptance": [
-        "Owner-facing guidance states exactly what to test for the first monthly reactive branch and what visible harmless marker should appear.",
-        "The guidance names the concrete artifacts Codex must inspect afterward instead of relying on anecdotal recall.",
-        "If the active overlay is unpublished or only post-session-only, the guidance fails closed to a not-ready/blocked signal instead of suggesting an in-session reactive test.",
-        "Regression coverage proves the readiness contract stays aligned with generated-overlay publish/capability state."
+        "Real-session loop next-step brief forwards monthly reactive owner-test readiness only when SNC next_action/reason indicate the published reactive contract is truly ready.",
+        "Evidence JSON stores the forwarded monthly reactive owner-test action, visible harmless marker set, and concrete post-test artifacts Codex should inspect.",
+        "If the active overlay is unpublished, lacks monthly reactive capability, or the gameplay-acceptance contract is not ready, the loop stays fail-closed and does not advertise the in-session reactive owner test.",
+        "Regression coverage proves the loop forwarding stays aligned with the SNC contract instead of free-form text scraping."
       ],
       "preferred_tests": [
-        "tools/run_v0_pipeline_tests.ps1",
-        "tools/run_real_session_v0_loop.ps1"
+        "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
     },
     {
-      "id": "v0-sprint-059-roadmap-progress-refresh-after-owner-reactive-test-contract",
-      "title": "Refresh progress after owner reactive test contract",
+      "id": "v0-sprint-061-refresh-progress-after-loop-owner-test-forwarding",
+      "title": "Refresh progress after loop owner-test forwarding",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after the owner-ready reactive test contract lands.",
+      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after the real-session loop forwards the owner-ready monthly reactive test contract.",
       "acceptance": [
-        "Roadmap notes mention the shipped reactive capability visibility slice and the owner-ready monthly reactive test contract state.",
+        "Roadmap notes mention the shipped SNC owner-ready monthly reactive test contract and loop-forwarding state.",
         "The sprint queue advances to the next missing bounded roadmap slice instead of leaving completed lifecycle/reactive groundwork chunks as ready.",
-        "The daily freework report for 2026-06-05 is replaced, not duplicated."
+        "The daily freework report for 2026-06-06 is replaced, not duplicated."
       ],
       "preferred_tests": [
         "tools/dev_attention/analyze_roadmap_complexity.ps1",
@@ -45,7 +44,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-058-owner-ready-monthly-reactive-acceptance-contract"
+        "v0-sprint-060-real-session-loop-monthly-reactive-owner-test-forwarding"
       ]
     }
   ]

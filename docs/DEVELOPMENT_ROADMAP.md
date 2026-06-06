@@ -992,6 +992,7 @@ SNC Status Center summary text, serialized snapshot JSON, tray status JSON, and 
 Generated overlay DSL now supports explicit `source_quality`, deterministic bootstrap rotation metadata, and allowlisted `event_family = monthly_strategy_tick`; the generated manifest now exposes reactive-policy capability/event-family coverage plus per-campaign source-quality/bootstrap metadata while rejecting raw `on_*`-style event family names.
 The first handwritten reactive monthly bridge is now wired: the generated overlay compiler emits a stable `strategic_nexus_generated_monthly_strategy_tick_dispatch` effect, the handwritten monthly policy kernel calls that touchpoint, and `tools/run_v0_pipeline_tests.ps1` now proves the generated overlay/base-kernel monthly branch path with both empty and populated event-family fixtures.
 SNC owner-facing readiness now also surfaces generated-overlay reactive capability (`post_session_only` vs `event_family_dispatch`), event-family coverage, source-quality summary, and bootstrap provenance count across companion JSON, Status Center summary text, tray status JSON, and stable `--snc-status-snapshot` stdout.
+Published reactive monthly overlays now fail-closed advertise an owner-ready real-session test contract only when the active overlay is already published, reports `event_family_dispatch` coverage for `monthly_strategy_tick`, and the gameplay acceptance report is verified. In that ready state the top-level SNC `next_action` becomes `run_monthly_reactive_owner_test`, and the Status Center summary spells out the exact monthly-pulse test scope, harmless visible marker names, concrete Codex follow-up artifacts, and current limitations.
 `StrategicNexusCompanion` and SNC tray readiness surfaces now also expose `strategic_nexus_campaign_library_plan.json` saturation state (`campaign_library_limit_reached`, skipped count, source path, owner note) when the bounded active library contract is present beside SNC status artifacts, so owner-facing readiness can distinguish healthy bounded output from truncated local campaign coverage before the next real-session test.
 Compare/trend/loop auto outputs now also expose structured campaign/overlay mismatch drift fields (`*_mp_campaign_id_mismatch_warning_{previous,current,changed}`, `*_mp_overlay_version_mismatch_warning_{previous,current,changed}`), and loop evidence JSON mirrors those fields for release-companion one-file parsing.
 `tools/run_real_session_v0_loop.ps1` now also emits a deterministic aggregated next-action contract (`real_session_v0_loop_next_action*`) and stores it in evidence JSON `next_action`, prioritizing MP mismatch and identity-risk warnings before normal next-session compare guidance so owner/release-companion follow-up is actionable without manual field interpretation.
@@ -1021,13 +1022,13 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Next worker-ready slice:
 
-Prepare the owner-ready monthly reactive real-session acceptance contract.
+Mirror the owner-ready monthly reactive contract into real-session loop artifacts.
 
   The next slice should include:
 
-* spell out exactly what Antonin should test in a real Stellaris session once the staged/generated overlay is published, with focus on the first monthly reactive branch and visible harmless markers
-* identify the precise artifacts Codex should inspect afterward (for example Status Center summary, staged/published overlay manifest hash, and real-session loop evidence) so the test is verifiable instead of anecdotal
-* fail closed when the active overlay is still unpublished or only `post_session_only`, so owner-facing guidance does not suggest a reactive in-session test before the runtime path is actually active
+* forward SNC monthly reactive owner-test readiness into `tools/run_real_session_v0_loop.ps1` next-step brief/evidence so one run artifact can tell the owner when the published reactive path is ready to test
+* preserve fail-closed behavior when the active overlay is unpublished, lacks `monthly_strategy_tick`, or the gameplay-acceptance contract is not verified
+* keep the forwarded evidence tied to concrete follow-up artifacts and visible harmless marker names instead of anecdotal prose only
 
   ---
 
