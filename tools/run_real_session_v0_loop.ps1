@@ -275,6 +275,26 @@ function New-CommandHintChoice {
     }
 }
 
+function New-NextActionSummary {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Action,
+        [Parameter(Mandatory = $true)]
+        [string]$Reason,
+        [string]$CommandHint = "",
+        [string]$CommandHintSource = "none",
+        [string]$Path = ""
+    )
+
+    return [ordered]@{
+        action = $Action
+        reason = $Reason
+        command_hint = $CommandHint
+        command_hint_source = $CommandHintSource
+        path = $Path
+    }
+}
+
 function Get-FirstCommandHintChoice {
     param(
         [Parameter(Mandatory = $true)]
@@ -343,7 +363,10 @@ function Get-NextActionSummary {
         [string]$CompareCommandHint,
         [string]$TrendLatestCompareCommandHint,
         [string]$TrendNextSessionCommandHint,
-        [string]$DefaultNextSessionCommandHint
+        [string]$DefaultNextSessionCommandHint,
+        [string]$SncNextAction,
+        [string]$SncNextActionReason,
+        [string]$SncNextActionPath
     )
 
     if ($MpMismatchWarningState -eq "warning") {
@@ -352,12 +375,11 @@ function Get-NextActionSummary {
             (New-CommandHintChoice -CommandHint $CompareMpStrictVerifyCommandCurrent -Source "compare_current_mp_strict_verify"),
             (New-CommandHintChoice -CommandHint $TrendMpStrictVerifyCommandCurrent -Source "trend_current_mp_strict_verify")
         )
-        return [ordered]@{
-            action = "review_mp_package_mismatch_warning"
-            reason = "mp_export_mismatch_warning_active"
-            command_hint = $preferredStrictVerifyHint.command_hint
-            command_hint_source = $preferredStrictVerifyHint.command_hint_source
-        }
+        return New-NextActionSummary `
+            -Action "review_mp_package_mismatch_warning" `
+            -Reason "mp_export_mismatch_warning_active" `
+            -CommandHint $preferredStrictVerifyHint.command_hint `
+            -CommandHintSource $preferredStrictVerifyHint.command_hint_source
     }
 
     if ($CompareRecommendation -eq "review_identity_risk_warning" -or $TrendRecommendation -eq "review_identity_risk_warning") {
@@ -366,12 +388,11 @@ function Get-NextActionSummary {
             (New-CommandHintChoice -CommandHint $TrendMpStrictVerifyCommandCurrent -Source "trend_current_mp_strict_verify"),
             (New-CommandHintChoice -CommandHint $MpExportStrictVerifyCommand -Source "mp_export_strict_verify")
         )
-        return [ordered]@{
-            action = "review_identity_risk_warning"
-            reason = "identity_risk_warning_active"
-            command_hint = $preferredIdentityRiskHint.command_hint
-            command_hint_source = $preferredIdentityRiskHint.command_hint_source
-        }
+        return New-NextActionSummary `
+            -Action "review_identity_risk_warning" `
+            -Reason "identity_risk_warning_active" `
+            -CommandHint $preferredIdentityRiskHint.command_hint `
+            -CommandHintSource $preferredIdentityRiskHint.command_hint_source
     }
 
     if ($CompareRecommendation -eq "review_mp_handoff_continuity" -or
@@ -393,12 +414,11 @@ function Get-NextActionSummary {
                 $TrendMpHandoffFollowUpReason -ne "none") {
             $handoffReason = "trend_" + $TrendMpHandoffFollowUpReason
         }
-        return [ordered]@{
-            action = "review_mp_handoff_continuity"
-            reason = $handoffReason
-            command_hint = $preferredHandoffHint.command_hint
-            command_hint_source = $preferredHandoffHint.command_hint_source
-        }
+        return New-NextActionSummary `
+            -Action "review_mp_handoff_continuity" `
+            -Reason $handoffReason `
+            -CommandHint $preferredHandoffHint.command_hint `
+            -CommandHintSource $preferredHandoffHint.command_hint_source
     }
 
     if ($CompareCampaignLibraryFollowUpActive -eq "true" -or $TrendCampaignLibraryFollowUpActive -eq "true") {
@@ -417,38 +437,43 @@ function Get-NextActionSummary {
                 $TrendCampaignLibraryFollowUpReason -ne "none") {
             $campaignLibraryReason = "trend_" + $TrendCampaignLibraryFollowUpReason
         }
-        return [ordered]@{
-            action = "review_campaign_library_coverage"
-            reason = $campaignLibraryReason
-            command_hint = $preferredCampaignLibraryHint.command_hint
-            command_hint_source = $preferredCampaignLibraryHint.command_hint_source
-        }
+        return New-NextActionSummary `
+            -Action "review_campaign_library_coverage" `
+            -Reason $campaignLibraryReason `
+            -CommandHint $preferredCampaignLibraryHint.command_hint `
+            -CommandHintSource $preferredCampaignLibraryHint.command_hint_source
     }
 
     if ($CompareRecommendation -eq "review_observable_deltas") {
-        return [ordered]@{
-            action = "run_next_session_compare_loop"
-            reason = "observable_delta_detected"
-            command_hint = $DefaultNextSessionCommandHint
-            command_hint_source = "loop_next_session"
-        }
+        return New-NextActionSummary `
+            -Action "run_next_session_compare_loop" `
+            -Reason "observable_delta_detected" `
+            -CommandHint $DefaultNextSessionCommandHint `
+            -CommandHintSource "loop_next_session"
+    }
+
+    if ($SncNextAction -eq "run_monthly_reactive_owner_test" -and
+        $SncNextActionReason -eq "published_monthly_reactive_overlay_ready_for_owner_test") {
+        return New-NextActionSummary `
+            -Action $SncNextAction `
+            -Reason $SncNextActionReason `
+            -CommandHintSource "snc_status_snapshot" `
+            -Path $SncNextActionPath
     }
 
     if (-not [string]::IsNullOrWhiteSpace($TrendNextSessionCommandHint)) {
-        return [ordered]@{
-            action = "run_next_session_compare_loop"
-            reason = "trend_follow_up"
-            command_hint = $TrendNextSessionCommandHint
-            command_hint_source = "trend_next_session"
-        }
+        return New-NextActionSummary `
+            -Action "run_next_session_compare_loop" `
+            -Reason "trend_follow_up" `
+            -CommandHint $TrendNextSessionCommandHint `
+            -CommandHintSource "trend_next_session"
     }
 
-    return [ordered]@{
-        action = "run_next_session_compare_loop"
-        reason = "baseline_follow_up"
-        command_hint = $DefaultNextSessionCommandHint
-        command_hint_source = "loop_next_session"
-    }
+    return New-NextActionSummary `
+        -Action "run_next_session_compare_loop" `
+        -Reason "baseline_follow_up" `
+        -CommandHint $DefaultNextSessionCommandHint `
+        -CommandHintSource "loop_next_session"
 }
 
 function Resolve-SaveRootFromDiscovery {
@@ -621,6 +646,9 @@ $statusOutputJsonFull = [System.IO.Path]::GetFullPath($StatusOutputJson)
 $sessionEvidenceJsonFull = [System.IO.Path]::GetFullPath($SessionEvidenceJson)
 $statusWithMpOutputJsonFull = [System.IO.Path]::GetFullPath($statusWithMpOutputJson)
 $mpPackageOutputDirFull = [System.IO.Path]::GetFullPath($MpPackageOutputDir)
+$sncPublishedOverlayDir = Join-Path $repoRoot "dist/private_reports/snc_generated_overlay_active"
+$sncPublishStatusPath = Join-Path $repoRoot "dist/private_reports/snc_generated_overlay_publish_status.json"
+$sncPublishBackupRoot = Join-Path $repoRoot "dist/private_reports/snc_generated_overlay_backups"
 $sessionArchiveDir = Join-Path $archiveRootFull $SessionId
 $archiveSummaryPath = Join-Path $workDirFull "archive_summary.json"
 $entryPointAnalysisPath = Join-Path $workDirFull "snc_entry_point_analysis.json"
@@ -898,6 +926,9 @@ if (-not [string]::IsNullOrWhiteSpace($DslInput)) {
 Write-Host "==> run offline spine"
 & $exe --run-offline-spine $sessionArchiveDir $effectiveCampaignId $effectiveEmpireId $effectiveDslInputFull $workDirFull $overlayOutputDirFull $statusOutputJsonFull
 Assert-LastExitCodeOk -StepName "run offline spine"
+Write-Host "==> refresh snc status snapshot with publish-gate visibility"
+& $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusOutputJsonFull false "" false $sncGeneratedOverlayStagingStatusPath $sncPublishedOverlayDir $sncPublishStatusPath $sncPublishBackupRoot
+Assert-LastExitCodeOk -StepName "refresh snc status snapshot"
 $seasonDeltaLedgerPath = Join-Path $workDirFull "season_delta_ledger.json"
 $empireBriefPath = Join-Path $workDirFull "empire_brief.json"
 if (-not (Test-Path -LiteralPath $seasonDeltaLedgerPath)) {
@@ -1008,7 +1039,7 @@ if ($ExportMpPackage) {
     $mpPackageZipReason = "zip_created"
 
     Write-Host "==> refresh snc status snapshot with mp package visibility"
-    & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false "" "" "" "" $mpPackageZipPath
+    & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false $sncGeneratedOverlayStagingStatusPath $sncPublishedOverlayDir $sncPublishStatusPath $sncPublishBackupRoot $mpPackageZipPath
     Assert-LastExitCodeOk -StepName "snc status snapshot with mp package"
     if (-not (Test-Path -LiteralPath $statusWithMpOutputJsonFull)) {
         throw "Missing SNC MP status snapshot output: $statusWithMpOutputJsonFull"
@@ -1040,6 +1071,11 @@ $gameplayAcceptancePath = ""
 $statusCenterState = ""
 $statusCenterReason = ""
 $statusCenterSummaryText = ""
+$sncNextAction = ""
+$sncNextActionReason = ""
+$sncNextActionCommandHint = ""
+$sncNextActionCommandHintSource = ""
+$sncNextActionPath = ""
 $campaignLibraryPlanPresent = $false
 $campaignLibraryPlanPath = ""
 $campaignLibraryPlanSource = ""
@@ -1068,6 +1104,21 @@ if ($null -ne $statusJson.status_center) {
 }
 if ($null -ne $statusJson.status_center_summary_text) {
     $statusCenterSummaryText = [string]$statusJson.status_center_summary_text
+}
+if ($null -ne $statusJson.next_action) {
+    $sncNextAction = [string]$statusJson.next_action
+}
+if ($null -ne $statusJson.next_action_reason) {
+    $sncNextActionReason = [string]$statusJson.next_action_reason
+}
+if ($null -ne $statusJson.next_action_command_hint) {
+    $sncNextActionCommandHint = [string]$statusJson.next_action_command_hint
+}
+if ($null -ne $statusJson.next_action_command_hint_source) {
+    $sncNextActionCommandHintSource = [string]$statusJson.next_action_command_hint_source
+}
+if ($null -ne $statusJson.next_action_path) {
+    $sncNextActionPath = [string]$statusJson.next_action_path
 }
 if ($null -ne $statusJson.campaign_library_plan_present) {
     $campaignLibraryPlanPresent = [bool]$statusJson.campaign_library_plan_present
@@ -1102,6 +1153,23 @@ if ([string]::IsNullOrWhiteSpace($statusCenterState)) {
 if ([string]::IsNullOrWhiteSpace($statusCenterReason)) {
     throw "Offline spine status snapshot is missing status_center.reason."
 }
+
+$sncMonthlyReactiveOwnerTestReady = (
+    $sncNextAction -eq "run_monthly_reactive_owner_test" -and
+    $sncNextActionReason -eq "published_monthly_reactive_overlay_ready_for_owner_test"
+)
+$sncMonthlyReactiveOwnerTestMarkers = @(
+    "Strategic Nexus v0: Defensive military posture",
+    "Strategic Nexus v0: Aggressive military posture",
+    "Strategic Nexus v0: Economy research bias",
+    "Strategic Nexus v0: Military industry research bias"
+)
+$sncMonthlyReactiveOwnerTestArtifacts = @(
+    $sncPublishStatusPath,
+    $gameplayAcceptancePath,
+    "Stellaris logs/error.log"
+)
+$sncMonthlyReactiveOwnerTestLimitations = "Marker proves published monthly reactive branch visibility only; it stays gameplay-neutral and is not full strategic quality validation."
 
 Write-Host "real_session_v0_loop_ok=true"
 Write-Host ("real_session_v0_loop_session_id=" + $SessionId)
@@ -1180,6 +1248,11 @@ if (-not [string]::IsNullOrWhiteSpace($statusCenterSummaryText)) {
 if (-not [string]::IsNullOrWhiteSpace($gameplayAcceptancePath)) {
     Write-Host ("real_session_v0_loop_gameplay_acceptance_path=" + $gameplayAcceptancePath)
 }
+Write-Host ("real_session_v0_loop_snc_next_action=" + $sncNextAction)
+Write-Host ("real_session_v0_loop_snc_next_action_reason=" + $sncNextActionReason)
+Write-Host ("real_session_v0_loop_snc_next_action_command_hint_source=" + $sncNextActionCommandHintSource)
+Write-Host ("real_session_v0_loop_snc_next_action_path=" + $sncNextActionPath)
+Write-Host ("real_session_v0_loop_owner_test_ready=" + $sncMonthlyReactiveOwnerTestReady.ToString().ToLowerInvariant())
 Write-Host ("real_session_v0_loop_compare_previous_session_dir_hint=dist\\real_session_v0_loop\\<previous_session_id>")
 $compareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "dist\real_session_v0_loop\<previous_session_id>" "' + $defaultRunRoot + '" "dist\private_reports\real_session_v0_compare_' + $SessionId + '.json"'
 Write-Host ("real_session_v0_loop_compare_command_hint=" + $compareCommandHint)
@@ -2300,7 +2373,10 @@ $nextActionSummary = Get-NextActionSummary `
     -CompareCommandHint (Get-VariableOrDefault -Name "compareCommandHintLine") `
     -TrendLatestCompareCommandHint (Get-VariableOrDefault -Name "trendLatestCompareCommandHint") `
     -TrendNextSessionCommandHint (Get-VariableOrDefault -Name "trendNextSessionCommandHint") `
-    -DefaultNextSessionCommandHint $nextSessionCommandHint
+    -DefaultNextSessionCommandHint $nextSessionCommandHint `
+    -SncNextAction $sncNextAction `
+    -SncNextActionReason $sncNextActionReason `
+    -SncNextActionPath $sncNextActionPath
 
 Write-Host ("real_session_v0_loop_next_action=" + $nextActionSummary.action)
 Write-Host ("real_session_v0_loop_next_action_reason=" + $nextActionSummary.reason)
@@ -2308,6 +2384,7 @@ Write-Host ("real_session_v0_loop_next_action_command_hint_source=" + $nextActio
 if (-not [string]::IsNullOrWhiteSpace($nextActionSummary.command_hint)) {
     Write-Host ("real_session_v0_loop_next_action_command_hint=" + $nextActionSummary.command_hint)
 }
+Write-Host ("real_session_v0_loop_next_action_path=" + ([string]$nextActionSummary.path))
 
 $sessionBriefPath = Join-Path $defaultRunRoot "real_session_v0_next_steps.md"
 $sessionBriefLines = @(
@@ -2371,12 +2448,27 @@ $sessionBriefLines = @(
     "- Reason: $($nextActionSummary.reason)"
     "- Command source: $($nextActionSummary.command_hint_source)"
     "- Command hint: $($nextActionSummary.command_hint)"
+    "- Path: $($nextActionSummary.path)"
     ""
     "## Follow-up Commands"
     "- Compare hint: $compareCommandHint"
     "- Trend hint: $trendCommandHint"
     "- Next session hint: $nextSessionCommandHint"
 )
+if ($sncMonthlyReactiveOwnerTestReady) {
+    $sessionBriefLines += @(
+        ""
+        "## Monthly Reactive Owner Test"
+        "- Ready: true"
+        "- Source action: $sncNextAction"
+        "- Source reason: $sncNextActionReason"
+        "- Source path: $sncNextActionPath"
+        "- What to do: Load or resume a real non-ironman session with the current published overlay and wait for the next monthly pulse."
+        "- Visible harmless markers: $([string]::Join('; ', $sncMonthlyReactiveOwnerTestMarkers))"
+        "- Codex post-test artifacts: $([string]::Join('; ', $sncMonthlyReactiveOwnerTestArtifacts))"
+        "- Known limitation: $sncMonthlyReactiveOwnerTestLimitations"
+    )
+}
 if (-not [string]::IsNullOrWhiteSpace((Get-VariableOrDefault -Name "compareRecommendation"))) {
     $sessionBriefLines += @(
         ""
@@ -2549,6 +2641,18 @@ $sessionEvidence = [ordered]@{
         reason = $nextActionSummary.reason
         command_hint = $nextActionSummary.command_hint
         command_hint_source = $nextActionSummary.command_hint_source
+        path = $nextActionSummary.path
+    }
+    snc_owner_test_contract = [ordered]@{
+        ready = $sncMonthlyReactiveOwnerTestReady
+        action = $sncNextAction
+        reason = $sncNextActionReason
+        command_hint = $sncNextActionCommandHint
+        command_hint_source = $sncNextActionCommandHintSource
+        path = $sncNextActionPath
+        visible_markers = @($sncMonthlyReactiveOwnerTestMarkers)
+        codex_artifacts = @($sncMonthlyReactiveOwnerTestArtifacts)
+        known_limitations = $sncMonthlyReactiveOwnerTestLimitations
     }
     mp_export = [ordered]@{
         enabled = [bool]$ExportMpPackage
