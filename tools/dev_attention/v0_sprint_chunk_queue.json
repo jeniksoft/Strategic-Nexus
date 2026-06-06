@@ -1,40 +1,40 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-06T18:04:20+02:00",
+  "updated_at": "2026-06-07T00:38:17+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. New approved direction: prove the smallest legal reactive policy-pack slice so a loaded mod can react in-session through precompiled branches.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "Tray JSON and tray brief now both surface the ready-state owner-test playbook path while non-ready states stay silent; the next bounded owner-facing gap is aligning tray next_action metadata with that ready monthly reactive owner-test contract.",
+  "current_source": "Tray JSON now aligns ready-state next_action metadata with the monthly reactive owner-test contract while non-ready states stay fail-closed; the next bounded multiplayer/runtime gap is surfacing zero-history bootstrap provenance in MP handoff status so host-visible artifacts can distinguish history-backed output from bootstrap fallback.",
   "chunks": [
     {
-      "id": "v0-sprint-074-tray-owner-test-next-action-alignment",
-      "title": "Align tray owner-test next action",
+      "id": "v0-sprint-076-mp-bootstrap-provenance-surface",
+      "title": "Surface MP bootstrap provenance",
       "status": "ready",
       "lane": "implementation",
-      "roadmap_anchor": "Owner readiness / real-session loop evidence",
-      "goal": "When the monthly reactive owner-test contract is genuinely ready and no higher-priority blocker exists, align tray next_action metadata with that owner-test state instead of leaving review_tray_status.",
+      "roadmap_anchor": "Multiplayer Generated Overlay Distribution",
+      "goal": "Surface whether an MP package carries zero-history/bootstrap-generated policy data so multiplayer handoff artifacts can distinguish history-backed output from conservative bootstrap fallback.",
       "acceptance": [
-        "Ready-state tray JSON exposes next_action metadata for the monthly reactive owner test instead of the generic review_tray_status fallback.",
-        "The tray keeps fail-closed behavior for non-ready states and for higher-priority MP mismatch or publish-gate blockers.",
-        "Action path and command-hint choices reuse the existing owner_test_playbook_path or acceptance artifact instead of inventing a parallel owner-test surface."
+        "Ready MP package status exposes source-quality/bootstrap provenance in a stable machine-readable form.",
+        "SNC or MP verify owner-facing output can show when the handoff package includes zero_history_bootstrap data without reopening the generated overlay manifest manually.",
+        "Missing or malformed provenance data stays fail-closed instead of being guessed."
       ],
       "preferred_tests": [
-        "tools/smoke_snc_tray.ps1"
+        "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
     },
     {
-      "id": "v0-sprint-075-refresh-progress-after-tray-owner-test-next-action",
-      "title": "Refresh progress after tray owner-test next action",
+      "id": "v0-sprint-077-refresh-progress-after-mp-bootstrap-provenance-surface",
+      "title": "Refresh progress after MP bootstrap provenance surface",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after tray next_action metadata is aligned with the owner-test contract.",
+      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after MP bootstrap provenance is surfaced in handoff status.",
       "acceptance": [
-        "Roadmap notes mention the shipped tray next_action owner-test alignment.",
-        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving the tray owner-test next-action chunk as the head item.",
+        "Roadmap notes mention the shipped MP bootstrap provenance surface.",
+        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving the MP bootstrap provenance chunk as the head item.",
         "The daily freework report for 2026-06-06 is replaced, not duplicated."
       ],
       "preferred_tests": [
@@ -43,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-074-tray-owner-test-next-action-alignment"
+        "v0-sprint-076-mp-bootstrap-provenance-surface"
       ]
     }
   ]
