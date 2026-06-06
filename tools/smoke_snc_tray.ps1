@@ -33,6 +33,7 @@ try {
                 $null -ne $json.next_action -and
                 $null -ne $json.next_action_command_hint_source -and
                 $null -ne $json.next_action_path -and
+                $null -ne $json.owner_test_playbook_path -and
                 $null -ne $json.next_steps_brief_path -and
                 $null -ne $json.generated_overlay_publish_gate_state -and
                 $null -ne $json.generated_overlay_publish_gate_reason -and
@@ -60,6 +61,10 @@ try {
                 if ($json.generated_overlay_publish_gate_can_publish -eq $true -and
                     $json.next_action -ne "review_staged_overlay_and_publish_if_desired") {
                     throw "SNC tray publish-ready status did not surface the publish/review next action."
+                }
+                $ownerTestPlaybookPath = [string]$json.owner_test_playbook_path
+                if (-not [string]::IsNullOrWhiteSpace($ownerTestPlaybookPath)) {
+                    throw "SNC tray smoke expected owner_test_playbook_path to stay empty in the non-ready baseline state."
                 }
                 $summaryText = [string]$json.status_center_summary_text
                 if ($summaryText -notlike "*startup_rationale:*") {
@@ -109,6 +114,7 @@ try {
                 Write-Host ("snc_tray_smoke_next_action=" + $json.next_action)
                 Write-Host ("snc_tray_smoke_next_action_command_hint_source=" + $json.next_action_command_hint_source)
                 Write-Host ("snc_tray_smoke_next_action_path=" + $json.next_action_path)
+                Write-Host ("snc_tray_smoke_owner_test_playbook_path=" + $ownerTestPlaybookPath)
                 Write-Host ("snc_tray_smoke_process_id=" + $process.Id)
                 exit 0
             }
