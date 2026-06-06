@@ -1,40 +1,40 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-06T13:39:00+02:00",
+  "updated_at": "2026-06-06T16:07:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. New approved direction: prove the smallest legal reactive policy-pack slice so a loaded mod can react in-session through precompiled branches.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "Owner-facing monthly reactive session test playbook path now appears in ready runtime artifacts; next bounded work is promoting it into a stable machine-readable SNC field",
+  "current_source": "Stable owner_test_playbook_path now ships across SNC snapshot/tray/loop surfaces; next bounded work is fail-closed tray smoke coverage for that contract",
   "chunks": [
     {
-      "id": "v0-sprint-066-stable-owner-test-playbook-field",
-      "title": "Add stable owner test playbook field",
+      "id": "v0-sprint-068-tray-smoke-owner-test-playbook-field",
+      "title": "Add tray smoke owner-test playbook field coverage",
       "status": "ready",
-      "lane": "implementation",
+      "lane": "verification",
       "roadmap_anchor": "Owner readiness / real-session loop evidence",
-      "goal": "Expose the monthly reactive owner-test playbook path as a stable machine-readable SNC field instead of only embedding it in summary text and loop prose.",
+      "goal": "Extend the SNC tray smoke contract so the new top-level owner_test_playbook_path field is explicitly verified without scraping summary text.",
       "acceptance": [
-        "SNC snapshot/tray surface exposes a dedicated owner-test playbook path field when the monthly reactive owner-test contract is ready.",
-        "The field stays absent or empty in fail-closed states where the owner-test contract is not actually ready.",
-        "Regression coverage proves the stable field remains tied to the ready-state contract."
+        "tools/smoke_snc_tray.ps1 explicitly checks the top-level owner_test_playbook_path field in snc_tray_status.json.",
+        "The smoke contract stays fail-closed for non-ready states by expecting an empty owner-test playbook path instead of reconstructing readiness from summary text.",
+        "Smoke output surfaces the field value so future verification can read the stable contract directly."
       ],
       "preferred_tests": [
-        "tools/run_v0_pipeline_tests.ps1"
+        "tools/smoke_snc_tray.ps1"
       ],
       "dependencies": []
     },
     {
-      "id": "v0-sprint-067-refresh-progress-after-playbook-field",
-      "title": "Refresh progress after playbook field",
+      "id": "v0-sprint-069-refresh-progress-after-tray-playbook-smoke",
+      "title": "Refresh progress after tray playbook smoke",
       "status": "ready",
       "lane": "verification",
       "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after the stable owner-test playbook field lands.",
+      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after tray smoke coverage for owner_test_playbook_path lands.",
       "acceptance": [
-        "Roadmap notes mention the shipped stable owner-test playbook-field state.",
-        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving completed lifecycle/reactive groundwork chunks as ready.",
+        "Roadmap notes mention the shipped stable tray smoke coverage for owner_test_playbook_path.",
+        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving the tray-smoke coverage chunk as the head item.",
         "The daily freework report for 2026-06-06 is replaced, not duplicated."
       ],
       "preferred_tests": [
@@ -43,7 +43,7 @@
         "tools/dev_attention/sync_user_task_board_state.ps1"
       ],
       "dependencies": [
-        "v0-sprint-066-stable-owner-test-playbook-field"
+        "v0-sprint-068-tray-smoke-owner-test-playbook-field"
       ]
     }
   ]
