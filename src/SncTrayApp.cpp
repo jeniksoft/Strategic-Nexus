@@ -21,6 +21,9 @@
 #include "SncDslDraftPackageBuilder.h"
 #include "SncGeneratedOverlayPublishGate.h"
 #include "SncGeneratedOverlayStager.h"
+#include "SncPostPlayArtifactBackfiller.h"
+#include "SncTraySupportReportAction.h"
+#include "SncTrayStartupShortcutAction.h"
 #include "StrategicNexusCompanion.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
@@ -31,6 +34,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <shellapi.h>
+#include <shlobj.h>
 
 #include <atomic>
 #include <array>
@@ -58,6 +62,8 @@ constexpr UINT ID_TRAY_STATUS = 101;
 constexpr UINT ID_TRAY_OPEN_ARCHIVE = 102;
 constexpr UINT ID_TRAY_EXIT = 103;
 constexpr UINT ID_TRAY_PUBLISH_GENERATED_OVERLAY = 104;
+constexpr UINT ID_TRAY_TOGGLE_STARTUP = 105;
+constexpr UINT ID_TRAY_SUPPORT_REPORT = 106;
 constexpr UINT ID_STATUS_REFRESH = 201;
 constexpr UINT ID_STATUS_COPY = 202;
 constexpr UINT ID_STATUS_OPEN_ARCHIVE = 203;
@@ -65,6 +71,8 @@ constexpr UINT ID_STATUS_OPEN_BRIEF = 204;
 constexpr UINT ID_STATUS_CLOSE = 205;
 constexpr UINT ID_STATUS_MAXIMIZE = 206;
 constexpr UINT ID_STATUS_MINIMIZE = 207;
+constexpr UINT ID_STATUS_TOGGLE_STARTUP = 208;
+constexpr UINT ID_STATUS_SUPPORT_REPORT = 209;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -109,6 +117,8 @@ struct StatusDashboardData {
     std::wstring nextHint;
     std::wstring nextPlaybook;
     std::wstring nextActionPath;
+    std::wstring supportReportState;
+    std::wstring supportReportPath;
 };
 
 struct DashboardSectionSpec {
@@ -133,6 +143,7 @@ std::filesystem::path g_candidateDecisionPackagePath;
 std::filesystem::path g_dslDraftPath;
 std::filesystem::path g_dslDraftAuditPath;
 std::filesystem::path g_nextStepsBriefPath;
+std::filesystem::path g_supportReportPreviewPath;
 std::filesystem::path g_generatedOverlayStagingDirectory;
 std::filesystem::path g_generatedOverlayStagingStatusPath;
 std::filesystem::path g_generatedOverlayActiveDirectory;
@@ -150,6 +161,8 @@ HWND g_statusRefreshButton = nullptr;
 HWND g_statusCopyButton = nullptr;
 HWND g_statusOpenArchiveButton = nullptr;
 HWND g_statusOpenBriefButton = nullptr;
+HWND g_statusSupportReportButton = nullptr;
+HWND g_statusToggleStartupButton = nullptr;
 HWND g_statusCloseButton = nullptr;
 HWND g_statusMaximizeButton = nullptr;
 HWND g_statusMinimizeButton = nullptr;
@@ -184,6 +197,12 @@ constexpr COLORREF kStatusAccentColor = RGB(214, 170, 76);
 constexpr COLORREF kStatusBorderColor = RGB(26, 71, 76);
 constexpr COLORREF kStatusValueBackgroundColor = RGB(7, 18, 20);
 constexpr COLORREF kStatusValueBorderColor = RGB(39, 72, 74);
+constexpr COLORREF kStatusButtonFillColor = RGB(8, 22, 28);
+constexpr COLORREF kStatusButtonPressedFillColor = RGB(18, 70, 65);
+constexpr COLORREF kStatusButtonDisabledFillColor = RGB(6, 11, 13);
+constexpr COLORREF kStatusButtonBorderColor = RGB(164, 122, 69);
+constexpr COLORREF kStatusButtonTextColor = RGB(211, 228, 221);
+constexpr COLORREF kStatusButtonDisabledTextColor = RGB(92, 102, 100);
 constexpr const wchar_t* kStatusEmptyValue = L"\u2014";
 constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWindow";
 constexpr int kStatusTitleBarHeight = 34;
@@ -205,6 +224,7 @@ std::optional<std::string> extractSummaryLineValue(const std::string& summary, c
 std::wstring makeRelativeDisplay(const std::filesystem::path& path);
 std::wstring compactBoolText(const std::string& value, const wchar_t* yesText = L"ano", const wchar_t* noText = L"ne");
 std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator = L" | ");
+std::filesystem::path findRepoRoot();
 const wchar_t* statusFieldLabel(StatusFieldId id);
 void setWindowFont(HWND hwnd, HFONT font);
 HWND createStatusStatic(HWND parent, const wchar_t* text, DWORD style = WS_CHILD | WS_VISIBLE);
@@ -212,6 +232,7 @@ HWND createStatusValue(HWND parent, const wchar_t* text = L"");
 HWND createStatusButton(HWND parent, UINT id, const wchar_t* text);
 void drawStatusButton(const DRAWITEMSTRUCT& drawItem);
 void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
+void updateTrayTip(HWND hwnd, const std::wstring& text);
 void updateStatusCaptionButtons(HWND hwnd);
 bool copyTextToClipboard(HWND hwnd, const std::wstring& text);
 void ensureStatusWindowResources();
@@ -221,7 +242,19 @@ void requestStatusWindowRefresh();
 void layoutStatusWindow(HWND hwnd);
 void registerStatusWindowClass();
 void applyWindowIcons(HWND hwnd);
+std::filesystem::path buildDefaultStartupShortcutPath();
+strategic_nexus::SncTrayStartupShortcutActionStatus loadStartupShortcutActionStatus();
+strategic_nexus::SncTraySupportReportActionStatus loadSupportReportActionStatus();
+void toggleStartWithWindows(HWND hwnd);
+void prepareOrOpenSupportReport(HWND hwnd);
 LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+struct RepoCommandExecutionResult {
+    bool launched = false;
+    bool completed = false;
+    DWORD exitCode = ERROR_GEN_FAILURE;
+    std::wstring errorMessage;
+};
 
 std::string jsonEscape(const std::string& value)
 {
@@ -430,19 +463,20 @@ void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
 
     RECT rc = drawItem.rcItem;
     const COLORREF fillColor = disabled
-        ? RGB(6, 11, 13)
-        : (selected ? RGB(16, 39, 42) : kStatusPanelColor);
+        ? kStatusButtonDisabledFillColor
+        : (selected ? kStatusButtonPressedFillColor : kStatusButtonFillColor);
 
     const HBRUSH fillBrush = CreateSolidBrush(fillColor);
     FillRect(drawItem.hDC, &rc, fillBrush);
     DeleteObject(fillBrush);
 
-    const HBRUSH borderBrush = disabled ? g_statusBorderBrush : (selected ? g_statusAccentBrush : g_statusBorderBrush);
+    const HBRUSH borderBrush = CreateSolidBrush(kStatusButtonBorderColor);
     FrameRect(drawItem.hDC, &rc, borderBrush);
+    DeleteObject(borderBrush);
 
     if (focused) {
         RECT focusRc = rc;
-        InflateRect(&focusRc, -3, -3);
+        InflateRect(&focusRc, -4, -4);
         DrawFocusRect(drawItem.hDC, &focusRc);
     }
 
@@ -450,7 +484,7 @@ void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
     GetWindowTextW(drawItem.hwndItem, label, static_cast<int>(std::size(label)));
 
     SetBkMode(drawItem.hDC, TRANSPARENT);
-    SetTextColor(drawItem.hDC, disabled ? kStatusMutedColor : kStatusTextColor);
+    SetTextColor(drawItem.hDC, disabled ? kStatusButtonDisabledTextColor : kStatusButtonTextColor);
     const HGDIOBJ oldFont = SelectObject(drawItem.hDC, g_statusSectionFont != nullptr ? g_statusSectionFont : GetStockObject(DEFAULT_GUI_FONT));
     rc.left += 10;
     rc.right -= 10;
@@ -517,6 +551,8 @@ StatusDashboardData loadStatusDashboardData()
     data.nextHint = L"\u2014";
     data.nextPlaybook = g_nextStepsBriefPath.empty() ? L"\u2014" : utf8ToWide(pathString(g_nextStepsBriefPath));
     data.nextActionPath = L"\u2014";
+    data.supportReportState = L"\u2014";
+    data.supportReportPath = g_supportReportPreviewPath.empty() ? L"\u2014" : utf8ToWide(pathString(g_supportReportPreviewPath));
 
     std::string json;
     if (!strategic_nexus::common::tryReadTextFile(g_trayStatusPath, json)) {
@@ -627,6 +663,9 @@ StatusDashboardData loadStatusDashboardData()
     data.nextHint = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_command_hint").value_or(""));
     data.nextPlaybook = utf8ToWide(strategic_nexus::common::extractJsonString(json, "owner_test_playbook_path").value_or(""));
     data.nextActionPath = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_path").value_or(""));
+    data.supportReportState = utf8ToWide(strategic_nexus::common::extractJsonString(json, "support_report_state").value_or(""));
+    data.supportReportPath =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "support_report_preview_path").value_or(""));
     return data;
 }
 
@@ -642,6 +681,10 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.nextPlaybook.empty() ? kStatusEmptyValue : data.nextPlaybook;
     text += L"\r\nC\u00EDl: ";
     text += data.nextActionPath.empty() ? kStatusEmptyValue : data.nextActionPath;
+    text += L"\r\nSupport report: ";
+    text += data.supportReportState.empty() ? kStatusEmptyValue : data.supportReportState;
+    text += L"\r\nReport cesta: ";
+    text += data.supportReportPath.empty() ? kStatusEmptyValue : data.supportReportPath;
     return text;
 }
 
@@ -657,7 +700,8 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"Publikace: " + data.overlayGate + L"\n";
     text += L"LLM: " + data.modelState + L"\n";
     text += L"Dal\u0161\u00ED krok: " + data.nextAction + L"\n";
-    text += L"Hint: " + data.nextHint;
+    text += L"Hint: " + data.nextHint + L"\n";
+    text += L"Support report: " + data.supportReportState;
     return text;
 }
 
@@ -841,6 +885,21 @@ void refreshStatusWindowContent()
     }
 
     const bool briefAvailable = !g_nextStepsBriefPath.empty() && std::filesystem::exists(g_nextStepsBriefPath);
+    const auto startupAction = loadStartupShortcutActionStatus();
+    const auto supportReportAction = loadSupportReportActionStatus();
+    if (g_statusToggleStartupButton != nullptr) {
+        const auto buttonLabel = strategic_nexus::buildSncTrayStartupShortcutToggleButtonLabel(startupAction);
+        SetWindowTextW(g_statusToggleStartupButton, buttonLabel.c_str());
+        EnableWindow(g_statusToggleStartupButton, startupAction.toggleAvailable ? TRUE : FALSE);
+    }
+    if (g_statusSupportReportButton != nullptr) {
+        const auto buttonLabel =
+            strategic_nexus::buildSncTraySupportReportActionButtonLabel(supportReportAction);
+        SetWindowTextW(g_statusSupportReportButton, buttonLabel.c_str());
+        EnableWindow(
+            g_statusSupportReportButton,
+            strategic_nexus::sncTraySupportReportActionAvailable(supportReportAction) ? TRUE : FALSE);
+    }
     if (g_statusRefreshButton != nullptr) {
         EnableWindow(g_statusRefreshButton, TRUE);
     }
@@ -920,11 +979,14 @@ void layoutStatusWindow(HWND hwnd)
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     int buttonWidth = 116;
     const int availableWidth = width - (margin * 2);
-    const int requiredButtonWidth = (buttonWidth * 5) + (buttonGap * 4);
+    constexpr int actionButtonCount = 6;
+    const int requiredButtonWidth =
+        (buttonWidth * actionButtonCount) + (buttonGap * (actionButtonCount - 1));
     if (requiredButtonWidth > availableWidth) {
-        buttonWidth = (availableWidth - (buttonGap * 4)) / 5;
-        if (buttonWidth < 88) {
-            buttonWidth = 88;
+        buttonWidth =
+            (availableWidth - (buttonGap * (actionButtonCount - 1))) / actionButtonCount;
+        if (buttonWidth < 76) {
+            buttonWidth = 76;
         }
     }
 
@@ -997,11 +1059,30 @@ void layoutStatusWindow(HWND hwnd)
         MoveWindow(g_statusMinimizeButton, minimizeLeft, titleButtonTop, kStatusTitleButtonWidth, 24, TRUE);
     }
 
-    const HWND buttons[] = { g_statusRefreshButton, g_statusCopyButton, g_statusOpenArchiveButton, g_statusOpenBriefButton };
-    const wchar_t* buttonTexts[] = { L"Obnovit", L"Kop\u00EDrovat", L"Archiv", L"Souhrn" };
+    const auto startupAction = loadStartupShortcutActionStatus();
+    const auto startupButtonLabel = strategic_nexus::buildSncTrayStartupShortcutToggleButtonLabel(startupAction);
+    const auto supportReportAction = loadSupportReportActionStatus();
+    const auto supportReportButtonLabel =
+        strategic_nexus::buildSncTraySupportReportActionButtonLabel(supportReportAction);
+    const HWND buttons[] = {
+        g_statusRefreshButton,
+        g_statusCopyButton,
+        g_statusOpenArchiveButton,
+        g_statusOpenBriefButton,
+        g_statusSupportReportButton,
+        g_statusToggleStartupButton
+    };
+    const std::wstring buttonTexts[] = {
+        L"Obnovit",
+        L"Kop\u00EDrovat",
+        L"Archiv",
+        L"Souhrn",
+        supportReportButtonLabel,
+        startupButtonLabel
+    };
     for (std::size_t index = 0; index < std::size(buttons); ++index) {
         if (buttons[index] != nullptr) {
-            SetWindowTextW(buttons[index], buttonTexts[index]);
+            SetWindowTextW(buttons[index], buttonTexts[index].c_str());
             MoveWindow(buttons[index], margin + static_cast<int>(index) * (buttonWidth + buttonGap), buttonTop, buttonWidth, buttonHeight, TRUE);
         }
     }
@@ -1078,6 +1159,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kop\u00EDrovat");
         g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
         g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
+        g_statusSupportReportButton = createStatusButton(hwnd, ID_STATUS_SUPPORT_REPORT, L"Report");
+        g_statusToggleStartupButton = createStatusButton(hwnd, ID_STATUS_TOGGLE_STARTUP, L"Start");
         g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"X");
         g_statusMaximizeButton = createStatusButton(hwnd, ID_STATUS_MAXIMIZE, L"[ ]");
         g_statusMinimizeButton = createStatusButton(hwnd, ID_STATUS_MINIMIZE, L"-");
@@ -1114,6 +1197,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusCopyButton, g_statusFieldFont);
         setWindowFont(g_statusOpenArchiveButton, g_statusFieldFont);
         setWindowFont(g_statusOpenBriefButton, g_statusFieldFont);
+        setWindowFont(g_statusSupportReportButton, g_statusFieldFont);
+        setWindowFont(g_statusToggleStartupButton, g_statusFieldFont);
         setWindowFont(g_statusCloseButton, g_statusFieldFont);
         setWindowFont(g_statusMaximizeButton, g_statusFieldFont);
         setWindowFont(g_statusMinimizeButton, g_statusFieldFont);
@@ -1144,6 +1229,12 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_BRIEF:
             openPathWithShell(hwnd, g_nextStepsBriefPath);
+            return 0;
+        case ID_STATUS_SUPPORT_REPORT:
+            prepareOrOpenSupportReport(hwnd);
+            return 0;
+        case ID_STATUS_TOGGLE_STARTUP:
+            toggleStartWithWindows(hwnd);
             return 0;
         case ID_STATUS_MAXIMIZE:
             ShowWindow(hwnd, IsZoomed(hwnd) ? SW_RESTORE : SW_MAXIMIZE);
@@ -1301,6 +1392,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyButton = nullptr;
         g_statusOpenArchiveButton = nullptr;
         g_statusOpenBriefButton = nullptr;
+        g_statusSupportReportButton = nullptr;
+        g_statusToggleStartupButton = nullptr;
         g_statusCloseButton = nullptr;
         g_statusMaximizeButton = nullptr;
         g_statusMinimizeButton = nullptr;
@@ -1695,12 +1788,454 @@ std::string buildStartupLifecycleBrief(const bool startWithWindowsEnabled)
         : "manual start only (start with Windows disabled)";
 }
 
-void appendStartupRationaleLines(std::ostringstream& output, const bool startWithWindowsEnabled)
+std::string buildStartupShortcutStateBrief(const std::string& shortcutState)
+{
+    if (shortcutState == "shortcut_installed" || shortcutState == "override_enabled") {
+        return "startup shortcut installed";
+    }
+    if (shortcutState == "shortcut_not_installed" || shortcutState == "override_disabled") {
+        return "startup shortcut not installed";
+    }
+    if (shortcutState == "shortcut_path_unavailable") {
+        return "startup shortcut path unavailable";
+    }
+    if (shortcutState == "shortcut_path_not_file") {
+        return "startup shortcut path is not a file";
+    }
+    if (shortcutState == "shortcut_probe_failed") {
+        return "startup shortcut probe failed";
+    }
+    return shortcutState.empty() ? "startup shortcut status unknown" : shortcutState;
+}
+
+std::filesystem::path buildDefaultStartupShortcutPath()
+{
+    std::array<wchar_t, MAX_PATH> startupBuffer{};
+    const HRESULT result =
+        SHGetFolderPathW(nullptr, CSIDL_STARTUP, nullptr, SHGFP_TYPE_CURRENT, startupBuffer.data());
+    if (FAILED(result) || startupBuffer[0] == L'\0') {
+        return {};
+    }
+
+    std::filesystem::path startupPath(startupBuffer.data());
+    if (startupPath.empty()) {
+        return {};
+    }
+
+    return startupPath / "Strategic Nexus Companion.lnk";
+}
+
+strategic_nexus::SncTrayStartupShortcutActionStatus loadStartupShortcutActionStatus()
+{
+    strategic_nexus::SncTrayStartupShortcutActionStatus status;
+
+    std::string json;
+    if (!g_trayStatusPath.empty() && strategic_nexus::common::tryReadTextFile(g_trayStatusPath, json)) {
+        status = strategic_nexus::parseSncTrayStartupShortcutActionStatus(json);
+        if (status.toggleAvailable || status.stateKnown || !status.shortcutPath.empty()) {
+            return status;
+        }
+    }
+
+    status.stateKnown = true;
+    status.enableCommandHint = R"(cmd /c tools\install_snc_tray_startup_shortcut.cmd)";
+    status.disableCommandHint = R"(cmd /c tools\remove_snc_tray_startup_shortcut.cmd)";
+    status.shortcutPath = buildDefaultStartupShortcutPath();
+    if (status.shortcutPath.empty()) {
+        status.lifecycleState = "manual_start_only";
+        status.shortcutState = "shortcut_path_unavailable";
+        status.toggleCommandHintSource = "startup_shortcut_unavailable";
+        status.toggleAvailable = false;
+        return status;
+    }
+
+    std::error_code error;
+    const bool shortcutExists = std::filesystem::exists(status.shortcutPath, error);
+    if (error) {
+        status.startWithWindowsEnabled = false;
+        status.lifecycleState = "manual_start_only";
+        status.shortcutState = "shortcut_probe_failed";
+        status.toggleCommandHint = status.enableCommandHint;
+        status.toggleCommandHintSource = "startup_shortcut_install_command";
+        status.toggleAvailable = !status.toggleCommandHint.empty();
+        return status;
+    }
+
+    if (!shortcutExists) {
+        status.startWithWindowsEnabled = false;
+        status.lifecycleState = "manual_start_only";
+        status.shortcutState = "shortcut_not_installed";
+        status.toggleCommandHint = status.enableCommandHint;
+        status.toggleCommandHintSource = "startup_shortcut_install_command";
+        status.toggleAvailable = !status.toggleCommandHint.empty();
+        return status;
+    }
+
+    error.clear();
+    const bool shortcutIsFile = std::filesystem::is_regular_file(status.shortcutPath, error);
+    if (error || !shortcutIsFile) {
+        status.startWithWindowsEnabled = false;
+        status.lifecycleState = "manual_start_only";
+        status.shortcutState = "shortcut_path_not_file";
+        status.toggleCommandHint = status.enableCommandHint;
+        status.toggleCommandHintSource = "startup_shortcut_install_command";
+        status.toggleAvailable = !status.toggleCommandHint.empty();
+        return status;
+    }
+
+    status.startWithWindowsEnabled = true;
+    status.lifecycleState = "owner_enabled_start_with_windows";
+    status.shortcutState = "shortcut_installed";
+    status.toggleCommandHint = status.disableCommandHint;
+    status.toggleCommandHintSource = "startup_shortcut_remove_command";
+    status.toggleAvailable = !status.toggleCommandHint.empty();
+    return status;
+}
+
+std::wstring formatWindowsErrorMessage(const DWORD errorCode)
+{
+    LPWSTR buffer = nullptr;
+    const DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS;
+    const DWORD length =
+        FormatMessageW(flags, nullptr, errorCode, 0, reinterpret_cast<LPWSTR>(&buffer), 0, nullptr);
+    if (length == 0 || buffer == nullptr) {
+        return L"Windows error " + std::to_wstring(errorCode);
+    }
+
+    std::wstring message(buffer, length);
+    LocalFree(buffer);
+    while (!message.empty() && (message.back() == L'\r' || message.back() == L'\n' || message.back() == L' ')) {
+        message.pop_back();
+    }
+    return message;
+}
+
+RepoCommandExecutionResult runRepoCommandHidden(const std::wstring& commandLine)
+{
+    RepoCommandExecutionResult result;
+    if (commandLine.empty()) {
+        result.errorMessage = L"Command line is empty.";
+        return result;
+    }
+
+    std::vector<wchar_t> mutableCommandLine(commandLine.begin(), commandLine.end());
+    mutableCommandLine.push_back(L'\0');
+
+    std::wstring workingDirectory = g_repoRoot.empty() ? findRepoRoot().wstring() : g_repoRoot.wstring();
+    STARTUPINFOW startupInfo{};
+    startupInfo.cb = sizeof(startupInfo);
+    startupInfo.dwFlags = STARTF_USESHOWWINDOW;
+    startupInfo.wShowWindow = SW_HIDE;
+    PROCESS_INFORMATION processInfo{};
+
+    if (!CreateProcessW(
+            nullptr,
+            mutableCommandLine.data(),
+            nullptr,
+            nullptr,
+            FALSE,
+            CREATE_NO_WINDOW,
+            nullptr,
+            workingDirectory.c_str(),
+            &startupInfo,
+            &processInfo)) {
+        result.errorMessage = formatWindowsErrorMessage(GetLastError());
+        return result;
+    }
+
+    result.launched = true;
+    CloseHandle(processInfo.hThread);
+
+    const DWORD waitResult = WaitForSingleObject(processInfo.hProcess, 30000);
+    if (waitResult == WAIT_OBJECT_0) {
+        result.completed = true;
+        if (!GetExitCodeProcess(processInfo.hProcess, &result.exitCode)) {
+            result.exitCode = ERROR_GEN_FAILURE;
+            result.errorMessage = formatWindowsErrorMessage(GetLastError());
+        }
+    } else if (waitResult == WAIT_TIMEOUT) {
+        result.errorMessage = L"Command timed out after 30 seconds.";
+    } else {
+        result.errorMessage = formatWindowsErrorMessage(GetLastError());
+    }
+
+    CloseHandle(processInfo.hProcess);
+    return result;
+}
+
+bool waitForStartupShortcutState(
+    const bool expectedEnabled,
+    strategic_nexus::SncTrayStartupShortcutActionStatus& refreshedState)
+{
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (std::chrono::steady_clock::now() < deadline) {
+        refreshedState = loadStartupShortcutActionStatus();
+        if (refreshedState.stateKnown && refreshedState.startWithWindowsEnabled == expectedEnabled) {
+            return true;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+    refreshedState = loadStartupShortcutActionStatus();
+    return refreshedState.stateKnown && refreshedState.startWithWindowsEnabled == expectedEnabled;
+}
+
+void toggleStartWithWindows(HWND hwnd)
+{
+    const auto startupAction = loadStartupShortcutActionStatus();
+    if (!startupAction.toggleAvailable || startupAction.toggleCommandHint.empty()) {
+        std::wstring message =
+            L"Start s Windows neni v tomhle behu SNC dostupny. Zkontroluj startup shortcut path a zkus obnovit stav.";
+        if (!startupAction.shortcutPath.empty()) {
+            message += L"\n\nShortcut:\n";
+            message += startupAction.shortcutPath.wstring();
+        }
+
+        MessageBoxW(
+            hwnd,
+            message.c_str(),
+            L"Strategic Nexus Companion",
+            MB_OK | MB_ICONWARNING);
+        return;
+    }
+
+    const bool enable = strategic_nexus::sncTrayStartupShortcutToggleTargetsEnable(startupAction);
+    std::wstring confirmationText = enable
+        ? L"Zapnout SNC pri startu Windows?\n\nSNC vytvori startup shortcut do Windows Startup folderu."
+        : L"Vypnout SNC pri startu Windows?\n\nSNC odstrani startup shortcut z Windows Startup folderu.";
+    if (!startupAction.shortcutPath.empty()) {
+        confirmationText += L"\n\nShortcut:\n";
+        confirmationText += startupAction.shortcutPath.wstring();
+    }
+    confirmationText += L"\n\nPrikaz:\n";
+    confirmationText += utf8ToWide(startupAction.toggleCommandHint);
+
+    const int confirmation = MessageBoxW(
+        hwnd,
+        confirmationText.c_str(),
+        L"Strategic Nexus Companion",
+        MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
+    if (confirmation != IDYES) {
+        return;
+    }
+
+    const std::wstring pendingText =
+        enable ? L"zapinam start s Windows" : L"vypinam start s Windows";
+    {
+        std::lock_guard<std::mutex> lock(g_statusMutex);
+        g_statusText = pendingText;
+    }
+    updateTrayTip(hwnd, pendingText);
+    requestStatusWindowRefresh();
+
+    const auto commandResult = runRepoCommandHidden(utf8ToWide(startupAction.toggleCommandHint));
+    strategic_nexus::SncTrayStartupShortcutActionStatus refreshedState;
+    const bool stateChanged = commandResult.launched && commandResult.completed && commandResult.exitCode == 0 &&
+        waitForStartupShortcutState(enable, refreshedState);
+
+    std::wstring statusText;
+    std::wstring messageText;
+    UINT messageFlags = MB_OK | MB_ICONWARNING;
+    if (!commandResult.launched) {
+        statusText = L"Zmena startu s Windows selhala.";
+        messageText = L"Nepodarilo se spustit startup prikaz.\n\n";
+        messageText += commandResult.errorMessage.empty() ? L"Neznamy problem." : commandResult.errorMessage;
+    } else if (!commandResult.completed) {
+        statusText = L"Startup prikaz stale bezi nebo vyprsel.";
+        messageText = L"Startup prikaz se nedokoncil vcas.\n\n";
+        messageText += commandResult.errorMessage.empty() ? L"Zkus obnovit stav za chvili." : commandResult.errorMessage;
+    } else if (commandResult.exitCode != 0) {
+        statusText = L"Zmena startu s Windows selhala.";
+        messageText = L"Startup prikaz skoncil chybou.\n\nExit code: ";
+        messageText += std::to_wstring(commandResult.exitCode);
+    } else if (stateChanged) {
+        statusText = enable ? L"Start s Windows zapnut." : L"Start s Windows vypnut.";
+        messageText = statusText;
+        messageFlags = MB_OK | MB_ICONINFORMATION;
+    } else {
+        statusText = L"Startup prikaz probehl, stav se jeste obnovuje.";
+        messageText = L"Startup prikaz probehl, ale SNC zatim nevidi novy lifecycle stav.\n\nZkus otevrit Stav nebo pockat par sekund.";
+    }
+
+    if (!refreshedState.shortcutPath.empty()) {
+        messageText += L"\n\nShortcut:\n";
+        messageText += refreshedState.shortcutPath.wstring();
+    } else if (!startupAction.shortcutPath.empty()) {
+        messageText += L"\n\nShortcut:\n";
+        messageText += startupAction.shortcutPath.wstring();
+    }
+
+    if (stateChanged || refreshedState.stateKnown) {
+        messageText += L"\n\nLifecycle: ";
+        messageText += utf8ToWide(refreshedState.lifecycleState);
+        messageText += L"\nShortcut state: ";
+        messageText += utf8ToWide(buildStartupShortcutStateBrief(refreshedState.shortcutState));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(g_statusMutex);
+        g_statusText = statusText;
+    }
+    updateTrayTip(hwnd, statusText);
+    requestStatusWindowRefresh();
+
+    MessageBoxW(hwnd, messageText.c_str(), L"Strategic Nexus Companion", messageFlags);
+}
+
+bool supportReportPreviewExists()
+{
+    if (g_supportReportPreviewPath.empty()) {
+        return false;
+    }
+
+    std::error_code error;
+    return std::filesystem::exists(g_supportReportPreviewPath, error) &&
+        std::filesystem::is_regular_file(g_supportReportPreviewPath, error);
+}
+
+strategic_nexus::SncTraySupportReportActionStatus loadSupportReportActionStatus()
+{
+    strategic_nexus::SncTraySupportReportActionStatus status;
+    status.previewPath = g_supportReportPreviewPath;
+    status.previewPathConfigured = !g_supportReportPreviewPath.empty();
+    status.previewReady = supportReportPreviewExists();
+    return status;
+}
+
+std::wstring buildPrepareSupportReportCommandLine()
+{
+    if (g_supportReportPreviewPath.empty() || g_trayStatusPath.empty()) {
+        return std::wstring();
+    }
+
+    std::wstring command = L"powershell -NoProfile -ExecutionPolicy Bypass -File ";
+    command += L"\"tools\\prepare_snc_support_report.ps1\"";
+    command += L" -StatusPath ";
+    command += L"\"" + g_trayStatusPath.wstring() + L"\"";
+    command += L" -OutputPath ";
+    command += L"\"" + g_supportReportPreviewPath.wstring() + L"\"";
+    return command;
+}
+
+bool waitForSupportReportPreviewReady()
+{
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (supportReportPreviewExists()) {
+            return true;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+    return supportReportPreviewExists();
+}
+
+std::wstring buildSupportReportMenuLabel()
+{
+    return strategic_nexus::buildSncTraySupportReportActionMenuLabel(loadSupportReportActionStatus());
+}
+
+void prepareOrOpenSupportReport(HWND hwnd)
+{
+    if (g_supportReportPreviewPath.empty()) {
+        MessageBoxW(
+            hwnd,
+            L"SNC nema nastavenou cestu pro local support report preview.",
+            L"Strategic Nexus Companion",
+            MB_OK | MB_ICONWARNING);
+        return;
+    }
+
+    if (supportReportPreviewExists()) {
+        openPathWithShell(hwnd, g_supportReportPreviewPath);
+        return;
+    }
+
+    const auto commandLine = buildPrepareSupportReportCommandLine();
+    if (commandLine.empty()) {
+        MessageBoxW(
+            hwnd,
+            L"SNC nema pripraveny support report command.",
+            L"Strategic Nexus Companion",
+            MB_OK | MB_ICONWARNING);
+        return;
+    }
+
+    const auto commandResult = runRepoCommandHidden(commandLine);
+    if (!commandResult.launched || !commandResult.completed || commandResult.exitCode != 0) {
+        std::wstring message = L"Priprava support reportu selhala.";
+        if (!commandResult.errorMessage.empty()) {
+            message += L"\n\n";
+            message += commandResult.errorMessage;
+        } else if (commandResult.completed) {
+            message += L"\n\nExit code: ";
+            message += std::to_wstring(commandResult.exitCode);
+        }
+
+        MessageBoxW(
+            hwnd,
+            message.c_str(),
+            L"Strategic Nexus Companion",
+            MB_OK | MB_ICONWARNING);
+        return;
+    }
+
+    if (!waitForSupportReportPreviewReady()) {
+        MessageBoxW(
+            hwnd,
+            L"Support report command probehl, ale preview soubor se jeste neukazal. Zkus obnovit stav za chvili.",
+            L"Strategic Nexus Companion",
+            MB_OK | MB_ICONWARNING);
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(g_statusMutex);
+        g_statusText = L"Support report pripraven.";
+    }
+    updateTrayTip(hwnd, L"Support report pripraven");
+    requestStatusWindowRefresh();
+
+    std::wstring info =
+        L"Local support report preview je pripraven.\n\nBez tveho approvalu se nic neposila.\n\nPreview:\n";
+    info += g_supportReportPreviewPath.wstring();
+    MessageBoxW(
+        hwnd,
+        info.c_str(),
+        L"Strategic Nexus Companion",
+        MB_OK | MB_ICONINFORMATION);
+    openPathWithShell(hwnd, g_supportReportPreviewPath);
+}
+
+void appendStartupRationaleLines(
+    std::ostringstream& output,
+    const strategic_nexus::CompanionLifecycleStatus& lifecycle)
 {
     output << "startup_rationale: start SNC before Stellaris to preserve more autosave history before the game rotates older saves away\n";
     output << "startup_start_with_windows: optional_owner_setting_default_disabled\n";
-    output << "startup_lifecycle_state: " << buildStartupLifecycleState(startWithWindowsEnabled) << "\n";
-    output << "startup_start_with_windows_enabled: " << (startWithWindowsEnabled ? "true" : "false") << "\n";
+    output << "startup_lifecycle_state: " << buildStartupLifecycleState(lifecycle.startWithWindowsEnabled) << "\n";
+    output << "startup_start_with_windows_enabled: " << (lifecycle.startWithWindowsEnabled ? "true" : "false") << "\n";
+    output << "startup_start_with_windows_source: " << lifecycle.startWithWindowsSource << "\n";
+    output << "startup_start_with_windows_shortcut_state: "
+           << lifecycle.startWithWindowsShortcutState << "\n";
+    if (!lifecycle.startWithWindowsShortcutPath.empty()) {
+        output << "startup_start_with_windows_shortcut_path: "
+               << pathString(lifecycle.startWithWindowsShortcutPath) << "\n";
+    }
+    output << "startup_start_with_windows_command_hint_source: "
+           << lifecycle.startWithWindowsCommandHintSource << "\n";
+    if (!lifecycle.startWithWindowsCommandHint.empty()) {
+        output << "startup_start_with_windows_command_hint: "
+               << lifecycle.startWithWindowsCommandHint << "\n";
+    }
+    if (!lifecycle.startWithWindowsEnableCommandHint.empty()) {
+        output << "startup_start_with_windows_enable_command_hint: "
+               << lifecycle.startWithWindowsEnableCommandHint << "\n";
+    }
+    if (!lifecycle.startWithWindowsDisableCommandHint.empty()) {
+        output << "startup_start_with_windows_disable_command_hint: "
+               << lifecycle.startWithWindowsDisableCommandHint << "\n";
+    }
 }
 
 std::wstring utf8ToWide(const std::string& value)
@@ -1888,10 +2423,14 @@ std::string buildNextActionReason(
 std::string buildNextActionCommandHint(
     const std::string& nextAction,
     const std::filesystem::path& nextStepsBriefPath,
-    const std::filesystem::path& ownerTestPlaybookPath)
+    const std::filesystem::path& ownerTestPlaybookPath,
+    const std::string& publishCommand)
 {
     if (nextAction == "run_monthly_reactive_owner_test" && !ownerTestPlaybookPath.empty()) {
         return "open " + pathString(ownerTestPlaybookPath);
+    }
+    if (nextAction == "review_staged_overlay_and_publish_if_desired" && !publishCommand.empty()) {
+        return publishCommand;
     }
     if (nextAction == "review_staged_overlay_and_publish_if_desired" ||
         nextAction == "review_staged_overlay_status" ||
@@ -1905,11 +2444,16 @@ std::string buildNextActionCommandHint(
     return std::string();
 }
 
-std::string buildNextActionCommandHintSource(const std::string& nextActionCommandHint)
+std::string buildNextActionCommandHintSource(
+    const std::string& nextAction,
+    const std::string& nextActionCommandHint)
 {
     if (!nextActionCommandHint.empty()) {
         if (nextActionCommandHint.rfind("open docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md", 0) == 0) {
             return "owner_test_playbook_path";
+        }
+        if (nextAction == "review_staged_overlay_and_publish_if_desired") {
+            return "generated_overlay_publish_gate_publish_command";
         }
         return "snc_next_steps_brief";
     }
@@ -2010,7 +2554,8 @@ std::string buildStatusCenterSummaryText(
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const strategic_nexus::CompanionLocalLlmStatus& localLlm,
-    const bool startWithWindowsEnabled,
+    const strategic_nexus::CompanionLifecycleStatus& lifecycle,
+    const strategic_nexus::CompanionSupportReportStatus& supportReport,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason)
 {
@@ -2177,7 +2722,27 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.prepareCommandHint.empty()) {
         summary << "local_llm_prepare_command_hint: " << localLlm.prepareCommandHint << "\n";
     }
-    appendStartupRationaleLines(summary, startWithWindowsEnabled);
+    appendStartupRationaleLines(summary, lifecycle);
+    summary << "support_report_state: " << supportReport.state << "\n";
+    summary << "support_report_reason: " << supportReport.reason << "\n";
+    if (!supportReport.previewPath.empty()) {
+        summary << "support_report_preview_path: " << pathString(supportReport.previewPath) << "\n";
+    }
+    summary << "support_report_contact_email: " << supportReport.supportContactEmail << "\n";
+    summary << "support_report_send_requires_approval: "
+            << (supportReport.sendRequiresApproval ? "true" : "false") << "\n";
+    summary << "support_report_raw_saves_included: "
+            << (supportReport.rawSavesIncluded ? "true" : "false") << "\n";
+    if (!supportReport.dataCategories.empty()) {
+        summary << "support_report_data_categories: "
+                << joinStrings(supportReport.dataCategories, ",") << "\n";
+    }
+    if (!supportReport.prepareCommandHint.empty()) {
+        summary << "support_report_prepare_command_hint: " << supportReport.prepareCommandHint << "\n";
+    }
+    if (!supportReport.openCommandHint.empty()) {
+        summary << "support_report_open_command_hint: " << supportReport.openCommandHint << "\n";
+    }
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -2206,7 +2771,8 @@ void writeNextStepsBrief(
     const bool generatedOverlayPublishAllowed,
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
-    const bool startWithWindowsEnabled,
+    const strategic_nexus::CompanionLifecycleStatus& lifecycle,
+    const strategic_nexus::CompanionSupportReportStatus& supportReport,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason,
     const std::string& nextAction,
@@ -2296,7 +2862,45 @@ void writeNextStepsBrief(
     brief << "- Current staged overlay already published: " << (generatedOverlayPublishGate.published ? "ano" : "ne") << "\n";
     brief << "- Startup note: Spusteni SNC pred Stellaris pomaha uchovat vic autosave historie driv, nez hra prepise starsi autosavy.\n";
     brief << "- Start with Windows: volitelne nastaveni, vychozi stav ma zustat vypnuty.\n";
-    brief << "- Startup lifecycle state: " << buildStartupLifecycleBrief(startWithWindowsEnabled) << ".\n";
+    brief << "- Startup lifecycle state: " << buildStartupLifecycleBrief(lifecycle.startWithWindowsEnabled) << ".\n";
+    brief << "- Startup state source: " << lifecycle.startWithWindowsSource << ".\n";
+    brief << "- Startup shortcut state: "
+          << buildStartupShortcutStateBrief(lifecycle.startWithWindowsShortcutState) << ".\n";
+    if (!lifecycle.startWithWindowsShortcutPath.empty()) {
+        brief << "- Startup shortcut path: " << pathString(lifecycle.startWithWindowsShortcutPath) << "\n";
+    }
+    if (!lifecycle.startWithWindowsCommandHint.empty()) {
+        brief << "- Startup command hint: " << lifecycle.startWithWindowsCommandHint << "\n";
+        brief << "- Startup command hint source: " << lifecycle.startWithWindowsCommandHintSource << "\n";
+    }
+    if (!lifecycle.startWithWindowsEnableCommandHint.empty()) {
+        brief << "- Startup enable command: " << lifecycle.startWithWindowsEnableCommandHint << "\n";
+    }
+    if (!lifecycle.startWithWindowsDisableCommandHint.empty()) {
+        brief << "- Startup disable command: " << lifecycle.startWithWindowsDisableCommandHint << "\n";
+    }
+    brief << "- Support report state: " << supportReport.state;
+    if (!supportReport.reason.empty()) {
+        brief << " (" << supportReport.reason << ")";
+    }
+    brief << "\n";
+    brief << "- Support report send approval required: "
+          << (supportReport.sendRequiresApproval ? "ano" : "ne") << "\n";
+    brief << "- Support report raw saves included: "
+          << (supportReport.rawSavesIncluded ? "ano" : "ne") << "\n";
+    brief << "- Support report contact: " << supportReport.supportContactEmail << "\n";
+    if (!supportReport.previewPath.empty()) {
+        brief << "- Support report preview: " << pathString(supportReport.previewPath) << "\n";
+    }
+    if (!supportReport.prepareCommandHint.empty()) {
+        brief << "- Support report prepare command: " << supportReport.prepareCommandHint << "\n";
+    }
+    if (!supportReport.openCommandHint.empty()) {
+        brief << "- Support report open command: " << supportReport.openCommandHint << "\n";
+    }
+    if (!supportReport.dataCategories.empty()) {
+        brief << "- Support report data categories: " << joinStrings(supportReport.dataCategories, ",") << "\n";
+    }
     brief << "- Active overlay snapshot: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
     brief << "- Publish status output: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     if (!generatedOverlayPublishGate.manifestHash.empty()) {
@@ -2433,6 +3037,7 @@ void writeStatus(
     companionConfig.dslDraftAuditPath = g_dslDraftAuditPath;
     companionConfig.postPlayGeneratedOverlayStagingStatusPath = g_generatedOverlayStagingStatusPath;
     companionConfig.mpOverlayPackageZipPath = g_mpOverlayPackageZipPath;
+    companionConfig.supportReportPreviewPath = g_supportReportPreviewPath;
     const auto companionSnapshot = companion.buildStatusSnapshot(companionConfig);
     const auto& diskPipeline = companionSnapshot.postPlayPipeline;
 
@@ -2559,8 +3164,12 @@ void writeStatus(
         companionSnapshot.nextAction,
         companionSnapshot.nextActionReason);
     const auto nextActionCommandHint =
-        buildNextActionCommandHint(nextAction, g_nextStepsBriefPath, companionSnapshot.ownerTestPlaybookPath);
-    const auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextActionCommandHint);
+        buildNextActionCommandHint(
+            nextAction,
+            g_nextStepsBriefPath,
+            companionSnapshot.ownerTestPlaybookPath,
+            companionSnapshot.generatedOverlayPublishGate.publishCommand);
+    const auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextAction, nextActionCommandHint);
     const auto nextActionPath = buildNextActionPath(
         nextAction,
         companionSnapshot.generatedOverlayPublishGate,
@@ -2621,7 +3230,8 @@ void writeStatus(
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
         companionSnapshot.localLlm,
-        companionSnapshot.lifecycle.startWithWindowsEnabled,
+        companionSnapshot.lifecycle,
+        companionSnapshot.supportReport,
         mpPackageRefreshState,
         mpPackageRefreshReason);
     writeNextStepsBrief(
@@ -2648,7 +3258,8 @@ void writeStatus(
         effectiveGeneratedOverlayPublishAllowed,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
-        companionSnapshot.lifecycle.startWithWindowsEnabled,
+        companionSnapshot.lifecycle,
+        companionSnapshot.supportReport,
         mpPackageRefreshState,
         mpPackageRefreshReason,
         nextAction,
@@ -2668,6 +3279,20 @@ void writeStatus(
     json << "  \"updated_at_local\": \"" << jsonEscape(formatLocalTimestamp()) << "\",\n";
     json << "  \"start_with_windows_enabled\": "
          << (companionSnapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << ",\n";
+    json << "  \"start_with_windows_source\": \""
+         << jsonEscape(companionSnapshot.lifecycle.startWithWindowsSource) << "\",\n";
+    json << "  \"start_with_windows_shortcut_state\": \""
+         << jsonEscape(companionSnapshot.lifecycle.startWithWindowsShortcutState) << "\",\n";
+    json << "  \"start_with_windows_shortcut_path\": \""
+         << jsonEscape(pathString(companionSnapshot.lifecycle.startWithWindowsShortcutPath)) << "\",\n";
+    json << "  \"start_with_windows_command_hint\": \""
+         << jsonEscape(companionSnapshot.lifecycle.startWithWindowsCommandHint) << "\",\n";
+    json << "  \"start_with_windows_command_hint_source\": \""
+         << jsonEscape(companionSnapshot.lifecycle.startWithWindowsCommandHintSource) << "\",\n";
+    json << "  \"start_with_windows_enable_command_hint\": \""
+         << jsonEscape(companionSnapshot.lifecycle.startWithWindowsEnableCommandHint) << "\",\n";
+    json << "  \"start_with_windows_disable_command_hint\": \""
+         << jsonEscape(companionSnapshot.lifecycle.startWithWindowsDisableCommandHint) << "\",\n";
     json << "  \"window_close_behavior\": \""
          << jsonEscape(companionSnapshot.lifecycle.windowCloseBehavior) << "\",\n";
     json << "  \"explicit_exit_behavior\": \""
@@ -2676,6 +3301,25 @@ void writeStatus(
          << jsonEscape(companionSnapshot.lifecycle.crashRestartPolicy) << "\",\n";
     json << "  \"startup_lifecycle_state\": \""
          << jsonEscape(buildStartupLifecycleState(companionSnapshot.lifecycle.startWithWindowsEnabled)) << "\",\n";
+    json << "  \"support_report_state\": \""
+         << jsonEscape(companionSnapshot.supportReport.state) << "\",\n";
+    json << "  \"support_report_reason\": \""
+         << jsonEscape(companionSnapshot.supportReport.reason) << "\",\n";
+    json << "  \"support_report_preview_path\": \""
+         << jsonEscape(pathString(companionSnapshot.supportReport.previewPath)) << "\",\n";
+    json << "  \"support_report_contact_email\": \""
+         << jsonEscape(companionSnapshot.supportReport.supportContactEmail) << "\",\n";
+    json << "  \"support_report_send_requires_approval\": "
+         << (companionSnapshot.supportReport.sendRequiresApproval ? "true" : "false") << ",\n";
+    json << "  \"support_report_raw_saves_included\": "
+         << (companionSnapshot.supportReport.rawSavesIncluded ? "true" : "false") << ",\n";
+    json << "  \"support_report_prepare_command_hint\": \""
+         << jsonEscape(companionSnapshot.supportReport.prepareCommandHint) << "\",\n";
+    json << "  \"support_report_open_command_hint\": \""
+         << jsonEscape(companionSnapshot.supportReport.openCommandHint) << "\",\n";
+    json << "  \"support_report_data_categories\": ";
+    writeStringArrayJson(json, companionSnapshot.supportReport.dataCategories);
+    json << ",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
     json << "  \"session_id\": \"" << jsonEscape(sessionId) << "\",\n";
     json << "  \"capture_session_directory\": \"" << jsonEscape(pathString(sessionDirectory)) << "\",\n";
@@ -2904,6 +3548,7 @@ void workerLoop(HWND hwnd)
     const strategic_nexus::SncCandidateDecisionPackageBuilder candidateDecisionPackageBuilder;
     const strategic_nexus::SncDslDraftPackageBuilder dslDraftPackageBuilder;
     const strategic_nexus::SncGeneratedOverlayStager generatedOverlayStager;
+    const strategic_nexus::SncPostPlayArtifactBackfiller postPlayArtifactBackfiller;
 
     bool wasRunning = false;
     std::string sessionId;
@@ -3294,6 +3939,22 @@ void workerLoop(HWND hwnd)
                 lastMpPackageRefreshState,
                 lastMpPackageRefreshReason);
         } else {
+            strategic_nexus::SncPostPlayArtifactBackfillConfig backfillConfig;
+            backfillConfig.dslDraftPath = g_dslDraftPath;
+            backfillConfig.dslDraftAuditPath = g_dslDraftAuditPath;
+            backfillConfig.candidateDecisionPackagePath = g_candidateDecisionPackagePath;
+            backfillConfig.generatedOverlayStagingStatusPath = g_generatedOverlayStagingStatusPath;
+            backfillConfig.generatedOverlayStagingDirectory = g_generatedOverlayStagingDirectory;
+            backfillConfig.mpOverlayPackageDirectory = g_mpOverlayPackageDirectory;
+            backfillConfig.mpOverlayPackageZipPath = g_mpOverlayPackageZipPath;
+            backfillConfig.mpOverlayVersion = kTrayMpOverlayVersion;
+            backfillConfig.mpGameVersion = kTrayMpGameVersion;
+            backfillConfig.mpModVersion = kTrayMpModVersion;
+            const auto backfillResult = postPlayArtifactBackfiller.backfill(backfillConfig);
+            if (backfillResult.attempted || backfillResult.mpPackageRefreshState != "not_attempted") {
+                lastMpPackageRefreshState = backfillResult.mpPackageRefreshState;
+                lastMpPackageRefreshReason = backfillResult.mpPackageRefreshReason;
+            }
             writeStatus(
                 hwnd,
                 "waiting_for_stellaris",
@@ -3541,7 +4202,15 @@ void showTrayMenu(HWND hwnd)
     POINT point{};
     GetCursorPos(&point);
     HMENU menu = CreatePopupMenu();
+    const auto startupAction = loadStartupShortcutActionStatus();
+    const auto startupLabel = strategic_nexus::buildSncTrayStartupShortcutToggleMenuLabel(startupAction);
     AppendMenuW(menu, MF_STRING, ID_TRAY_STATUS, L"Stav");
+    AppendMenuW(
+        menu,
+        MF_STRING | (startupAction.toggleAvailable ? 0 : MF_GRAYED),
+        ID_TRAY_TOGGLE_STARTUP,
+        startupLabel.c_str());
+    AppendMenuW(menu, MF_STRING, ID_TRAY_SUPPORT_REPORT, buildSupportReportMenuLabel().c_str());
     AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_ARCHIVE, L"Otevrit archiv");
     AppendMenuW(menu, MF_STRING, ID_TRAY_PUBLISH_GENERATED_OVERLAY, L"Publikovat staged overlay");
     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
@@ -3570,6 +4239,12 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
         switch (LOWORD(wParam)) {
         case ID_TRAY_STATUS:
             showStatusDialog(hwnd);
+            return 0;
+        case ID_TRAY_TOGGLE_STARTUP:
+            toggleStartWithWindows(hwnd);
+            return 0;
+        case ID_TRAY_SUPPORT_REPORT:
+            prepareOrOpenSupportReport(hwnd);
             return 0;
         case ID_TRAY_OPEN_ARCHIVE:
             openArchiveDirectory();
@@ -3625,6 +4300,7 @@ void initializePaths()
     g_dslDraftPath = g_repoRoot / "dist" / "private_reports" / "snc_validated_dsl_draft.dsl";
     g_dslDraftAuditPath = g_repoRoot / "dist" / "private_reports" / "snc_dsl_draft_package.json";
     g_nextStepsBriefPath = g_repoRoot / "dist" / "private_reports" / "snc_next_steps_brief.txt";
+    g_supportReportPreviewPath = g_repoRoot / "dist" / "private_reports" / "snc_support_report_preview.txt";
     g_generatedOverlayStagingDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staged";
     g_generatedOverlayStagingStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staging_status.json";
     g_generatedOverlayActiveDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_active";
