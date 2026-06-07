@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-07T23:32:00+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: surface the generated-overlay acceptance checklist in the canonical navigation docs so the owner checklist and evidence path are easy to find.",
+  "updated_at": "2026-06-08T00:22:00+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: implement allowlisted event-family branch compiler tests in the reactive-policy-pack slice so the next real gameplay branch can be validated cleanly.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The current acceptance plan is documented; the next bounded gap is surfacing it in the canonical navigation docs so future workers and the owner can find the checklist and evidence path without search.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the next bounded gap is the allowlisted event-family branch compiler-test slice from the reactive-policy-pack roadmap path.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -28,7 +28,7 @@
     {
       "id": "v0-sprint-085-index-generated-overlay-acceptance-plan",
       "title": "Index generated overlay acceptance plan",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Master architecture index / roadmap visibility for generated overlay acceptance",
       "goal": "Add the generated overlay gameplay acceptance plan to the canonical navigation surfaces so future workers can find the owner checklist and evidence path without re-searching the docs tree.",
@@ -39,6 +39,91 @@
       ],
       "preferred_tests": [
         "rg -n \"GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN|generated overlay acceptance\" docs"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-086-surface-generated-overlay-acceptance-in-sprint-mode",
+      "title": "Surface generated overlay acceptance in sprint mode",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "V0 sprint mode guidance / generated overlay acceptance visibility",
+      "goal": "Add a short sprint-mode reference to the generated overlay acceptance checklist so worker selection and owner-test readiness both point at the same evidence path.",
+      "acceptance": [
+        "docs/V0_SPRINT_MODE.md mentions docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md or its evidence path.",
+        "The added text stays bounded to worker selection / owner-test readiness guidance.",
+        "No new gameplay behavior or wider roadmap scope is introduced."
+      ],
+      "preferred_tests": [
+        "rg -n \"GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN|generated_overlay_gameplay_acceptance_v0\" docs/V0_SPRINT_MODE.md"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-087-surface-generated-overlay-acceptance-in-collaboration-model",
+      "title": "Surface generated overlay acceptance in collaboration model",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Project owner collaboration model / generated overlay acceptance visibility",
+      "goal": "Add a brief owner-facing reference to the generated overlay acceptance checklist so collaboration guidance points at the same evidence path as sprint mode and the roadmap.",
+      "acceptance": [
+        "docs/PROJECT_OWNER_COLLABORATION_MODEL.md mentions docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md or its evidence path.",
+        "The added text remains owner-facing and bounded to acceptance evidence visibility.",
+        "The change does not broaden scope beyond documentation and collaboration guidance."
+      ],
+      "preferred_tests": [
+        "rg -n \"GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN|generated_overlay_gameplay_acceptance_v0\" docs/PROJECT_OWNER_COLLABORATION_MODEL.md"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-088-surface-generated-overlay-evidence-in-master-index",
+      "title": "Surface generated overlay evidence in master index",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Master architecture index / generated overlay acceptance evidence visibility",
+      "goal": "Add the generated overlay acceptance evidence artifact path to the canonical architecture index so the checklist and evidence file are both visible from the top-level navigation layer.",
+      "acceptance": [
+        "docs/MASTER_ARCHITECTURE_INDEX.md mentions dist/private_reports/generated_overlay_gameplay_acceptance_v0.json alongside docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md.",
+        "The wording stays limited to navigation and evidence visibility.",
+        "No new runtime behavior or broader architecture scope is introduced."
+      ],
+      "preferred_tests": [
+        "rg -n \"GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN|generated_overlay_gameplay_acceptance_v0\" docs/MASTER_ARCHITECTURE_INDEX.md"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-089-surface-generated-overlay-evidence-in-v0-scope-plan",
+      "title": "Surface generated overlay evidence in v0 scope plan",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "V0 scope and pipeline plan / generated overlay acceptance evidence visibility",
+      "goal": "Add the generated overlay acceptance evidence artifact path to the core v0 scope/pipeline plan so the main pipeline doc points at both the checklist and the evidence file.",
+      "acceptance": [
+        "docs/V0_SCOPE_AND_PIPELINE_PLAN.md mentions docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md or dist/private_reports/generated_overlay_gameplay_acceptance_v0.json.",
+        "The wording stays limited to the v0 pipeline boundary and evidence visibility.",
+        "No new runtime behavior or broader architecture scope is introduced."
+      ],
+      "preferred_tests": [
+        "rg -n \"GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN|generated_overlay_gameplay_acceptance_v0\" docs/V0_SCOPE_AND_PIPELINE_PLAN.md"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-090-allowlisted-event-family-branch-compiler-tests",
+      "title": "Allowlisted event-family branch compiler tests",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Reactive policy-pack DSL/compiler support for allowlisted event-family branches",
+      "goal": "Add the first bounded compiler/test slice for allowlisted event-family branches so the reactive-policy-pack path can validate a real branch without opening the whole strategic surface.",
+      "acceptance": [
+        "The DSL/compiler path rejects unallowlisted event-family values and accepts the approved branch shape.",
+        "The change stays bounded to the reactive-policy-pack compiler/test slice.",
+        "Existing generated overlay and v0 pipeline contracts remain fail-closed."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
     }
