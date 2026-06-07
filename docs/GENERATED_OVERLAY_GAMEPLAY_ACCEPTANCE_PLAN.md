@@ -4,6 +4,12 @@
 
 Close the current verification gap: generated overlay files are deterministic and fail-closed, but gameplay effect is not yet verified in a Stellaris-like execution surface.
 
+This document is the bounded owner-facing checklist for that gap. It is intentionally narrower than the monthly reactive owner-test playbook:
+
+- this plan verifies the current v0 generated overlay gameplay branches for the initial two strategy domains
+- the monthly reactive playbook verifies the later published reactive branch visibility path
+- both documents stay fail-closed and should not be treated as strategic-quality proof
+
 ## Scope
 
 This v0 plan verifies only bounded strategic behavior already present in generated DSL/overlay contracts:
@@ -22,6 +28,23 @@ No new strategic domains are introduced here.
 3. Overlay can be compiled and verified:
    - `Strategic Nexus.exe --compile-generated-overlay ...`
    - `Strategic Nexus.exe --verify-generated-overlay ...`
+
+## Owner-Run Checklist
+
+When the generated overlay gameplay acceptance gap is ready to exercise, the owner should:
+
+1. Start Stellaris with the currently published Strategic Nexus generated overlay snapshot.
+2. Open or continue a normal non-Ironman session where the next monthly pulse can be observed safely.
+3. Wait for at least one monthly pulse after the overlay is active.
+4. Confirm that one of the current v0 harmless markers appears in-game.
+5. Stop the session and let Codex inspect the evidence artifacts listed below.
+
+The current harmless markers are:
+
+- `Strategic Nexus v0: Defensive military posture`
+- `Strategic Nexus v0: Aggressive military posture`
+- `Strategic Nexus v0: Economy research bias`
+- `Strategic Nexus v0: Military industry research bias`
 
 ## Functional Acceptance Cases
 
@@ -98,11 +121,22 @@ For each accepted run, record:
 - pass/fail result
 - manifest hash (`generated_overlay_manifest_hash`) where available
 - short note describing observed strategic effect branch
+- which of the four harmless markers actually appeared
+- whether the result came from a fresh owner-run session or from a verification fixture
+- any mismatch between the published overlay and the expected v0 domain branch
 
-Store evidence as local report artifacts under `dist/private_reports/`.
-Primary automation artifact path:
+Primary evidence artifacts:
 
 - `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`
+- `dist/private_reports/snc_generated_overlay_publish_status.json`
+- `dist/real_session_v0_loop/<session_id>/real_session_v0_loop_evidence.json`
+- `dist/real_session_v0_loop/<session_id>/real_session_v0_next_steps.md`
+
+Store evidence as local report artifacts under `dist/private_reports/`.
+Secondary evidence from the live game session may also include:
+
+- `Documents/Paradox Interactive/Stellaris/logs/error.log`
+- the generated overlay manifest and verify status for the active snapshot
 
 ## Done Criteria
 
@@ -111,5 +145,6 @@ The generated overlay gameplay verification gap is considered covered for v0 whe
 1. Cases A-D pass with reproducible evidence.
 2. Cases E-F fail closed as expected.
 3. The result is visible in owner-facing status/reporting as `gameplay acceptance: verified for v0 domains`.
+4. The owner can repeat the checklist without reopening the roadmap or guessing which artifact matters.
 
 Until then, generated overlays remain contract-verified but not fully gameplay-verified.
