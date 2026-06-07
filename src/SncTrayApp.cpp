@@ -190,6 +190,7 @@ constexpr int kStatusTitleBarHeight = 34;
 constexpr int kStatusTitleButtonWidth = 42;
 constexpr int kStatusResizeBorder = 8;
 constexpr int kSncTrayIconResourceId = 1;
+constexpr wchar_t kSncAppUserModelId[] = L"StrategicNexus.Companion";
 NOTIFYICONDATAW g_trayIcon{};
 HICON g_sncTrayIcon = nullptr;
 UINT g_taskbarCreatedMessage = 0;
@@ -871,6 +872,24 @@ void requestStatusWindowRefresh()
     if (g_statusWindow != nullptr && IsWindow(g_statusWindow)) {
         PostMessageW(g_statusWindow, WM_SNC_STATUS_REFRESH, 0, 0);
     }
+}
+
+void applySncAppUserModelId()
+{
+    using SetCurrentProcessExplicitAppUserModelIdFn = HRESULT(WINAPI*)(PCWSTR);
+
+    const HMODULE shell32 = GetModuleHandleW(L"shell32.dll");
+    if (shell32 == nullptr) {
+        return;
+    }
+
+    const auto setAppUserModelId = reinterpret_cast<SetCurrentProcessExplicitAppUserModelIdFn>(
+        GetProcAddress(shell32, "SetCurrentProcessExplicitAppUserModelID"));
+    if (setAppUserModelId == nullptr) {
+        return;
+    }
+
+    setAppUserModelId(kSncAppUserModelId);
 }
 
 void applyWindowIcons(HWND hwnd)
@@ -3623,6 +3642,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
 {
     initializePaths();
     g_sncTrayIcon = loadSncTrayIcon();
+    applySncAppUserModelId();
 
     HANDLE mutex = CreateMutexW(nullptr, TRUE, L"StrategicNexusCompanionTraySingleInstance");
     if (mutex == nullptr) {
