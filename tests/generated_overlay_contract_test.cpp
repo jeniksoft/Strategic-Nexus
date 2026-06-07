@@ -244,6 +244,23 @@ int main()
     }
 
     {
+        const auto parseResult = parser.parse(R"(campaign "campaign_reactive_country" { empire "empire_001" { rule "attack_response" { ministry = military_ministry event_family = country_attacked prefer military_posture defensive intensity 0.75 duration = next_session confidence = 0.73 rationale = "country attacked branch" } } })");
+        requireCondition(parseResult.ok, "country_attacked DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(validation.ok, "country_attacked should validate as an allowlisted event family");
+        const auto files = compiler.compile(parseResult.program);
+        requireCondition(
+            files.scriptedEffectsText.find("strategic_nexus_generated_country_attacked_dispatch = {") != std::string::npos,
+            "compiler should emit a country_attacked dispatcher branch");
+        requireCondition(
+            files.scriptedEffectsText.find("strategic_nexus_generated_effect_campaign_reactive_country_empire_001_attack_response = yes") != std::string::npos,
+            "country_attacked dispatcher should call the compiled attack branch effect");
+        requireCondition(
+            files.manifestText.find("\"event_families\": [\"country_attacked\"]") != std::string::npos,
+            "manifest should list country_attacked as the covered family");
+    }
+
+    {
         const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "bad_event_family" { ministry = military_ministry event_family = on_monthly_pulse_country prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.9 rationale = "bad" } } })");
         requireCondition(parseResult.ok, "raw on_action-like event family should parse before validation");
         const auto validation = validator.validate(parseResult.program);
