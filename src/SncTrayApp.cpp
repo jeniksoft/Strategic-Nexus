@@ -29,6 +29,7 @@
 #include "generated_overlay/MpOverlayPackage.h"
 
 #include <windows.h>
+#include <windowsx.h>
 #include <shellapi.h>
 
 #include <atomic>
@@ -62,6 +63,8 @@ constexpr UINT ID_STATUS_COPY = 202;
 constexpr UINT ID_STATUS_OPEN_ARCHIVE = 203;
 constexpr UINT ID_STATUS_OPEN_BRIEF = 204;
 constexpr UINT ID_STATUS_CLOSE = 205;
+constexpr UINT ID_STATUS_MAXIMIZE = 206;
+constexpr UINT ID_STATUS_MINIMIZE = 207;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -148,6 +151,8 @@ HWND g_statusCopyButton = nullptr;
 HWND g_statusOpenArchiveButton = nullptr;
 HWND g_statusOpenBriefButton = nullptr;
 HWND g_statusCloseButton = nullptr;
+HWND g_statusMaximizeButton = nullptr;
+HWND g_statusMinimizeButton = nullptr;
 HWND g_statusWindow = nullptr;
 HWND g_statusHeader = nullptr;
 HWND g_statusSubtitle = nullptr;
@@ -181,6 +186,9 @@ constexpr COLORREF kStatusValueBackgroundColor = RGB(7, 18, 20);
 constexpr COLORREF kStatusValueBorderColor = RGB(39, 72, 74);
 constexpr const wchar_t* kStatusEmptyValue = L"\u2014";
 constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWindow";
+constexpr int kStatusTitleBarHeight = 34;
+constexpr int kStatusTitleButtonWidth = 42;
+constexpr int kStatusResizeBorder = 8;
 constexpr int kSncTrayIconResourceId = 1;
 NOTIFYICONDATAW g_trayIcon{};
 HICON g_sncTrayIcon = nullptr;
@@ -203,6 +211,7 @@ HWND createStatusValue(HWND parent, const wchar_t* text = L"");
 HWND createStatusButton(HWND parent, UINT id, const wchar_t* text);
 void drawStatusButton(const DRAWITEMSTRUCT& drawItem);
 void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
+void updateStatusCaptionButtons(HWND hwnd);
 bool copyTextToClipboard(HWND hwnd, const std::wstring& text);
 void ensureStatusWindowResources();
 void destroyStatusWindowResources();
@@ -469,6 +478,19 @@ void openPathWithShell(HWND hwnd, const std::filesystem::path& path)
     }
 }
 
+void updateStatusCaptionButtons(HWND hwnd)
+{
+    if (g_statusMaximizeButton != nullptr) {
+        SetWindowTextW(g_statusMaximizeButton, IsZoomed(hwnd) ? L"[]" : L"[ ]");
+    }
+    if (g_statusMinimizeButton != nullptr) {
+        SetWindowTextW(g_statusMinimizeButton, L"-");
+    }
+    if (g_statusCloseButton != nullptr) {
+        SetWindowTextW(g_statusCloseButton, L"X");
+    }
+}
+
 StatusDashboardData loadStatusDashboardData()
 {
     StatusDashboardData data;
@@ -712,7 +734,7 @@ void ensureStatusWindowResources()
         g_statusBorderBrush = CreateSolidBrush(kStatusBorderColor);
     }
     if (g_statusHeaderFont == nullptr) {
-        g_statusHeaderFont = createUiFont(18, FW_SEMIBOLD, L"Bahnschrift");
+        g_statusHeaderFont = createUiFont(10, FW_NORMAL, L"Bahnschrift");
     }
     if (g_statusSectionFont == nullptr) {
         g_statusSectionFont = createUiFont(11, FW_SEMIBOLD, L"Bahnschrift");
@@ -833,6 +855,13 @@ void refreshStatusWindowContent()
     if (g_statusCloseButton != nullptr) {
         EnableWindow(g_statusCloseButton, TRUE);
     }
+    if (g_statusMaximizeButton != nullptr) {
+        EnableWindow(g_statusMaximizeButton, TRUE);
+    }
+    if (g_statusMinimizeButton != nullptr) {
+        EnableWindow(g_statusMinimizeButton, TRUE);
+    }
+    updateStatusCaptionButtons(g_statusWindow);
 
     RedrawWindow(g_statusWindow, nullptr, nullptr, RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_FRAME);
 }
@@ -864,11 +893,12 @@ void layoutStatusWindow(HWND hwnd)
     const int width = client.right - client.left;
     const int height = client.bottom - client.top;
     const int margin = 18;
-    const int top = 14;
-    const int headerHeight = 30;
+    const int top = 8;
+    const int headerHeight = 22;
     const int subtitleHeight = 20;
     const int buttonHeight = 29;
     const int buttonGap = 8;
+    const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     int buttonWidth = 116;
     const int availableWidth = width - (margin * 2);
     const int requiredButtonWidth = (buttonWidth * 5) + (buttonGap * 4);
@@ -879,9 +909,9 @@ void layoutStatusWindow(HWND hwnd)
         }
     }
 
-    const int headerWidth = availableWidth;
-    const int subtitleTop = top + headerHeight + 2;
-    const int buttonTop = subtitleTop + subtitleHeight + 12;
+    const int headerWidth = availableWidth - titleButtonsWidth - 12;
+    const int subtitleTop = top + kStatusTitleBarHeight + 12;
+    const int buttonTop = subtitleTop + subtitleHeight + 10;
     const int gridTop = buttonTop + buttonHeight + 14;
 
     int bottomHeight = (height / 4) + 96;
@@ -933,8 +963,23 @@ void layoutStatusWindow(HWND hwnd)
         MoveWindow(g_statusSubtitle, margin, subtitleTop, headerWidth, subtitleHeight, TRUE);
     }
 
-    const HWND buttons[] = { g_statusRefreshButton, g_statusCopyButton, g_statusOpenArchiveButton, g_statusOpenBriefButton, g_statusCloseButton };
-    const wchar_t* buttonTexts[] = { L"Obnovit", L"Kop\u00EDrovat", L"Archiv", L"Souhrn", L"Konec" };
+    const int titleButtonTop = top - 2;
+    const int closeLeft = width - margin - kStatusTitleButtonWidth;
+    const int maximizeLeft = closeLeft - kStatusTitleButtonWidth;
+    const int minimizeLeft = maximizeLeft - kStatusTitleButtonWidth;
+    updateStatusCaptionButtons(hwnd);
+    if (g_statusCloseButton != nullptr) {
+        MoveWindow(g_statusCloseButton, closeLeft, titleButtonTop, kStatusTitleButtonWidth, 24, TRUE);
+    }
+    if (g_statusMaximizeButton != nullptr) {
+        MoveWindow(g_statusMaximizeButton, maximizeLeft, titleButtonTop, kStatusTitleButtonWidth, 24, TRUE);
+    }
+    if (g_statusMinimizeButton != nullptr) {
+        MoveWindow(g_statusMinimizeButton, minimizeLeft, titleButtonTop, kStatusTitleButtonWidth, 24, TRUE);
+    }
+
+    const HWND buttons[] = { g_statusRefreshButton, g_statusCopyButton, g_statusOpenArchiveButton, g_statusOpenBriefButton };
+    const wchar_t* buttonTexts[] = { L"Obnovit", L"Kop\u00EDrovat", L"Archiv", L"Souhrn" };
     for (std::size_t index = 0; index < std::size(buttons); ++index) {
         if (buttons[index] != nullptr) {
             SetWindowTextW(buttons[index], buttonTexts[index]);
@@ -1014,7 +1059,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kop\u00EDrovat");
         g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
         g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
-        g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"Konec");
+        g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"X");
+        g_statusMaximizeButton = createStatusButton(hwnd, ID_STATUS_MAXIMIZE, L"[ ]");
+        g_statusMinimizeButton = createStatusButton(hwnd, ID_STATUS_MINIMIZE, L"-");
         g_statusBottomTitle = createStatusStatic(hwnd, L"Dal\u0161\u00ED krok", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusDetails = CreateWindowExW(
             WS_EX_CLIENTEDGE,
@@ -1049,6 +1096,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenArchiveButton, g_statusFieldFont);
         setWindowFont(g_statusOpenBriefButton, g_statusFieldFont);
         setWindowFont(g_statusCloseButton, g_statusFieldFont);
+        setWindowFont(g_statusMaximizeButton, g_statusFieldFont);
+        setWindowFont(g_statusMinimizeButton, g_statusFieldFont);
         setWindowFont(g_statusBottomTitle, g_statusSectionFont);
         setWindowFont(g_statusDetails, g_statusDetailsFont);
 
@@ -1059,6 +1108,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
     }
     case WM_SIZE:
         layoutStatusWindow(hwnd);
+        updateStatusCaptionButtons(hwnd);
         return 0;
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
@@ -1075,6 +1125,13 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_BRIEF:
             openPathWithShell(hwnd, g_nextStepsBriefPath);
+            return 0;
+        case ID_STATUS_MAXIMIZE:
+            ShowWindow(hwnd, IsZoomed(hwnd) ? SW_RESTORE : SW_MAXIMIZE);
+            updateStatusCaptionButtons(hwnd);
+            return 0;
+        case ID_STATUS_MINIMIZE:
+            ShowWindow(hwnd, SW_MINIMIZE);
             return 0;
         case ID_STATUS_CLOSE:
             DestroyWindow(hwnd);
@@ -1094,10 +1151,69 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
     case WM_SNC_STATUS_REFRESH:
         refreshStatusWindowContent();
         return 0;
+    case WM_NCCALCSIZE:
+        return 0;
+    case WM_NCACTIVATE:
+        return TRUE;
+    case WM_NCHITTEST: {
+        if (IsZoomed(hwnd)) {
+            return HTCLIENT;
+        }
+
+        POINT point{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+        RECT windowRect{};
+        GetWindowRect(hwnd, &windowRect);
+
+        const int x = point.x - windowRect.left;
+        const int y = point.y - windowRect.top;
+        const int width = windowRect.right - windowRect.left;
+        const int height = windowRect.bottom - windowRect.top;
+
+        const bool left = x < kStatusResizeBorder;
+        const bool right = x >= width - kStatusResizeBorder;
+        const bool top = y < kStatusResizeBorder;
+        const bool bottom = y >= height - kStatusResizeBorder;
+
+        if (top && left) return HTTOPLEFT;
+        if (top && right) return HTTOPRIGHT;
+        if (bottom && left) return HTBOTTOMLEFT;
+        if (bottom && right) return HTBOTTOMRIGHT;
+        if (left) return HTLEFT;
+        if (right) return HTRIGHT;
+        if (top) return HTTOP;
+        if (bottom) return HTBOTTOM;
+
+        RECT closeRect{};
+        RECT maxRect{};
+        RECT minRect{};
+        if ((g_statusCloseButton != nullptr && GetWindowRect(g_statusCloseButton, &closeRect) && PtInRect(&closeRect, point)) ||
+            (g_statusMaximizeButton != nullptr && GetWindowRect(g_statusMaximizeButton, &maxRect) && PtInRect(&maxRect, point)) ||
+            (g_statusMinimizeButton != nullptr && GetWindowRect(g_statusMinimizeButton, &minRect) && PtInRect(&minRect, point))) {
+            return HTCLIENT;
+        }
+
+        if (y < kStatusTitleBarHeight) {
+            return HTCAPTION;
+        }
+
+        return HTCLIENT;
+    }
     case WM_GETMINMAXINFO: {
         auto* info = reinterpret_cast<MINMAXINFO*>(lParam);
         info->ptMinTrackSize.x = 900;
         info->ptMinTrackSize.y = 640;
+
+        HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        if (monitor != nullptr) {
+            MONITORINFO monitorInfo{};
+            monitorInfo.cbSize = sizeof(monitorInfo);
+            if (GetMonitorInfoW(monitor, &monitorInfo)) {
+                info->ptMaxPosition.x = monitorInfo.rcWork.left - monitorInfo.rcMonitor.left;
+                info->ptMaxPosition.y = monitorInfo.rcWork.top - monitorInfo.rcMonitor.top;
+                info->ptMaxSize.x = monitorInfo.rcWork.right - monitorInfo.rcWork.left;
+                info->ptMaxSize.y = monitorInfo.rcWork.bottom - monitorInfo.rcWork.top;
+            }
+        }
         return 0;
     }
     case WM_CTLCOLORSTATIC: {
@@ -1106,7 +1222,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         COLORREF color = kStatusMutedColor;
         bool accent = false;
 
-        if (control == g_statusHeader || control == g_statusBottomTitle) {
+        if (control == g_statusHeader) {
+            color = kStatusTextColor;
+        } else if (control == g_statusBottomTitle) {
             accent = true;
         } else if (control == g_statusSubtitle) {
             color = kStatusMutedColor;
@@ -1147,6 +1265,15 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         topBand.bottom = topBand.top + 4;
         FillRect(hdc, &topBand, g_statusAccentBrush);
 
+        RECT titleBand = client;
+        titleBand.top += 4;
+        titleBand.bottom = titleBand.top + kStatusTitleBarHeight;
+        FillRect(hdc, &titleBand, g_statusBackgroundBrush);
+
+        RECT titleBorder = titleBand;
+        titleBorder.top = titleBorder.bottom - 1;
+        FillRect(hdc, &titleBorder, g_statusBorderBrush);
+
         RECT border = client;
         border.top = border.bottom - 2;
         FillRect(hdc, &border, g_statusBorderBrush);
@@ -1168,6 +1295,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenArchiveButton = nullptr;
         g_statusOpenBriefButton = nullptr;
         g_statusCloseButton = nullptr;
+        g_statusMaximizeButton = nullptr;
+        g_statusMinimizeButton = nullptr;
         for (auto& label : g_statusFieldLabels) {
             label = nullptr;
         }
@@ -3303,7 +3432,7 @@ void showStatusDialog(HWND hwnd)
         WS_EX_APPWINDOW,
         kStatusWindowClassName,
         g_statusTitle.c_str(),
-        WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+        WS_POPUP | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         960,
