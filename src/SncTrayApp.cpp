@@ -32,10 +32,12 @@
 #include <shellapi.h>
 
 #include <atomic>
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <ctime>
 #include <filesystem>
+#include <iterator>
 #include <mutex>
 #include <optional>
 #include <regex>
@@ -55,6 +57,61 @@ constexpr UINT ID_TRAY_STATUS = 101;
 constexpr UINT ID_TRAY_OPEN_ARCHIVE = 102;
 constexpr UINT ID_TRAY_EXIT = 103;
 constexpr UINT ID_TRAY_PUBLISH_GENERATED_OVERLAY = 104;
+constexpr UINT ID_STATUS_REFRESH = 201;
+constexpr UINT ID_STATUS_COPY = 202;
+constexpr UINT ID_STATUS_OPEN_ARCHIVE = 203;
+constexpr UINT ID_STATUS_OPEN_BRIEF = 204;
+constexpr UINT ID_STATUS_CLOSE = 205;
+
+enum class StatusFieldId : std::size_t {
+    LiveState = 0,
+    LiveStellaris,
+    LiveSession,
+    LiveStartup,
+    ArchivePath,
+    ArchiveVerified,
+    ArchiveCopied,
+    ArchiveSkipped,
+    OverlayStaging,
+    OverlayGate,
+    OverlayAllowed,
+    OverlayActive,
+    ModelState,
+    ModelRuntime,
+    ModelRecommendation,
+    ModelMode,
+    Count
+};
+
+struct StatusDashboardData {
+    std::wstring subtitle;
+    std::wstring liveState;
+    std::wstring liveStellaris;
+    std::wstring liveSession;
+    std::wstring liveStartup;
+    std::wstring archivePath;
+    std::wstring archiveVerified;
+    std::wstring archiveCopied;
+    std::wstring archiveSkipped;
+    std::wstring overlayStaging;
+    std::wstring overlayGate;
+    std::wstring overlayAllowed;
+    std::wstring overlayActive;
+    std::wstring modelState;
+    std::wstring modelRuntime;
+    std::wstring modelRecommendation;
+    std::wstring modelMode;
+    std::wstring nextAction;
+    std::wstring nextReason;
+    std::wstring nextHint;
+    std::wstring nextPlaybook;
+    std::wstring nextActionPath;
+};
+
+struct DashboardSectionSpec {
+    const wchar_t* title;
+    std::array<StatusFieldId, 4> fields;
+};
 
 std::atomic_bool g_stopRequested{false};
 std::thread g_worker;
@@ -82,17 +139,35 @@ std::filesystem::path g_gameplayAcceptanceReportPath;
 std::filesystem::path g_mpOverlayPackageDirectory;
 std::filesystem::path g_mpOverlayPackageZipPath;
 std::filesystem::path g_trayIconPath;
+std::array<HWND, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldLabels{};
+std::array<HWND, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldValues{};
+std::array<HWND, 4> g_statusSectionTitles{};
+HWND g_statusBottomTitle = nullptr;
+HWND g_statusRefreshButton = nullptr;
+HWND g_statusCopyButton = nullptr;
+HWND g_statusOpenArchiveButton = nullptr;
+HWND g_statusOpenBriefButton = nullptr;
+HWND g_statusCloseButton = nullptr;
 HWND g_statusWindow = nullptr;
 HWND g_statusHeader = nullptr;
 HWND g_statusSubtitle = nullptr;
 HWND g_statusDetails = nullptr;
 HFONT g_statusHeaderFont = nullptr;
+HFONT g_statusSectionFont = nullptr;
+HFONT g_statusFieldFont = nullptr;
 HFONT g_statusSubtitleFont = nullptr;
 HFONT g_statusDetailsFont = nullptr;
 HBRUSH g_statusBackgroundBrush = nullptr;
 HBRUSH g_statusPanelBrush = nullptr;
 HBRUSH g_statusAccentBrush = nullptr;
 HBRUSH g_statusBorderBrush = nullptr;
+HBRUSH g_statusValueBrush = nullptr;
+const std::array<DashboardSectionSpec, 4> kStatusSections = {
+    DashboardSectionSpec{L"\u017Div\u00E9 hran\u00ED", {StatusFieldId::LiveState, StatusFieldId::LiveStellaris, StatusFieldId::LiveSession, StatusFieldId::LiveStartup}},
+    DashboardSectionSpec{L"Archiv", {StatusFieldId::ArchivePath, StatusFieldId::ArchiveVerified, StatusFieldId::ArchiveCopied, StatusFieldId::ArchiveSkipped}},
+    DashboardSectionSpec{L"Overlay", {StatusFieldId::OverlayStaging, StatusFieldId::OverlayGate, StatusFieldId::OverlayAllowed, StatusFieldId::OverlayActive}},
+    DashboardSectionSpec{L"Model", {StatusFieldId::ModelState, StatusFieldId::ModelRuntime, StatusFieldId::ModelRecommendation, StatusFieldId::ModelMode}},
+};
 constexpr const char* kTrayMpOverlayVersion = "overlay_v0_session";
 constexpr const char* kTrayMpGameVersion = "stellaris_4.x";
 constexpr const char* kTrayMpModVersion = "strategic_nexus_v0";
@@ -102,6 +177,9 @@ constexpr COLORREF kStatusTextColor = RGB(232, 239, 240);
 constexpr COLORREF kStatusMutedColor = RGB(146, 162, 164);
 constexpr COLORREF kStatusAccentColor = RGB(214, 170, 76);
 constexpr COLORREF kStatusBorderColor = RGB(26, 71, 76);
+constexpr COLORREF kStatusValueBackgroundColor = RGB(7, 18, 20);
+constexpr COLORREF kStatusValueBorderColor = RGB(39, 72, 74);
+constexpr const wchar_t* kStatusEmptyValue = L"\u2014";
 constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWindow";
 constexpr int kSncTrayIconResourceId = 1;
 NOTIFYICONDATAW g_trayIcon{};
@@ -110,6 +188,22 @@ UINT g_taskbarCreatedMessage = 0;
 
 std::wstring buildStatusDialogText();
 std::wstring buildStatusSubtitleText();
+std::wstring buildDashboardCopyText(const StatusDashboardData& data);
+std::wstring buildDashboardBottomText(const StatusDashboardData& data);
+std::wstring utf8ToWide(const std::string& value);
+StatusDashboardData loadStatusDashboardData();
+std::optional<std::string> extractSummaryLineValue(const std::string& summary, const char* key);
+std::wstring makeRelativeDisplay(const std::filesystem::path& path);
+std::wstring compactBoolText(const std::string& value, const wchar_t* yesText = L"ano", const wchar_t* noText = L"ne");
+std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator = L" | ");
+const wchar_t* statusFieldLabel(StatusFieldId id);
+void setWindowFont(HWND hwnd, HFONT font);
+HWND createStatusStatic(HWND parent, const wchar_t* text, DWORD style = WS_CHILD | WS_VISIBLE);
+HWND createStatusValue(HWND parent, const wchar_t* text = L"");
+HWND createStatusButton(HWND parent, UINT id, const wchar_t* text);
+void drawStatusButton(const DRAWITEMSTRUCT& drawItem);
+void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
+bool copyTextToClipboard(HWND hwnd, const std::wstring& text);
 void ensureStatusWindowResources();
 void destroyStatusWindowResources();
 void refreshStatusWindowContent();
@@ -160,23 +254,7 @@ std::string pathString(const std::filesystem::path& path)
 
 std::wstring buildStatusDialogText()
 {
-    std::wstring text;
-    {
-        std::lock_guard<std::mutex> lock(g_statusMutex);
-        text = g_statusText;
-    }
-
-    text += L"\n\nStatus JSON:\n";
-    text += g_trayStatusPath.wstring();
-    text += L"\n\nArchiv:\n";
-    text += g_archiveRoot.wstring();
-    text += L"\n\nStaged overlay status:\n";
-    text += g_generatedOverlayStagingStatusPath.wstring();
-    text += L"\n\nActive overlay snapshot:\n";
-    text += g_generatedOverlayActiveDirectory.wstring();
-    text += L"\n\nDalsi kroky:\n";
-    text += g_nextStepsBriefPath.wstring();
-    return text;
+    return buildDashboardBottomText(loadStatusDashboardData());
 }
 
 std::wstring buildStatusSubtitleText()
@@ -190,6 +268,406 @@ std::wstring buildStatusSubtitleText()
         subtitle = L"SNC bezi.";
     }
     return L"Stav: " + subtitle;
+}
+
+std::optional<std::string> extractSummaryLineValue(const std::string& summary, const char* key)
+{
+    const std::string prefix = std::string(key) + ": ";
+    std::istringstream stream(summary);
+    std::string line;
+    while (std::getline(stream, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        if (line.rfind(prefix, 0) == 0) {
+            return line.substr(prefix.size());
+        }
+    }
+    return std::nullopt;
+}
+
+std::wstring makeRelativeDisplay(const std::filesystem::path& path)
+{
+    if (path.empty()) {
+        return kStatusEmptyValue;
+    }
+
+    std::error_code error;
+    const auto relative = std::filesystem::relative(path, g_repoRoot, error);
+    if (!error && !relative.empty()) {
+        return utf8ToWide(pathString(relative));
+    }
+    return utf8ToWide(pathString(path));
+}
+
+std::wstring compactBoolText(const std::string& value, const wchar_t* yesText, const wchar_t* noText)
+{
+    if (value == "true") {
+        return yesText;
+    }
+    if (value == "false") {
+        return noText;
+    }
+    return value.empty() ? kStatusEmptyValue : utf8ToWide(value);
+}
+
+std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator)
+{
+    std::wstring output;
+    for (const auto& value : values) {
+        if (value.empty() || value == kStatusEmptyValue) {
+            continue;
+        }
+        if (!output.empty()) {
+            output += separator;
+        }
+        output += value;
+    }
+    return output.empty() ? kStatusEmptyValue : output;
+}
+
+const wchar_t* statusFieldLabel(const StatusFieldId id)
+{
+    switch (id) {
+    case StatusFieldId::LiveState: return L"Stav";
+    case StatusFieldId::LiveStellaris: return L"Stellaris";
+    case StatusFieldId::LiveSession: return L"Session";
+    case StatusFieldId::LiveStartup: return L"Start";
+    case StatusFieldId::ArchivePath: return L"Cesta";
+    case StatusFieldId::ArchiveVerified: return L"Ověřeno";
+    case StatusFieldId::ArchiveCopied: return L"Kopie";
+    case StatusFieldId::ArchiveSkipped: return L"Přeskočeno";
+    case StatusFieldId::OverlayStaging: return L"Staging";
+    case StatusFieldId::OverlayGate: return L"Gate";
+    case StatusFieldId::OverlayAllowed: return L"Povoleno";
+    case StatusFieldId::OverlayActive: return L"Aktivní";
+    case StatusFieldId::ModelState: return L"Stav";
+    case StatusFieldId::ModelRuntime: return L"Runtime";
+    case StatusFieldId::ModelRecommendation: return L"Doporučení";
+    case StatusFieldId::ModelMode: return L"Režim";
+    case StatusFieldId::Count: break;
+    }
+    return L"";
+}
+
+void setWindowFont(HWND hwnd, HFONT font)
+{
+    if (hwnd != nullptr && font != nullptr) {
+        SendMessageW(hwnd, WM_SETFONT, reinterpret_cast<WPARAM>(font), TRUE);
+    }
+}
+
+HWND createStatusStatic(HWND parent, const wchar_t* text, DWORD style)
+{
+    return CreateWindowExW(
+        0,
+        L"STATIC",
+        text,
+        style,
+        0,
+        0,
+        0,
+        0,
+        parent,
+        nullptr,
+        GetModuleHandleW(nullptr),
+        nullptr);
+}
+
+HWND createStatusValue(HWND parent, const wchar_t* text)
+{
+    return CreateWindowExW(
+        WS_EX_CLIENTEDGE,
+        L"EDIT",
+        text,
+        WS_CHILD | WS_VISIBLE | ES_LEFT | ES_READONLY | ES_AUTOHSCROLL | ES_NOHIDESEL,
+        0,
+        0,
+        0,
+        0,
+        parent,
+        nullptr,
+        GetModuleHandleW(nullptr),
+        nullptr);
+}
+
+HWND createStatusButton(HWND parent, UINT id, const wchar_t* text)
+{
+    return CreateWindowExW(
+        0,
+        L"BUTTON",
+        text,
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW,
+        0,
+        0,
+        0,
+        0,
+        parent,
+        reinterpret_cast<HMENU>(static_cast<INT_PTR>(id)),
+        GetModuleHandleW(nullptr),
+        nullptr);
+}
+
+void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
+{
+    if (drawItem.hDC == nullptr) {
+        return;
+    }
+
+    const bool disabled = (drawItem.itemState & ODS_DISABLED) != 0;
+    const bool selected = (drawItem.itemState & ODS_SELECTED) != 0;
+    const bool focused = (drawItem.itemState & ODS_FOCUS) != 0;
+
+    RECT rc = drawItem.rcItem;
+    const COLORREF fillColor = disabled
+        ? RGB(6, 11, 13)
+        : (selected ? RGB(16, 39, 42) : kStatusPanelColor);
+
+    const HBRUSH fillBrush = CreateSolidBrush(fillColor);
+    FillRect(drawItem.hDC, &rc, fillBrush);
+    DeleteObject(fillBrush);
+
+    const HBRUSH borderBrush = disabled ? g_statusBorderBrush : (selected ? g_statusAccentBrush : g_statusBorderBrush);
+    FrameRect(drawItem.hDC, &rc, borderBrush);
+
+    if (focused) {
+        RECT focusRc = rc;
+        InflateRect(&focusRc, -3, -3);
+        DrawFocusRect(drawItem.hDC, &focusRc);
+    }
+
+    wchar_t label[128]{};
+    GetWindowTextW(drawItem.hwndItem, label, static_cast<int>(std::size(label)));
+
+    SetBkMode(drawItem.hDC, TRANSPARENT);
+    SetTextColor(drawItem.hDC, disabled ? kStatusMutedColor : kStatusTextColor);
+    const HGDIOBJ oldFont = SelectObject(drawItem.hDC, g_statusSectionFont != nullptr ? g_statusSectionFont : GetStockObject(DEFAULT_GUI_FONT));
+    rc.left += 10;
+    rc.right -= 10;
+    DrawTextW(drawItem.hDC, label, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+    if (oldFont != nullptr) {
+        SelectObject(drawItem.hDC, oldFont);
+    }
+}
+
+void openPathWithShell(HWND hwnd, const std::filesystem::path& path)
+{
+    if (path.empty()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    std::error_code error;
+    if (!std::filesystem::exists(path, error)) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    const HINSTANCE result = ShellExecuteW(hwnd, L"open", path.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    if (reinterpret_cast<INT_PTR>(result) <= 32) {
+        MessageBeep(MB_ICONWARNING);
+    }
+}
+
+StatusDashboardData loadStatusDashboardData()
+{
+    StatusDashboardData data;
+    data.subtitle = L"Stav: SNC bezi.";
+    data.liveState = L"SNC bezi.";
+    data.liveStellaris = L"—";
+    data.liveSession = L"—";
+    data.liveStartup = L"—";
+    data.archivePath = makeRelativeDisplay(g_archiveRoot);
+    data.archiveVerified = L"—";
+    data.archiveCopied = L"0";
+    data.archiveSkipped = L"0";
+    data.overlayStaging = L"—";
+    data.overlayGate = L"—";
+    data.overlayAllowed = L"—";
+    data.overlayActive = makeRelativeDisplay(g_generatedOverlayActiveDirectory);
+    data.modelState = L"—";
+    data.modelRuntime = L"—";
+    data.modelRecommendation = L"—";
+    data.modelMode = L"—";
+    data.nextAction = L"—";
+    data.nextReason = L"—";
+    data.nextHint = L"—";
+    data.nextPlaybook = g_nextStepsBriefPath.empty() ? L"—" : utf8ToWide(pathString(g_nextStepsBriefPath));
+    data.nextActionPath = L"—";
+
+    std::string json;
+    if (!strategic_nexus::common::tryReadTextFile(g_trayStatusPath, json)) {
+        std::lock_guard<std::mutex> lock(g_statusMutex);
+        const std::wstring fallback = g_statusText.empty() ? L"SNC bezi." : g_statusText;
+        data.subtitle = L"Stav: " + fallback;
+        data.liveState = fallback;
+        return data;
+    }
+
+    const auto summaryText = strategic_nexus::common::extractJsonString(json, "status_center_summary_text").value_or("");
+    const auto summaryValue = [&](const char* key) -> std::string {
+        return extractSummaryLineValue(summaryText, key).value_or("");
+    };
+
+    const std::string stateLine = summaryValue("stav");
+    if (!stateLine.empty()) {
+        data.subtitle = L"Stav: " + utf8ToWide(stateLine);
+        data.liveState = utf8ToWide(stateLine);
+    }
+
+    data.liveStellaris = compactBoolText(summaryValue("stellaris_running"));
+    data.liveSession = utf8ToWide(summaryValue("session_id"));
+    data.liveStartup = utf8ToWide(summaryValue("startup_lifecycle_state"));
+    if (data.liveStartup == L"owner_enabled_start_with_windows") {
+        data.liveStartup = L"spustit pri startu Windows";
+    } else if (data.liveStartup == L"manual_start_only") {
+        data.liveStartup = L"rucni start";
+    }
+
+    const std::string archiveRoot = summaryValue("archive_root");
+    if (!archiveRoot.empty()) {
+        data.archivePath = utf8ToWide(archiveRoot);
+    }
+    data.archiveVerified = compactBoolText(summaryValue("archive_verified"));
+    data.archiveCopied = utf8ToWide(summaryValue("copied_count_total"));
+    data.archiveSkipped = utf8ToWide(summaryValue("skipped_count_total"));
+
+    data.overlayStaging = utf8ToWide(summaryValue("generated_overlay_staging_readiness"));
+    const std::string publishGateState = summaryValue("generated_overlay_publish_gate_state");
+    const std::string publishGateReason = summaryValue("generated_overlay_publish_gate_reason");
+    if (!publishGateState.empty() && !publishGateReason.empty()) {
+        data.overlayGate = utf8ToWide(publishGateState) + L" - " + utf8ToWide(publishGateReason);
+    } else if (!publishGateState.empty()) {
+        data.overlayGate = utf8ToWide(publishGateState);
+    }
+    data.overlayAllowed = compactBoolText(summaryValue("generated_overlay_publish_allowed"));
+    const std::string activeDirectory = summaryValue("generated_overlay_active_directory");
+    if (!activeDirectory.empty()) {
+        data.overlayActive = utf8ToWide(activeDirectory);
+    }
+
+    const std::string selectedDisplayName = summaryValue("local_llm_selected_display_name");
+    const std::string selectedModelId = summaryValue("local_llm_selected_model_id");
+    const std::string localLlmState = summaryValue("local_llm_model");
+    if (!selectedDisplayName.empty()) {
+        data.modelState = utf8ToWide(selectedDisplayName);
+    } else if (!selectedModelId.empty()) {
+        data.modelState = utf8ToWide(selectedModelId);
+    } else if (!localLlmState.empty()) {
+        data.modelState = utf8ToWide(localLlmState);
+    }
+    const std::string runtime = summaryValue("local_llm_runtime");
+    const std::string canRunInference = summaryValue("local_llm_can_run_inference");
+    const std::string reducedMode = summaryValue("local_llm_reduced_mode");
+    const std::string userActionRequired = summaryValue("local_llm_user_action_required");
+    std::vector<std::wstring> runtimeParts;
+    if (!runtime.empty()) {
+        runtimeParts.push_back(utf8ToWide(runtime));
+    }
+    if (!canRunInference.empty()) {
+        runtimeParts.push_back(L"inference " + compactBoolText(canRunInference));
+    }
+    data.modelRuntime = combineValues(runtimeParts);
+
+    const std::string recommendedDisplayName = summaryValue("local_llm_recommended_display_name");
+    const std::string recommendedModelId = summaryValue("local_llm_recommended_model_id");
+    const std::string recommendedRuntime = summaryValue("local_llm_recommended_runtime");
+    std::vector<std::wstring> recommendationParts;
+    if (!recommendedDisplayName.empty()) {
+        recommendationParts.push_back(utf8ToWide(recommendedDisplayName));
+    }
+    if (!recommendedModelId.empty()) {
+        recommendationParts.push_back(utf8ToWide(recommendedModelId));
+    }
+    if (!recommendedRuntime.empty()) {
+        recommendationParts.push_back(utf8ToWide(recommendedRuntime));
+    }
+    data.modelRecommendation = combineValues(recommendationParts);
+
+    std::vector<std::wstring> modeParts;
+    if (!reducedMode.empty()) {
+        modeParts.push_back(L"reduced " + compactBoolText(reducedMode));
+    }
+    if (!userActionRequired.empty()) {
+        modeParts.push_back(L"user action " + compactBoolText(userActionRequired));
+    }
+    if (modeParts.empty()) {
+        const std::string downloadAllowed = summaryValue("local_llm_download_allowed");
+        if (!downloadAllowed.empty()) {
+            modeParts.push_back(L"download " + compactBoolText(downloadAllowed));
+        }
+    }
+    data.modelMode = combineValues(modeParts);
+
+    data.nextAction = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action").value_or(""));
+    data.nextReason = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_reason").value_or(""));
+    data.nextHint = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_command_hint").value_or(""));
+    data.nextPlaybook = utf8ToWide(strategic_nexus::common::extractJsonString(json, "owner_test_playbook_path").value_or(""));
+    data.nextActionPath = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_path").value_or(""));
+    return data;
+}
+
+std::wstring buildDashboardBottomText(const StatusDashboardData& data)
+{
+    std::wstring text = L"Další krok: ";
+    text += data.nextAction.empty() ? kStatusEmptyValue : data.nextAction;
+    text += L"\r\nDůvod: ";
+    text += data.nextReason.empty() ? kStatusEmptyValue : data.nextReason;
+    text += L"\r\nHint: ";
+    text += data.nextHint.empty() ? kStatusEmptyValue : data.nextHint;
+    text += L"\r\nPlaybook: ";
+    text += data.nextPlaybook.empty() ? kStatusEmptyValue : data.nextPlaybook;
+    text += L"\r\nCíl: ";
+    text += data.nextActionPath.empty() ? kStatusEmptyValue : data.nextActionPath;
+    return text;
+}
+
+std::wstring buildDashboardCopyText(const StatusDashboardData& data)
+{
+    std::wstring text;
+    text += L"Strategic Nexus Companion\n";
+    text += L"Stav: " + (data.liveState.empty() ? kStatusEmptyValue : data.liveState) + L"\n";
+    text += L"Stellaris: " + data.liveStellaris + L"\n";
+    text += L"Session: " + data.liveSession + L"\n";
+    text += L"Start: " + data.liveStartup + L"\n";
+    text += L"Archiv: " + data.archivePath + L"\n";
+    text += L"Publikace: " + data.overlayGate + L"\n";
+    text += L"LLM: " + data.modelState + L"\n";
+    text += L"Další krok: " + data.nextAction + L"\n";
+    text += L"Hint: " + data.nextHint;
+    return text;
+}
+
+bool copyTextToClipboard(HWND hwnd, const std::wstring& text)
+{
+    if (!OpenClipboard(hwnd)) {
+        return false;
+    }
+
+    EmptyClipboard();
+    const SIZE_T bytes = (text.size() + 1) * sizeof(wchar_t);
+    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, bytes);
+    if (memory == nullptr) {
+        CloseClipboard();
+        return false;
+    }
+
+    void* locked = GlobalLock(memory);
+    if (locked == nullptr) {
+        GlobalFree(memory);
+        CloseClipboard();
+        return false;
+    }
+    memcpy(locked, text.c_str(), bytes);
+    GlobalUnlock(memory);
+    if (SetClipboardData(CF_UNICODETEXT, memory) == nullptr) {
+        GlobalFree(memory);
+        CloseClipboard();
+        return false;
+    }
+
+    CloseClipboard();
+    return true;
 }
 
 HFONT createUiFont(const int pointSize, const int weight, const wchar_t* faceName)
@@ -224,6 +702,9 @@ void ensureStatusWindowResources()
     if (g_statusPanelBrush == nullptr) {
         g_statusPanelBrush = CreateSolidBrush(kStatusPanelColor);
     }
+    if (g_statusValueBrush == nullptr) {
+        g_statusValueBrush = CreateSolidBrush(kStatusValueBackgroundColor);
+    }
     if (g_statusAccentBrush == nullptr) {
         g_statusAccentBrush = CreateSolidBrush(kStatusAccentColor);
     }
@@ -231,13 +712,19 @@ void ensureStatusWindowResources()
         g_statusBorderBrush = CreateSolidBrush(kStatusBorderColor);
     }
     if (g_statusHeaderFont == nullptr) {
-        g_statusHeaderFont = createUiFont(18, FW_SEMIBOLD, L"Segoe UI");
+        g_statusHeaderFont = createUiFont(18, FW_SEMIBOLD, L"Bahnschrift");
+    }
+    if (g_statusSectionFont == nullptr) {
+        g_statusSectionFont = createUiFont(11, FW_SEMIBOLD, L"Bahnschrift");
+    }
+    if (g_statusFieldFont == nullptr) {
+        g_statusFieldFont = createUiFont(9, FW_NORMAL, L"Bahnschrift");
     }
     if (g_statusSubtitleFont == nullptr) {
-        g_statusSubtitleFont = createUiFont(10, FW_NORMAL, L"Segoe UI");
+        g_statusSubtitleFont = createUiFont(9, FW_NORMAL, L"Bahnschrift");
     }
     if (g_statusDetailsFont == nullptr) {
-        g_statusDetailsFont = createUiFont(10, FW_NORMAL, L"Segoe UI");
+        g_statusDetailsFont = createUiFont(9, FW_NORMAL, L"Cascadia Mono");
     }
 }
 
@@ -246,6 +733,14 @@ void destroyStatusWindowResources()
     if (g_statusHeaderFont != nullptr) {
         DeleteObject(g_statusHeaderFont);
         g_statusHeaderFont = nullptr;
+    }
+    if (g_statusSectionFont != nullptr) {
+        DeleteObject(g_statusSectionFont);
+        g_statusSectionFont = nullptr;
+    }
+    if (g_statusFieldFont != nullptr) {
+        DeleteObject(g_statusFieldFont);
+        g_statusFieldFont = nullptr;
     }
     if (g_statusSubtitleFont != nullptr) {
         DeleteObject(g_statusSubtitleFont);
@@ -267,6 +762,10 @@ void destroyStatusWindowResources()
         DeleteObject(g_statusBorderBrush);
         g_statusBorderBrush = nullptr;
     }
+    if (g_statusValueBrush != nullptr) {
+        DeleteObject(g_statusValueBrush);
+        g_statusValueBrush = nullptr;
+    }
     if (g_statusBackgroundBrush != nullptr) {
         DeleteObject(g_statusBackgroundBrush);
         g_statusBackgroundBrush = nullptr;
@@ -279,14 +778,63 @@ void refreshStatusWindowContent()
         return;
     }
 
-    const auto details = buildStatusDialogText();
-    const auto subtitle = buildStatusSubtitleText();
+    const auto data = loadStatusDashboardData();
+    const auto setField = [](HWND hwnd, const std::wstring& value) {
+        if (hwnd != nullptr) {
+            SetWindowTextW(hwnd, value.c_str());
+        }
+    };
+
+    if (g_statusHeader != nullptr) {
+        SetWindowTextW(g_statusHeader, g_statusTitle.c_str());
+    }
     if (g_statusSubtitle != nullptr) {
-        SetWindowTextW(g_statusSubtitle, subtitle.c_str());
+        SetWindowTextW(g_statusSubtitle, data.subtitle.c_str());
+    }
+
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::LiveState)], data.liveState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::LiveStellaris)], data.liveStellaris);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::LiveSession)], data.liveSession);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::LiveStartup)], data.liveStartup);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ArchivePath)], data.archivePath);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ArchiveVerified)], data.archiveVerified);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ArchiveCopied)], data.archiveCopied);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ArchiveSkipped)], data.archiveSkipped);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::OverlayStaging)], data.overlayStaging);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::OverlayGate)], data.overlayGate);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::OverlayAllowed)], data.overlayAllowed);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::OverlayActive)], data.overlayActive);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelState)], data.modelState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelRuntime)], data.modelRuntime);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelRecommendation)], data.modelRecommendation);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelMode)], data.modelMode);
+
+    if (g_statusBottomTitle != nullptr) {
+        SetWindowTextW(g_statusBottomTitle, L"Další krok");
     }
     if (g_statusDetails != nullptr) {
+        const auto details = buildDashboardBottomText(data);
         SetWindowTextW(g_statusDetails, details.c_str());
     }
+
+    const bool briefAvailable = !g_nextStepsBriefPath.empty() && std::filesystem::exists(g_nextStepsBriefPath);
+    if (g_statusRefreshButton != nullptr) {
+        EnableWindow(g_statusRefreshButton, TRUE);
+    }
+    if (g_statusCopyButton != nullptr) {
+        EnableWindow(g_statusCopyButton, TRUE);
+    }
+    if (g_statusOpenArchiveButton != nullptr) {
+        EnableWindow(g_statusOpenArchiveButton, TRUE);
+    }
+    if (g_statusOpenBriefButton != nullptr) {
+        EnableWindow(g_statusOpenBriefButton, briefAvailable);
+    }
+    if (g_statusCloseButton != nullptr) {
+        EnableWindow(g_statusCloseButton, TRUE);
+    }
+
+    RedrawWindow(g_statusWindow, nullptr, nullptr, RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_FRAME);
 }
 
 void requestStatusWindowRefresh()
@@ -315,22 +863,117 @@ void layoutStatusWindow(HWND hwnd)
 
     const int width = client.right - client.left;
     const int height = client.bottom - client.top;
-    const int margin = 20;
-    const int headerHeight = 34;
-    const int subtitleHeight = 22;
-    const int top = 16;
-    const int headerWidth = width - (margin * 2);
-    const int detailsTop = top + headerHeight + subtitleHeight + 18;
-    const int detailsHeight = height - detailsTop - margin;
+    const int margin = 18;
+    const int top = 14;
+    const int headerHeight = 30;
+    const int subtitleHeight = 20;
+    const int buttonHeight = 29;
+    const int buttonGap = 8;
+    int buttonWidth = 116;
+    const int availableWidth = width - (margin * 2);
+    const int requiredButtonWidth = (buttonWidth * 5) + (buttonGap * 4);
+    if (requiredButtonWidth > availableWidth) {
+        buttonWidth = (availableWidth - (buttonGap * 4)) / 5;
+        if (buttonWidth < 88) {
+            buttonWidth = 88;
+        }
+    }
+
+    const int headerWidth = availableWidth;
+    const int subtitleTop = top + headerHeight + 2;
+    const int buttonTop = subtitleTop + subtitleHeight + 12;
+    const int gridTop = buttonTop + buttonHeight + 14;
+
+    int bottomHeight = (height / 4) + 96;
+    if (bottomHeight < 180) {
+        bottomHeight = 180;
+    }
+    if (bottomHeight > 240) {
+        bottomHeight = 240;
+    }
+
+    const int bottomTop = height - margin - bottomHeight;
+    int gridBottom = bottomTop - 14;
+    if (gridBottom <= gridTop) {
+        gridBottom = gridTop + 220;
+    }
+
+    const int cardGap = 14;
+    int cardWidth = (availableWidth - cardGap) / 2;
+    if (cardWidth < 300) {
+        cardWidth = 300;
+    }
+    int cardHeight = (gridBottom - gridTop - cardGap) / 2;
+    if (cardHeight < 120) {
+        cardHeight = 120;
+    }
+
+    int labelWidth = (cardWidth * 30) / 100;
+    if (labelWidth < 84) {
+        labelWidth = 84;
+    }
+    if (labelWidth > 120) {
+        labelWidth = 120;
+    }
+    int valueWidth = cardWidth - labelWidth - 12;
+    if (valueWidth < 130) {
+        valueWidth = 130;
+    }
+
+    const int fieldGap = 6;
+    int rowHeight = (cardHeight - 26 - (fieldGap * 3)) / 4;
+    if (rowHeight < 20) {
+        rowHeight = 20;
+    }
 
     if (g_statusHeader != nullptr) {
         MoveWindow(g_statusHeader, margin, top, headerWidth, headerHeight, TRUE);
     }
     if (g_statusSubtitle != nullptr) {
-        MoveWindow(g_statusSubtitle, margin, top + headerHeight + 2, headerWidth, subtitleHeight, TRUE);
+        MoveWindow(g_statusSubtitle, margin, subtitleTop, headerWidth, subtitleHeight, TRUE);
+    }
+
+    const HWND buttons[] = { g_statusRefreshButton, g_statusCopyButton, g_statusOpenArchiveButton, g_statusOpenBriefButton, g_statusCloseButton };
+    const wchar_t* buttonTexts[] = { L"Obnovit", L"Kopírovat", L"Archiv", L"Souhrn", L"Konec" };
+    for (std::size_t index = 0; index < std::size(buttons); ++index) {
+        if (buttons[index] != nullptr) {
+            SetWindowTextW(buttons[index], buttonTexts[index]);
+            MoveWindow(buttons[index], margin + static_cast<int>(index) * (buttonWidth + buttonGap), buttonTop, buttonWidth, buttonHeight, TRUE);
+        }
+    }
+
+    for (std::size_t sectionIndex = 0; sectionIndex < kStatusSections.size(); ++sectionIndex) {
+        const int column = static_cast<int>(sectionIndex % 2);
+        const int row = static_cast<int>(sectionIndex / 2);
+        const int cardLeft = margin + column * (cardWidth + cardGap);
+        const int cardTop = gridTop + row * (cardHeight + cardGap);
+
+        if (g_statusSectionTitles[sectionIndex] != nullptr) {
+            MoveWindow(g_statusSectionTitles[sectionIndex], cardLeft, cardTop, cardWidth, 20, TRUE);
+        }
+
+        const int titleOffset = 24;
+        const int fieldBaseTop = cardTop + titleOffset;
+        for (std::size_t fieldIndex = 0; fieldIndex < kStatusSections[sectionIndex].fields.size(); ++fieldIndex) {
+            const auto fieldId = kStatusSections[sectionIndex].fields[fieldIndex];
+            const std::size_t fieldSlot = static_cast<std::size_t>(fieldId);
+            const int fieldTop = fieldBaseTop + static_cast<int>(fieldIndex) * (rowHeight + fieldGap);
+            if (g_statusFieldLabels[fieldSlot] != nullptr) {
+                MoveWindow(g_statusFieldLabels[fieldSlot], cardLeft, fieldTop + 4, labelWidth - 4, rowHeight, TRUE);
+            }
+            if (g_statusFieldValues[fieldSlot] != nullptr) {
+                MoveWindow(g_statusFieldValues[fieldSlot], cardLeft + labelWidth, fieldTop, valueWidth, rowHeight + 4, TRUE);
+            }
+        }
+    }
+
+    if (g_statusBottomTitle != nullptr) {
+        MoveWindow(g_statusBottomTitle, margin, bottomTop, availableWidth, 20, TRUE);
     }
     if (g_statusDetails != nullptr) {
-        MoveWindow(g_statusDetails, margin, detailsTop, headerWidth, detailsHeight, TRUE);
+        const int detailsTop = bottomTop + 24;
+        const int detailsHeight = height - detailsTop - margin;
+        MoveWindow(g_statusDetails, margin, detailsTop, availableWidth, detailsHeight, TRUE);
     }
 }
 
@@ -364,40 +1007,20 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         ensureStatusWindowResources();
 
         g_statusWindow = hwnd;
-        const std::wstring headerText = g_statusTitle;
-        const std::wstring subtitleText = buildStatusSubtitleText();
-        const std::wstring detailsText = buildStatusDialogText();
-        g_statusHeader = CreateWindowExW(
-            0,
-            L"STATIC",
-            headerText.c_str(),
-            WS_CHILD | WS_VISIBLE,
-            0,
-            0,
-            0,
-            0,
-            hwnd,
-            nullptr,
-            GetModuleHandleW(nullptr),
-            nullptr);
-        g_statusSubtitle = CreateWindowExW(
-            0,
-            L"STATIC",
-            subtitleText.c_str(),
-            WS_CHILD | WS_VISIBLE,
-            0,
-            0,
-            0,
-            0,
-            hwnd,
-            nullptr,
-            GetModuleHandleW(nullptr),
-            nullptr);
+
+        g_statusHeader = createStatusStatic(hwnd, g_statusTitle.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+        g_statusSubtitle = createStatusStatic(hwnd, L"", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+        g_statusRefreshButton = createStatusButton(hwnd, ID_STATUS_REFRESH, L"Obnovit");
+        g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kopírovat");
+        g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
+        g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
+        g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"Konec");
+        g_statusBottomTitle = createStatusStatic(hwnd, L"Další krok", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusDetails = CreateWindowExW(
             WS_EX_CLIENTEDGE,
             L"EDIT",
-            detailsText.c_str(),
-            WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL,
+            L"",
+            WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL | ES_NOHIDESEL,
             0,
             0,
             0,
@@ -407,9 +1030,28 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             GetModuleHandleW(nullptr),
             nullptr);
 
-        SendMessageW(g_statusHeader, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusHeaderFont), TRUE);
-        SendMessageW(g_statusSubtitle, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusSubtitleFont), TRUE);
-        SendMessageW(g_statusDetails, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusDetailsFont), TRUE);
+        for (std::size_t index = 0; index < kStatusSections.size(); ++index) {
+            g_statusSectionTitles[index] = createStatusStatic(hwnd, kStatusSections[index].title, WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+            setWindowFont(g_statusSectionTitles[index], g_statusSectionFont);
+            for (const auto field : kStatusSections[index].fields) {
+                const std::size_t slot = static_cast<std::size_t>(field);
+                g_statusFieldLabels[slot] = createStatusStatic(hwnd, statusFieldLabel(field), WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+                g_statusFieldValues[slot] = createStatusValue(hwnd, kStatusEmptyValue);
+                setWindowFont(g_statusFieldLabels[slot], g_statusFieldFont);
+                setWindowFont(g_statusFieldValues[slot], g_statusFieldFont);
+            }
+        }
+
+        setWindowFont(g_statusHeader, g_statusHeaderFont);
+        setWindowFont(g_statusSubtitle, g_statusSubtitleFont);
+        setWindowFont(g_statusRefreshButton, g_statusFieldFont);
+        setWindowFont(g_statusCopyButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenArchiveButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenBriefButton, g_statusFieldFont);
+        setWindowFont(g_statusCloseButton, g_statusFieldFont);
+        setWindowFont(g_statusBottomTitle, g_statusSectionFont);
+        setWindowFont(g_statusDetails, g_statusDetailsFont);
+
         applyWindowIcons(hwnd);
         layoutStatusWindow(hwnd);
         refreshStatusWindowContent();
@@ -418,31 +1060,82 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
     case WM_SIZE:
         layoutStatusWindow(hwnd);
         return 0;
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case ID_STATUS_REFRESH:
+            refreshStatusWindowContent();
+            return 0;
+        case ID_STATUS_COPY:
+            if (!copyTextToClipboard(hwnd, buildDashboardCopyText(loadStatusDashboardData()))) {
+                MessageBeep(MB_ICONWARNING);
+            }
+            return 0;
+        case ID_STATUS_OPEN_ARCHIVE:
+            openPathWithShell(hwnd, g_archiveRoot);
+            return 0;
+        case ID_STATUS_OPEN_BRIEF:
+            openPathWithShell(hwnd, g_nextStepsBriefPath);
+            return 0;
+        case ID_STATUS_CLOSE:
+            DestroyWindow(hwnd);
+            return 0;
+        default:
+            break;
+        }
+        break;
+    case WM_DRAWITEM: {
+        const auto* drawItem = reinterpret_cast<const DRAWITEMSTRUCT*>(lParam);
+        if (drawItem != nullptr && drawItem->CtlType == ODT_BUTTON) {
+            drawStatusButton(*drawItem);
+            return TRUE;
+        }
+        break;
+    }
     case WM_SNC_STATUS_REFRESH:
         refreshStatusWindowContent();
         return 0;
     case WM_GETMINMAXINFO: {
         auto* info = reinterpret_cast<MINMAXINFO*>(lParam);
-        info->ptMinTrackSize.x = 620;
-        info->ptMinTrackSize.y = 420;
+        info->ptMinTrackSize.x = 900;
+        info->ptMinTrackSize.y = 640;
         return 0;
     }
     case WM_CTLCOLORSTATIC: {
         const HDC hdc = reinterpret_cast<HDC>(wParam);
         const HWND control = reinterpret_cast<HWND>(lParam);
-        if (control == g_statusHeader) {
-            SetTextColor(hdc, kStatusAccentColor);
+        COLORREF color = kStatusMutedColor;
+        bool accent = false;
+
+        if (control == g_statusHeader || control == g_statusBottomTitle) {
+            accent = true;
+        } else if (control == g_statusSubtitle) {
+            color = kStatusMutedColor;
         } else {
-            SetTextColor(hdc, kStatusMutedColor);
+            for (const auto sectionTitle : g_statusSectionTitles) {
+                if (control == sectionTitle) {
+                    accent = true;
+                    break;
+                }
+            }
+            if (!accent) {
+                for (const auto label : g_statusFieldLabels) {
+                    if (control == label) {
+                        color = kStatusMutedColor;
+                        break;
+                    }
+                }
+            }
         }
+
+        SetTextColor(hdc, accent ? kStatusAccentColor : color);
         SetBkMode(hdc, TRANSPARENT);
         return reinterpret_cast<LRESULT>(g_statusBackgroundBrush);
     }
     case WM_CTLCOLOREDIT: {
         const HDC hdc = reinterpret_cast<HDC>(wParam);
         SetTextColor(hdc, kStatusTextColor);
-        SetBkColor(hdc, kStatusPanelColor);
-        return reinterpret_cast<LRESULT>(g_statusPanelBrush);
+        SetBkColor(hdc, kStatusValueBackgroundColor);
+        return reinterpret_cast<LRESULT>(g_statusValueBrush != nullptr ? g_statusValueBrush : g_statusPanelBrush);
     }
     case WM_ERASEBKGND: {
         const HDC hdc = reinterpret_cast<HDC>(wParam);
@@ -469,11 +1162,28 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusHeader = nullptr;
         g_statusSubtitle = nullptr;
         g_statusDetails = nullptr;
+        g_statusBottomTitle = nullptr;
+        g_statusRefreshButton = nullptr;
+        g_statusCopyButton = nullptr;
+        g_statusOpenArchiveButton = nullptr;
+        g_statusOpenBriefButton = nullptr;
+        g_statusCloseButton = nullptr;
+        for (auto& label : g_statusFieldLabels) {
+            label = nullptr;
+        }
+        for (auto& value : g_statusFieldValues) {
+            value = nullptr;
+        }
+        for (auto& sectionTitle : g_statusSectionTitles) {
+            sectionTitle = nullptr;
+        }
         destroyStatusWindowResources();
         return 0;
     default:
         return DefWindowProcW(hwnd, message, wParam, lParam);
     }
+
+    return DefWindowProcW(hwnd, message, wParam, lParam);
 }
 
 HICON loadSncTrayIcon()
@@ -2593,7 +3303,7 @@ void showStatusDialog(HWND hwnd)
         WS_EX_APPWINDOW,
         kStatusWindowClassName,
         g_statusTitle.c_str(),
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         960,
@@ -2826,7 +3536,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
         0,
         windowClass.lpszClassName,
         L"Strategic Nexus Companion",
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         0,
