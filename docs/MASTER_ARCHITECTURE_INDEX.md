@@ -83,7 +83,7 @@ Core documents:
 * [LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md) - local model weights, runtime, companion, validation, reduced-mode, and mod boundary contract
 * [META_RULE_LANGUAGE_AND_COMPILER.md](META_RULE_LANGUAGE_AND_COMPILER.md) - bounded DSL and deterministic compiler from LLM proposals to generated mod overlay
 * [GENERATED_OVERLAY_LAYOUT_CONTRACT.md](GENERATED_OVERLAY_LAYOUT_CONTRACT.md) - v0 generated overlay file layout and staging contract
-* [GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md](GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md) - bounded functional acceptance plan for proving generated overlay gameplay effect in v0 domains
+* [GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md](GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md) - bounded functional acceptance plan for proving generated overlay gameplay effect in v0 domains; primary evidence artifact `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`
 * [MULTIPLAYER_SEASON_ORCHESTRATOR.md](MULTIPLAYER_SEASON_ORCHESTRATOR.md) - host-coordinated low-friction multiplayer season/package architecture
 * [LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md](LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md) - how to read older daemon, bridge, and cadence documents after the offline architecture shift
 * [DOCUMENTATION_CONSISTENCY_AUDIT.md](DOCUMENTATION_CONSISTENCY_AUDIT.md) - focused audits for contradictions between architecture documents
@@ -91,6 +91,8 @@ Core documents:
 * [V0_SPRINT_MODE.md](V0_SPRINT_MODE.md) - temporary acceleration rules for reaching the first real-game v0 validation loop
 * [PROJECT_ARCHITECTURE_INDEX_RULES.md](PROJECT_ARCHITECTURE_INDEX_RULES.md) - rules for maintaining this index
 * [PROJECT_OWNER_COLLABORATION_MODEL.md](PROJECT_OWNER_COLLABORATION_MODEL.md) - project owner and Codex collaboration model, Free Work expectations, and owner input checklist
+* [TASK_BOARD_UI_STYLE_GUIDE.md](TASK_BOARD_UI_STYLE_GUIDE.md) - canonical owner-facing design contract for the private Task Board, including palette, typography, control behavior, and Czech layout rules
+* [SNC_UI_STYLE_GUIDE.md](SNC_UI_STYLE_GUIDE.md) - canonical companion UI contract for the Strategic Nexus Companion, including the dark branded status-center surface and tray presentation
 * [ENGINEERING_RULES.md](ENGINEERING_RULES.md) - practical engineering rules for development
 * [CODEX_PROJECT_MEMORY_RULES.md](CODEX_PROJECT_MEMORY_RULES.md) - durable Markdown memory rules for Codex
 * [CODEX_WORK_CONTINUITY_NOTES.md](CODEX_WORK_CONTINUITY_NOTES.md) - lightweight Codex continuity ledger to avoid repeated maintenance work after context loss
@@ -529,6 +531,7 @@ Local owner coordination tooling:
 * this is development coordination tooling, not the production Strategic Nexus companion app
 * real production companion app lifecycle, autosave watching, analysis orchestration, and overlay staging remain separate implementation work
 * SNC presentation work that mirrors the Task Board visual language belongs to the companion app layer, not the development-only Task Board helper
+* the canonical design references for those surfaces live in `TASK_BOARD_UI_STYLE_GUIDE.md` and `SNC_UI_STYLE_GUIDE.md`
 
 Future test assets:
 
