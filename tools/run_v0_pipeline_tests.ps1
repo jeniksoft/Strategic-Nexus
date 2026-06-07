@@ -2625,6 +2625,11 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_zip_bytes="
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_handoff_status="
     Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_mp_package_previous_host_available="
+    Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_snc_mp_overlay_package_provenance_state=present"
+    Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_snc_mp_overlay_package_source_quality_count=2"
+    Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_snc_mp_overlay_package_source_quality=history_backed"
+    Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_snc_mp_overlay_package_source_quality=zero_history_bootstrap"
+    Assert-Contains -Name "real session loop mismatch forwarding export" -Text $text -Expected "real_session_v0_loop_snc_mp_overlay_package_bootstrap_campaign_count=1"
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_run_id=real-session-v0-loop-"
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_archive_copied_save_count="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_archive_last_archived_path="
@@ -2701,10 +2706,18 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"package_zip_path"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"package_zip_sha256"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"package_zip_bytes"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"provenance_state": "present"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"source_quality_count": 1'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"source_qualities": ['
+    Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"history_backed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"bootstrap_campaign_count": 0'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"handoff_status"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence export" -Text $evidenceText -Expected '"previous_host_available"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence mp snapshot" -Text $evidenceText -Expected '"status_snapshot_with_mp_path"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence mp snapshot" -Text $evidenceText -Expected '"status_snapshot_with_mp_readiness"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence mp snapshot" -Text $evidenceText -Expected '"provenance_state": "present"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence mp snapshot" -Text $evidenceText -Expected '"source_quality_count": 1'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence mp snapshot" -Text $evidenceText -Expected '"bootstrap_campaign_count": 0'
     Assert-Contains -Name "real session loop mismatch forwarding evidence metadata" -Text $evidenceText -Expected '"run_id":'
     Assert-Contains -Name "real session loop mismatch forwarding evidence metadata" -Text $evidenceText -Expected 'real-session-v0-loop-'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"command_hints"'
@@ -2727,6 +2740,13 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     $nextStepsBriefText = Get-Content -Raw -LiteralPath $nextStepsBriefPath
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "SNC MP status snapshot:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "SNC MP status readiness: ready_for_mp"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "## MP Package"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "- Status snapshot with MP:"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "- Status readiness: ready_for_mp"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "- Provenance state: present"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "- Source quality count: 1"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "- Source qualities: history_backed"
+    Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "- Bootstrap campaign count: 0"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Host next step:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Client next step:"
     Assert-Contains -Name "real session loop mismatch forwarding next-steps brief" -Text $nextStepsBriefText -Expected "Package zip state: ready"
@@ -2918,6 +2938,9 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_mp_package_mismatch_warning_reason=mp_export_not_requested"
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_mp_package_zip_state=not_exported"
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_mp_package_zip_reason=mp_export_not_requested"
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_snc_mp_overlay_package_provenance_state=not_exported"
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_snc_mp_overlay_package_source_quality_count=0"
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_snc_mp_overlay_package_bootstrap_campaign_count=0"
 
     $evidencePathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_evidence_json=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($evidencePathLine)) {
@@ -2932,6 +2955,10 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"status_snapshot_with_mp_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"status_snapshot_with_mp_readiness":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected 'not_exported'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"provenance_state": "not_exported"'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"source_quality_count": 0'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"source_qualities": []'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"bootstrap_campaign_count": 0'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"save_root":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"resolution":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"source":'
@@ -3000,11 +3027,17 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Empire brief:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- SNC MP status snapshot:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- SNC MP status readiness: not_exported"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "## MP Package"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Status snapshot with MP:"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Status readiness: not_exported"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Provenance state: not_exported"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Source quality count: 0"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Source qualities: none"
+    Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Bootstrap campaign count: 0"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "## Campaign Library"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Plan readiness:"
     Assert-Contains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Expected "- Limit reached:"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "## Monthly Reactive Owner Test"
-    Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "## MP Package"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "- Host readiness:"
     Assert-NotContains -Name "real session loop mp snapshot contract brief" -Text $nextStepsBriefText -Unexpected "- Client readiness gate:"
 

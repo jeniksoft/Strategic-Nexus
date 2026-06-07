@@ -941,6 +941,10 @@ if (-not (Test-Path -LiteralPath $empireBriefPath)) {
 $mpExportReadiness = ""
 $mpExportManifestHash = ""
 $mpExportWarningCount = ""
+$mpExportProvenanceState = "not_exported"
+$mpExportSourceQualityCount = "0"
+$mpExportSourceQualities = @()
+$mpExportBootstrapCampaignCount = "0"
 $mpExportIdentityMismatchWarning = ""
 $mpExportIdentityMismatchWarningCodes = @()
 $mpExportVerifyCommand = ""
@@ -967,6 +971,9 @@ $mpPackageZipReason = "mp_export_not_requested"
 $mpPackageZipPath = ""
 $mpPackageZipSha256 = ""
 $mpPackageZipBytes = ""
+$sncMpOverlayPackageProvenanceState = "not_exported"
+$sncMpOverlayPackageSourceQualities = @()
+$sncMpOverlayPackageBootstrapCampaignCount = "0"
 $sncStatusWithMpReadiness = "not_exported"
 $statusWithMpSnapshotPathForOutput = ""
 if ($ExportMpPackage) {
@@ -987,6 +994,22 @@ if ($ExportMpPackage) {
 
     if ($mpExportReadiness -ne "ready_for_mp") {
         throw "MP package export readiness is '$mpExportReadiness' instead of ready_for_mp."
+    }
+    $mpExportProvenanceStateFromExport = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_provenance_state"
+    if (-not [string]::IsNullOrWhiteSpace($mpExportProvenanceStateFromExport)) {
+        $mpExportProvenanceState = $mpExportProvenanceStateFromExport
+    }
+    $mpExportSourceQualityCountFromExport = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_source_quality_count"
+    if (-not [string]::IsNullOrWhiteSpace($mpExportSourceQualityCountFromExport)) {
+        $mpExportSourceQualityCount = $mpExportSourceQualityCountFromExport
+    }
+    $mpExportSourceQualitiesFromExport = @(Get-KeyValueLineValues -Lines $mpExportLines -Key "mp_overlay_package_source_quality")
+    if ($mpExportSourceQualitiesFromExport.Count -gt 0) {
+        $mpExportSourceQualities = @($mpExportSourceQualitiesFromExport)
+    }
+    $mpExportBootstrapCampaignCountFromExport = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_bootstrap_campaign_count"
+    if (-not [string]::IsNullOrWhiteSpace($mpExportBootstrapCampaignCountFromExport)) {
+        $mpExportBootstrapCampaignCount = $mpExportBootstrapCampaignCountFromExport
     }
     $mpExportManifestHash = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_manifest_hash"
     $mpExportWarningCount = Get-KeyValueLineValue -Lines $mpExportLines -Key "mp_overlay_package_export_warning_count"
@@ -1039,7 +1062,7 @@ if ($ExportMpPackage) {
     $mpPackageZipReason = "zip_created"
 
     Write-Host "==> refresh snc status snapshot with mp package visibility"
-    & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false $sncGeneratedOverlayStagingStatusPath $sncPublishedOverlayDir $sncPublishStatusPath $sncPublishBackupRoot $mpPackageZipPath
+    $sncStatusWithMpLines = & $exe --snc-status-snapshot $archiveRootFull $overlayOutputDirFull $statusWithMpOutputJsonFull false $mpPackageOutputDirFull false $sncGeneratedOverlayStagingStatusPath $sncPublishedOverlayDir $sncPublishStatusPath $sncPublishBackupRoot $mpPackageZipPath
     Assert-LastExitCodeOk -StepName "snc status snapshot with mp package"
     if (-not (Test-Path -LiteralPath $statusWithMpOutputJsonFull)) {
         throw "Missing SNC MP status snapshot output: $statusWithMpOutputJsonFull"
@@ -1048,6 +1071,15 @@ if ($ExportMpPackage) {
     $statusWithMpText = Get-Content -Raw -LiteralPath $statusWithMpOutputJsonFull
     if ($statusWithMpText -notmatch '"readiness"\s*:\s*"ready_for_mp"') {
         throw "SNC MP status snapshot is missing mp overlay package readiness=ready_for_mp."
+    }
+    $sncMpOverlayPackageProvenanceState = Get-KeyValueLineValue -Lines $sncStatusWithMpLines -Key "snc_mp_overlay_package_provenance_state"
+    if ([string]::IsNullOrWhiteSpace($sncMpOverlayPackageProvenanceState)) {
+        throw "SNC MP status snapshot is missing snc_mp_overlay_package_provenance_state."
+    }
+    $sncMpOverlayPackageSourceQualities = @(Get-KeyValueLineValues -Lines $sncStatusWithMpLines -Key "snc_mp_overlay_package_source_quality")
+    $sncMpOverlayPackageBootstrapCampaignCount = Get-KeyValueLineValue -Lines $sncStatusWithMpLines -Key "snc_mp_overlay_package_bootstrap_campaign_count"
+    if ([string]::IsNullOrWhiteSpace($sncMpOverlayPackageBootstrapCampaignCount)) {
+        throw "SNC MP status snapshot is missing snc_mp_overlay_package_bootstrap_campaign_count."
     }
     $sncStatusWithMpReadiness = "ready_for_mp"
     $statusWithMpSnapshotPathForOutput = $statusWithMpOutputJsonFull
@@ -1815,6 +1847,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
 if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_output_dir=" + $mpPackageOutputDirFull)
     Write-Host ("real_session_v0_loop_mp_package_readiness=" + $mpExportReadiness)
+    Write-Host ("real_session_v0_loop_mp_package_provenance_state=" + $mpExportProvenanceState)
+    Write-Host ("real_session_v0_loop_mp_package_source_quality_count=" + $mpExportSourceQualityCount)
+    foreach ($sourceQuality in $mpExportSourceQualities) {
+        Write-Host ("real_session_v0_loop_mp_package_source_quality=" + $sourceQuality)
+    }
+    Write-Host ("real_session_v0_loop_mp_package_bootstrap_campaign_count=" + $mpExportBootstrapCampaignCount)
     Write-Host ("real_session_v0_loop_mp_package_manifest_hash=" + $mpExportManifestHash)
     Write-Host ("real_session_v0_loop_mp_package_warning_count=" + $mpExportWarningCount)
     Write-Host ("real_session_v0_loop_mp_package_identity_mismatch_warning=" + $mpExportIdentityMismatchWarning)
@@ -1850,6 +1888,9 @@ if ($ExportMpPackage) {
     Write-Host ("real_session_v0_loop_mp_package_zip_sha256=" + $mpPackageZipSha256)
     Write-Host ("real_session_v0_loop_mp_package_zip_bytes=" + $mpPackageZipBytes)
 } else {
+    Write-Host ("real_session_v0_loop_mp_package_provenance_state=" + $mpExportProvenanceState)
+    Write-Host ("real_session_v0_loop_mp_package_source_quality_count=" + $mpExportSourceQualityCount)
+    Write-Host ("real_session_v0_loop_mp_package_bootstrap_campaign_count=" + $mpExportBootstrapCampaignCount)
     Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_state=" + $mpPackageMismatchWarningState)
     Write-Host ("real_session_v0_loop_mp_package_mismatch_warning_reason=" + $mpPackageMismatchWarningReason)
     Write-Host ("real_session_v0_loop_mp_package_zip_state=" + $mpPackageZipState)
@@ -1857,6 +1898,12 @@ if ($ExportMpPackage) {
 }
 Write-Host ("real_session_v0_loop_status_snapshot_with_mp_path=" + $statusWithMpSnapshotPathForOutput)
 Write-Host ("real_session_v0_loop_status_snapshot_with_mp_readiness=" + $sncStatusWithMpReadiness)
+Write-Host ("real_session_v0_loop_snc_mp_overlay_package_provenance_state=" + $sncMpOverlayPackageProvenanceState)
+Write-Host ("real_session_v0_loop_snc_mp_overlay_package_source_quality_count=" + $sncMpOverlayPackageSourceQualities.Count)
+foreach ($sourceQuality in $sncMpOverlayPackageSourceQualities) {
+    Write-Host ("real_session_v0_loop_snc_mp_overlay_package_source_quality=" + $sourceQuality)
+}
+Write-Host ("real_session_v0_loop_snc_mp_overlay_package_bootstrap_campaign_count=" + $sncMpOverlayPackageBootstrapCampaignCount)
 if ($EmitTrendSummary) {
     $trendScriptPath = Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1"
     if (-not (Test-Path -LiteralPath $trendScriptPath)) {
@@ -2451,6 +2498,14 @@ $sessionBriefLines = @(
     "- Limit reached: $($campaignLibraryLimitReached.ToString().ToLowerInvariant())"
     "- Skipped due to limit count: $campaignLibrarySkippedDueToLimitCount"
     ""
+    "## MP Package"
+    "- Status snapshot with MP: $statusWithMpSnapshotPathForOutput"
+    "- Status readiness: $sncStatusWithMpReadiness"
+    "- Provenance state: $sncMpOverlayPackageProvenanceState"
+    "- Source quality count: $($sncMpOverlayPackageSourceQualities.Count)"
+    "- Source qualities: $(if ($sncMpOverlayPackageSourceQualities.Count -gt 0) { [string]::Join(',', $sncMpOverlayPackageSourceQualities) } else { 'none' })"
+    "- Bootstrap campaign count: $sncMpOverlayPackageBootstrapCampaignCount"
+    ""
     "## Next Action"
     "- Action: $($nextActionSummary.action)"
     "- Reason: $($nextActionSummary.reason)"
@@ -2505,6 +2560,10 @@ if ($ExportMpPackage) {
         ""
         "## MP Package"
         "- Readiness: $mpExportReadiness"
+        "- Provenance state: $mpExportProvenanceState"
+        "- Source quality count: $mpExportSourceQualityCount"
+        "- Source qualities: $([string]::Join('; ', $mpExportSourceQualities))"
+        "- Bootstrap campaign count: $mpExportBootstrapCampaignCount"
         "- Host readiness: $mpExportHostReadiness"
         "- Client readiness gate: $mpExportClientReadinessGate"
         "- Handoff status: $mpExportHandoffStatus"
@@ -2670,6 +2729,10 @@ $sessionEvidence = [ordered]@{
         status_snapshot_with_mp_path = $statusWithMpSnapshotPathForOutput
         status_snapshot_with_mp_readiness = $sncStatusWithMpReadiness
         readiness = $mpExportReadiness
+        provenance_state = $mpExportProvenanceState
+        source_quality_count = $mpExportSourceQualityCount
+        source_qualities = @($mpExportSourceQualities)
+        bootstrap_campaign_count = $mpExportBootstrapCampaignCount
         manifest_hash = $mpExportManifestHash
         warning_count = $mpExportWarningCount
         identity_mismatch_warning = $mpExportIdentityMismatchWarning
