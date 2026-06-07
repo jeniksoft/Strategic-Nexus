@@ -115,6 +115,7 @@ void refreshStatusWindowContent();
 void requestStatusWindowRefresh();
 void layoutStatusWindow(HWND hwnd);
 void registerStatusWindowClass();
+void applyWindowIcons(HWND hwnd);
 LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 std::string jsonEscape(const std::string& value)
@@ -294,6 +295,16 @@ void requestStatusWindowRefresh()
     }
 }
 
+void applyWindowIcons(HWND hwnd)
+{
+    if (hwnd == nullptr || g_sncTrayIcon == nullptr) {
+        return;
+    }
+
+    SendMessageW(hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(g_sncTrayIcon));
+    SendMessageW(hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(g_sncTrayIcon));
+}
+
 void layoutStatusWindow(HWND hwnd)
 {
     RECT client{};
@@ -327,15 +338,17 @@ void registerStatusWindowClass()
         return;
     }
 
-    WNDCLASSW windowClass{};
+    WNDCLASSEXW windowClass{};
+    windowClass.cbSize = sizeof(windowClass);
     windowClass.lpfnWndProc = statusWindowProc;
     windowClass.hInstance = GetModuleHandleW(nullptr);
     windowClass.lpszClassName = kStatusWindowClassName;
     windowClass.hIcon = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
+    windowClass.hIconSm = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
     windowClass.hCursor = LoadCursorW(nullptr, IDC_ARROW);
     windowClass.hbrBackground = nullptr;
 
-    const ATOM atom = RegisterClassW(&windowClass);
+    const ATOM atom = RegisterClassExW(&windowClass);
     if (atom != 0 || GetLastError() == ERROR_CLASS_ALREADY_EXISTS) {
         registered = true;
     }
@@ -394,6 +407,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         SendMessageW(g_statusHeader, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusHeaderFont), TRUE);
         SendMessageW(g_statusSubtitle, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusSubtitleFont), TRUE);
         SendMessageW(g_statusDetails, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusDetailsFont), TRUE);
+        applyWindowIcons(hwnd);
         layoutStatusWindow(hwnd);
         refreshStatusWindowContent();
         return 0;
@@ -2779,13 +2793,15 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
 
     g_taskbarCreatedMessage = RegisterWindowMessageW(L"TaskbarCreated");
 
-    WNDCLASSW windowClass{};
+    WNDCLASSEXW windowClass{};
+    windowClass.cbSize = sizeof(windowClass);
     windowClass.lpfnWndProc = windowProc;
     windowClass.hInstance = instance;
     windowClass.lpszClassName = L"StrategicNexusCompanionTrayWindow";
     windowClass.hIcon = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
+    windowClass.hIconSm = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
 
-    if (RegisterClassW(&windowClass) == 0) {
+    if (RegisterClassExW(&windowClass) == 0) {
         CloseHandle(mutex);
         return 1;
     }
