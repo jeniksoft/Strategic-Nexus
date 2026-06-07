@@ -1265,9 +1265,6 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         titleBand.bottom = titleBand.top + kStatusTitleBarHeight;
         FillRect(hdc, &titleBand, g_statusBackgroundBrush);
 
-        RECT border = client;
-        border.top = border.bottom - 2;
-        FillRect(hdc, &border, g_statusBorderBrush);
         return 1;
     }
     case WM_CLOSE:
