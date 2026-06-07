@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
+#include <map>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -99,6 +100,11 @@ std::string flagForKnownCondition(const DslCondition& condition)
     const auto dot = condition.source.find('.');
     const std::string tail = dot == std::string::npos ? condition.source : condition.source.substr(dot + 1);
     return "strategic_nexus_known_" + symbol(tail + "_" + condition.value);
+}
+
+std::string dispatchEffectNameForEventFamily(const std::string& eventFamily)
+{
+    return "strategic_nexus_generated_" + symbol(eventFamily) + "_dispatch";
 }
 
 std::string jsonEscape(const std::string_view value)
@@ -316,7 +322,7 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
     std::ostringstream events;
     std::ostringstream effects;
     std::ostringstream triggers;
-    std::vector<std::string> monthlyDispatcherEffects;
+    std::map<std::string, std::vector<std::string>> dispatcherEffectsByFamily;
 
     events << "# Strategic Nexus generated dispatcher surface\n";
     events << "# Complete replacement snapshot. Do not edit by hand.\n\n";
@@ -375,8 +381,8 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
         effects << "    }\n";
         effects << "}\n\n";
 
-        if (rule.eventFamily == "monthly_strategy_tick") {
-            monthlyDispatcherEffects.push_back(effectName);
+        if (!rule.eventFamily.empty()) {
+            dispatcherEffectsByFamily[rule.eventFamily].push_back(effectName);
         }
 
     }
@@ -386,10 +392,24 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
     events << "}\n";
 
     effects << "strategic_nexus_generated_monthly_strategy_tick_dispatch = {\n";
-    for (const auto& effectName : monthlyDispatcherEffects) {
-        effects << "    " << effectName << " = yes\n";
+    if (const auto monthlyIt = dispatcherEffectsByFamily.find("monthly_strategy_tick"); monthlyIt != dispatcherEffectsByFamily.end()) {
+        for (const auto& effectName : monthlyIt->second) {
+            effects << "    " << effectName << " = yes\n";
+        }
     }
     effects << "}\n\n";
+
+    for (const auto& [eventFamily, familyEffects] : dispatcherEffectsByFamily) {
+        if (eventFamily == "monthly_strategy_tick") {
+            continue;
+        }
+
+        effects << dispatchEffectNameForEventFamily(eventFamily) << " = {\n";
+        for (const auto& effectName : familyEffects) {
+            effects << "    " << effectName << " = yes\n";
+        }
+        effects << "}\n\n";
+    }
 
     GeneratedOverlayFiles files;
     files.eventsText = events.str();

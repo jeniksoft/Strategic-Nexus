@@ -88,7 +88,18 @@ bool isAllowedSourceQuality(const std::string& sourceQuality)
 
 bool isAllowedEventFamily(const std::string& eventFamily)
 {
-    return eventFamily.empty() || eventFamily == "monthly_strategy_tick";
+    return eventFamily.empty() ||
+        eventFamily == "session_start" ||
+        eventFamily == "monthly_strategy_tick" ||
+        eventFamily == "war_started" ||
+        eventFamily == "war_ended" ||
+        eventFamily == "country_attacked" ||
+        eventFamily == "fleet_destroyed" ||
+        eventFamily == "planet_conquered" ||
+        eventFamily == "first_contact_started" ||
+        eventFamily == "first_contact_finished" ||
+        eventFamily == "economy_deficit_detected" ||
+        eventFamily == "crisis_pressure_detected";
 }
 
 bool isAllowedPreference(const DslPreference& preference)

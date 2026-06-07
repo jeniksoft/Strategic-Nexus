@@ -224,6 +224,26 @@ int main()
     }
 
     {
+        const auto parseResult = parser.parse(R"(campaign "campaign_reactive" { empire "empire_001" { rule "monthly_watch" { ministry = military_ministry event_family = monthly_strategy_tick prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.72 rationale = "monthly branch" } rule "war_response" { ministry = military_ministry event_family = war_started prefer military_posture aggressive intensity 0.8 duration = next_session confidence = 0.74 rationale = "war branch" } } })");
+        requireCondition(parseResult.ok, "reactive policy family DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(validation.ok, "allowlisted event families should validate");
+        const auto files = compiler.compile(parseResult.program);
+        requireCondition(
+            files.scriptedEffectsText.find("strategic_nexus_generated_monthly_strategy_tick_dispatch = {") != std::string::npos,
+            "compiler should keep the monthly dispatcher branch");
+        requireCondition(
+            files.scriptedEffectsText.find("strategic_nexus_generated_war_started_dispatch = {") != std::string::npos,
+            "compiler should emit a war_started dispatcher branch");
+        requireCondition(
+            files.scriptedEffectsText.find("strategic_nexus_generated_effect_campaign_reactive_empire_001_war_response = yes") != std::string::npos,
+            "war_started dispatcher should call the compiled war branch effect");
+        requireCondition(
+            files.manifestText.find("\"event_families\": [\"monthly_strategy_tick\", \"war_started\"]") != std::string::npos,
+            "manifest should list both allowlisted event families");
+    }
+
+    {
         const auto parseResult = parser.parse(R"(campaign "campaign_001" { empire "empire_001" { rule "bad_event_family" { ministry = military_ministry event_family = on_monthly_pulse_country prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.9 rationale = "bad" } } })");
         requireCondition(parseResult.ok, "raw on_action-like event family should parse before validation");
         const auto validation = validator.validate(parseResult.program);
