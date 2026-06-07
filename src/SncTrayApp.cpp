@@ -1261,12 +1261,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         GetClientRect(hwnd, &client);
         FillRect(hdc, &client, g_statusBackgroundBrush);
 
-        RECT topBand = client;
-        topBand.bottom = topBand.top + 4;
-        FillRect(hdc, &topBand, g_statusAccentBrush);
-
         RECT titleBand = client;
-        titleBand.top += 4;
         titleBand.bottom = titleBand.top + kStatusTitleBarHeight;
         FillRect(hdc, &titleBand, g_statusBackgroundBrush);
 
