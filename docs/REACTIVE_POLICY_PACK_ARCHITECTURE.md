@@ -331,6 +331,12 @@ Preferred first branches:
 
 Do not add broad strategy complexity before this small reactive contract is verified.
 
+Current verified base dispatcher state:
+
+* `monthly_strategy_tick` is wired through the handwritten monthly pulse path.
+* `war_started` and `country_attacked` are routed through low-frequency proxy events in `mod/strategic_nexus_poc/common/on_actions/strategic_nexus_poc_on_actions.txt`.
+* `tools/run_v0_pipeline_tests.ps1` already asserts both the generated reactive dispatcher text and the base kernel `on_actions` wiring for those allowlisted families.
+
 ---
 
 # Acceptance Criteria
