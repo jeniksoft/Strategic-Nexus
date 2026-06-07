@@ -429,6 +429,7 @@ Audit 2026-06-04: generated overlay output already changes deterministically bet
 Remaining test gap:
 Generated overlay tests currently prove deterministic staging and fail-closed validation, but they do not yet prove that Stellaris applies the generated scripts with the intended gameplay effect.
 Before generated overlays are treated as gameplay-ready, add mod-side smoke tests, local scripted harnesses, or documented manual Stellaris acceptance tests that verify behavior in-game or against a faithful mod-script execution surface.
+The bounded owner-facing checklist for that gap now lives in `docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md`, with reproducible evidence expected under `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`.
 
 ---
 

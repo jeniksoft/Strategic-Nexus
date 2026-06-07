@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-07T22:55:00+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: document the remaining generated-overlay gameplay acceptance evidence so the owner test can be repeated without guesswork.",
+  "updated_at": "2026-06-07T23:32:00+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: surface the generated-overlay acceptance checklist in the canonical navigation docs so the owner checklist and evidence path are easy to find.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The next bounded gap is documenting the remaining generated-overlay gameplay acceptance evidence and owner-run checks for the in-game behavior gap called out in the roadmap.",
+  "current_source": "The current acceptance plan is documented; the next bounded gap is surfacing it in the canonical navigation docs so future workers and the owner can find the checklist and evidence path without search.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
       "title": "Document generated overlay acceptance gap",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Minimal Strategy Dimensions / generated overlay gameplay acceptance gap",
       "goal": "Document the remaining mod-side acceptance evidence needed to verify generated-overlay behavior in a real Stellaris session and make the owner-run check repeatable.",
@@ -22,6 +22,23 @@
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-085-index-generated-overlay-acceptance-plan",
+      "title": "Index generated overlay acceptance plan",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Master architecture index / roadmap visibility for generated overlay acceptance",
+      "goal": "Add the generated overlay gameplay acceptance plan to the canonical navigation surfaces so future workers can find the owner checklist and evidence path without re-searching the docs tree.",
+      "acceptance": [
+        "The master architecture index points at docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md.",
+        "The development roadmap references the same plan or evidence path in its current progress notes.",
+        "The change remains bounded to documentation and navigation, not new gameplay behavior."
+      ],
+      "preferred_tests": [
+        "rg -n \"GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN|generated overlay acceptance\" docs"
       ],
       "dependencies": []
     }
