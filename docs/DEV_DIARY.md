@@ -64,6 +64,40 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-07
+
+Dnesni posun byl mensi, ale vecny: repo se posunulo v testovacim harnessu offline spine a soucasne pokracovalo v trackovani MP provenance pres real-session pipeline. Nejde o zmenu bezicich pravomoci; stale jde o zpresnovani integration boundary, host-authoritative vykladu a toho, jak ma byt scripted event/effect path pripravena pro dalsi krok.
+
+Co pribylo v repozitari:
+
+* Verejny head od posledniho denikoveho zaznamu pridal commity `Align offline spine test with ready state`, `Track MP provenance through real session pipeline`, `Refresh roadmap after MP provenance loop`, `Forward MP provenance into real-session loop` a `Add local LLM prepare command hint`.
+* `tools/run_v0_pipeline_tests.ps1` byl upraven tak, aby offline spine test ocekaval `offline_spine_status_center_state=ready` misto `starting`. To lepe odpovida aktualnimu lifecycle vykladu a zmensuje rozdil mezi testovacim ocekavanim a stavem, ktery ma pipeline prezentovat.
+* Zmeny kolem MP provenance dale zpresnuji sledovani dat pres real-session tok a pomahaji drzet kontinuitu mezi archivem, interni analyzou a dalsim owner-facing rozhodnutim.
+* Lokalni LLM prepare hint je spis ergonomicka a workflow uprava nez novy runtime schopnostni krok; zjednodusuje pripravu pro dalsi vyvoj, ale nerozsiruje integration boundary.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt dale potvrzuje host-authoritative model: offline spine a real-session tok se sbihaji v citelnejsim lifecycle stavu, ale aktivni session se tim neotevira nizkourovnovym zasahem.
+* MP provenance thread pomaha lepe vysvetlit, odkud pochazi evidence pro dalsi decision point a jak se ma interpretovat na integration boundary mezi archivem, analyzou a staged artefaktem.
+* Drobna zmena `starting -> ready` je hlavne o presnejsim vykladu stavu, ne o novem runtime chovani; to je dulezite pro konzistentni owner-facing status a pro budouci export/import workflow.
+
+Testy a stav overeni:
+
+* Pro dnesni head neni k dispozici zadny verejny GitHub Actions workflow run ani combined status check.
+* Lokalni testy jsem dnes nespoustel znovu; dnezni zapis vychazi z commit historie a z diffu testovaciho harnessu.
+* Z dostupne historie plyne, ze posledni relevantni posun je stale v oblasti v0 pipeline a offline spine lifecycle vykladu, ne v uzavrenem produkcnim packaging workflow.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi multiplayer ucastniky.
+* MP provenance a offline spine ready-state zpresnuji diagnostiku, ale samy o sobe jeste neuzaviraji finalni manifest/export contract, campaign marker handshake ani empire identity resolver.
+* Bez verejneho CI signalu pro dnesni head je treba brat stav jako funkcne logicky zmeneny, ale jeste ne plne overeny v continuous integration smyslu.
+
+Doporuceny dalsi krok:
+
+* Potvrdit, ze ready-state vyklad offline spine je konzistentni i v dalsim plnem pipeline behu a nezpusobuje regresi v navaznych testech.
+* Navazat na MP provenance tok formalnim export contractem a end-to-end overenim, ktere propoji archive evidence, real-session evidence a dalsi owner-approved krok bez driftu na integration boundary.
+
 ## 2026-06-05
 
 Projekt dnes posunul hlavne citelnost continuity a handoff signalu na SNC a real-session vrstve. Nejde o rozsirovani runtime pravomoci; jde o dalsi zpresneni integration boundary mezi post-play evidenci, multiplayer handoff pripravou a owner-facing dalsim krokem v host-authoritative modelu.
