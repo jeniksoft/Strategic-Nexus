@@ -6,45 +6,25 @@
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "MP export/verify/import plus SNC/tray now surface fail-closed bootstrap provenance for handoff packages; the next bounded gap is forwarding that provenance into real-session loop artifacts so compareable owner-facing outputs do not need to reopen SNC snapshot or the MP manifest.",
+  "current_source": "MP bootstrap provenance forwarding is shipped in real-session loop stdout/brief/evidence; the next bounded gap is verifying startup lifecycle visibility across SNC status, tray, and brief surfaces.",
   "chunks": [
     {
-      "id": "v0-sprint-078-forward-mp-bootstrap-provenance-into-real-session-loop",
-      "title": "Forward MP bootstrap provenance into loop",
-      "status": "ready",
-      "lane": "implementation",
-      "roadmap_anchor": "Owner readiness / real-session loop evidence",
-      "goal": "Forward the new MP package bootstrap provenance fields into real-session loop stdout/brief/evidence so owner-facing follow-up artifacts can tell whether the latest handoff package is bootstrap-backed.",
-      "acceptance": [
-        "Real-session loop surfaces MP provenance state/source qualities/bootstrap count from the selected package or export surface in stable machine-readable output.",
-        "Owner-facing loop artifacts no longer require reopening SNC snapshot or the MP package manifest just to inspect bootstrap provenance.",
-        "Absent provenance data remains explicit and fail-closed."
-      ],
-      "preferred_tests": [
-        "tools/run_v0_pipeline_tests.ps1"
-      ],
-      "dependencies": []
-    },
-    {
-      "id": "v0-sprint-079-refresh-progress-after-loop-bootstrap-provenance-forwarding",
-      "title": "Refresh progress after loop bootstrap provenance",
+      "id": "v0-sprint-080-verify-startup-lifecycle-visibility",
+      "title": "Verify startup lifecycle visibility",
       "status": "ready",
       "lane": "verification",
-      "roadmap_anchor": "Task Board And Owner Report Log",
-      "goal": "Keep roadmap notes, sprint queue, and today's owner-facing daily summary aligned after loop/bootstrap provenance forwarding lands.",
+      "roadmap_anchor": "Core Runtime Skeleton / startup lifecycle",
+      "goal": "Confirm the owner-facing SNC status, tray JSON, and next-steps brief still expose explicit startup lifecycle state and start-with-Windows guidance.",
       "acceptance": [
-        "Roadmap notes mention the shipped loop/bootstrap provenance forwarding.",
-        "The sprint queue advances to the next missing bounded roadmap slice instead of leaving the loop/bootstrap provenance chunk as the head item.",
-        "The daily freework report for 2026-06-06 is replaced, not duplicated."
+        "SNC status, tray JSON, and next-steps brief expose `snc_startup_lifecycle_state` and `snc_start_with_windows_enabled` explicitly.",
+        "Startup guidance stays owner-facing and stays fail-closed for manual-only vs owner-enabled launch.",
+        "The verification stays bounded and does not require reopening the whole runtime skeleton."
       ],
       "preferred_tests": [
-        "tools/dev_attention/analyze_roadmap_complexity.ps1",
-        "tools/dev_attention/set_project_progress_estimate.ps1",
-        "tools/dev_attention/sync_user_task_board_state.ps1"
+        "tools/run_v0_pipeline_tests.ps1",
+        "tools/smoke_snc_tray.ps1"
       ],
-      "dependencies": [
-        "v0-sprint-078-forward-mp-bootstrap-provenance-into-real-session-loop"
-      ]
+      "dependencies": []
     }
   ]
 }

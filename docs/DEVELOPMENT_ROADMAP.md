@@ -1035,15 +1035,21 @@ Compare/trend/loop outputs now also expose structured next-action path drift fie
 Real-session loop next-session brief now also includes explicit MP host/client readiness lines (`Host readiness`, `Client readiness gate`) so release-companion staging can read handoff readiness directly from the owner-facing brief artifact.
 Live autosave capture is now owned by native SNC monitor logic. The former `.cmd` wrappers for hidden PowerShell watch/start/install flows are removed so Avast-sensitive startup behavior does not become the project path.
 
-Next worker-ready slice:
+Shipped worker-ready slice:
 
 Forward MP bootstrap provenance into real-session loop artifacts.
 
+  Real-session loop stdout, next-steps brief, and evidence JSON now forward the MP bootstrap provenance fields from the selected package/export surface, so compare/trend follow-up can tell whether the latest handoff package is bootstrap-backed without reopening the SNC snapshot or MP manifest.
+
+Next worker-ready slice:
+
+Verify startup lifecycle visibility in SNC status and tray surfaces.
+
   The next slice should include:
 
-* real-session loop stdout, next-steps brief, or evidence JSON should forward the new MP bootstrap provenance fields from the currently selected package/export surface
-* compare/trend follow-up should not need to reopen SNC snapshot or MP manifest just to tell whether the latest handoff package is bootstrap-backed
-* absent provenance data must stay explicit and fail-closed instead of being converted into fake history-backed certainty
+* status/tray/brief outputs keep `snc_startup_lifecycle_state` and `snc_start_with_windows_enabled` explicit
+* startup guidance stays owner-facing and fail-closed for manual-only vs owner-enabled launch
+* verification remains bounded and does not reopen the whole runtime skeleton
 
   ---
 
