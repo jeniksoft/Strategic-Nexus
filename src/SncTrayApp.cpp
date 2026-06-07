@@ -103,6 +103,7 @@ constexpr COLORREF kStatusMutedColor = RGB(146, 162, 164);
 constexpr COLORREF kStatusAccentColor = RGB(214, 170, 76);
 constexpr COLORREF kStatusBorderColor = RGB(26, 71, 76);
 constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWindow";
+constexpr int kSncTrayIconResourceId = 1;
 NOTIFYICONDATAW g_trayIcon{};
 HICON g_sncTrayIcon = nullptr;
 UINT g_taskbarCreatedMessage = 0;
@@ -303,6 +304,8 @@ void applyWindowIcons(HWND hwnd)
 
     SendMessageW(hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(g_sncTrayIcon));
     SendMessageW(hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(g_sncTrayIcon));
+    SetClassLongPtrW(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(g_sncTrayIcon));
+    SetClassLongPtrW(hwnd, GCLP_HICONSM, reinterpret_cast<LONG_PTR>(g_sncTrayIcon));
 }
 
 void layoutStatusWindow(HWND hwnd)
@@ -475,6 +478,18 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
 HICON loadSncTrayIcon()
 {
+    const HICON embeddedIcon = static_cast<HICON>(
+        LoadImageW(
+            GetModuleHandleW(nullptr),
+            MAKEINTRESOURCEW(kSncTrayIconResourceId),
+            IMAGE_ICON,
+            0,
+            0,
+            LR_DEFAULTSIZE));
+    if (embeddedIcon != nullptr) {
+        return embeddedIcon;
+    }
+
     if (g_trayIconPath.empty()) {
         return nullptr;
     }
@@ -2589,6 +2604,7 @@ void showStatusDialog(HWND hwnd)
         nullptr);
 
     if (statusWindow != nullptr) {
+        applyWindowIcons(statusWindow);
         ShowWindow(statusWindow, SW_SHOWNORMAL);
         UpdateWindow(statusWindow);
         SetForegroundWindow(statusWindow);

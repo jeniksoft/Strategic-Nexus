@@ -143,6 +143,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ResourceCompile Include="resources\StrategicNexusCompanion.rc" />
     <ClCompile Include="Strategic Nexus.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\ArchiveMinistryInputBuilder.cpp" />

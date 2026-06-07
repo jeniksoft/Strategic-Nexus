@@ -3,6 +3,8 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $outputDir = Join-Path $repoRoot "dist\private_tools"
 $outputPath = Join-Path $outputDir "StrategicNexusCompanionTray.exe"
+$resourceFile = Join-Path $repoRoot "resources\StrategicNexusCompanion.rc"
+$resourceOutput = Join-Path $outputDir "StrategicNexusCompanionTray.res"
 
 if (-not (Test-Path -LiteralPath $outputDir)) {
     New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
@@ -44,6 +46,15 @@ if (-not (Get-Command cl.exe -ErrorAction SilentlyContinue)) {
     Invoke-WithDeveloperShell -ScriptPath $MyInvocation.MyCommand.Path
 }
 
+if (Test-Path -LiteralPath $resourceOutput) {
+    Remove-Item -LiteralPath $resourceOutput -Force -ErrorAction SilentlyContinue
+}
+
+& rc.exe /nologo /fo $resourceOutput $resourceFile
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC tray resource compile failed with exit code $LASTEXITCODE"
+}
+
 $sourceFiles = @(
     (Join-Path $repoRoot "src\SncTrayApp.cpp"),
     (Join-Path $repoRoot "src\AutosaveArchiver.cpp"),
@@ -83,6 +94,7 @@ $sourceFiles = @(
     /Fe:$outputPath `
     /link `
     /SUBSYSTEM:WINDOWS `
+    $resourceOutput `
     Shell32.lib `
     User32.lib `
     Gdi32.lib
