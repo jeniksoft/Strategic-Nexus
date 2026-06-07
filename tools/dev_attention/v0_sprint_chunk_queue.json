@@ -1,27 +1,26 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-07T22:50:29+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: verify the SNC presentation parity contract so the branded companion surface keeps its dark owner-facing identity without regressing to generic Windows defaults.",
+  "updated_at": "2026-06-07T22:55:00+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: document the remaining generated-overlay gameplay acceptance evidence so the owner test can be repeated without guesswork.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "SNC presentation parity is the next bounded verification gap; verify the branded tray icon and dark owner-facing style contract remains wired through resources, tray, and status surfaces.",
+  "current_source": "The next bounded gap is documenting the remaining generated-overlay gameplay acceptance evidence and owner-run checks for the in-game behavior gap called out in the roadmap.",
   "chunks": [
     {
-      "id": "v0-sprint-083-verify-snc-presentation-parity-contract",
-      "title": "Verify SNC presentation parity contract",
+      "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
+      "title": "Document generated overlay acceptance gap",
       "status": "ready",
       "lane": "verification",
-      "roadmap_anchor": "SNC presentation parity slice",
-      "goal": "Confirm the branded SNC icon and dark owner-facing presentation contract remain wired through the tray/status surfaces instead of falling back to generic Windows defaults.",
+      "roadmap_anchor": "Minimal Strategy Dimensions / generated overlay gameplay acceptance gap",
+      "goal": "Document the remaining mod-side acceptance evidence needed to verify generated-overlay behavior in a real Stellaris session and make the owner-run check repeatable.",
       "acceptance": [
-        "The tray resource references the branded SNC icon rather than the generic application icon.",
-        "The main companion surface continues to use the dark branded style language from SNC_UI_STYLE_GUIDE.md.",
-        "Primary owner-facing presentation does not regress to a generic white Windows dialog style."
+        "The owner-facing playbook or equivalent doc states what to test in-game, what evidence to capture, and what limitations still remain.",
+        "The documented gap stays bounded to generated-overlay gameplay verification rather than broad strategic redesign.",
+        "The next owner run can follow the documented checklist without reinterpreting the roadmap from scratch."
       ],
       "preferred_tests": [
-        "tools/smoke_snc_tray.ps1",
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
