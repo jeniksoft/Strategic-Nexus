@@ -171,6 +171,18 @@ $latestMpPackageZipPathChanged = ""
 $latestMpPackageZipBytesCurrent = ""
 $latestMpPackageZipBytesPrevious = ""
 $latestMpPackageZipBytesChanged = ""
+$latestMpProvenanceStateCurrent = ""
+$latestMpProvenanceStatePrevious = ""
+$latestMpProvenanceStateChanged = ""
+$latestMpSourceQualityCountCurrent = ""
+$latestMpSourceQualityCountPrevious = ""
+$latestMpSourceQualityCountChanged = ""
+$latestMpSourceQualitiesCurrent = @()
+$latestMpSourceQualitiesPrevious = @()
+$latestMpSourceQualitiesChanged = ""
+$latestMpBootstrapCampaignCountCurrent = ""
+$latestMpBootstrapCampaignCountPrevious = ""
+$latestMpBootstrapCampaignCountChanged = ""
 $latestMpWarningCodesPrevious = @()
 $latestMpWarningCodesCurrent = @()
 $latestMpHostReadinessCurrent = ""
@@ -338,6 +350,18 @@ if ($sessionCount -ge 2) {
     $compareMpPackageZipBytesCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_bytes_current=*" } | Select-Object -First 1
     $compareMpPackageZipBytesPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_bytes_previous=*" } | Select-Object -First 1
     $compareMpPackageZipBytesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_package_zip_bytes_changed=*" } | Select-Object -First 1
+    $compareMpProvenanceStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_provenance_state_current=*" } | Select-Object -First 1
+    $compareMpProvenanceStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_provenance_state_previous=*" } | Select-Object -First 1
+    $compareMpProvenanceStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_provenance_state_changed=*" } | Select-Object -First 1
+    $compareMpSourceQualityCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_source_quality_count_current=*" } | Select-Object -First 1
+    $compareMpSourceQualityCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_source_quality_count_previous=*" } | Select-Object -First 1
+    $compareMpSourceQualityCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_source_quality_count_changed=*" } | Select-Object -First 1
+    $compareMpSourceQualityPreviousLines = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_source_quality_previous=*" }
+    $compareMpSourceQualityCurrentLines = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_source_quality_current=*" }
+    $compareMpSourceQualitiesChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_source_qualities_changed=*" } | Select-Object -First 1
+    $compareMpBootstrapCampaignCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_bootstrap_campaign_count_current=*" } | Select-Object -First 1
+    $compareMpBootstrapCampaignCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_bootstrap_campaign_count_previous=*" } | Select-Object -First 1
+    $compareMpBootstrapCampaignCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_mp_bootstrap_campaign_count_changed=*" } | Select-Object -First 1
     $latestMpWarningCodesCurrent = @(
         $compareLines |
             Where-Object { $_ -like "real_session_v0_compare_mp_warning_code_current=*" } |
@@ -742,6 +766,46 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($compareMpPackageZipBytesChangedLine)) {
         $latestMpPackageZipBytesChanged = $compareMpPackageZipBytesChangedLine.Substring("real_session_v0_compare_mp_package_zip_bytes_changed=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpProvenanceStateCurrentLine)) {
+        $latestMpProvenanceStateCurrent = $compareMpProvenanceStateCurrentLine.Substring("real_session_v0_compare_mp_provenance_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpProvenanceStatePreviousLine)) {
+        $latestMpProvenanceStatePrevious = $compareMpProvenanceStatePreviousLine.Substring("real_session_v0_compare_mp_provenance_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpProvenanceStateChangedLine)) {
+        $latestMpProvenanceStateChanged = $compareMpProvenanceStateChangedLine.Substring("real_session_v0_compare_mp_provenance_state_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpSourceQualityCountCurrentLine)) {
+        $latestMpSourceQualityCountCurrent = $compareMpSourceQualityCountCurrentLine.Substring("real_session_v0_compare_mp_source_quality_count_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpSourceQualityCountPreviousLine)) {
+        $latestMpSourceQualityCountPrevious = $compareMpSourceQualityCountPreviousLine.Substring("real_session_v0_compare_mp_source_quality_count_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpSourceQualityCountChangedLine)) {
+        $latestMpSourceQualityCountChanged = $compareMpSourceQualityCountChangedLine.Substring("real_session_v0_compare_mp_source_quality_count_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpSourceQualitiesChangedLine)) {
+        $latestMpSourceQualitiesChanged = $compareMpSourceQualitiesChangedLine.Substring("real_session_v0_compare_mp_source_qualities_changed=".Length)
+    }
+    $latestMpSourceQualitiesPrevious = @(
+        $compareMpSourceQualityPreviousLines |
+            ForEach-Object { $_.Substring("real_session_v0_compare_mp_source_quality_previous=".Length) } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    )
+    $latestMpSourceQualitiesCurrent = @(
+        $compareMpSourceQualityCurrentLines |
+            ForEach-Object { $_.Substring("real_session_v0_compare_mp_source_quality_current=".Length) } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    )
+    if (-not [string]::IsNullOrWhiteSpace($compareMpBootstrapCampaignCountCurrentLine)) {
+        $latestMpBootstrapCampaignCountCurrent = $compareMpBootstrapCampaignCountCurrentLine.Substring("real_session_v0_compare_mp_bootstrap_campaign_count_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpBootstrapCampaignCountPreviousLine)) {
+        $latestMpBootstrapCampaignCountPrevious = $compareMpBootstrapCampaignCountPreviousLine.Substring("real_session_v0_compare_mp_bootstrap_campaign_count_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMpBootstrapCampaignCountChangedLine)) {
+        $latestMpBootstrapCampaignCountChanged = $compareMpBootstrapCampaignCountChangedLine.Substring("real_session_v0_compare_mp_bootstrap_campaign_count_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrentLine)) {
         $latestMpHostReadinessCurrent = $compareMpHostReadinessCurrentLine.Substring("real_session_v0_compare_mp_host_readiness_current=".Length)
     }
@@ -1079,6 +1143,20 @@ $result = [ordered]@{
         package_zip_bytes_current = $latestMpPackageZipBytesCurrent
         package_zip_bytes_changed = $latestMpPackageZipBytesChanged
     }
+    latest_mp_provenance = [ordered]@{
+        provenance_state_previous = $latestMpProvenanceStatePrevious
+        provenance_state_current = $latestMpProvenanceStateCurrent
+        provenance_state_changed = $latestMpProvenanceStateChanged
+        source_quality_count_previous = $latestMpSourceQualityCountPrevious
+        source_quality_count_current = $latestMpSourceQualityCountCurrent
+        source_quality_count_changed = $latestMpSourceQualityCountChanged
+        source_qualities_previous = $latestMpSourceQualitiesPrevious
+        source_qualities_current = $latestMpSourceQualitiesCurrent
+        source_qualities_changed = $latestMpSourceQualitiesChanged
+        bootstrap_campaign_count_previous = $latestMpBootstrapCampaignCountPrevious
+        bootstrap_campaign_count_current = $latestMpBootstrapCampaignCountCurrent
+        bootstrap_campaign_count_changed = $latestMpBootstrapCampaignCountChanged
+    }
     latest_mp_readiness = [ordered]@{
         host_readiness_previous = $latestMpHostReadinessPrevious
         host_readiness_current = $latestMpHostReadinessCurrent
@@ -1301,6 +1379,42 @@ if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipBytesPrevious)) {
 }
 if (-not [string]::IsNullOrWhiteSpace($latestMpPackageZipBytesChanged)) {
     Write-Host ("real_session_v0_trend_mp_package_zip_bytes_changed=" + $latestMpPackageZipBytesChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpProvenanceStateCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_provenance_state_current=" + $latestMpProvenanceStateCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpProvenanceStatePrevious)) {
+    Write-Host ("real_session_v0_trend_mp_provenance_state_previous=" + $latestMpProvenanceStatePrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpProvenanceStateChanged)) {
+    Write-Host ("real_session_v0_trend_mp_provenance_state_changed=" + $latestMpProvenanceStateChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpSourceQualityCountCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_source_quality_count_current=" + $latestMpSourceQualityCountCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpSourceQualityCountPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_source_quality_count_previous=" + $latestMpSourceQualityCountPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpSourceQualityCountChanged)) {
+    Write-Host ("real_session_v0_trend_mp_source_quality_count_changed=" + $latestMpSourceQualityCountChanged)
+}
+foreach ($sourceQuality in $latestMpSourceQualitiesPrevious) {
+    Write-Host ("real_session_v0_trend_mp_source_quality_previous=" + $sourceQuality)
+}
+foreach ($sourceQuality in $latestMpSourceQualitiesCurrent) {
+    Write-Host ("real_session_v0_trend_mp_source_quality_current=" + $sourceQuality)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpSourceQualitiesChanged)) {
+    Write-Host ("real_session_v0_trend_mp_source_qualities_changed=" + $latestMpSourceQualitiesChanged)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpBootstrapCampaignCountCurrent)) {
+    Write-Host ("real_session_v0_trend_mp_bootstrap_campaign_count_current=" + $latestMpBootstrapCampaignCountCurrent)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpBootstrapCampaignCountPrevious)) {
+    Write-Host ("real_session_v0_trend_mp_bootstrap_campaign_count_previous=" + $latestMpBootstrapCampaignCountPrevious)
+}
+if (-not [string]::IsNullOrWhiteSpace($latestMpBootstrapCampaignCountChanged)) {
+    Write-Host ("real_session_v0_trend_mp_bootstrap_campaign_count_changed=" + $latestMpBootstrapCampaignCountChanged)
 }
 foreach ($warningCode in $latestMpWarningCodesCurrent) {
     Write-Host ("real_session_v0_trend_mp_warning_code_current=" + $warningCode)

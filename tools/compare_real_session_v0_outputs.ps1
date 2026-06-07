@@ -194,6 +194,14 @@ $previousMpPackageZipPath = ""
 $currentMpPackageZipPath = ""
 $previousMpPackageZipBytes = ""
 $currentMpPackageZipBytes = ""
+$previousMpProvenanceState = "not_exported"
+$currentMpProvenanceState = "not_exported"
+$previousMpSourceQualityCount = "0"
+$currentMpSourceQualityCount = "0"
+$previousMpSourceQualities = @()
+$currentMpSourceQualities = @()
+$previousMpBootstrapCampaignCount = "0"
+$currentMpBootstrapCampaignCount = "0"
 $previousSaveRootResolution = ""
 $currentSaveRootResolution = ""
 $previousSaveRootSource = ""
@@ -233,6 +241,13 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousCampaignLibrarySkippedDueToLimitCount = Get-OptionalString -Object $previousEvidence.campaign_library -Property "skipped_due_to_limit_count"
     }
     if ($null -ne $previousEvidence.mp_export) {
+        $previousMpProvenanceState = Get-OptionalString -Object $previousEvidence.mp_export -Property "provenance_state"
+        if ([string]::IsNullOrWhiteSpace($previousMpProvenanceState)) { $previousMpProvenanceState = "not_exported" }
+        $previousMpSourceQualityCount = Get-OptionalString -Object $previousEvidence.mp_export -Property "source_quality_count"
+        if ([string]::IsNullOrWhiteSpace($previousMpSourceQualityCount)) { $previousMpSourceQualityCount = "0" }
+        $previousMpSourceQualities = Get-OptionalStringArray -Object $previousEvidence.mp_export -Property "source_qualities"
+        $previousMpBootstrapCampaignCount = Get-OptionalString -Object $previousEvidence.mp_export -Property "bootstrap_campaign_count"
+        if ([string]::IsNullOrWhiteSpace($previousMpBootstrapCampaignCount)) { $previousMpBootstrapCampaignCount = "0" }
         $previousMpPackageZipState = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_state"
         $previousMpPackageZipReason = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_reason"
         $previousMpPackageZipSha256 = Get-OptionalString -Object $previousEvidence.mp_export -Property "package_zip_sha256"
@@ -267,6 +282,13 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentCampaignLibrarySkippedDueToLimitCount = Get-OptionalString -Object $currentEvidence.campaign_library -Property "skipped_due_to_limit_count"
     }
     if ($null -ne $currentEvidence.mp_export) {
+        $currentMpProvenanceState = Get-OptionalString -Object $currentEvidence.mp_export -Property "provenance_state"
+        if ([string]::IsNullOrWhiteSpace($currentMpProvenanceState)) { $currentMpProvenanceState = "not_exported" }
+        $currentMpSourceQualityCount = Get-OptionalString -Object $currentEvidence.mp_export -Property "source_quality_count"
+        if ([string]::IsNullOrWhiteSpace($currentMpSourceQualityCount)) { $currentMpSourceQualityCount = "0" }
+        $currentMpSourceQualities = Get-OptionalStringArray -Object $currentEvidence.mp_export -Property "source_qualities"
+        $currentMpBootstrapCampaignCount = Get-OptionalString -Object $currentEvidence.mp_export -Property "bootstrap_campaign_count"
+        if ([string]::IsNullOrWhiteSpace($currentMpBootstrapCampaignCount)) { $currentMpBootstrapCampaignCount = "0" }
         $currentMpPackageZipState = Get-OptionalString -Object $currentEvidence.mp_export -Property "package_zip_state"
         $currentMpPackageZipReason = Get-OptionalString -Object $currentEvidence.mp_export -Property "package_zip_reason"
         $currentMpPackageZipSha256 = Get-OptionalString -Object $currentEvidence.mp_export -Property "package_zip_sha256"
@@ -699,6 +721,26 @@ $result = [ordered]@{
         current = $currentMpPackageZipBytes
         changed = ($previousMpPackageZipBytes -ne $currentMpPackageZipBytes)
     }
+    mp_package_provenance_state = [ordered]@{
+        previous = $previousMpProvenanceState
+        current = $currentMpProvenanceState
+        changed = ($previousMpProvenanceState -ne $currentMpProvenanceState)
+    }
+    mp_package_source_quality_count = [ordered]@{
+        previous = $previousMpSourceQualityCount
+        current = $currentMpSourceQualityCount
+        changed = ($previousMpSourceQualityCount -ne $currentMpSourceQualityCount)
+    }
+    mp_package_source_qualities = [ordered]@{
+        previous = $previousMpSourceQualities
+        current = $currentMpSourceQualities
+        changed = (($previousMpSourceQualities -join "|") -ne ($currentMpSourceQualities -join "|"))
+    }
+    mp_package_bootstrap_campaign_count = [ordered]@{
+        previous = $previousMpBootstrapCampaignCount
+        current = $currentMpBootstrapCampaignCount
+        changed = ($previousMpBootstrapCampaignCount -ne $currentMpBootstrapCampaignCount)
+    }
     mp_package_readiness = [ordered]@{
         previous = $previousMpReadiness
         current = $currentMpReadiness
@@ -986,6 +1028,22 @@ Write-Host ("real_session_v0_compare_mp_package_zip_path_changed=" + ((($previou
 Write-Host ("real_session_v0_compare_mp_package_zip_bytes_current=" + $currentMpPackageZipBytes)
 Write-Host ("real_session_v0_compare_mp_package_zip_bytes_previous=" + $previousMpPackageZipBytes)
 Write-Host ("real_session_v0_compare_mp_package_zip_bytes_changed=" + ((($previousMpPackageZipBytes -ne $currentMpPackageZipBytes).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_provenance_state_current=" + $currentMpProvenanceState)
+Write-Host ("real_session_v0_compare_mp_provenance_state_previous=" + $previousMpProvenanceState)
+Write-Host ("real_session_v0_compare_mp_provenance_state_changed=" + ((($previousMpProvenanceState -ne $currentMpProvenanceState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_mp_source_quality_count_current=" + $currentMpSourceQualityCount)
+Write-Host ("real_session_v0_compare_mp_source_quality_count_previous=" + $previousMpSourceQualityCount)
+Write-Host ("real_session_v0_compare_mp_source_quality_count_changed=" + ((($previousMpSourceQualityCount -ne $currentMpSourceQualityCount).ToString().ToLowerInvariant())))
+foreach ($sourceQuality in $previousMpSourceQualities) {
+    Write-Host ("real_session_v0_compare_mp_source_quality_previous=" + $sourceQuality)
+}
+foreach ($sourceQuality in $currentMpSourceQualities) {
+    Write-Host ("real_session_v0_compare_mp_source_quality_current=" + $sourceQuality)
+}
+Write-Host ("real_session_v0_compare_mp_source_qualities_changed=" + ((($previousMpSourceQualities -join "|") -ne ($currentMpSourceQualities -join "|")).ToString().ToLowerInvariant()))
+Write-Host ("real_session_v0_compare_mp_bootstrap_campaign_count_current=" + $currentMpBootstrapCampaignCount)
+Write-Host ("real_session_v0_compare_mp_bootstrap_campaign_count_previous=" + $previousMpBootstrapCampaignCount)
+Write-Host ("real_session_v0_compare_mp_bootstrap_campaign_count_changed=" + ((($previousMpBootstrapCampaignCount -ne $currentMpBootstrapCampaignCount).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_mp_warning_count_current=" + $currentMpWarningCount)
 if ($null -ne $mpWarningCountDelta) {
     Write-Host ("real_session_v0_compare_mp_warning_count_delta=" + $mpWarningCountDelta)

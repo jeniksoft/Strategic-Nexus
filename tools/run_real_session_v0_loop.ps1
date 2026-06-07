@@ -1413,6 +1413,18 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareCampaignLibrarySkippedDueToLimitCountChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_skipped_due_to_limit_count_changed"
     $compareMpHandoffFollowUpActive = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_handoff_follow_up_active"
     $compareMpHandoffFollowUpReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_handoff_follow_up_reason"
+    $compareMpProvenanceStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_provenance_state_current"
+    $compareMpProvenanceStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_provenance_state_previous"
+    $compareMpProvenanceStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_provenance_state_changed"
+    $compareMpSourceQualityCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_source_quality_count_current"
+    $compareMpSourceQualityCountPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_source_quality_count_previous"
+    $compareMpSourceQualityCountChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_source_quality_count_changed"
+    $compareMpSourceQualitiesPrevious = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_mp_source_quality_previous"
+    $compareMpSourceQualitiesCurrent = Get-KeyValueLineValues -Lines $compareLines -Key "real_session_v0_compare_mp_source_quality_current"
+    $compareMpSourceQualitiesChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_source_qualities_changed"
+    $compareMpBootstrapCampaignCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_bootstrap_campaign_count_current"
+    $compareMpBootstrapCampaignCountPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_bootstrap_campaign_count_previous"
+    $compareMpBootstrapCampaignCountChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_bootstrap_campaign_count_changed"
     $compareCampaignLibraryFollowUpActive = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_follow_up_active"
     $compareCampaignLibraryFollowUpReason = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_follow_up_reason"
     $compareMpHostReadinessCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_mp_host_readiness_current"
@@ -1625,6 +1637,22 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_campaign_library_skipped_due_to_limit_count_changed=" + $compareCampaignLibrarySkippedDueToLimitCountChanged)
     Write-Host ("real_session_v0_loop_compare_auto_campaign_library_follow_up_active=" + $compareCampaignLibraryFollowUpActive)
     Write-Host ("real_session_v0_loop_compare_auto_campaign_library_follow_up_reason=" + $compareCampaignLibraryFollowUpReason)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_provenance_state_current=" + $compareMpProvenanceStateCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_provenance_state_previous=" + $compareMpProvenanceStatePrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_provenance_state_changed=" + $compareMpProvenanceStateChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_source_quality_count_current=" + $compareMpSourceQualityCountCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_source_quality_count_previous=" + $compareMpSourceQualityCountPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_source_quality_count_changed=" + $compareMpSourceQualityCountChanged)
+    foreach ($sourceQuality in $compareMpSourceQualitiesPrevious) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_source_quality_previous=" + $sourceQuality)
+    }
+    foreach ($sourceQuality in $compareMpSourceQualitiesCurrent) {
+        Write-Host ("real_session_v0_loop_compare_auto_mp_source_quality_current=" + $sourceQuality)
+    }
+    Write-Host ("real_session_v0_loop_compare_auto_mp_source_qualities_changed=" + $compareMpSourceQualitiesChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_bootstrap_campaign_count_current=" + $compareMpBootstrapCampaignCountCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_bootstrap_campaign_count_previous=" + $compareMpBootstrapCampaignCountPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_mp_bootstrap_campaign_count_changed=" + $compareMpBootstrapCampaignCountChanged)
     if (-not [string]::IsNullOrWhiteSpace($compareMpHostReadinessCurrent)) {
         Write-Host ("real_session_v0_loop_compare_auto_mp_host_readiness_current=" + $compareMpHostReadinessCurrent)
     }
@@ -1995,6 +2023,18 @@ if ($EmitTrendSummary) {
     $trendCampaignLibrarySkippedDueToLimitCountChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_skipped_due_to_limit_count_changed"
     $trendCampaignLibraryFollowUpActive = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_follow_up_active"
     $trendCampaignLibraryFollowUpReason = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_campaign_library_follow_up_reason"
+    $trendMpProvenanceStateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_provenance_state_current"
+    $trendMpProvenanceStatePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_provenance_state_previous"
+    $trendMpProvenanceStateChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_provenance_state_changed"
+    $trendMpSourceQualityCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_source_quality_count_current"
+    $trendMpSourceQualityCountPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_source_quality_count_previous"
+    $trendMpSourceQualityCountChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_source_quality_count_changed"
+    $trendMpSourceQualitiesPrevious = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_source_quality_previous"
+    $trendMpSourceQualitiesCurrent = Get-KeyValueLineValues -Lines $trendLines -Key "real_session_v0_trend_mp_source_quality_current"
+    $trendMpSourceQualitiesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_source_qualities_changed"
+    $trendMpBootstrapCampaignCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_bootstrap_campaign_count_current"
+    $trendMpBootstrapCampaignCountPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_bootstrap_campaign_count_previous"
+    $trendMpBootstrapCampaignCountChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_bootstrap_campaign_count_changed"
     $trendMpWarningCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_current"
     $trendMpWarningCountDelta = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_count_delta"
     $trendMpWarningCodesChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_mp_warning_codes_changed"
@@ -2185,6 +2225,22 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_campaign_library_skipped_due_to_limit_count_changed=" + $trendCampaignLibrarySkippedDueToLimitCountChanged)
     Write-Host ("real_session_v0_loop_trend_auto_campaign_library_follow_up_active=" + $trendCampaignLibraryFollowUpActive)
     Write-Host ("real_session_v0_loop_trend_auto_campaign_library_follow_up_reason=" + $trendCampaignLibraryFollowUpReason)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_provenance_state_current=" + $trendMpProvenanceStateCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_provenance_state_previous=" + $trendMpProvenanceStatePrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_provenance_state_changed=" + $trendMpProvenanceStateChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_source_quality_count_current=" + $trendMpSourceQualityCountCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_source_quality_count_previous=" + $trendMpSourceQualityCountPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_source_quality_count_changed=" + $trendMpSourceQualityCountChanged)
+    foreach ($sourceQuality in $trendMpSourceQualitiesPrevious) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_source_quality_previous=" + $sourceQuality)
+    }
+    foreach ($sourceQuality in $trendMpSourceQualitiesCurrent) {
+        Write-Host ("real_session_v0_loop_trend_auto_mp_source_quality_current=" + $sourceQuality)
+    }
+    Write-Host ("real_session_v0_loop_trend_auto_mp_source_qualities_changed=" + $trendMpSourceQualitiesChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_bootstrap_campaign_count_current=" + $trendMpBootstrapCampaignCountCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_bootstrap_campaign_count_previous=" + $trendMpBootstrapCampaignCountPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_mp_bootstrap_campaign_count_changed=" + $trendMpBootstrapCampaignCountChanged)
     if (-not [string]::IsNullOrWhiteSpace($trendMpWarningCountCurrent)) {
         Write-Host ("real_session_v0_loop_trend_auto_mp_warning_count_current=" + $trendMpWarningCountCurrent)
     }
@@ -2850,6 +2906,18 @@ $sessionEvidence = [ordered]@{
             follow_up_reason = (Get-VariableOrDefault -Name "compareCampaignLibraryFollowUpReason")
         }
         mp = [ordered]@{
+            provenance_state_current = (Get-VariableOrDefault -Name "compareMpProvenanceStateCurrent")
+            provenance_state_previous = (Get-VariableOrDefault -Name "compareMpProvenanceStatePrevious")
+            provenance_state_changed = (Get-VariableOrDefault -Name "compareMpProvenanceStateChanged")
+            source_quality_count_current = (Get-VariableOrDefault -Name "compareMpSourceQualityCountCurrent")
+            source_quality_count_previous = (Get-VariableOrDefault -Name "compareMpSourceQualityCountPrevious")
+            source_quality_count_changed = (Get-VariableOrDefault -Name "compareMpSourceQualityCountChanged")
+            source_qualities_current = @(Get-VariableArrayOrDefault -Name "compareMpSourceQualitiesCurrent")
+            source_qualities_previous = @(Get-VariableArrayOrDefault -Name "compareMpSourceQualitiesPrevious")
+            source_qualities_changed = (Get-VariableOrDefault -Name "compareMpSourceQualitiesChanged")
+            bootstrap_campaign_count_current = (Get-VariableOrDefault -Name "compareMpBootstrapCampaignCountCurrent")
+            bootstrap_campaign_count_previous = (Get-VariableOrDefault -Name "compareMpBootstrapCampaignCountPrevious")
+            bootstrap_campaign_count_changed = (Get-VariableOrDefault -Name "compareMpBootstrapCampaignCountChanged")
             host_readiness_current = (Get-VariableOrDefault -Name "compareMpHostReadinessCurrent")
             host_readiness_previous = (Get-VariableOrDefault -Name "compareMpHostReadinessPrevious")
             host_readiness_changed = (Get-VariableOrDefault -Name "compareMpHostReadinessChanged")
@@ -3029,6 +3097,18 @@ $sessionEvidence = [ordered]@{
         latest_compare_command_hint = (Get-VariableOrDefault -Name "trendLatestCompareCommandHint")
         next_session_command_hint = (Get-VariableOrDefault -Name "trendNextSessionCommandHint")
         mp = [ordered]@{
+            provenance_state_current = (Get-VariableOrDefault -Name "trendMpProvenanceStateCurrent")
+            provenance_state_previous = (Get-VariableOrDefault -Name "trendMpProvenanceStatePrevious")
+            provenance_state_changed = (Get-VariableOrDefault -Name "trendMpProvenanceStateChanged")
+            source_quality_count_current = (Get-VariableOrDefault -Name "trendMpSourceQualityCountCurrent")
+            source_quality_count_previous = (Get-VariableOrDefault -Name "trendMpSourceQualityCountPrevious")
+            source_quality_count_changed = (Get-VariableOrDefault -Name "trendMpSourceQualityCountChanged")
+            source_qualities_current = @(Get-VariableArrayOrDefault -Name "trendMpSourceQualitiesCurrent")
+            source_qualities_previous = @(Get-VariableArrayOrDefault -Name "trendMpSourceQualitiesPrevious")
+            source_qualities_changed = (Get-VariableOrDefault -Name "trendMpSourceQualitiesChanged")
+            bootstrap_campaign_count_current = (Get-VariableOrDefault -Name "trendMpBootstrapCampaignCountCurrent")
+            bootstrap_campaign_count_previous = (Get-VariableOrDefault -Name "trendMpBootstrapCampaignCountPrevious")
+            bootstrap_campaign_count_changed = (Get-VariableOrDefault -Name "trendMpBootstrapCampaignCountChanged")
             host_readiness_current = (Get-VariableOrDefault -Name "trendMpHostReadinessCurrent")
             host_readiness_previous = (Get-VariableOrDefault -Name "trendMpHostReadinessPrevious")
             host_readiness_changed = (Get-VariableOrDefault -Name "trendMpHostReadinessChanged")
