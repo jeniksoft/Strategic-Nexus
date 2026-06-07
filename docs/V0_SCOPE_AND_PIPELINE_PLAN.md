@@ -253,6 +253,8 @@ v0 tests must cover:
 * generated overlay contract verification remains distinct from gameplay behavior verification
 * reactive policy-pack branch verification remains distinct from broad strategic quality
 
+The generated overlay gameplay acceptance checklist lives in `docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md`, and the primary evidence artifact is `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`.
+
 Testing should be local and deterministic where possible.
 When local deterministic tests cannot prove real Stellaris behavior, the gap must be recorded as an acceptance-test requirement instead of silently counted as done.
 
