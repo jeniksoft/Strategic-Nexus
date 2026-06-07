@@ -181,5 +181,7 @@ The readiness notice must include:
 * what evidence Codex will inspect afterward
 * any known limitations
 
+For generated-overlay gameplay acceptance, the repeatable owner checklist lives in `docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md`, and the primary evidence artifact is `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`.
+
 Until such a notice exists, Free Work should keep moving through the v0 queue instead of waiting for the owner.
 After such a notice exists, Free Work should still continue with unrelated or follow-on roadmap chunks unless the next meaningful implementation depends on the owner test result.
