@@ -534,3 +534,44 @@ country_event = {
         }
     }
 }
+
+# Low-frequency proxy dispatchers for the allowlisted reactive families.
+# The monthly country pulse fans them out through the same generated overlay
+# branch path until a direct in-session hook is confirmed and verified.
+country_event = {
+    id = strategic_nexus.1451
+    hide_window = yes
+    is_triggered_only = yes
+
+    trigger = {
+        is_ai = no
+        is_country_type = default
+        is_at_war = yes
+        NOT = { has_country_flag = strategic_nexus_poc_reactive_war_started_seen }
+    }
+
+    immediate = {
+        set_country_flag = strategic_nexus_poc_reactive_war_started_seen
+        log = "Strategic Nexus: reactive war_started proxy fired"
+        strategic_nexus_generated_war_started_dispatch = yes
+    }
+}
+
+country_event = {
+    id = strategic_nexus.1452
+    hide_window = yes
+    is_triggered_only = yes
+
+    trigger = {
+        is_ai = no
+        is_country_type = default
+        is_at_war = yes
+        NOT = { has_country_flag = strategic_nexus_poc_reactive_country_attacked_seen }
+    }
+
+    immediate = {
+        set_country_flag = strategic_nexus_poc_reactive_country_attacked_seen
+        log = "Strategic Nexus: reactive country_attacked proxy fired"
+        strategic_nexus_generated_country_attacked_dispatch = yes
+    }
+}
