@@ -945,6 +945,12 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.recommendedRuntime.empty()) {
         summary << "local_llm_recommended_runtime: " << localLlm.recommendedRuntime << "\n";
     }
+    if (!localLlm.modelStatePath.empty()) {
+        summary << "local_llm_model_state_path: " << pathString(localLlm.modelStatePath) << "\n";
+    }
+    if (!localLlm.prepareCommandHint.empty()) {
+        summary << "local_llm_prepare_command_hint: " << localLlm.prepareCommandHint << "\n";
+    }
     appendStartupRationaleLines(summary, startWithWindowsEnabled);
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();

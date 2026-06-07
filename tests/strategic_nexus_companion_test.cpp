@@ -396,6 +396,19 @@ int main()
     requireCondition(
         readyWithModel.statusCenterSummaryText.find("local_llm_can_run_inference: true") != std::string::npos,
         "status center summary should expose local LLM inference readiness");
+    requireCondition(
+        readyWithModel.localLlm.modelStatePath == readyLocalModelStatePath,
+        "local LLM status should expose the configured model state path");
+    requireCondition(
+        readyWithModel.localLlm.prepareCommandHint.find(
+            "Strategic Nexus.exe --prepare-local-llm-model ollama:llama3.2:3b") != std::string::npos,
+        "local LLM status should expose a prepare command hint");
+    requireCondition(
+        readyWithModel.localLlm.prepareCommandHint.find("accept-license download") != std::string::npos,
+        "local LLM prepare command hint should include explicit acceptance and download");
+    requireCondition(
+        readyWithModel.localLlm.prepareCommandHint.find(readyLocalModelStatePath.string()) != std::string::npos,
+        "local LLM prepare command hint should include the configured state path");
 
     const auto unsupportedLocalModelStatePath = root / "snc_local_model_state_unsupported.json";
     writeTextFileAtomically(

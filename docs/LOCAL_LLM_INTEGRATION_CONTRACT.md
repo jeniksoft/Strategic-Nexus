@@ -196,6 +196,9 @@ Changing catalog status for a model can change what users are allowed to install
 # Local Model State
 
 The companion app should persist local model state separately from the mod.
+The default local model state path used by SNC is
+`dist/private_reports/snc_local_model_state.json` unless the owner explicitly
+chooses a different documented path.
 
 The first implementation path is a companion/CLI prepare step:
 

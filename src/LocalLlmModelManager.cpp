@@ -251,6 +251,24 @@ bool writeLocalLlmModelState(
     return common::writeTextFileAtomically(path, serializeLocalLlmModelState(state));
 }
 
+std::string buildLocalLlmPrepareCommandHint(
+    const std::string& modelId,
+    const std::filesystem::path& statePath,
+    const std::string& runtimeUrl)
+{
+    if (modelId.empty() || statePath.empty()) {
+        return std::string();
+    }
+
+    std::ostringstream output;
+    output << "Strategic Nexus.exe --prepare-local-llm-model "
+           << modelId << ' '
+           << '"' << statePath.string() << '"' << ' '
+           << "accept-license download "
+           << runtimeUrl;
+    return output.str();
+}
+
 LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     const std::vector<LocalLlmCatalogEntry>& catalog,
     const LocalLlmModelState& state,

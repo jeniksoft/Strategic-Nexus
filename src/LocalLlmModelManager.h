@@ -80,6 +80,10 @@ std::string serializeLocalLlmModelState(const LocalLlmModelState& state);
 bool writeLocalLlmModelState(
     const std::filesystem::path& path,
     const LocalLlmModelState& state);
+std::string buildLocalLlmPrepareCommandHint(
+    const std::string& modelId,
+    const std::filesystem::path& statePath,
+    const std::string& runtimeUrl = "http://127.0.0.1:11434");
 LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     const std::vector<LocalLlmCatalogEntry>& catalog,
     const LocalLlmModelState& state,

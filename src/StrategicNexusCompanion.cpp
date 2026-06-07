@@ -1636,10 +1636,18 @@ CompanionLocalLlmStatus buildLocalLlmStatus(const CompanionStatusConfig& config)
     status.recommendedModelId = readiness.recommendedModelId;
     status.recommendedDisplayName = readiness.recommendedDisplayName;
     status.recommendedRuntime = readiness.recommendedRuntime;
+    status.modelStatePath = config.localLlmModelStatePath;
     status.canRunInference = readiness.canRunInference;
     status.reducedMode = readiness.reducedMode;
     status.userActionRequired = readiness.userActionRequired;
     status.downloadAllowed = readiness.downloadAllowed;
+    const std::string prepareModelId =
+        !readiness.selectedModelId.empty() && readiness.state == "model_ready"
+            ? readiness.selectedModelId
+            : readiness.recommendedModelId;
+    status.prepareCommandHint = buildLocalLlmPrepareCommandHint(
+        prepareModelId,
+        config.localLlmModelStatePath);
     return status;
 }
 
@@ -2154,6 +2162,12 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.recommendedRuntime.empty()) {
         text << "local_llm_recommended_runtime: " << localLlm.recommendedRuntime << "\n";
     }
+    if (!localLlm.modelStatePath.empty()) {
+        text << "local_llm_model_state_path: " << pathString(localLlm.modelStatePath) << "\n";
+    }
+    if (!localLlm.prepareCommandHint.empty()) {
+        text << "local_llm_prepare_command_hint: " << localLlm.prepareCommandHint << "\n";
+    }
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
@@ -2419,6 +2433,8 @@ void writeLocalLlmJson(
     output << indent << "  \"recommended_model_id\": " << jsonString(status.recommendedModelId) << ",\n";
     output << indent << "  \"recommended_display_name\": " << jsonString(status.recommendedDisplayName) << ",\n";
     output << indent << "  \"recommended_runtime\": " << jsonString(status.recommendedRuntime) << ",\n";
+    output << indent << "  \"model_state_path\": " << jsonString(pathString(status.modelStatePath)) << ",\n";
+    output << indent << "  \"prepare_command_hint\": " << jsonString(status.prepareCommandHint) << ",\n";
     output << indent << "  \"can_run_inference\": " << (status.canRunInference ? "true" : "false") << ",\n";
     output << indent << "  \"reduced_mode\": " << (status.reducedMode ? "true" : "false") << ",\n";
     output << indent << "  \"user_action_required\": "

@@ -39,7 +39,8 @@ struct CompanionStatusConfig {
     std::filesystem::path postPlayGeneratedOverlayStagingStatusPath =
         "dist/private_reports/snc_generated_overlay_staging_status.json";
     std::filesystem::path mpOverlayPackageZipPath;
-    std::filesystem::path localLlmModelStatePath;
+    std::filesystem::path localLlmModelStatePath =
+        "dist/private_reports/snc_local_model_state.json";
 };
 
 struct CompanionStatusLoopConfig {
@@ -226,6 +227,8 @@ struct CompanionLocalLlmStatus {
     std::string recommendedModelId;
     std::string recommendedDisplayName;
     std::string recommendedRuntime;
+    std::filesystem::path modelStatePath;
+    std::string prepareCommandHint;
     bool canRunInference = false;
     bool reducedMode = true;
     bool userActionRequired = false;

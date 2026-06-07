@@ -363,7 +363,8 @@ The second Model Manager slice adds the first practical prepare path:
 `--prepare-local-llm-model <model-id> <state-json> <accept-license|no-license> <download|no-download> [runtime-url]`.
 It targets Ollama through the local runtime API, checks `/api/tags`, optionally
 pulls the allowlisted model only after explicit license acceptance, and writes
-the local model state JSON that SNC readiness consumes.
+the local model state JSON that SNC readiness consumes. The default companion
+state path is `dist/private_reports/snc_local_model_state.json`.
 
 ---
 
