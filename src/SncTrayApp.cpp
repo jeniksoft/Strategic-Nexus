@@ -50,6 +50,7 @@ namespace {
 
 constexpr UINT WM_SNC_TRAY = WM_APP + 10;
 constexpr UINT WM_SNC_TASKBAR_CREATED = WM_APP + 11;
+constexpr UINT WM_SNC_STATUS_REFRESH = WM_APP + 12;
 constexpr UINT ID_TRAY_STATUS = 101;
 constexpr UINT ID_TRAY_OPEN_ARCHIVE = 102;
 constexpr UINT ID_TRAY_EXIT = 103;
@@ -80,11 +81,41 @@ std::filesystem::path g_generatedOverlayPublishBackupRootDirectory;
 std::filesystem::path g_gameplayAcceptanceReportPath;
 std::filesystem::path g_mpOverlayPackageDirectory;
 std::filesystem::path g_mpOverlayPackageZipPath;
+std::filesystem::path g_trayIconPath;
+HWND g_statusWindow = nullptr;
+HWND g_statusHeader = nullptr;
+HWND g_statusSubtitle = nullptr;
+HWND g_statusDetails = nullptr;
+HFONT g_statusHeaderFont = nullptr;
+HFONT g_statusSubtitleFont = nullptr;
+HFONT g_statusDetailsFont = nullptr;
+HBRUSH g_statusBackgroundBrush = nullptr;
+HBRUSH g_statusPanelBrush = nullptr;
+HBRUSH g_statusAccentBrush = nullptr;
+HBRUSH g_statusBorderBrush = nullptr;
 constexpr const char* kTrayMpOverlayVersion = "overlay_v0_session";
 constexpr const char* kTrayMpGameVersion = "stellaris_4.x";
 constexpr const char* kTrayMpModVersion = "strategic_nexus_v0";
+constexpr COLORREF kStatusBackgroundColor = RGB(8, 15, 17);
+constexpr COLORREF kStatusPanelColor = RGB(12, 29, 33);
+constexpr COLORREF kStatusTextColor = RGB(232, 239, 240);
+constexpr COLORREF kStatusMutedColor = RGB(146, 162, 164);
+constexpr COLORREF kStatusAccentColor = RGB(214, 170, 76);
+constexpr COLORREF kStatusBorderColor = RGB(26, 71, 76);
+constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWindow";
 NOTIFYICONDATAW g_trayIcon{};
+HICON g_sncTrayIcon = nullptr;
 UINT g_taskbarCreatedMessage = 0;
+
+std::wstring buildStatusDialogText();
+std::wstring buildStatusSubtitleText();
+void ensureStatusWindowResources();
+void destroyStatusWindowResources();
+void refreshStatusWindowContent();
+void requestStatusWindowRefresh();
+void layoutStatusWindow(HWND hwnd);
+void registerStatusWindowClass();
+LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 std::string jsonEscape(const std::string& value)
 {
@@ -123,6 +154,326 @@ std::string joinStrings(const std::vector<std::string>& values, const std::strin
 std::string pathString(const std::filesystem::path& path)
 {
     return path.lexically_normal().generic_string();
+}
+
+std::wstring buildStatusDialogText()
+{
+    std::wstring text;
+    {
+        std::lock_guard<std::mutex> lock(g_statusMutex);
+        text = g_statusText;
+    }
+
+    text += L"\n\nStatus JSON:\n";
+    text += g_trayStatusPath.wstring();
+    text += L"\n\nArchiv:\n";
+    text += g_archiveRoot.wstring();
+    text += L"\n\nStaged overlay status:\n";
+    text += g_generatedOverlayStagingStatusPath.wstring();
+    text += L"\n\nActive overlay snapshot:\n";
+    text += g_generatedOverlayActiveDirectory.wstring();
+    text += L"\n\nDalsi kroky:\n";
+    text += g_nextStepsBriefPath.wstring();
+    return text;
+}
+
+std::wstring buildStatusSubtitleText()
+{
+    std::wstring subtitle;
+    {
+        std::lock_guard<std::mutex> lock(g_statusMutex);
+        subtitle = g_statusText;
+    }
+    if (subtitle.empty()) {
+        subtitle = L"SNC bezi.";
+    }
+    return L"Stav: " + subtitle;
+}
+
+HFONT createUiFont(const int pointSize, const int weight, const wchar_t* faceName)
+{
+    const HDC screen = GetDC(nullptr);
+    const int dpiY = screen != nullptr ? GetDeviceCaps(screen, LOGPIXELSY) : 96;
+    if (screen != nullptr) {
+        ReleaseDC(nullptr, screen);
+    }
+    return CreateFontW(
+        -MulDiv(pointSize, dpiY, 72),
+        0,
+        0,
+        0,
+        weight,
+        FALSE,
+        FALSE,
+        FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE,
+        faceName);
+}
+
+void ensureStatusWindowResources()
+{
+    if (g_statusBackgroundBrush == nullptr) {
+        g_statusBackgroundBrush = CreateSolidBrush(kStatusBackgroundColor);
+    }
+    if (g_statusPanelBrush == nullptr) {
+        g_statusPanelBrush = CreateSolidBrush(kStatusPanelColor);
+    }
+    if (g_statusAccentBrush == nullptr) {
+        g_statusAccentBrush = CreateSolidBrush(kStatusAccentColor);
+    }
+    if (g_statusBorderBrush == nullptr) {
+        g_statusBorderBrush = CreateSolidBrush(kStatusBorderColor);
+    }
+    if (g_statusHeaderFont == nullptr) {
+        g_statusHeaderFont = createUiFont(18, FW_SEMIBOLD, L"Segoe UI");
+    }
+    if (g_statusSubtitleFont == nullptr) {
+        g_statusSubtitleFont = createUiFont(10, FW_NORMAL, L"Segoe UI");
+    }
+    if (g_statusDetailsFont == nullptr) {
+        g_statusDetailsFont = createUiFont(10, FW_NORMAL, L"Segoe UI");
+    }
+}
+
+void destroyStatusWindowResources()
+{
+    if (g_statusHeaderFont != nullptr) {
+        DeleteObject(g_statusHeaderFont);
+        g_statusHeaderFont = nullptr;
+    }
+    if (g_statusSubtitleFont != nullptr) {
+        DeleteObject(g_statusSubtitleFont);
+        g_statusSubtitleFont = nullptr;
+    }
+    if (g_statusDetailsFont != nullptr) {
+        DeleteObject(g_statusDetailsFont);
+        g_statusDetailsFont = nullptr;
+    }
+    if (g_statusPanelBrush != nullptr) {
+        DeleteObject(g_statusPanelBrush);
+        g_statusPanelBrush = nullptr;
+    }
+    if (g_statusAccentBrush != nullptr) {
+        DeleteObject(g_statusAccentBrush);
+        g_statusAccentBrush = nullptr;
+    }
+    if (g_statusBorderBrush != nullptr) {
+        DeleteObject(g_statusBorderBrush);
+        g_statusBorderBrush = nullptr;
+    }
+    if (g_statusBackgroundBrush != nullptr) {
+        DeleteObject(g_statusBackgroundBrush);
+        g_statusBackgroundBrush = nullptr;
+    }
+}
+
+void refreshStatusWindowContent()
+{
+    if (g_statusWindow == nullptr) {
+        return;
+    }
+
+    const auto details = buildStatusDialogText();
+    const auto subtitle = buildStatusSubtitleText();
+    if (g_statusSubtitle != nullptr) {
+        SetWindowTextW(g_statusSubtitle, subtitle.c_str());
+    }
+    if (g_statusDetails != nullptr) {
+        SetWindowTextW(g_statusDetails, details.c_str());
+    }
+}
+
+void requestStatusWindowRefresh()
+{
+    if (g_statusWindow != nullptr && IsWindow(g_statusWindow)) {
+        PostMessageW(g_statusWindow, WM_SNC_STATUS_REFRESH, 0, 0);
+    }
+}
+
+void layoutStatusWindow(HWND hwnd)
+{
+    RECT client{};
+    GetClientRect(hwnd, &client);
+
+    const int width = client.right - client.left;
+    const int height = client.bottom - client.top;
+    const int margin = 20;
+    const int headerHeight = 34;
+    const int subtitleHeight = 22;
+    const int top = 16;
+    const int headerWidth = width - (margin * 2);
+    const int detailsTop = top + headerHeight + subtitleHeight + 18;
+    const int detailsHeight = height - detailsTop - margin;
+
+    if (g_statusHeader != nullptr) {
+        MoveWindow(g_statusHeader, margin, top, headerWidth, headerHeight, TRUE);
+    }
+    if (g_statusSubtitle != nullptr) {
+        MoveWindow(g_statusSubtitle, margin, top + headerHeight + 2, headerWidth, subtitleHeight, TRUE);
+    }
+    if (g_statusDetails != nullptr) {
+        MoveWindow(g_statusDetails, margin, detailsTop, headerWidth, detailsHeight, TRUE);
+    }
+}
+
+void registerStatusWindowClass()
+{
+    static bool registered = false;
+    if (registered) {
+        return;
+    }
+
+    WNDCLASSW windowClass{};
+    windowClass.lpfnWndProc = statusWindowProc;
+    windowClass.hInstance = GetModuleHandleW(nullptr);
+    windowClass.lpszClassName = kStatusWindowClassName;
+    windowClass.hIcon = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
+    windowClass.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    windowClass.hbrBackground = nullptr;
+
+    const ATOM atom = RegisterClassW(&windowClass);
+    if (atom != 0 || GetLastError() == ERROR_CLASS_ALREADY_EXISTS) {
+        registered = true;
+    }
+}
+
+LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message) {
+    case WM_CREATE: {
+        ensureStatusWindowResources();
+
+        g_statusWindow = hwnd;
+        const std::wstring headerText = g_statusTitle;
+        const std::wstring subtitleText = buildStatusSubtitleText();
+        const std::wstring detailsText = buildStatusDialogText();
+        g_statusHeader = CreateWindowExW(
+            0,
+            L"STATIC",
+            headerText.c_str(),
+            WS_CHILD | WS_VISIBLE,
+            0,
+            0,
+            0,
+            0,
+            hwnd,
+            nullptr,
+            GetModuleHandleW(nullptr),
+            nullptr);
+        g_statusSubtitle = CreateWindowExW(
+            0,
+            L"STATIC",
+            subtitleText.c_str(),
+            WS_CHILD | WS_VISIBLE,
+            0,
+            0,
+            0,
+            0,
+            hwnd,
+            nullptr,
+            GetModuleHandleW(nullptr),
+            nullptr);
+        g_statusDetails = CreateWindowExW(
+            WS_EX_CLIENTEDGE,
+            L"EDIT",
+            detailsText.c_str(),
+            WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL,
+            0,
+            0,
+            0,
+            0,
+            hwnd,
+            nullptr,
+            GetModuleHandleW(nullptr),
+            nullptr);
+
+        SendMessageW(g_statusHeader, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusHeaderFont), TRUE);
+        SendMessageW(g_statusSubtitle, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusSubtitleFont), TRUE);
+        SendMessageW(g_statusDetails, WM_SETFONT, reinterpret_cast<WPARAM>(g_statusDetailsFont), TRUE);
+        layoutStatusWindow(hwnd);
+        refreshStatusWindowContent();
+        return 0;
+    }
+    case WM_SIZE:
+        layoutStatusWindow(hwnd);
+        return 0;
+    case WM_SNC_STATUS_REFRESH:
+        refreshStatusWindowContent();
+        return 0;
+    case WM_GETMINMAXINFO: {
+        auto* info = reinterpret_cast<MINMAXINFO*>(lParam);
+        info->ptMinTrackSize.x = 620;
+        info->ptMinTrackSize.y = 420;
+        return 0;
+    }
+    case WM_CTLCOLORSTATIC: {
+        const HDC hdc = reinterpret_cast<HDC>(wParam);
+        const HWND control = reinterpret_cast<HWND>(lParam);
+        if (control == g_statusHeader) {
+            SetTextColor(hdc, kStatusAccentColor);
+        } else {
+            SetTextColor(hdc, kStatusMutedColor);
+        }
+        SetBkMode(hdc, TRANSPARENT);
+        return reinterpret_cast<LRESULT>(g_statusBackgroundBrush);
+    }
+    case WM_CTLCOLOREDIT: {
+        const HDC hdc = reinterpret_cast<HDC>(wParam);
+        SetTextColor(hdc, kStatusTextColor);
+        SetBkColor(hdc, kStatusPanelColor);
+        return reinterpret_cast<LRESULT>(g_statusPanelBrush);
+    }
+    case WM_ERASEBKGND: {
+        const HDC hdc = reinterpret_cast<HDC>(wParam);
+        RECT client{};
+        GetClientRect(hwnd, &client);
+        FillRect(hdc, &client, g_statusBackgroundBrush);
+
+        RECT topBand = client;
+        topBand.bottom = topBand.top + 4;
+        FillRect(hdc, &topBand, g_statusAccentBrush);
+
+        RECT border = client;
+        border.top = border.bottom - 2;
+        FillRect(hdc, &border, g_statusBorderBrush);
+        return 1;
+    }
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
+        return 0;
+    case WM_DESTROY:
+        if (g_statusWindow == hwnd) {
+            g_statusWindow = nullptr;
+        }
+        g_statusHeader = nullptr;
+        g_statusSubtitle = nullptr;
+        g_statusDetails = nullptr;
+        destroyStatusWindowResources();
+        return 0;
+    default:
+        return DefWindowProcW(hwnd, message, wParam, lParam);
+    }
+}
+
+HICON loadSncTrayIcon()
+{
+    if (g_trayIconPath.empty()) {
+        return nullptr;
+    }
+
+    const auto iconHandle = static_cast<HICON>(
+        LoadImageW(
+            nullptr,
+            g_trayIconPath.c_str(),
+            IMAGE_ICON,
+            0,
+            0,
+            LR_LOADFROMFILE | LR_DEFAULTSIZE));
+    return iconHandle;
 }
 
 std::string formatLocalTimestamp()
@@ -1642,6 +1993,7 @@ void writeStatus(
         g_statusText = wideReason.empty() ? L"SNC bezi." : wideReason;
     }
     updateTrayTip(hwnd, wideReason.empty() ? L"bezi" : wideReason);
+    requestStatusWindowRefresh();
 }
 
 std::vector<std::filesystem::path> discoverExistingSaveRoots(std::size_t& candidateRootCount)
@@ -2175,7 +2527,7 @@ bool addTrayIcon(HWND hwnd)
     g_trayIcon.uID = 1;
     g_trayIcon.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
     g_trayIcon.uCallbackMessage = WM_SNC_TRAY;
-    g_trayIcon.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+    g_trayIcon.hIcon = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
     wcscpy_s(g_trayIcon.szTip, L"SNC - ceka na Stellaris");
 
     if (!Shell_NotifyIconW(NIM_ADD, &g_trayIcon)) {
@@ -2196,24 +2548,37 @@ void removeTrayIcon()
 
 void showStatusDialog(HWND hwnd)
 {
-    std::wstring text;
-    {
-        std::lock_guard<std::mutex> lock(g_statusMutex);
-        text = g_statusText;
+    registerStatusWindowClass();
+    refreshStatusWindowContent();
+
+    if (g_statusWindow != nullptr && IsWindow(g_statusWindow)) {
+        ShowWindow(g_statusWindow, SW_SHOW);
+        if (IsIconic(g_statusWindow)) {
+            ShowWindow(g_statusWindow, SW_RESTORE);
+        }
+        SetForegroundWindow(g_statusWindow);
+        return;
     }
 
-    text += L"\n\nStatus JSON:\n";
-    text += g_trayStatusPath.wstring();
-    text += L"\n\nArchiv:\n";
-    text += g_archiveRoot.wstring();
-    text += L"\n\nStaged overlay status:\n";
-    text += g_generatedOverlayStagingStatusPath.wstring();
-    text += L"\n\nActive overlay snapshot:\n";
-    text += g_generatedOverlayActiveDirectory.wstring();
-    text += L"\n\nDalsi kroky:\n";
-    text += g_nextStepsBriefPath.wstring();
+    const HWND statusWindow = CreateWindowExW(
+        WS_EX_APPWINDOW,
+        kStatusWindowClassName,
+        g_statusTitle.c_str(),
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        960,
+        720,
+        hwnd,
+        nullptr,
+        GetModuleHandleW(nullptr),
+        nullptr);
 
-    MessageBoxW(hwnd, text.c_str(), g_statusTitle.c_str(), MB_OK | MB_ICONINFORMATION);
+    if (statusWindow != nullptr) {
+        ShowWindow(statusWindow, SW_SHOWNORMAL);
+        UpdateWindow(statusWindow);
+        SetForegroundWindow(statusWindow);
+    }
 }
 
 void openArchiveDirectory()
@@ -2272,6 +2637,7 @@ void publishStagedGeneratedOverlay(HWND hwnd)
         g_statusText = utf8ToWide(result.reason);
     }
     updateTrayTip(hwnd, utf8ToWide(result.reason));
+    requestStatusWindowRefresh();
 
     std::wstring message = L"Vysledek: ";
     message += utf8ToWide(result.reason);
@@ -2371,6 +2737,7 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 void initializePaths()
 {
     g_repoRoot = findRepoRoot();
+    g_trayIconPath = g_repoRoot / "resources" / "snc_tray_icon.ico";
     g_archiveRoot = g_repoRoot / "dist" / "snc_live_autosave_archive";
     g_trayStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_tray_status.json";
     g_liveStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_live_autosave_monitor_status.json";
@@ -2398,6 +2765,7 @@ void initializePaths()
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
 {
     initializePaths();
+    g_sncTrayIcon = loadSncTrayIcon();
 
     HANDLE mutex = CreateMutexW(nullptr, TRUE, L"StrategicNexusCompanionTraySingleInstance");
     if (mutex == nullptr) {
@@ -2415,7 +2783,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
     windowClass.lpfnWndProc = windowProc;
     windowClass.hInstance = instance;
     windowClass.lpszClassName = L"StrategicNexusCompanionTrayWindow";
-    windowClass.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+    windowClass.hIcon = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
 
     if (RegisterClassW(&windowClass) == 0) {
         CloseHandle(mutex);
@@ -2449,5 +2817,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
 
     ReleaseMutex(mutex);
     CloseHandle(mutex);
+    if (g_sncTrayIcon != nullptr) {
+        DestroyIcon(g_sncTrayIcon);
+        g_sncTrayIcon = nullptr;
+    }
     return 0;
 }

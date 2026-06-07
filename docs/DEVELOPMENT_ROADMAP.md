@@ -366,6 +366,13 @@ pulls the allowlisted model only after explicit license acceptance, and writes
 the local model state JSON that SNC readiness consumes. The default companion
 state path is `dist/private_reports/snc_local_model_state.json`.
 
+SNC presentation parity slice:
+
+* SNC tray/status surfaces should keep the same dark TB-like visual language as the owner Task Board: restrained dark background, teal body tones, gold chrome accents, muted-but-legible disabled states, and no generic white/native dialog look for the main status surface.
+* SNC primary status view should be a custom dark owner-facing window, not a generic white MessageBox, so the tray companion feels like the same product family as the Task Board.
+* SNC tray should use a dedicated branded 3D tray icon instead of the generic Windows application icon so the companion is easy to spot in the tray.
+* This is presentation parity only; it does not change the companion/runtime/mod trust boundaries.
+
 ---
 
 ## 2. Minimal Strategy Dimensions

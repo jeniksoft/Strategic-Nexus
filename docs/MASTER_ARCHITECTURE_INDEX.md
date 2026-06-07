@@ -528,6 +528,7 @@ Local owner coordination tooling:
 * `tools/dev_attention/user_task_board.ps1` provides a local Windows Task Board / tray helper for owner-facing tasks and reports
 * this is development coordination tooling, not the production Strategic Nexus companion app
 * real production companion app lifecycle, autosave watching, analysis orchestration, and overlay staging remain separate implementation work
+* SNC presentation work that mirrors the Task Board visual language belongs to the companion app layer, not the development-only Task Board helper
 
 Future test assets:
 
