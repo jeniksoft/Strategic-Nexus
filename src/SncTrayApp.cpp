@@ -334,17 +334,17 @@ const wchar_t* statusFieldLabel(const StatusFieldId id)
     case StatusFieldId::LiveSession: return L"Session";
     case StatusFieldId::LiveStartup: return L"Start";
     case StatusFieldId::ArchivePath: return L"Cesta";
-    case StatusFieldId::ArchiveVerified: return L"Ověřeno";
+    case StatusFieldId::ArchiveVerified: return L"Ov\u011B\u0159eno";
     case StatusFieldId::ArchiveCopied: return L"Kopie";
-    case StatusFieldId::ArchiveSkipped: return L"Přeskočeno";
+    case StatusFieldId::ArchiveSkipped: return L"P\u0159esko\u010Deno";
     case StatusFieldId::OverlayStaging: return L"Staging";
     case StatusFieldId::OverlayGate: return L"Gate";
     case StatusFieldId::OverlayAllowed: return L"Povoleno";
-    case StatusFieldId::OverlayActive: return L"Aktivní";
+    case StatusFieldId::OverlayActive: return L"Aktivn\u00ED";
     case StatusFieldId::ModelState: return L"Stav";
     case StatusFieldId::ModelRuntime: return L"Runtime";
-    case StatusFieldId::ModelRecommendation: return L"Doporučení";
-    case StatusFieldId::ModelMode: return L"Režim";
+    case StatusFieldId::ModelRecommendation: return L"Doporu\u010Den\u00ED";
+    case StatusFieldId::ModelMode: return L"Re\u017Eim";
     case StatusFieldId::Count: break;
     }
     return L"";
@@ -474,26 +474,26 @@ StatusDashboardData loadStatusDashboardData()
     StatusDashboardData data;
     data.subtitle = L"Stav: SNC bezi.";
     data.liveState = L"SNC bezi.";
-    data.liveStellaris = L"—";
-    data.liveSession = L"—";
-    data.liveStartup = L"—";
+    data.liveStellaris = L"\u2014";
+    data.liveSession = L"\u2014";
+    data.liveStartup = L"\u2014";
     data.archivePath = makeRelativeDisplay(g_archiveRoot);
-    data.archiveVerified = L"—";
+    data.archiveVerified = L"\u2014";
     data.archiveCopied = L"0";
     data.archiveSkipped = L"0";
-    data.overlayStaging = L"—";
-    data.overlayGate = L"—";
-    data.overlayAllowed = L"—";
+    data.overlayStaging = L"\u2014";
+    data.overlayGate = L"\u2014";
+    data.overlayAllowed = L"\u2014";
     data.overlayActive = makeRelativeDisplay(g_generatedOverlayActiveDirectory);
-    data.modelState = L"—";
-    data.modelRuntime = L"—";
-    data.modelRecommendation = L"—";
-    data.modelMode = L"—";
-    data.nextAction = L"—";
-    data.nextReason = L"—";
-    data.nextHint = L"—";
-    data.nextPlaybook = g_nextStepsBriefPath.empty() ? L"—" : utf8ToWide(pathString(g_nextStepsBriefPath));
-    data.nextActionPath = L"—";
+    data.modelState = L"\u2014";
+    data.modelRuntime = L"\u2014";
+    data.modelRecommendation = L"\u2014";
+    data.modelMode = L"\u2014";
+    data.nextAction = L"\u2014";
+    data.nextReason = L"\u2014";
+    data.nextHint = L"\u2014";
+    data.nextPlaybook = g_nextStepsBriefPath.empty() ? L"\u2014" : utf8ToWide(pathString(g_nextStepsBriefPath));
+    data.nextActionPath = L"\u2014";
 
     std::string json;
     if (!strategic_nexus::common::tryReadTextFile(g_trayStatusPath, json)) {
@@ -609,15 +609,15 @@ StatusDashboardData loadStatusDashboardData()
 
 std::wstring buildDashboardBottomText(const StatusDashboardData& data)
 {
-    std::wstring text = L"Další krok: ";
+    std::wstring text = L"Dal\u0161\u00ED krok: ";
     text += data.nextAction.empty() ? kStatusEmptyValue : data.nextAction;
-    text += L"\r\nDůvod: ";
+    text += L"\r\nD\u016Fvod: ";
     text += data.nextReason.empty() ? kStatusEmptyValue : data.nextReason;
     text += L"\r\nHint: ";
     text += data.nextHint.empty() ? kStatusEmptyValue : data.nextHint;
     text += L"\r\nPlaybook: ";
     text += data.nextPlaybook.empty() ? kStatusEmptyValue : data.nextPlaybook;
-    text += L"\r\nCíl: ";
+    text += L"\r\nC\u00EDl: ";
     text += data.nextActionPath.empty() ? kStatusEmptyValue : data.nextActionPath;
     return text;
 }
@@ -633,7 +633,7 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"Archiv: " + data.archivePath + L"\n";
     text += L"Publikace: " + data.overlayGate + L"\n";
     text += L"LLM: " + data.modelState + L"\n";
-    text += L"Další krok: " + data.nextAction + L"\n";
+    text += L"Dal\u0161\u00ED krok: " + data.nextAction + L"\n";
     text += L"Hint: " + data.nextHint;
     return text;
 }
@@ -810,7 +810,7 @@ void refreshStatusWindowContent()
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelMode)], data.modelMode);
 
     if (g_statusBottomTitle != nullptr) {
-        SetWindowTextW(g_statusBottomTitle, L"Další krok");
+        SetWindowTextW(g_statusBottomTitle, L"Dal\u0161\u00ED krok");
     }
     if (g_statusDetails != nullptr) {
         const auto details = buildDashboardBottomText(data);
@@ -934,7 +934,7 @@ void layoutStatusWindow(HWND hwnd)
     }
 
     const HWND buttons[] = { g_statusRefreshButton, g_statusCopyButton, g_statusOpenArchiveButton, g_statusOpenBriefButton, g_statusCloseButton };
-    const wchar_t* buttonTexts[] = { L"Obnovit", L"Kopírovat", L"Archiv", L"Souhrn", L"Konec" };
+    const wchar_t* buttonTexts[] = { L"Obnovit", L"Kop\u00EDrovat", L"Archiv", L"Souhrn", L"Konec" };
     for (std::size_t index = 0; index < std::size(buttons); ++index) {
         if (buttons[index] != nullptr) {
             SetWindowTextW(buttons[index], buttonTexts[index]);
@@ -1011,11 +1011,11 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusHeader = createStatusStatic(hwnd, g_statusTitle.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusSubtitle = createStatusStatic(hwnd, L"", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusRefreshButton = createStatusButton(hwnd, ID_STATUS_REFRESH, L"Obnovit");
-        g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kopírovat");
+        g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kop\u00EDrovat");
         g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
         g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
         g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"Konec");
-        g_statusBottomTitle = createStatusStatic(hwnd, L"Další krok", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+        g_statusBottomTitle = createStatusStatic(hwnd, L"Dal\u0161\u00ED krok", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusDetails = CreateWindowExW(
             WS_EX_CLIENTEDGE,
             L"EDIT",
@@ -2118,7 +2118,7 @@ void writeNextStepsBrief(
               << (campaignLibraryLimitReached ? "truncated_by_limit" : "within_limit");
         if (campaignLibraryPlanReadiness == "needs_attention") {
             brief << "\n";
-            brief << "- Poznamka: sidecar plan knihovny kampani potrebuje pozornost; SNC nema duverovat aktivnimu coverage, dokud se plan neopraví.\n";
+            brief << "- Poznamka: sidecar plan knihovny kampani potrebuje pozornost; SNC nema duverovat aktivnimu coverage, dokud se plan neopravi.\n";
         } else if (campaignLibraryLimitReached) {
             brief << " (" << campaignLibrarySkippedDueToLimitCount << " campaign(s) skipped by limit)";
             brief << "\n";
