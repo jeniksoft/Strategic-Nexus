@@ -260,6 +260,8 @@ Before starting a Free Work chunk, Codex should:
 5. commit completed work
 6. update durable notes when the result affects future work
 
+For generated-overlay gameplay acceptance work, the canonical owner checklist lives in `docs/GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md` and the primary evidence artifact is `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`.
+
 When a Free Work run has an approved multi-chunk limit, each completed and verified chunk should be committed before the worker starts the next implementation chunk.
 Push may wait until the end of the run, but the local commit boundary should not wait.
 This keeps later chunks from inheriting an ambiguous dirty worktree and makes worker output reviewable without manual reconstruction.
