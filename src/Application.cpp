@@ -2317,6 +2317,8 @@ int Application::run(const RunConfig& config) const
                       << snapshot.friendTrustStore.autoSyncEnabledCount << "\n";
             std::cout << "snc_friend_trust_store_auto_sync_available="
                       << (snapshot.friendTrustStore.autoSyncAvailable ? "true" : "false") << "\n";
+            std::cout << "snc_friend_pairing_command_template="
+                      << sanitizeCliValue(snapshot.friendTrustStore.pairingCommandTemplate) << "\n";
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
             std::cout << "snc_status_center_path=" << sanitizeCliValue(stdoutPath(snapshot.statusCenter.path)) << "\n";

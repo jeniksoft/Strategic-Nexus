@@ -2335,6 +2335,23 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
 {
     CompanionFriendTrustStoreStatus status;
     status.path = config.friendTrustStorePath;
+    status.pairingCommandTemplate =
+        "Strategic Nexus.exe --create-snc-friend-request "
+        "\"dist/private_reports/snc_friend_request.snc-friend-request\" "
+        "<local_node_id> \"<local_display_name>\" "
+        "<signing_public_key> <encryption_public_key> <fingerprint> "
+        "<created_at_utc> [expires_at_utc]\n"
+        "Strategic Nexus.exe --create-snc-friend-acceptance "
+        "\"<friend_request_path>\" "
+        "\"dist/private_reports/snc_friend_acceptance.snc-friend-acceptance\" "
+        "<local_node_id> \"<local_display_name>\" "
+        "<signing_public_key> <encryption_public_key> <fingerprint> "
+        "<created_at_utc>\n"
+        "Strategic Nexus.exe --import-snc-friend-acceptance "
+        "\"<original_friend_request_path>\" "
+        "\"<friend_acceptance_path>\" "
+        "\"dist/private_reports/snc_friend_trust_store.json\" "
+        "<accepted_at_utc> [local_alias]";
     if (status.path.empty()) {
         status.reason = "friend trust store path not configured; automatic friend sync disabled";
         return status;
@@ -2884,6 +2901,10 @@ std::string buildStatusCenterSummaryText(
          << friendTrustStore.autoSyncEnabledCount << "\n";
     text << "friend_trust_store_auto_sync_available: "
          << (friendTrustStore.autoSyncAvailable ? "true" : "false") << "\n";
+    if (!friendTrustStore.pairingCommandTemplate.empty()) {
+        text << "friend_pairing_command_template: "
+             << friendTrustStore.pairingCommandTemplate << "\n";
+    }
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
@@ -3212,6 +3233,8 @@ void writeFriendTrustStoreJson(
     output << indent << "  \"revoked_friend_count\": " << status.revokedFriendCount << ",\n";
     output << indent << "  \"blocked_friend_count\": " << status.blockedFriendCount << ",\n";
     output << indent << "  \"auto_sync_enabled_count\": " << status.autoSyncEnabledCount << ",\n";
+    output << indent << "  \"pairing_command_template\": "
+           << jsonString(status.pairingCommandTemplate) << ",\n";
     output << indent << "  \"auto_sync_available\": "
            << (status.autoSyncAvailable ? "true" : "false") << "\n";
     output << indent << "}";

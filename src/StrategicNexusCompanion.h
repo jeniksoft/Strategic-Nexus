@@ -308,6 +308,7 @@ struct CompanionFriendTrustStoreStatus {
     std::size_t revokedFriendCount = 0;
     std::size_t blockedFriendCount = 0;
     std::size_t autoSyncEnabledCount = 0;
+    std::string pairingCommandTemplate;
     bool autoSyncAvailable = false;
 };
 

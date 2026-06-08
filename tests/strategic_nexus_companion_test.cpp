@@ -529,8 +529,16 @@ int main()
         ready.friendTrustStore.autoSyncEnabledCount == 1 && ready.friendTrustStore.autoSyncAvailable,
         "friend trust store should expose auto-sync availability");
     requireCondition(
+        ready.friendTrustStore.pairingCommandTemplate.find("--create-snc-friend-request") != std::string::npos &&
+            ready.friendTrustStore.pairingCommandTemplate.find("--create-snc-friend-acceptance") != std::string::npos &&
+            ready.friendTrustStore.pairingCommandTemplate.find("--import-snc-friend-acceptance") != std::string::npos,
+        "friend trust store status should expose the manual friend-pairing command template");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
         "status center summary should expose friend trust store auto-sync count");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_pairing_command_template: Strategic Nexus.exe --create-snc-friend-request ") != std::string::npos,
+        "status center summary should expose the manual friend-pairing command template");
     auto brokenFriendConfig = readyConfig;
     brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
     const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);
@@ -2582,6 +2590,9 @@ int main()
         requireCondition(content.find("\"app_name\": \"Strategic Nexus Companion\"") != std::string::npos, "status snapshot should include app name");
         requireCondition(content.find("\"status_center\"") != std::string::npos, "status snapshot should include status center");
         requireCondition(content.find("\"status_center_summary_text\"") != std::string::npos, "status snapshot should include status center summary text");
+        requireCondition(
+            content.find("\"pairing_command_template\": \"Strategic Nexus.exe --create-snc-friend-request ") != std::string::npos,
+            "status snapshot should include friend pairing command template");
     }
 
     {
