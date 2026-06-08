@@ -24,6 +24,18 @@ std::filesystem::path fixtureRoot()
     return std::filesystem::temp_directory_path() / "strategic_nexus_save_parser_test";
 }
 
+const strategic_nexus::SaveParserFieldAvailability* findFieldAvailability(
+    const std::vector<strategic_nexus::SaveParserFieldAvailability>& fields,
+    const std::string& fieldGroup)
+{
+    for (const auto& field : fields) {
+        if (field.fieldGroup == fieldGroup) {
+            return &field;
+        }
+    }
+    return nullptr;
+}
+
 } // namespace
 
 int main()
@@ -109,9 +121,41 @@ war={
     requireCondition(summary.homeSystemName == "Aeel System", "home system should parse");
     requireCondition(summary.ownedFleetCount == 1, "owned fleet count should filter by owner");
     requireCondition(summary.activeWarCount == 1, "active war count should parse");
+    requireCondition(summary.fieldAvailability.size() >= 5, "field availability map should be populated");
+
+    const auto* identityAvailability = findFieldAvailability(summary.fieldAvailability, "identity");
+    requireCondition(identityAvailability != nullptr, "identity availability should exist");
+    requireCondition(identityAvailability->available, "identity should be available");
+    requireCondition(
+        identityAvailability->sourceQuality == "headline_identity",
+        "identity should have headline identity source quality");
+
+    const auto* fleetsAvailability = findFieldAvailability(summary.fieldAvailability, "owned_fleets");
+    requireCondition(fleetsAvailability != nullptr, "owned fleets availability should exist");
+    requireCondition(fleetsAvailability->available, "owned fleets should be available");
+    requireCondition(
+        fleetsAvailability->sourceQuality == "headline_owned_fleets",
+        "owned fleets should have headline owned fleets source quality");
+
+    const auto* diplomacyAvailability = findFieldAvailability(summary.fieldAvailability, "diplomacy");
+    requireCondition(diplomacyAvailability != nullptr, "diplomacy availability should exist");
+    requireCondition(!diplomacyAvailability->available, "diplomacy should remain unavailable");
+    requireCondition(
+        diplomacyAvailability->sourceQuality == "not_extracted_yet",
+        "diplomacy should report not extracted yet source quality");
+    requireCondition(
+        !diplomacyAvailability->missingReasons.empty() &&
+            diplomacyAvailability->missingReasons.front() == "diplomatic_relationships_not_extracted_yet",
+        "diplomacy should explain the missing relationship evidence");
 
     const std::string json = parser.parseSummaryJson(root);
     requireCondition(json.find("\"empire_name\": \"Aeel Corp\"") != std::string::npos, "json should include empire name");
+    requireCondition(
+        json.find("\"field_group\":\"diplomacy\"") != std::string::npos,
+        "json should include diplomacy field availability");
+    requireCondition(
+        json.find("\"source_quality\":\"headline_owned_fleets\"") != std::string::npos,
+        "json should include owned fleets source quality");
     requireCondition(
         json.find("llm_input_must_use_this_bounded_summary_not_raw_gamestate") != std::string::npos,
         "json should include LLM raw-input safety uncertainty");

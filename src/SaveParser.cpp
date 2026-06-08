@@ -103,6 +103,37 @@ void appendJsonStringArray(std::ostringstream& output, const std::string& key, c
     output << "]";
 }
 
+void appendJsonFieldAvailabilityArray(
+    std::ostringstream& output,
+    const std::vector<SaveParserFieldAvailability>& values,
+    bool& first)
+{
+    if (!first) {
+        output << ",\n";
+    }
+    first = false;
+    output << "  \"field_availability\": [";
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        const auto& value = values[index];
+        if (index > 0) {
+            output << ", ";
+        }
+        output << "{"
+               << "\"field_group\":\"" << jsonEscape(value.fieldGroup) << "\","
+               << "\"source_quality\":\"" << jsonEscape(value.sourceQuality) << "\","
+               << "\"available\":" << (value.available ? "true" : "false") << ",";
+        output << "\"missing_reasons\":[";
+        for (std::size_t reasonIndex = 0; reasonIndex < value.missingReasons.size(); ++reasonIndex) {
+            if (reasonIndex > 0) {
+                output << ", ";
+            }
+            output << "\"" << jsonEscape(value.missingReasons[reasonIndex]) << "\"";
+        }
+        output << "]}";
+    }
+    output << "]";
+}
+
 void appendMissingIfEmpty(SaveParserSummary& summary, const std::string& fieldName, const std::string& value)
 {
     if (value.empty()) {
@@ -515,6 +546,68 @@ void parseWars(SaveParserSummary& summary, const std::string& gamestate)
     summary.activeWarCount = numberedChildren(warsBlock).size();
 }
 
+std::vector<SaveParserFieldAvailability> buildFieldAvailability(const SaveParserSummary& summary)
+{
+    std::vector<SaveParserFieldAvailability> availability;
+    availability.push_back({
+        "identity",
+        "headline_identity",
+        summary.ok && !summary.playerCountryId.empty() && !summary.empireName.empty(),
+        summary.ok && !summary.playerCountryId.empty() && !summary.empireName.empty()
+            ? std::vector<std::string>{}
+            : std::vector<std::string>{ "player identity not yet resolved from headline summary" }
+    });
+    availability.push_back({
+        "headline",
+        "headline_fields_only",
+        summary.ok,
+        summary.ok ? std::vector<std::string>{} : std::vector<std::string>{ summary.reason }
+    });
+    availability.push_back({
+        "owned_fleets",
+        "headline_owned_fleets",
+        summary.ok,
+        summary.ok ? std::vector<std::string>{} : std::vector<std::string>{ "owned fleet headlines unavailable without parsed headline summary" }
+    });
+    availability.push_back({
+        "war",
+        "headline_war_count",
+        summary.ok,
+        summary.ok ? std::vector<std::string>{} : std::vector<std::string>{ "active war count unavailable without parsed headline summary" }
+    });
+    availability.push_back({
+        "diplomacy",
+        "not_extracted_yet",
+        false,
+        { "diplomatic_relationships_not_extracted_yet", "parser_extracts_headline_fields_only" }
+    });
+    availability.push_back({
+        "subject",
+        "not_extracted_yet",
+        false,
+        { "subject_relationships_not_extracted_yet", "parser_extracts_headline_fields_only" }
+    });
+    availability.push_back({
+        "federation",
+        "not_extracted_yet",
+        false,
+        { "federation_relationships_not_extracted_yet", "parser_extracts_headline_fields_only" }
+    });
+    availability.push_back({
+        "border",
+        "not_extracted_yet",
+        false,
+        { "border_relationships_not_extracted_yet", "parser_extracts_headline_fields_only" }
+    });
+    availability.push_back({
+        "intel",
+        "not_extracted_yet",
+        false,
+        { "intel_relationships_not_extracted_yet", "parser_extracts_headline_fields_only" }
+    });
+    return availability;
+}
+
 } // namespace
 
 GalaxyState SaveParser::parseSnapshot(const std::filesystem::path& savePath) const
@@ -639,6 +732,7 @@ SaveParserSummary SaveParser::parseSummary(const std::filesystem::path& savePath
     summary.uncertainties.push_back("llm_input_must_use_this_bounded_summary_not_raw_gamestate");
     summary.ok = summary.missingFields.empty() || !summary.playerCountryId.empty();
     summary.reason = summary.ok ? "parsed headline summary" : "parsed with missing required player identity";
+    summary.fieldAvailability = buildFieldAvailability(summary);
 
     if (!payload.cleanupRoot.empty()) {
         std::filesystem::remove_all(payload.cleanupRoot, ec);
@@ -676,6 +770,7 @@ std::string SaveParser::serializeSummaryJson(const SaveParserSummary& summary) c
     appendJsonString(output, "home_system_name", summary.homeSystemName, first);
     appendJsonNumber(output, "owned_fleet_count", summary.ownedFleetCount, first);
     appendJsonNumber(output, "active_war_count", summary.activeWarCount, first);
+    appendJsonFieldAvailabilityArray(output, summary.fieldAvailability, first);
 
     if (!first) {
         output << ",\n";

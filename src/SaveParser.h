@@ -19,6 +19,13 @@ struct SaveParserFleetHeadline {
     std::string militaryPower;
 };
 
+struct SaveParserFieldAvailability {
+    std::string fieldGroup;
+    std::string sourceQuality;
+    bool available = false;
+    std::vector<std::string> missingReasons;
+};
+
 struct SaveParserSummary {
     bool ok = false;
     std::string reason;
@@ -45,6 +52,7 @@ struct SaveParserSummary {
     std::size_t ownedFleetCount = 0;
     std::size_t activeWarCount = 0;
     std::vector<SaveParserFleetHeadline> ownedFleets;
+    std::vector<SaveParserFieldAvailability> fieldAvailability;
     std::vector<std::string> missingFields;
     std::vector<std::string> uncertainties;
 };
