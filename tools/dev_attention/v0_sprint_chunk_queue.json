@@ -814,6 +814,26 @@
       "dependencies": [
         "v0-sprint-121-surface-next-action-path-open-action"
       ]
+    },
+    {
+      "id": "v0-sprint-127-surface-gameplay-acceptance-report-open-action",
+      "title": "Surface gameplay acceptance report open action",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion Orchestrator UX / Status Center action and recovery paths",
+      "goal": "Add a visible status-dashboard action that opens the generated-overlay gameplay acceptance evidence report so owner-test evidence is reachable from the main companion window.",
+      "acceptance": [
+        "The visible status dashboard includes a gameplay acceptance report open button.",
+        "The button opens dist/private_reports/generated_overlay_gameplay_acceptance_v0.json only when the report exists, and stays disabled otherwise.",
+        "The action preserves existing next_action, publish, MP, model, campaign-library, crash-recovery, and support-report safety gates."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-121-surface-next-action-path-open-action"
+      ]
     }
   ]
 }

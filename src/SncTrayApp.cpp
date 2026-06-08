@@ -86,6 +86,7 @@ constexpr UINT ID_STATUS_PUBLISH_GENERATED_OVERLAY = 218;
 constexpr UINT ID_STATUS_OPEN_NEXT_ACTION_PATH = 219;
 constexpr UINT ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN = 220;
 constexpr UINT ID_STATUS_OPEN_CRASH_RECOVERY_STATE = 221;
+constexpr UINT ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT = 222;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -233,6 +234,7 @@ HWND g_statusPublishGeneratedOverlayButton = nullptr;
 HWND g_statusOpenNextActionPathButton = nullptr;
 HWND g_statusOpenCampaignLibraryPlanButton = nullptr;
 HWND g_statusOpenCrashRecoveryStateButton = nullptr;
+HWND g_statusOpenGameplayAcceptanceReportButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -338,6 +340,7 @@ std::filesystem::path resolveDashboardPath(const std::wstring& path);
 bool dashboardPathExists(const std::wstring& path);
 void openNextActionPath(HWND hwnd);
 void openCrashRecoveryStatePath(HWND hwnd);
+void openGameplayAcceptanceReport(HWND hwnd);
 void openMpOverlayPackageDirectory();
 void publishStagedGeneratedOverlay(HWND hwnd);
 bool canRefreshMpPackageExport();
@@ -1089,6 +1092,11 @@ void openCrashRecoveryStatePath(HWND hwnd)
     openPathWithShell(hwnd, path);
 }
 
+void openGameplayAcceptanceReport(HWND hwnd)
+{
+    openPathWithShell(hwnd, g_gameplayAcceptanceReportPath);
+}
+
 void updateStatusCaptionButtons(HWND hwnd)
 {
     if (g_statusMaximizeButton != nullptr) {
@@ -1689,6 +1697,13 @@ void refreshStatusWindowContent()
             g_statusOpenCrashRecoveryStateButton,
             dashboardPathExists(data.crashRecoveryPath) ? TRUE : FALSE);
     }
+    if (g_statusOpenGameplayAcceptanceReportButton != nullptr) {
+        std::error_code error;
+        const bool reportReady = !g_gameplayAcceptanceReportPath.empty() &&
+            std::filesystem::is_regular_file(g_gameplayAcceptanceReportPath, error) &&
+            !error;
+        EnableWindow(g_statusOpenGameplayAcceptanceReportButton, reportReady ? TRUE : FALSE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -1950,6 +1965,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenNextActionPathButton,
         g_statusOpenCampaignLibraryPlanButton,
         g_statusOpenCrashRecoveryStateButton,
+        g_statusOpenGameplayAcceptanceReportButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -1970,6 +1986,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Akce cesta",
         L"Knihovna",
         L"Crash stav",
+        L"Gameplay",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2131,6 +2148,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             createStatusButton(hwnd, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, L"Knihovna");
         g_statusOpenCrashRecoveryStateButton =
             createStatusButton(hwnd, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, L"Crash stav");
+        g_statusOpenGameplayAcceptanceReportButton =
+            createStatusButton(hwnd, ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, L"Gameplay");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2181,6 +2200,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenNextActionPathButton, g_statusFieldFont);
         setWindowFont(g_statusOpenCampaignLibraryPlanButton, g_statusFieldFont);
         setWindowFont(g_statusOpenCrashRecoveryStateButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenGameplayAcceptanceReportButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2236,6 +2256,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_CRASH_RECOVERY_STATE:
             openCrashRecoveryStatePath(hwnd);
+            return 0;
+        case ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT:
+            openGameplayAcceptanceReport(hwnd);
             return 0;
         case ID_STATUS_EXPORT_MP_PACKAGE:
             requestMpPackageExportRefresh();
@@ -2506,6 +2529,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenNextActionPathButton = nullptr;
         g_statusOpenCampaignLibraryPlanButton = nullptr;
         g_statusOpenCrashRecoveryStateButton = nullptr;
+        g_statusOpenGameplayAcceptanceReportButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
         g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
