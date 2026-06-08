@@ -600,6 +600,14 @@ Codex may continue on the same slice only when a real bug, failed test, unsafe i
 
 Scheduled or background Free Work must protect foreground architecture work.
 
+Before selecting or claiming implementation work, Free Work must run the local concurrency gate:
+
+```text
+tools/dev_attention/test_freework_concurrency_gate.ps1
+```
+
+If the gate reports `freework_should_skip=true`, the run should log `quiet` with the gate reason and exit without claiming work. This is a healthy concurrency skip, not a blocker or `no_safe_task`.
+
 Before modifying files, background Free Work should check whether the repository has uncommitted changes.
 
 Dirty worktree state is not automatically a global stop condition.
