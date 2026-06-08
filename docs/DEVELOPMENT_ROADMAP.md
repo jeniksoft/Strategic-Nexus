@@ -1034,7 +1034,7 @@ The artifacts carry enough early evidence separation to support this, but full b
 ## 4C. Daemon-Loss Memory Recovery
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Recover useful campaign continuity even if SNC was not running during part of a play session.
@@ -1048,7 +1048,7 @@ Required:
 * owner-visible degraded-memory warning
 
 Current progress:
-No dedicated daemon-loss memory recovery slice is implemented yet.
+Real-session loop output, companion snapshot JSON, Status Center summary text, tray JSON, and tray smoke coverage now expose a fail-closed memory recovery state, confidence, warning visibility, and selected latest-loadable-save recovery anchor. Degraded or attention-needed recovery can become the top-level `review_memory_recovery_status` next action with an evidence path. Remaining work is durable campaign memory merge and deeper branch-aware reconstruction from only entry-point-compatible evidence.
 
 ---
 
