@@ -344,6 +344,25 @@
       "dependencies": [
         "v0-sprint-100-surface-entry-point-memory-recovery-signals"
       ]
+    },
+    {
+      "id": "v0-sprint-103-verify-branch-aware-memory-recovery-degradation",
+      "title": "Verify branch-aware memory recovery degradation",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Branch-Aware Memory Reconstruction",
+      "goal": "Verify that branch ambiguity in the entry-point analysis downgrades memory recovery to a visible degraded state instead of presenting the latest loadable save as fully confident.",
+      "acceptance": [
+        "The companion status summary shows degraded memory recovery with reduced confidence when branch ambiguity is detected.",
+        "The snapshot JSON keeps the memory_recovery object explicit and warning-visible for ambiguous entry-point analysis.",
+        "The branch-aware recovery note stays fail-closed and does not claim high confidence under ambiguous evidence."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-102-surface-daemon-loss-memory-recovery-signals"
+      ]
     }
   ]
 }

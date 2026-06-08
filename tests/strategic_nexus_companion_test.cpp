@@ -1617,6 +1617,107 @@ int main()
             std::string::npos,
         "published reactive owner test JSON should expose stable owner test playbook field");
 
+    const auto ambiguousEntryPointAnalysisPath = root / "snc_entry_point_analysis_ambiguous.json";
+    writeTextFileAtomically(
+        ambiguousEntryPointAnalysisPath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"reason\": \"entry points scanned; branch ambiguity requires conservative evidence selection\",\n"
+        "  \"readiness\": \"ambiguous\",\n"
+        "  \"archive_verified\": true,\n"
+        "  \"branch_ambiguity_detected\": true,\n"
+        "  \"entry_point_count\": 1,\n"
+        "  \"archived_evidence_count\": 1,\n"
+        "  \"entry_points\": [\n"
+        "    {\n"
+        "      \"id\": \"beta_ironman_2200_05_01\",\n"
+        "      \"campaign_key\": \"beta_campaign\",\n"
+        "      \"source_root\": \"current_save_root\",\n"
+        "      \"relative_path\": \"Beta/ironman.sav\",\n"
+        "      \"source_kind\": \"ironman\",\n"
+        "      \"save_name\": \"ironman.sav\",\n"
+        "      \"save_date\": \"2200.05.01\",\n"
+        "      \"analysis_state\": \"ready_conservative\",\n"
+        "      \"compatible_archived_evidence_count\": 1,\n"
+        "      \"later_archived_evidence_count\": 1\n"
+        "    }\n"
+        "  ]\n"
+        "}\n");
+
+    strategic_nexus::CompanionStatusConfig ambiguousConfig = readyConfig;
+    ambiguousConfig.entryPointAnalysisPath = ambiguousEntryPointAnalysisPath;
+
+    const auto ambiguousRecovery = companion.buildStatusSnapshot(ambiguousConfig);
+    requireCondition(
+        ambiguousRecovery.postPlayPipeline.memoryRecovery.state == "degraded",
+        "branch ambiguity should downgrade memory recovery state");
+    requireCondition(
+        ambiguousRecovery.postPlayPipeline.memoryRecovery.confidence == "reduced",
+        "branch ambiguity should reduce memory recovery confidence");
+    requireCondition(
+        ambiguousRecovery.postPlayPipeline.memoryRecovery.warningVisible,
+        "branch ambiguity should keep memory recovery warning visible");
+    requireCondition(
+        ambiguousRecovery.postPlayPipeline.memoryRecovery.reason == "branch ambiguity requires conservative recovery anchor",
+        "branch ambiguity should expose a conservative recovery reason");
+    requireCondition(
+        ambiguousRecovery.statusCenterSummaryText.find("memory_recovery: degraded - branch ambiguity requires conservative recovery anchor") !=
+            std::string::npos,
+        "status center summary should surface the degraded recovery state");
+    requireCondition(
+        ambiguousRecovery.statusCenterSummaryText.find("memory_recovery_confidence: reduced") != std::string::npos,
+        "status center summary should surface reduced memory recovery confidence");
+    requireCondition(
+        ambiguousRecovery.statusCenterSummaryText.find("memory_recovery_warning_visible: true") != std::string::npos,
+        "status center summary should surface the recovery warning");
+    requireCondition(
+        ambiguousRecovery.statusCenterSummaryText.find("memory_recovery_owner_note: latest loadable save anchor is degraded or needs attention") !=
+            std::string::npos,
+        "status center summary should keep the degraded recovery note explicit");
+    const auto ambiguousRecoveryJson = strategic_nexus::serializeCompanionStatusSnapshot(ambiguousRecovery);
+    requireCondition(
+        ambiguousRecoveryJson.find("\"memory_recovery\": {") != std::string::npos,
+        "snapshot JSON should include the memory recovery object for branch ambiguity");
+    requireCondition(
+        ambiguousRecoveryJson.find("\"state\": \"degraded\"") != std::string::npos &&
+            ambiguousRecoveryJson.find("\"confidence\": \"reduced\"") != std::string::npos &&
+            ambiguousRecoveryJson.find("\"warning_visible\": true") != std::string::npos,
+        "snapshot JSON should expose degraded branch-aware recovery state");
+
+    const auto missingEntryPointAnalysisPath = root / "snc_entry_point_analysis_missing.json";
+    strategic_nexus::CompanionStatusConfig missingAnalysisConfig = readyConfig;
+    missingAnalysisConfig.entryPointAnalysisPath = missingEntryPointAnalysisPath;
+
+    const auto missingAnalysisRecovery = companion.buildStatusSnapshot(missingAnalysisConfig);
+    requireCondition(
+        missingAnalysisRecovery.postPlayPipeline.memoryRecovery.state == "needs_attention",
+        "missing entry point analysis should require attention");
+    requireCondition(
+        missingAnalysisRecovery.postPlayPipeline.memoryRecovery.confidence == "low",
+        "missing entry point analysis should keep low recovery confidence");
+    requireCondition(
+        missingAnalysisRecovery.postPlayPipeline.memoryRecovery.warningVisible,
+        "missing entry point analysis should keep the warning visible");
+    requireCondition(
+        missingAnalysisRecovery.postPlayPipeline.memoryRecovery.reason == "entry point analysis unavailable",
+        "missing entry point analysis should expose an unavailable reason");
+    requireCondition(
+        missingAnalysisRecovery.statusCenterSummaryText.find("memory_recovery: needs_attention - entry point analysis unavailable") !=
+            std::string::npos,
+        "status center summary should surface missing-analysis attention");
+    requireCondition(
+        missingAnalysisRecovery.statusCenterSummaryText.find("memory_recovery_confidence: low") != std::string::npos,
+        "status center summary should surface low recovery confidence for missing analysis");
+    requireCondition(
+        missingAnalysisRecovery.statusCenterSummaryText.find("memory_recovery_warning_visible: true") != std::string::npos,
+        "status center summary should surface the missing-analysis warning");
+    const auto missingAnalysisRecoveryJson = strategic_nexus::serializeCompanionStatusSnapshot(missingAnalysisRecovery);
+    requireCondition(
+        missingAnalysisRecoveryJson.find("\"state\": \"needs_attention\"") != std::string::npos &&
+            missingAnalysisRecoveryJson.find("\"confidence\": \"low\"") != std::string::npos &&
+            missingAnalysisRecoveryJson.find("\"warning_visible\": true") != std::string::npos,
+        "snapshot JSON should expose fail-closed missing-analysis recovery state");
+
     const auto missingMpPackage = companion.buildStatusSnapshot({
         archiveSessionRoot,
         overlayRoot,
