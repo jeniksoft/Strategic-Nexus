@@ -80,6 +80,7 @@ constexpr UINT ID_STATUS_COPY_MP_IMPORT = 212;
 constexpr UINT ID_STATUS_COPY_MP_STRICT_VERIFY = 213;
 constexpr UINT ID_STATUS_COPY_MP_STRICT_IMPORT = 214;
 constexpr UINT ID_STATUS_EXPORT_MP_PACKAGE = 215;
+constexpr UINT ID_STATUS_COPY_LLM_PREPARE = 216;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -119,6 +120,7 @@ struct StatusDashboardData {
     std::wstring modelRuntime;
     std::wstring modelRecommendation;
     std::wstring modelMode;
+    std::wstring modelPrepareCommand;
     std::wstring nextAction;
     std::wstring nextReason;
     std::wstring nextHint;
@@ -225,6 +227,7 @@ HWND g_statusCopyMpVerifyButton = nullptr;
 HWND g_statusCopyMpImportButton = nullptr;
 HWND g_statusCopyMpStrictVerifyButton = nullptr;
 HWND g_statusCopyMpStrictImportButton = nullptr;
+HWND g_statusCopyLlmPrepareButton = nullptr;
 HWND g_statusSupportReportButton = nullptr;
 HWND g_statusToggleStartupButton = nullptr;
 HWND g_statusCloseButton = nullptr;
@@ -1041,6 +1044,7 @@ StatusDashboardData loadStatusDashboardData()
     data.modelRuntime = L"\u2014";
     data.modelRecommendation = L"\u2014";
     data.modelMode = L"\u2014";
+    data.modelPrepareCommand.clear();
     data.nextAction = L"\u2014";
     data.nextReason = L"\u2014";
     data.nextHint = L"\u2014";
@@ -1130,6 +1134,7 @@ StatusDashboardData loadStatusDashboardData()
     const std::string recommendedDisplayName = summaryValue("local_llm_recommended_display_name");
     const std::string recommendedModelId = summaryValue("local_llm_recommended_model_id");
     const std::string recommendedRuntime = summaryValue("local_llm_recommended_runtime");
+    data.modelPrepareCommand = utf8ToWide(summaryValue("local_llm_prepare_command_hint"));
     std::vector<std::wstring> recommendationParts;
     if (!recommendedDisplayName.empty()) {
         recommendationParts.push_back(utf8ToWide(recommendedDisplayName));
@@ -1599,6 +1604,9 @@ void refreshStatusWindowContent()
     if (g_statusCopyMpStrictImportButton != nullptr) {
         EnableWindow(g_statusCopyMpStrictImportButton, data.mpPackageStrictImportCommand.empty() ? FALSE : TRUE);
     }
+    if (g_statusCopyLlmPrepareButton != nullptr) {
+        EnableWindow(g_statusCopyLlmPrepareButton, data.modelPrepareCommand.empty() ? FALSE : TRUE);
+    }
     if (g_statusCloseButton != nullptr) {
         EnableWindow(g_statusCloseButton, TRUE);
     }
@@ -1710,7 +1718,7 @@ void layoutStatusWindow(HWND hwnd)
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     int buttonWidth = 116;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 12;
+    constexpr int actionButtonCount = 13;
     const int requiredButtonWidth =
         (buttonWidth * actionButtonCount) + (buttonGap * (actionButtonCount - 1));
     if (requiredButtonWidth > availableWidth) {
@@ -1803,6 +1811,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusCopyMpImportButton,
         g_statusCopyMpStrictVerifyButton,
         g_statusCopyMpStrictImportButton,
+        g_statusCopyLlmPrepareButton,
         g_statusSupportReportButton,
         g_statusToggleStartupButton
     };
@@ -1817,6 +1826,7 @@ void layoutStatusWindow(HWND hwnd)
         L"MP import",
         L"MP strict verify",
         L"MP strict import",
+        L"LLM priprava",
         supportReportButtonLabel,
         startupButtonLabel
     };
@@ -1961,6 +1971,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyMpImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_IMPORT, L"MP import");
         g_statusCopyMpStrictVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_VERIFY, L"MP strict verify");
         g_statusCopyMpStrictImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_IMPORT, L"MP strict import");
+        g_statusCopyLlmPrepareButton = createStatusButton(hwnd, ID_STATUS_COPY_LLM_PREPARE, L"LLM priprava");
         g_statusSupportReportButton = createStatusButton(hwnd, ID_STATUS_SUPPORT_REPORT, L"Report");
         g_statusToggleStartupButton = createStatusButton(hwnd, ID_STATUS_TOGGLE_STARTUP, L"Start");
         g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"X");
@@ -2005,6 +2016,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusCopyMpImportButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpStrictVerifyButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpStrictImportButton, g_statusFieldFont);
+        setWindowFont(g_statusCopyLlmPrepareButton, g_statusFieldFont);
         setWindowFont(g_statusSupportReportButton, g_statusFieldFont);
         setWindowFont(g_statusToggleStartupButton, g_statusFieldFont);
         setWindowFont(g_statusCloseButton, g_statusFieldFont);
@@ -2075,6 +2087,14 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             const auto data = loadStatusDashboardData();
             if (data.mpPackageStrictImportCommand.empty() ||
                 !copyTextToClipboard(hwnd, data.mpPackageStrictImportCommand)) {
+                MessageBeep(MB_ICONWARNING);
+            }
+            return 0;
+        }
+        case ID_STATUS_COPY_LLM_PREPARE:
+        {
+            const auto data = loadStatusDashboardData();
+            if (data.modelPrepareCommand.empty() || !copyTextToClipboard(hwnd, data.modelPrepareCommand)) {
                 MessageBeep(MB_ICONWARNING);
             }
             return 0;
@@ -2301,6 +2321,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyMpImportButton = nullptr;
         g_statusCopyMpStrictVerifyButton = nullptr;
         g_statusCopyMpStrictImportButton = nullptr;
+        g_statusCopyLlmPrepareButton = nullptr;
         g_statusSupportReportButton = nullptr;
         g_statusToggleStartupButton = nullptr;
         g_statusCloseButton = nullptr;

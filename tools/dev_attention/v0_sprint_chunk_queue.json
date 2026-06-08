@@ -566,6 +566,25 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-115-surface-local-llm-prepare-copy-action",
+      "title": "Surface local LLM prepare copy action",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Local LLM Model Manager / owner-facing prepare guidance",
+      "goal": "Expose a visible quick-copy action for the local LLM prepare command so the owner can act on reduced-mode/model setup guidance without opening raw status text.",
+      "acceptance": [
+        "The status dashboard includes a visible local LLM prepare quick-copy action when a prepare command hint is present.",
+        "Clicking the action copies the exact prepare command hint rather than running model setup automatically.",
+        "The action fails closed when no prepare command hint is available."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "dist/strategic_nexus_companion_test.exe"
+      ],
+      "dependencies": []
     }
   ]
 }
