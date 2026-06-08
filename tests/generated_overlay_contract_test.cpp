@@ -123,6 +123,9 @@ int main()
             files.manifestText.find("\"path\": \"events/strategic_nexus_generated_events.txt\"") != std::string::npos,
             "compiler manifest should include generated events file");
         requireCondition(
+            files.manifestText.find("\"empire_ids\": [\"empire_001\"]") != std::string::npos,
+            "compiler manifest should include empire ids");
+        requireCondition(
             files.manifestText.find("\"reactive_policy_pack_capability\": \"event_family_dispatch\"") != std::string::npos,
             "compiler manifest should expose reactive event-family capability when requested");
         requireCondition(
@@ -261,6 +264,36 @@ int main()
         requireCondition(
             files.manifestText.find("\"event_families\": [\"country_attacked\"]") != std::string::npos,
             "manifest should list country_attacked as the covered family");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_multi_empire" {
+  empire "empire_001" {
+    rule "watch_one" {
+      ministry = military_ministry
+      prefer military_posture defensive intensity 0.6
+      duration = next_session
+      confidence = 0.8
+      rationale = "first empire marker"
+    }
+  }
+  empire "empire_002" {
+    rule "watch_two" {
+      ministry = research_ministry
+      prefer research_bias economy intensity 0.7
+      duration = next_session
+      confidence = 0.81
+      rationale = "second empire marker"
+    }
+  }
+})");
+        requireCondition(parseResult.ok, "multi-empire DSL should parse");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(validation.ok, "multi-empire DSL should validate");
+        const auto files = compiler.compile(parseResult.program);
+        requireCondition(
+            files.manifestText.find("\"empire_ids\": [\"empire_001\", \"empire_002\"]") != std::string::npos,
+            "compiler manifest should include all detected empire ids");
     }
 
     {

@@ -188,10 +188,14 @@ std::string defaultBootstrapRotationSeedId(const CampaignManifestSource& source,
 std::string buildManifest(const DslProgram& program, const std::vector<ManifestEntry>& entries)
 {
     std::vector<std::string> campaignIds;
+    std::vector<std::string> empireIds;
     std::vector<std::string> eventFamilies;
     for (const auto& rule : program.rules) {
         if (std::find(campaignIds.begin(), campaignIds.end(), rule.campaignId) == campaignIds.end()) {
             campaignIds.push_back(rule.campaignId);
+        }
+        if (std::find(empireIds.begin(), empireIds.end(), rule.empireId) == empireIds.end()) {
+            empireIds.push_back(rule.empireId);
         }
         if (!rule.eventFamily.empty() &&
             std::find(eventFamilies.begin(), eventFamilies.end(), rule.eventFamily) == eventFamilies.end()) {
@@ -199,6 +203,7 @@ std::string buildManifest(const DslProgram& program, const std::vector<ManifestE
         }
     }
     std::sort(campaignIds.begin(), campaignIds.end());
+    std::sort(empireIds.begin(), empireIds.end());
     std::sort(eventFamilies.begin(), eventFamilies.end());
 
     std::vector<std::string> sourceQualities;
@@ -251,6 +256,14 @@ std::string buildManifest(const DslProgram& program, const std::vector<ManifestE
             manifest << ", ";
         }
         manifest << "\"" << jsonEscape(campaignIds[i]) << "\"";
+    }
+    manifest << "],\n";
+    manifest << "  \"empire_ids\": [";
+    for (std::size_t i = 0; i < empireIds.size(); ++i) {
+        if (i > 0) {
+            manifest << ", ";
+        }
+        manifest << "\"" << jsonEscape(empireIds[i]) << "\"";
     }
     manifest << "],\n";
     manifest << "  \"reactive_policy_pack_capability\": \""
