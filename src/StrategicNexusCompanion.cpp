@@ -845,6 +845,23 @@ void parsePostPlayCampaignSummaries(const std::string& json, CompanionPostPlayPi
     }
 }
 
+std::string parsePostPlayPlayerCountryId(const std::string& json)
+{
+    const auto entriesBody = extractArrayBody(json, "entries");
+    if (!entriesBody.has_value()) {
+        return {};
+    }
+
+    for (const auto& object : extractObjectBodies(*entriesBody)) {
+        const auto playerCountryId = common::extractJsonString(object, "player_country_id").value_or("");
+        if (!playerCountryId.empty()) {
+            return playerCountryId;
+        }
+    }
+
+    return {};
+}
+
 bool startsWith(const std::string& value, const std::string& prefix)
 {
     return value.rfind(prefix, 0) == 0;
@@ -1809,6 +1826,7 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
         postPlayAvailable = true;
         status.postPlayPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
         status.postPlayPackageReason = common::extractJsonString(json, "reason").value_or("");
+        status.playerCountryId = parsePostPlayPlayerCountryId(json);
         status.postPlayDecisionReadyEntryCount = extractJsonSize(json, "decision_ready_entry_count").value_or(0);
         parsePostPlayCampaignSummaries(json, status);
     } else if (!status.postPlayPackagePath.empty() && fileError != "missing") {
@@ -2301,6 +2319,9 @@ std::string buildStatusCenterSummaryText(
     }
     if (!postPlayPipeline.postPlayPackageReason.empty()) {
         text << "post_play_package_reason: " << postPlayPipeline.postPlayPackageReason << "\n";
+    }
+    if (!postPlayPipeline.playerCountryId.empty()) {
+        text << "post_play_player_country_id: " << postPlayPipeline.playerCountryId << "\n";
     }
     text << "post_play_decision_ready_entry_count: " << postPlayPipeline.postPlayDecisionReadyEntryCount << "\n";
     text << "post_play_campaign_count: " << postPlayPipeline.postPlayCampaignCount << "\n";
@@ -2983,6 +3004,7 @@ void writePostPlayPipelineJson(
     output << indent << "  \"post_play_package_path\": " << jsonString(pathString(status.postPlayPackagePath)) << ",\n";
     output << indent << "  \"post_play_package_readiness\": " << jsonString(status.postPlayPackageReadiness) << ",\n";
     output << indent << "  \"post_play_package_reason\": " << jsonString(status.postPlayPackageReason) << ",\n";
+    output << indent << "  \"post_play_player_country_id\": " << jsonString(status.playerCountryId) << ",\n";
     output << indent << "  \"post_play_decision_ready_entry_count\": " << status.postPlayDecisionReadyEntryCount << ",\n";
     output << indent << "  \"post_play_campaign_count\": " << status.postPlayCampaignCount << ",\n";
     output << indent << "  \"post_play_ready_campaign_count\": " << status.postPlayReadyCampaignCount << ",\n";

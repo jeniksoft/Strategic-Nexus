@@ -219,6 +219,13 @@ int main()
         "      \"entry_point_count\": 1,\n"
         "      \"decision_ready_entry_count\": 1\n"
         "    }\n"
+        "  ],\n"
+        "  \"entries\": [\n"
+        "    {\n"
+        "      \"entry_point_id\": \"alpha_entry_point\",\n"
+        "      \"campaign_key\": \"alpha_campaign\",\n"
+        "      \"player_country_id\": \"0\"\n"
+        "    }\n"
         "  ]\n"
         "}\n");
     writeTextFileAtomically(
@@ -993,6 +1000,9 @@ int main()
         readyJson.find("\"human_control_guard_state\": \"runtime_is_ai_yes\"") != std::string::npos,
         "snapshot JSON should expose the runtime human-control guard state");
     requireCondition(
+        readyJson.find("\"post_play_player_country_id\": \"0\"") != std::string::npos,
+        "snapshot JSON should expose the post-play player-country marker");
+    requireCondition(
         ready.statusCenterSummaryText.find("mp_package_zip_state: ready") != std::string::npos,
         "status center summary should include MP package zip state");
     requireCondition(
@@ -1007,6 +1017,9 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("post_play_pipeline: ready - generated overlay staging verified") != std::string::npos,
         "status center summary should include post-play pipeline state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("post_play_player_country_id: 0") != std::string::npos,
+        "status center summary should expose the post-play player-country marker");
     requireCondition(
         ready.statusCenterSummaryText.find("entry_point_count: 3") != std::string::npos,
         "status center summary should include entry point count");
