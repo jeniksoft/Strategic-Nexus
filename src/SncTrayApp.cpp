@@ -3840,6 +3840,9 @@ void writeNextStepsBrief(
         brief << " (" << mpOverlayPackage.reason << ")";
     }
     brief << "\n";
+    if (!mpOverlayPackage.handoffStatus.empty()) {
+        brief << "- MP handoff status: " << mpOverlayPackage.handoffStatus << "\n";
+    }
     brief << "- Human control guard: ";
     brief << (mpOverlayPackage.humanControlGuardState.empty() ? std::string("unknown") : mpOverlayPackage.humanControlGuardState)
           << "\n";
