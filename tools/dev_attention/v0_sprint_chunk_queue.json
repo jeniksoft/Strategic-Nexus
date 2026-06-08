@@ -202,7 +202,7 @@
     {
       "id": "v0-sprint-095-verify-support-report-approval-contract",
       "title": "Verify support report approval contract",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Status Center / support report approval and preview contract",
       "goal": "Verify that SNC status, tray, and CLI outputs keep the support report preview and approval gate explicit before any send action is possible.",
@@ -217,6 +217,26 @@
       ],
       "dependencies": [
         "v0-sprint-094-verify-reactive-capability-source-quality-signal"
+      ]
+    },
+    {
+      "id": "v0-sprint-096-verify-generated-overlay-publish-gate-contract",
+      "title": "Verify generated overlay publish gate contract",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Status Center / generated overlay publish gate contract",
+      "goal": "Verify that SNC status, tray, and CLI outputs keep the staged generated-overlay publish gate explicit, including allow/deny state, owner approval, and the active publish command hint.",
+      "acceptance": [
+        "Companion status output keeps generated_overlay_publish_gate_status explicit across JSON, tray, and CLI surfaces.",
+        "Companion status output keeps generated_overlay_publish_allowed and generated_overlay_publish_gate_can_publish explicit and fail-closed.",
+        "Companion status output keeps generated_overlay_publish_gate_owner_approval_required and the publish command hint explicit for staged overlay follow-up."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1",
+        "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-095-verify-support-report-approval-contract"
       ]
     }
   ]
