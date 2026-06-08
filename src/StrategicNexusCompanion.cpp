@@ -3435,6 +3435,10 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"lifecycle\": {\n";
     output << "    \"start_with_windows_enabled\": "
            << (snapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << ",\n";
+    output << "    \"startup_rationale\": "
+           << jsonString(snapshot.lifecycle.startupRationale) << ",\n";
+    output << "    \"start_with_windows_default_state\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsDefaultState) << ",\n";
     output << "    \"start_with_windows_source\": "
            << jsonString(snapshot.lifecycle.startWithWindowsSource) << ",\n";
     output << "    \"start_with_windows_shortcut_state\": "
@@ -3462,6 +3466,10 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
                       ? "owner_enabled_start_with_windows"
                       : "manual_start_only")
            << ",\n";
+    output << "  \"startup_rationale\": "
+           << jsonString(snapshot.lifecycle.startupRationale) << ",\n";
+    output << "  \"start_with_windows_default_state\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsDefaultState) << ",\n";
     output << "  \"support_report_state\": "
            << jsonString(snapshot.supportReport.state) << ",\n";
     output << "  \"support_report_reason\": "

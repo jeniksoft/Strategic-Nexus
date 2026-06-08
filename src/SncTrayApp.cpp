@@ -4429,6 +4429,10 @@ void writeStatus(
     json << "  \"updated_at_local\": \"" << jsonEscape(formatLocalTimestamp()) << "\",\n";
     json << "  \"start_with_windows_enabled\": "
          << (companionSnapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << ",\n";
+    json << "  \"startup_rationale\": \""
+         << jsonEscape(companionSnapshot.lifecycle.startupRationale) << "\",\n";
+    json << "  \"start_with_windows_default_state\": \""
+         << jsonEscape(companionSnapshot.lifecycle.startWithWindowsDefaultState) << "\",\n";
     json << "  \"start_with_windows_source\": \""
          << jsonEscape(companionSnapshot.lifecycle.startWithWindowsSource) << "\",\n";
     json << "  \"start_with_windows_shortcut_state\": \""

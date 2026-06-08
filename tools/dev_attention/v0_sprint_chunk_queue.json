@@ -650,6 +650,49 @@
       "dependencies": [
         "v0-sprint-117-surface-mp-package-import-handoff-action"
       ]
+    },
+    {
+      "id": "v0-sprint-119-surface-release-companion-startup-rationale-contract",
+      "title": "Surface release-companion startup rationale contract",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion Orchestrator UX / first-run explanation for early SNC startup",
+      "goal": "Expose the first-run startup rationale and default-disabled start-with-Windows contract as stable release-companion fields instead of summary text only.",
+      "acceptance": [
+        "Companion status snapshot JSON exposes startup_rationale and start_with_windows_default_state at the lifecycle and top-level compatibility surfaces.",
+        "SNC tray status JSON exposes startup_rationale and start_with_windows_default_state for release-companion UI consumption.",
+        "Existing summary text and next-steps brief startup guidance remain present and fail closed."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-093-verify-startup-shortcut-toggle-contract"
+      ]
+    },
+    {
+      "id": "v0-sprint-120-surface-generated-overlay-publish-action-in-status-dashboard",
+      "title": "Surface generated-overlay publish action in status dashboard",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion Orchestrator UX / Status Center publish action",
+      "goal": "Add a visible status-dashboard publish/review action for staged generated overlays so owner-approved publishing is reachable from the main companion window, not only the tray menu or copied command text.",
+      "acceptance": [
+        "The visible status dashboard includes a generated-overlay publish/review action when the publish gate exposes a concrete command hint.",
+        "The action keeps the existing owner approval confirmation and Stellaris-closed safety gate instead of bypassing publish validation.",
+        "The action fails closed when the publish command is unavailable or the publish gate is not ready."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-119-surface-release-companion-startup-rationale-contract"
+      ]
     }
   ]
 }

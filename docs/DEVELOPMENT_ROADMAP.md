@@ -603,7 +603,7 @@ The native SNC window exists, uses a branded icon, and has TB-inspired styling. 
 ## 1J. Release Companion Orchestrator UX
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Turn the development harnesses into a low-friction companion workflow for ordinary users.
@@ -619,7 +619,7 @@ Required:
 * clear recovery paths for blocked or degraded states
 
 Current progress:
-Underlying status and command surfaces exist, but the full low-friction release companion workflow is not implemented yet.
+Underlying status and command surfaces exist, but the full low-friction release companion workflow is not implemented yet. The first-run startup rationale is now an explicit release-companion contract: SNC snapshot JSON, tray JSON, summary text, and next-steps brief all explain that early SNC startup preserves more autosave history before Stellaris rotates older saves away, while start-with-Windows remains optional and default-disabled.
 
 ---
 
@@ -1890,19 +1890,20 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Shipped worker-ready slice:
 
-Forward MP bootstrap provenance into real-session loop artifacts.
+Surface release-companion startup rationale contract.
 
-  Real-session loop stdout, next-steps brief, and evidence JSON now forward the MP bootstrap provenance fields from the selected package/export surface, so compare/trend follow-up can tell whether the latest handoff package is bootstrap-backed without reopening the SNC snapshot or MP manifest.
+  SNC snapshot JSON, tray JSON, summary text, and next-steps brief now expose `startup_rationale` / `start_with_windows_default_state` so first-run/release-companion UI can explain why early startup helps without enabling start-with-Windows by default.
 
 Next worker-ready slice:
 
-Verify startup shortcut toggle contract in SNC status and tray surfaces.
+Surface generated-overlay publish action in status dashboard.
 
   The next slice should include:
 
-* status/tray/brief outputs keep `start_with_windows_shortcut_state`, `start_with_windows_command_hint_source`, and the active install/remove hint explicit
-* startup guidance stays owner-facing and fail-closed for installed, missing, and unavailable shortcut paths
-* verification remains bounded and does not reopen the whole runtime skeleton
+* the visible status dashboard includes a generated-overlay publish/review action when the publish gate provides a concrete command hint
+* the action keeps the existing owner approval confirmation and Stellaris-closed safety gate
+* the action fails closed when the publish command is unavailable or the gate is not publish-ready
+* verification remains bounded to SNC dashboard smoke plus the v0 status/publish contract
 
   ---
 

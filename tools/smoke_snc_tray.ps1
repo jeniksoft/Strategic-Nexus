@@ -405,6 +405,8 @@ try {
             if (
                 $json.mode -eq "tray" -and
                 $json.state -and
+                $null -ne $json.startup_rationale -and
+                $null -ne $json.start_with_windows_default_state -and
                 $null -ne $json.window_close_behavior -and
                 $null -ne $json.explicit_exit_behavior -and
                 $null -ne $json.crash_restart_policy -and
@@ -472,6 +474,12 @@ try {
                 }
                 if ($json.crash_restart_policy -ne "bounded_backoff_with_crash_loop_guard") {
                     throw "SNC tray status JSON did not expose crash_restart_policy=bounded_backoff_with_crash_loop_guard."
+                }
+                if ([string]$json.startup_rationale -ne "start SNC before Stellaris to preserve more autosave history before the game rotates older saves away") {
+                    throw "SNC tray status JSON did not expose the expected startup_rationale."
+                }
+                if ([string]$json.start_with_windows_default_state -ne "optional_owner_setting_default_disabled") {
+                    throw "SNC tray status JSON did not expose start_with_windows_default_state=optional_owner_setting_default_disabled."
                 }
                 if ([string]$json.startup_lifecycle_state -ne $expectedStartup.LifecycleState) {
                     throw "SNC tray status JSON did not expose the expected startup_lifecycle_state."

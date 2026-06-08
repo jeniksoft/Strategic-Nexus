@@ -235,6 +235,9 @@ struct CompanionPostPlayPipelineStatus {
 
 struct CompanionLifecycleStatus {
     bool startWithWindowsEnabled = false;
+    std::string startupRationale =
+        "start SNC before Stellaris to preserve more autosave history before the game rotates older saves away";
+    std::string startWithWindowsDefaultState = "optional_owner_setting_default_disabled";
     std::string windowCloseBehavior = "minimize_to_tray";
     std::string explicitExitBehavior = "stop_without_restart";
     std::string crashRestartPolicy = "bounded_backoff_with_crash_loop_guard";
