@@ -90,6 +90,7 @@ constexpr UINT ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT = 222;
 constexpr UINT ID_STATUS_OPEN_FRIEND_TRUST_STORE = 223;
 constexpr UINT ID_STATUS_COPY_FRIEND_PAIRING = 224;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE = 225;
+constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN = 226;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -147,6 +148,7 @@ struct StatusDashboardData {
     std::wstring friendTrustStorePath;
     std::wstring friendPairingCommandTemplate;
     std::wstring friendMpSyncEnvelopeCommandTemplate;
+    std::wstring friendMpSyncInboxPlanCommandTemplate;
     std::wstring humanControlGuardState;
     std::wstring mpPackageRefreshState;
     std::wstring mpPackageRefreshReason;
@@ -246,6 +248,7 @@ HWND g_statusOpenGameplayAcceptanceReportButton = nullptr;
 HWND g_statusOpenFriendTrustStoreButton = nullptr;
 HWND g_statusCopyFriendPairingButton = nullptr;
 HWND g_statusCopyFriendMpSyncEnvelopeButton = nullptr;
+HWND g_statusCopyFriendMpSyncInboxPlanButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -1161,6 +1164,16 @@ std::string buildFriendMpSyncEnvelopeCommandTemplateUtf8()
     return command;
 }
 
+std::string buildFriendMpSyncInboxPlanCommandTemplateUtf8()
+{
+    std::string command;
+    command += "Strategic Nexus.exe --plan-snc-friend-mp-sync-inbox ";
+    command += "\"<friend_mp_sync_envelope_path>\" ";
+    command += "\"<encrypted_payload_path>\" ";
+    command += "[stellaris_running:true|false] [friend_auto_sync_enabled:true|false]";
+    return command;
+}
+
 std::string buildFriendPairingGuideTextUtf8()
 {
     return "SNC friend pairing guide: 1) create request; 2) friend verifies fingerprint and creates acceptance; "
@@ -1241,6 +1254,7 @@ StatusDashboardData loadStatusDashboardData()
     data.friendTrustStorePath = L"\u2014";
     data.friendPairingCommandTemplate = utf8ToWide(buildFriendPairingCommandTemplateUtf8());
     data.friendMpSyncEnvelopeCommandTemplate = utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8());
+    data.friendMpSyncInboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8());
     data.humanControlGuardState = L"\u2014";
 
     std::string json;
@@ -1376,6 +1390,11 @@ StatusDashboardData loadStatusDashboardData()
     if (data.friendMpSyncEnvelopeCommandTemplate.empty()) {
         data.friendMpSyncEnvelopeCommandTemplate = utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8());
     }
+    data.friendMpSyncInboxPlanCommandTemplate =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_inbox_plan_command_template").value_or(""));
+    if (data.friendMpSyncInboxPlanCommandTemplate.empty()) {
+        data.friendMpSyncInboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8());
+    }
     const std::string humanControlGuardState = summaryValue("human_control_guard_state");
     if (!humanControlGuardState.empty()) {
         data.humanControlGuardState = utf8ToWide(humanControlGuardState);
@@ -1440,6 +1459,9 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += L"\r\nSNC MP sync envelope: manual metadata fallback only; automatic sync, download, and staging stay disabled.";
     text += L"\r\nSNC MP sync envelope template: ";
     text += data.friendMpSyncEnvelopeCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncEnvelopeCommandTemplate;
+    text += L"\r\nSNC MP sync inbox plan: fail-closed status only; no download, decrypt, staging, or apply.";
+    text += L"\r\nSNC MP sync inbox plan template: ";
+    text += data.friendMpSyncInboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanCommandTemplate;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1526,6 +1548,9 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"\nSNC MP sync envelope: manual metadata fallback only; automatic sync, download, and staging stay disabled.";
     text += L"\nSNC MP sync envelope template: ";
     text += data.friendMpSyncEnvelopeCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncEnvelopeCommandTemplate;
+    text += L"\nSNC MP sync inbox plan: fail-closed status only; no download, decrypt, staging, or apply.";
+    text += L"\nSNC MP sync inbox plan template: ";
+    text += data.friendMpSyncInboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanCommandTemplate;
     text += L"\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1848,6 +1873,11 @@ void refreshStatusWindowContent()
             g_statusCopyFriendMpSyncEnvelopeButton,
             data.friendMpSyncEnvelopeCommandTemplate.empty() ? FALSE : TRUE);
     }
+    if (g_statusCopyFriendMpSyncInboxPlanButton != nullptr) {
+        EnableWindow(
+            g_statusCopyFriendMpSyncInboxPlanButton,
+            data.friendMpSyncInboxPlanCommandTemplate.empty() ? FALSE : TRUE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -2117,6 +2147,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenFriendTrustStoreButton,
         g_statusCopyFriendPairingButton,
         g_statusCopyFriendMpSyncEnvelopeButton,
+        g_statusCopyFriendMpSyncInboxPlanButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -2141,6 +2172,7 @@ void layoutStatusWindow(HWND hwnd)
         L"SNC pratele",
         L"SNC pairing",
         L"SNC MP sync",
+        L"SNC inbox",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2310,6 +2342,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_PAIRING, L"SNC pairing");
         g_statusCopyFriendMpSyncEnvelopeButton =
             createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, L"SNC MP sync");
+        g_statusCopyFriendMpSyncInboxPlanButton =
+            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, L"SNC inbox");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2364,6 +2398,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenFriendTrustStoreButton, g_statusFieldFont);
         setWindowFont(g_statusCopyFriendPairingButton, g_statusFieldFont);
         setWindowFont(g_statusCopyFriendMpSyncEnvelopeButton, g_statusFieldFont);
+        setWindowFont(g_statusCopyFriendMpSyncInboxPlanButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2461,6 +2496,28 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 hwnd,
                 L"SNC friend MP sync envelope sablona je zkopirovana do schranky.\n\n"
                 L"Je to jen manualni metadata fallback. Parametr stellaris_running nechava verify cestu fail-closed behem hry.",
+                L"Strategic Nexus Companion",
+                MB_OK | MB_ICONINFORMATION);
+            return 0;
+        }
+        case ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN:
+        {
+            const auto data = loadStatusDashboardData();
+            std::wstring text;
+            text += L"SNC friend MP sync inbox plan\r\n";
+            text += L"Fail-closed status only. No automatic download, decrypt, staging, or package apply.\r\n\r\n";
+            text += L"Set stellaris_running:true while the game is active; set friend_auto_sync_enabled from the trusted friend policy.\r\n\r\n";
+            text += data.friendMpSyncInboxPlanCommandTemplate.empty()
+                        ? utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8())
+                        : data.friendMpSyncInboxPlanCommandTemplate;
+            if (!copyTextToClipboard(hwnd, text)) {
+                MessageBeep(MB_ICONWARNING);
+                return 0;
+            }
+            MessageBoxW(
+                hwnd,
+                L"SNC friend MP sync inbox-plan sablona je zkopirovana do schranky.\n\n"
+                L"Je to jen fail-closed stavovy plan. Nestahuje, nedesifruje ani nestageuje gameplay soubory.",
                 L"Strategic Nexus Companion",
                 MB_OK | MB_ICONINFORMATION);
             return 0;
@@ -4902,6 +4959,8 @@ void writeStatus(
          << jsonEscape(buildFriendPairingCommandTemplateUtf8()) << "\",\n";
     json << "  \"friend_mp_sync_envelope_command_template\": \""
          << jsonEscape(buildFriendMpSyncEnvelopeCommandTemplateUtf8()) << "\",\n";
+    json << "  \"friend_mp_sync_inbox_plan_command_template\": \""
+         << jsonEscape(buildFriendMpSyncInboxPlanCommandTemplateUtf8()) << "\",\n";
     json << "  \"friend_pairing_guide_text\": \""
          << jsonEscape(buildFriendPairingGuideTextUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";

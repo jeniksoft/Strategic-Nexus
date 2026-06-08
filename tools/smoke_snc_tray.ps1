@@ -805,12 +805,26 @@ try {
                     [string]$json.friend_mp_sync_envelope_command_template -notlike "*[stellaris_running:true|false]*") {
                     throw "SNC tray friend_mp_sync_envelope_command_template did not include the manual create/verify flow and apply-gate input."
                 }
+                if ([string]::IsNullOrWhiteSpace([string]$json.friend_mp_sync_inbox_plan_command_template)) {
+                    throw "SNC tray status JSON did not expose friend_mp_sync_inbox_plan_command_template."
+                }
+                if ([string]$json.friend_mp_sync_inbox_plan_command_template -notlike "*--plan-snc-friend-mp-sync-inbox*" -or
+                    [string]$json.friend_mp_sync_inbox_plan_command_template -notlike "*<encrypted_payload_path>*" -or
+                    [string]$json.friend_mp_sync_inbox_plan_command_template -notlike "*[friend_auto_sync_enabled:true|false]*") {
+                    throw "SNC tray friend_mp_sync_inbox_plan_command_template did not include the manual inbox-plan gate inputs."
+                }
                 $sncTraySource = Get-Content -Raw -LiteralPath (Join-Path $RepoRoot "src/SncTrayApp.cpp")
                 if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE*" -or
                     $sncTraySource -notlike "*SNC MP sync*" -or
                     $sncTraySource -notlike "*Manual metadata fallback only*" -or
                     $sncTraySource -notlike "*blocked_stellaris_running*") {
                     throw "SNC tray source did not expose the friend MP sync envelope dashboard action."
+                }
+                if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN*" -or
+                    $sncTraySource -notlike "*SNC inbox*" -or
+                    $sncTraySource -notlike "*Fail-closed status only*" -or
+                    $sncTraySource -notlike "*No automatic download, decrypt, staging, or package apply*") {
+                    throw "SNC tray source did not expose the friend MP sync inbox-plan dashboard action."
                 }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_pairing_guide_text)) {
                     throw "SNC tray status JSON did not expose friend_pairing_guide_text."

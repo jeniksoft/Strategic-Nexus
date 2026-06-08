@@ -539,6 +539,11 @@ int main()
             ready.friendTrustStore.mpSyncEnvelopeCommandTemplate.find("[stellaris_running:true|false]") != std::string::npos,
         "friend trust store status should expose the manual friend MP sync envelope command template and apply-gate input");
     requireCondition(
+        ready.friendTrustStore.mpSyncInboxPlanCommandTemplate.find("--plan-snc-friend-mp-sync-inbox") != std::string::npos &&
+            ready.friendTrustStore.mpSyncInboxPlanCommandTemplate.find("<encrypted_payload_path>") != std::string::npos &&
+            ready.friendTrustStore.mpSyncInboxPlanCommandTemplate.find("[friend_auto_sync_enabled:true|false]") != std::string::npos,
+        "friend trust store status should expose the manual friend MP sync inbox-plan command template");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
         "status center summary should expose friend trust store auto-sync count");
     requireCondition(
@@ -547,6 +552,9 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_envelope_command_template: Strategic Nexus.exe --create-snc-friend-mp-sync-envelope ") != std::string::npos,
         "status center summary should expose the manual friend MP sync envelope command template");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_inbox_plan_command_template: Strategic Nexus.exe --plan-snc-friend-mp-sync-inbox ") != std::string::npos,
+        "status center summary should expose the manual friend MP sync inbox-plan command template");
     auto brokenFriendConfig = readyConfig;
     brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
     const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);
@@ -2607,6 +2615,12 @@ int main()
         requireCondition(
             content.find("[stellaris_running:true|false]") != std::string::npos,
             "status snapshot should include friend MP sync envelope apply-gate input");
+        requireCondition(
+            content.find("\"mp_sync_inbox_plan_command_template\": \"Strategic Nexus.exe --plan-snc-friend-mp-sync-inbox ") != std::string::npos,
+            "status snapshot should include friend MP sync inbox-plan command template");
+        requireCondition(
+            content.find("[friend_auto_sync_enabled:true|false]") != std::string::npos,
+            "status snapshot should include friend MP sync inbox-plan auto-sync input");
     }
 
     {

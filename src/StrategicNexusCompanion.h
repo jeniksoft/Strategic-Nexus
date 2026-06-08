@@ -310,6 +310,7 @@ struct CompanionFriendTrustStoreStatus {
     std::size_t autoSyncEnabledCount = 0;
     std::string pairingCommandTemplate;
     std::string mpSyncEnvelopeCommandTemplate;
+    std::string mpSyncInboxPlanCommandTemplate;
     bool autoSyncAvailable = false;
 };
 
