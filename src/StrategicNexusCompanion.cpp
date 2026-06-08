@@ -1496,7 +1496,8 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.clientNextStep = trimWhitespace(readStatusTextField(verification.statusText, "client_next_step"));
     status.packageManifestHash = verification.packageManifestHash;
     status.provenanceState = verification.provenanceState;
-    status.humanControlGuardState = "unknown";
+    status.humanControlGuardState =
+        verification.humanControlGuardState.empty() ? "unknown" : verification.humanControlGuardState;
     status.sourceQualities = verification.sourceQualities;
     status.bootstrapCampaignCount = verification.bootstrapCampaignCount;
     if (!status.campaignId.empty() && !status.overlayVersion.empty() && !status.gameVersion.empty() &&
@@ -1511,9 +1512,8 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (verification.ok) {
         status.state = "ready";
         status.reason = "mp overlay package verified";
-        status.humanControlGuardState = "runtime_is_ai_yes";
         status.statusText = verification.statusText;
-        status.statusText += "human_control_guard: runtime_is_ai_yes\n";
+        status.statusText += "human_control_guard: " + status.humanControlGuardState + "\n";
         const auto warningCodes = extractWarningCodesFromStatusText(status.statusText);
         if (!warningCodes.empty()) {
             status.warningCodes = warningCodes;

@@ -29,6 +29,7 @@ struct MpOverlayPackageVerificationResult {
     std::string gameVersion;
     std::string strategicNexusModVersion;
     std::string handoffStatus;
+    std::string humanControlGuardState;
     std::string readiness;
     std::string packageManifestHash;
     std::string provenanceState;
@@ -61,6 +62,7 @@ struct MpOverlayPackageImportResult {
     std::string gameVersion;
     std::string strategicNexusModVersion;
     std::string handoffStatus;
+    std::string humanControlGuardState;
     std::string packageManifestHash;
     std::string provenanceState;
     std::vector<std::string> sourceQualities;

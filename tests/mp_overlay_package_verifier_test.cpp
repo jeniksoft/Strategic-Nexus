@@ -124,6 +124,10 @@ int main()
         std::cerr << "package manifest missing bootstrap provenance count\n";
         return 1;
     }
+    if (packageManifest.find("\"human_control_guard_state\": \"runtime_is_ai_yes\"") == std::string::npos) {
+        std::cerr << "package manifest missing human-control guard state\n";
+        return 1;
+    }
 
     const MpOverlayPackageVerifier verifier;
     {
@@ -155,7 +159,8 @@ int main()
         return 1;
     }
     if (verifyResult.provenanceState != "present" || verifyResult.sourceQualities.size() != 1 ||
-        verifyResult.sourceQualities.front() != "history_backed" || verifyResult.bootstrapCampaignCount != 0) {
+        verifyResult.sourceQualities.front() != "history_backed" || verifyResult.bootstrapCampaignCount != 0 ||
+        verifyResult.humanControlGuardState != "runtime_is_ai_yes") {
         std::cerr << "verify did not expose stable package provenance fields\n";
         return 1;
     }
@@ -214,7 +219,8 @@ int main()
             importResult.overlayVersion != verifyResult.overlayVersion ||
             importResult.gameVersion != verifyResult.gameVersion ||
             importResult.strategicNexusModVersion != verifyResult.strategicNexusModVersion ||
-            importResult.handoffStatus != verifyResult.handoffStatus) {
+            importResult.handoffStatus != verifyResult.handoffStatus ||
+            importResult.humanControlGuardState != verifyResult.humanControlGuardState) {
             std::cerr << "import did not preserve package metadata fields\n";
             return 1;
         }

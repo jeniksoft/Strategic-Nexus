@@ -314,6 +314,7 @@ std::string buildCopyableStatusText(
     const std::string& gameVersion,
     const std::string& strategicNexusModVersion,
     const std::string& handoffStatus,
+    const std::string& humanControlGuardState,
     const std::string& readiness,
     const std::string& packageManifestHash,
     bool previousHostAvailable,
@@ -335,6 +336,7 @@ std::string buildCopyableStatusText(
     text << "readiness: " << readiness << "\n";
     text << "package_manifest_hash: " << packageManifestHash << "\n";
     text << "provenance_state: " << provenanceState << "\n";
+    text << "human_control_guard_state: " << humanControlGuardState << "\n";
     text << "source_quality_count: " << sourceQualities.size() << "\n";
     for (const auto& sourceQuality : sourceQualities) {
         text << "source_quality: " << sourceQuality << "\n";
@@ -455,6 +457,7 @@ std::string buildPackageManifest(
     const std::string& gameVersion,
     const std::string& strategicNexusModVersion,
     bool previousHostAvailable,
+    const std::string& humanControlGuardState,
     const std::vector<std::string>& sourceQualities,
     const std::size_t bootstrapCampaignCount,
     const std::vector<MpOverlayPackageFileVerification>& files)
@@ -469,6 +472,7 @@ std::string buildPackageManifest(
     manifest << "  \"strategic_nexus_mod_version\": \"" << jsonEscape(strategicNexusModVersion) << "\",\n";
     manifest << "  \"previous_host_available\": " << (previousHostAvailable ? "true" : "false") << ",\n";
     manifest << "  \"handoff_status\": \"" << (previousHostAvailable ? "complete" : "degraded_previous_host_unavailable") << "\",\n";
+    manifest << "  \"human_control_guard_state\": \"" << jsonEscape(humanControlGuardState) << "\",\n";
     manifest << "  \"source_qualities\": [";
     for (std::size_t index = 0; index < sourceQualities.size(); ++index) {
         if (index > 0) {
@@ -552,6 +556,7 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
         return result;
     }
     const auto bootstrapCampaignCount = countBootstrapCampaignSignals(generatedManifestText);
+    constexpr const char* humanControlGuardState = "runtime_is_ai_yes";
 
     MpOverlayPackageFileVerification generatedManifestEntry;
     generatedManifestEntry.path = generatedManifestFileName;
@@ -599,6 +604,7 @@ MpOverlayPackageExportResult MpOverlayPackageExporter::exportPackage(
         gameVersion,
         strategicNexusModVersion,
         previousHostAvailable,
+        humanControlGuardState,
         sourceQualities,
         bootstrapCampaignCount,
         files);
@@ -785,10 +791,12 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
     const auto gameVersion = extractStringFromObject(manifestText, "game_version");
     const auto strategicNexusModVersion = extractStringFromObject(manifestText, "strategic_nexus_mod_version");
     const auto handoffStatus = extractStringFromObject(manifestText, "handoff_status");
+    const auto humanControlGuardState = extractStringFromObject(manifestText, "human_control_guard_state");
     const auto previousHostAvailable = extractBoolFromObject(manifestText, "previous_host_available");
 
     if (!campaignId.has_value() || !overlayVersion.has_value() || !gameVersion.has_value() ||
-        !strategicNexusModVersion.has_value() || !handoffStatus.has_value() || !previousHostAvailable.has_value()) {
+        !strategicNexusModVersion.has_value() || !handoffStatus.has_value() || !humanControlGuardState.has_value() ||
+        !previousHostAvailable.has_value()) {
         result.reason = "malformed MP overlay package manifest";
         result.statusText = buildFailureStatusText(
             "mp_overlay_package_manifest_malformed",
@@ -823,12 +831,21 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
             packageDirectory);
         return result;
     }
+    if (*humanControlGuardState != "runtime_is_ai_yes") {
+        result.reason = "malformed MP overlay package manifest";
+        result.statusText = buildFailureStatusText(
+            "mp_overlay_package_manifest_malformed",
+            "re-export package on host before import/verify",
+            packageDirectory);
+        return result;
+    }
 
     result.campaignId = *campaignId;
     result.overlayVersion = *overlayVersion;
     result.gameVersion = *gameVersion;
     result.strategicNexusModVersion = *strategicNexusModVersion;
     result.handoffStatus = *handoffStatus;
+    result.humanControlGuardState = *humanControlGuardState;
     result.sourceQualities = extractStringArrayFromObject(manifestText, "source_qualities");
     const auto bootstrapCampaignCount = extractSizeFromObject(manifestText, "bootstrap_campaign_count");
     result.bootstrapCampaignCount = bootstrapCampaignCount.value_or(0);
@@ -917,6 +934,7 @@ MpOverlayPackageVerificationResult MpOverlayPackageVerifier::verify(const std::f
             result.gameVersion,
             result.strategicNexusModVersion,
             result.handoffStatus,
+            result.humanControlGuardState,
             result.readiness,
             result.packageManifestHash,
             *previousHostAvailable,
@@ -962,6 +980,7 @@ MpOverlayPackageImportResult MpOverlayPackageImporter::importPackage(
     result.gameVersion = packageVerification.gameVersion;
     result.strategicNexusModVersion = packageVerification.strategicNexusModVersion;
     result.handoffStatus = packageVerification.handoffStatus;
+    result.humanControlGuardState = packageVerification.humanControlGuardState;
     result.packageManifestHash = packageVerification.packageManifestHash;
     result.provenanceState = packageVerification.provenanceState;
     result.sourceQualities = packageVerification.sourceQualities;
