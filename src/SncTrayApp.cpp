@@ -132,10 +132,17 @@ struct StatusDashboardData {
     std::wstring mpPackageZipState;
     std::wstring mpPackageZipReason;
     std::wstring mpPackageManifestHash;
+    std::wstring mpPackageHandoffStatus;
+    std::wstring mpPackagePreviousHostAvailable;
+    std::wstring mpPackagePreviousHostAvailableKnown;
     std::wstring mpPackageHostNextStep;
     std::wstring mpPackageClientNextStep;
     std::wstring mpPackageHostReadiness;
     std::wstring mpPackageClientReadinessGate;
+    std::wstring mpPackageVerifyCommand;
+    std::wstring mpPackageImportCommand;
+    std::wstring mpPackageStrictVerifyCommand;
+    std::wstring mpPackageStrictImportCommand;
 };
 
 struct DashboardSectionSpec {
@@ -274,6 +281,7 @@ StatusDashboardData loadStatusDashboardData();
 std::optional<std::string> extractSummaryLineValue(const std::string& summary, const char* key);
 std::wstring makeRelativeDisplay(const std::filesystem::path& path);
 std::wstring compactBoolText(const std::string& value, const wchar_t* yesText = L"ano", const wchar_t* noText = L"ne");
+std::wstring compactBoolText(const std::wstring& value, const wchar_t* yesText = L"ano", const wchar_t* noText = L"ne");
 std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator = L" | ");
 std::filesystem::path findRepoRoot();
 const wchar_t* statusFieldLabel(StatusFieldId id);
@@ -417,6 +425,17 @@ std::wstring compactBoolText(const std::string& value, const wchar_t* yesText, c
         return noText;
     }
     return value.empty() ? kStatusEmptyValue : utf8ToWide(value);
+}
+
+std::wstring compactBoolText(const std::wstring& value, const wchar_t* yesText, const wchar_t* noText)
+{
+    if (value == L"true") {
+        return yesText;
+    }
+    if (value == L"false") {
+        return noText;
+    }
+    return value.empty() ? kStatusEmptyValue : value;
 }
 
 std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator)
@@ -1146,10 +1165,17 @@ StatusDashboardData loadStatusDashboardData()
     data.mpPackageZipState = utf8ToWide(summaryValue("mp_package_zip_state"));
     data.mpPackageZipReason = utf8ToWide(summaryValue("mp_package_zip_reason"));
     data.mpPackageManifestHash = utf8ToWide(summaryValue("mp_package_manifest_hash"));
+    data.mpPackageHandoffStatus = utf8ToWide(summaryValue("mp_handoff_status"));
+    data.mpPackagePreviousHostAvailable = utf8ToWide(summaryValue("mp_previous_host_available"));
+    data.mpPackagePreviousHostAvailableKnown = utf8ToWide(summaryValue("mp_previous_host_available_known"));
     data.mpPackageHostNextStep = utf8ToWide(summaryValue("mp_host_next_step"));
     data.mpPackageClientNextStep = utf8ToWide(summaryValue("mp_client_next_step"));
     data.mpPackageHostReadiness = utf8ToWide(summaryValue("mp_host_readiness"));
     data.mpPackageClientReadinessGate = utf8ToWide(summaryValue("mp_client_readiness_gate"));
+    data.mpPackageVerifyCommand = utf8ToWide(summaryValue("mp_verify_command"));
+    data.mpPackageImportCommand = utf8ToWide(summaryValue("mp_import_command"));
+    data.mpPackageStrictVerifyCommand = utf8ToWide(summaryValue("mp_strict_verify_command"));
+    data.mpPackageStrictImportCommand = utf8ToWide(summaryValue("mp_strict_import_command"));
     return data;
 }
 
@@ -1177,6 +1203,53 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.crashRecoveryPath.empty() ? kStatusEmptyValue : data.crashRecoveryPath;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
+    if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
+        text += L"\r\nMP package: ";
+        text += data.mpPackageRefreshState.empty() ? kStatusEmptyValue : data.mpPackageRefreshState;
+        if (!data.mpPackageRefreshReason.empty()) {
+            text += L" (" + data.mpPackageRefreshReason + L")";
+        }
+        text += L"\r\nMP cesta: ";
+        text += data.mpPackageDirectory.empty() ? kStatusEmptyValue : data.mpPackageDirectory;
+        text += L"\r\nMP zip: ";
+        text += data.mpPackageZipPath.empty() ? kStatusEmptyValue : data.mpPackageZipPath;
+        if (!data.mpPackageZipState.empty()) {
+            text += L"\r\nMP zip stav: " + data.mpPackageZipState;
+            if (!data.mpPackageZipReason.empty()) {
+                text += L" (" + data.mpPackageZipReason + L")";
+            }
+        }
+        if (!data.mpPackageManifestHash.empty()) {
+            text += L"\r\nMP manifest hash: " + data.mpPackageManifestHash;
+        }
+        if (!data.mpPackageZipPath.empty() || !data.mpPackageManifestHash.empty()) {
+            text += L"\r\nMP sdileni: zkopiruj MP zip a manifest hash; host/klient kroky jsou nize.";
+        }
+        if (!data.mpPackageHostReadiness.empty()) {
+            text += L"\r\nMP host readiness: " + data.mpPackageHostReadiness;
+        }
+        if (!data.mpPackageClientReadinessGate.empty()) {
+            text += L"\r\nMP client gate: " + data.mpPackageClientReadinessGate;
+        }
+        if (!data.mpPackageHostNextStep.empty()) {
+            text += L"\r\nMP host krok: " + data.mpPackageHostNextStep;
+        }
+        if (!data.mpPackageClientNextStep.empty()) {
+            text += L"\r\nMP client krok: " + data.mpPackageClientNextStep;
+        }
+        if (!data.mpPackageVerifyCommand.empty()) {
+            text += L"\r\nMP verify: " + data.mpPackageVerifyCommand;
+        }
+        if (!data.mpPackageImportCommand.empty()) {
+            text += L"\r\nMP import: " + data.mpPackageImportCommand;
+        }
+        if (!data.mpPackageStrictVerifyCommand.empty()) {
+            text += L"\r\nMP strict verify: " + data.mpPackageStrictVerifyCommand;
+        }
+        if (!data.mpPackageStrictImportCommand.empty()) {
+            text += L"\r\nMP strict import: " + data.mpPackageStrictImportCommand;
+        }
+    }
     return text;
 }
 
@@ -1216,6 +1289,18 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
         if (!data.mpPackageManifestHash.empty()) {
             text += L"\nMP manifest hash: " + data.mpPackageManifestHash;
         }
+        if (!data.mpPackageHandoffStatus.empty()) {
+            text += L"\nMP handoff: " + data.mpPackageHandoffStatus;
+        }
+        if (!data.mpPackagePreviousHostAvailableKnown.empty()) {
+            text += L"\nMP previous host known: " + data.mpPackagePreviousHostAvailableKnown;
+        }
+        if (!data.mpPackagePreviousHostAvailable.empty()) {
+            text += L"\nMP previous host available: " + data.mpPackagePreviousHostAvailable;
+        }
+        if (!data.mpPackageZipPath.empty() || !data.mpPackageManifestHash.empty()) {
+            text += L"\nMP sdileni: zkopiruj MP zip a manifest hash; host/klient kroky jsou nize.";
+        }
         if (!data.mpPackageHostReadiness.empty()) {
             text += L"\nMP host readiness: " + data.mpPackageHostReadiness;
         }
@@ -1227,6 +1312,18 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
         }
         if (!data.mpPackageClientNextStep.empty()) {
             text += L"\nMP client krok: " + data.mpPackageClientNextStep;
+        }
+        if (!data.mpPackageVerifyCommand.empty()) {
+            text += L"\nMP verify: " + data.mpPackageVerifyCommand;
+        }
+        if (!data.mpPackageImportCommand.empty()) {
+            text += L"\nMP import: " + data.mpPackageImportCommand;
+        }
+        if (!data.mpPackageStrictVerifyCommand.empty()) {
+            text += L"\nMP strict verify: " + data.mpPackageStrictVerifyCommand;
+        }
+        if (!data.mpPackageStrictImportCommand.empty()) {
+            text += L"\nMP strict import: " + data.mpPackageStrictImportCommand;
         }
     }
     return text;
@@ -3286,6 +3383,30 @@ std::string buildStatusCenterSummaryText(
     }
     if (!postPlayPackageReadiness.empty()) {
         summary << "post_play_package_readiness: " << postPlayPackageReadiness << "\n";
+    }
+    if (!mpOverlayPackage.handoffStatus.empty()) {
+        summary << "mp_handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
+    }
+    summary << "mp_previous_host_available_known: "
+            << (mpOverlayPackage.previousHostAvailableKnown ? "true" : "false") << "\n";
+    if (mpOverlayPackage.previousHostAvailableKnown) {
+        summary << "mp_previous_host_available: "
+                << (mpOverlayPackage.previousHostAvailable ? "true" : "false") << "\n";
+    }
+    if (!mpOverlayPackage.packageZipPath.empty() || !mpOverlayPackage.packageManifestHash.empty()) {
+        summary << "mp_sdileni_tip: zkopiruj mp_package_zip_path a mp_package_manifest_hash; host/client kroky jsou nize.\n";
+    }
+    if (!mpOverlayPackage.hostReadiness.empty()) {
+        summary << "mp_host_readiness: " << mpOverlayPackage.hostReadiness << "\n";
+    }
+    if (!mpOverlayPackage.clientReadinessGate.empty()) {
+        summary << "mp_client_gate: " << mpOverlayPackage.clientReadinessGate << "\n";
+    }
+    if (!mpOverlayPackage.hostNextStep.empty()) {
+        summary << "mp_host_krok: " << mpOverlayPackage.hostNextStep << "\n";
+    }
+    if (!mpOverlayPackage.clientNextStep.empty()) {
+        summary << "mp_client_krok: " << mpOverlayPackage.clientNextStep << "\n";
     }
     summary << "post_play_decision_ready_entry_count: " << postPlayDecisionReadyEntryCount << "\n";
     summary << "post_play_campaign_count: " << postPlayCampaignCount << "\n";

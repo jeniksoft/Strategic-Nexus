@@ -2491,6 +2491,21 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.packageZipState.empty()) {
         text << "mp_package_zip_bytes: " << mpOverlayPackage.packageZipBytes << "\n";
     }
+    if (!mpOverlayPackage.packageZipPath.empty() || !mpOverlayPackage.packageManifestHash.empty()) {
+        text << "mp_sdileni_tip: zkopiruj mp_package_zip_path a mp_package_manifest_hash; host/client kroky jsou nize.\n";
+    }
+    if (!mpOverlayPackage.hostReadiness.empty()) {
+        text << "mp_host_readiness: " << mpOverlayPackage.hostReadiness << "\n";
+    }
+    if (!mpOverlayPackage.clientReadinessGate.empty()) {
+        text << "mp_client_gate: " << mpOverlayPackage.clientReadinessGate << "\n";
+    }
+    if (!mpOverlayPackage.hostNextStep.empty()) {
+        text << "mp_host_krok: " << mpOverlayPackage.hostNextStep << "\n";
+    }
+    if (!mpOverlayPackage.clientNextStep.empty()) {
+        text << "mp_client_krok: " << mpOverlayPackage.clientNextStep << "\n";
+    }
     text << "post_play_pipeline: " << postPlayPipeline.state << " - " << postPlayPipeline.reason << "\n";
     if (!postPlayPipeline.entryPointAnalysisPath.empty()) {
         text << "entry_point_analysis_path: " << pathString(postPlayPipeline.entryPointAnalysisPath) << "\n";
