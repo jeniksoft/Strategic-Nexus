@@ -79,6 +79,13 @@ struct SncFriendMpSyncInboxPlanResult {
     std::string reason;
 };
 
+struct SncFriendMpSyncOutboxPlanResult {
+    bool sendAllowed = false;
+    bool transportEnabled = false;
+    std::string state;
+    std::string reason;
+};
+
 SncFriendRequestPackage parseSncFriendRequestPackageJson(const std::string& json);
 SncFriendAcceptancePackage parseSncFriendAcceptancePackageJson(const std::string& json);
 SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json);
@@ -87,6 +94,11 @@ SncFriendMpSyncApplyGateResult evaluateSncFriendMpSyncApplyGate(
     const SncFriendMpSyncEnvelopePackage& package,
     bool stellarisRunning);
 SncFriendMpSyncInboxPlanResult planSncFriendMpSyncInboxStaging(
+    const SncFriendMpSyncEnvelopePackage& package,
+    bool encryptedPayloadPresent,
+    bool stellarisRunning,
+    bool friendAutoSyncEnabled);
+SncFriendMpSyncOutboxPlanResult planSncFriendMpSyncOutboxSend(
     const SncFriendMpSyncEnvelopePackage& package,
     bool encryptedPayloadPresent,
     bool stellarisRunning,

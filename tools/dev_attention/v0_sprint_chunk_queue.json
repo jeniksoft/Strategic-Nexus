@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T23:08:00+02:00",
+  "updated_at": "2026-06-08T23:32:20+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -1178,6 +1178,48 @@
       ],
       "dependencies": [
         "v0-sprint-143-add-friend-mp-sync-inbox-plan-gate"
+      ]
+    },
+    {
+      "id": "v0-sprint-145-add-friend-mp-sync-outbox-plan-gate",
+      "title": "Add friend MP sync outbox plan gate",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / signed and encrypted package sync guarded transport contract",
+      "goal": "Add a fail-closed local outbox/send plan for SNC friend MP sync envelopes so release-companion code can reason about encrypted payload presence, running-game safety, and auto-sync policy before any transport adapter exists.",
+      "acceptance": [
+        "A valid envelope plus encrypted payload path still reports send_allowed=false and transport_enabled=false until signed/encrypted transport exists.",
+        "Invalid envelopes, missing encrypted payloads, running Stellaris, and disabled friend auto-sync each produce explicit fail-closed states.",
+        "The CLI prints stable key=value fields for release-companion consumption without sending, uploading, or staging gameplay-affecting files."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-144-surface-friend-mp-sync-inbox-plan-template"
+      ]
+    },
+    {
+      "id": "v0-sprint-146-surface-friend-mp-sync-outbox-plan-template",
+      "title": "Surface friend MP sync outbox-plan template",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / guarded transport contract visibility",
+      "goal": "Expose the manual friend MP sync outbox-plan command template through companion/tray status and the visible dashboard so release-companion surfaces can reach the new fail-closed send plan without raw CLI lookup.",
+      "acceptance": [
+        "Companion/tray status exposes a stable friend MP sync outbox-plan command template that includes envelope path, encrypted payload path, Stellaris running, and friend auto-sync inputs.",
+        "The visible SNC dashboard can copy the outbox-plan template and keeps wording explicit that it does not upload, send, download, decrypt, or stage gameplay files.",
+        "Companion, tray smoke, and v0 pipeline tests verify the new template surface."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-145-add-friend-mp-sync-outbox-plan-gate"
       ]
     }
   ]

@@ -4102,6 +4102,62 @@ $sncFriendRunningInboxPlanText = $sncFriendRunningInboxPlanOutput -join "`n"
 Assert-Contains -Name "snc friend mp sync inbox running cli" -Text $sncFriendRunningInboxPlanText -Expected "snc_friend_mp_sync_inbox_plan_state=blocked_stellaris_running"
 Assert-Contains -Name "snc friend mp sync inbox running cli" -Text $sncFriendRunningInboxPlanText -Expected "snc_friend_mp_sync_inbox_plan_package_staging_allowed=false"
 
+$sncFriendMissingPayloadOutboxPlanOutput = & $exePath `
+    --plan-snc-friend-mp-sync-outbox `
+    $sncFriendMpSyncEnvelopePath `
+    (Join-Path $sncFriendCliRoot "missing-outbox-payload.enc") `
+    "false" `
+    "true"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync outbox missing-payload plan CLI failed. Actual output:`n$($sncFriendMissingPayloadOutboxPlanOutput -join "`n")"
+}
+$sncFriendMissingPayloadOutboxPlanText = $sncFriendMissingPayloadOutboxPlanOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync outbox missing payload cli" -Text $sncFriendMissingPayloadOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_success=true"
+Assert-Contains -Name "snc friend mp sync outbox missing payload cli" -Text $sncFriendMissingPayloadOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_state=waiting_for_encrypted_payload"
+Assert-Contains -Name "snc friend mp sync outbox missing payload cli" -Text $sncFriendMissingPayloadOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_send_allowed=false"
+
+$sncFriendManualOutboxPlanOutput = & $exePath `
+    --plan-snc-friend-mp-sync-outbox `
+    $sncFriendMpSyncEnvelopePath `
+    $sncFriendMpSyncEncryptedPayloadPath `
+    "false" `
+    "false"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync outbox manual-review plan CLI failed. Actual output:`n$($sncFriendManualOutboxPlanOutput -join "`n")"
+}
+$sncFriendManualOutboxPlanText = $sncFriendManualOutboxPlanOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync outbox manual review cli" -Text $sncFriendManualOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_state=waiting_for_owner_approval"
+Assert-Contains -Name "snc friend mp sync outbox manual review cli" -Text $sncFriendManualOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_transport_enabled=false"
+Assert-Contains -Name "snc friend mp sync outbox manual review cli" -Text $sncFriendManualOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_send_allowed=false"
+
+$sncFriendPayloadOutboxPlanOutput = & $exePath `
+    --plan-snc-friend-mp-sync-outbox `
+    $sncFriendMpSyncEnvelopePath `
+    $sncFriendMpSyncEncryptedPayloadPath `
+    "false" `
+    "true"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync outbox payload-present plan CLI failed. Actual output:`n$($sncFriendPayloadOutboxPlanOutput -join "`n")"
+}
+$sncFriendPayloadOutboxPlanText = $sncFriendPayloadOutboxPlanOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync outbox payload present cli" -Text $sncFriendPayloadOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_state=metadata_verified_transport_not_implemented"
+Assert-Contains -Name "snc friend mp sync outbox payload present cli" -Text $sncFriendPayloadOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_encrypted_payload_present=true"
+Assert-Contains -Name "snc friend mp sync outbox payload present cli" -Text $sncFriendPayloadOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_transport_enabled=false"
+Assert-Contains -Name "snc friend mp sync outbox payload present cli" -Text $sncFriendPayloadOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_send_allowed=false"
+
+$sncFriendRunningOutboxPlanOutput = & $exePath `
+    --plan-snc-friend-mp-sync-outbox `
+    $sncFriendMpSyncEnvelopePath `
+    $sncFriendMpSyncEncryptedPayloadPath `
+    "true" `
+    "true"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync outbox running-game plan CLI failed. Actual output:`n$($sncFriendRunningOutboxPlanOutput -join "`n")"
+}
+$sncFriendRunningOutboxPlanText = $sncFriendRunningOutboxPlanOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync outbox running cli" -Text $sncFriendRunningOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_state=blocked_stellaris_running"
+Assert-Contains -Name "snc friend mp sync outbox running cli" -Text $sncFriendRunningOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_send_allowed=false"
+
 $sncFriendSelfMpSyncEnvelopeOutput = & $exePath `
     --create-snc-friend-mp-sync-envelope `
     $sncFriendSelfMpSyncEnvelopePath `
@@ -4148,6 +4204,19 @@ if ($LASTEXITCODE -eq 0) {
 $sncFriendInvalidInboxPlanText = $sncFriendInvalidInboxPlanOutput -join "`n"
 Assert-Contains -Name "snc friend mp sync inbox invalid cli" -Text $sncFriendInvalidInboxPlanText -Expected "snc_friend_mp_sync_inbox_plan_success=false"
 Assert-Contains -Name "snc friend mp sync inbox invalid cli" -Text $sncFriendInvalidInboxPlanText -Expected "snc_friend_mp_sync_inbox_plan_state=invalid_envelope"
+
+$sncFriendInvalidOutboxPlanOutput = & $exePath `
+    --plan-snc-friend-mp-sync-outbox `
+    $sncFriendInvalidMpSyncEnvelopePath `
+    $sncFriendMpSyncEncryptedPayloadPath `
+    "false" `
+    "true"
+if ($LASTEXITCODE -eq 0) {
+    throw "SNC friend MP sync outbox invalid-envelope plan CLI unexpectedly succeeded."
+}
+$sncFriendInvalidOutboxPlanText = $sncFriendInvalidOutboxPlanOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync outbox invalid cli" -Text $sncFriendInvalidOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_success=false"
+Assert-Contains -Name "snc friend mp sync outbox invalid cli" -Text $sncFriendInvalidOutboxPlanText -Expected "snc_friend_mp_sync_outbox_plan_state=invalid_envelope"
 
 & $sncTrayStartupShortcutActionExePath
 if ($LASTEXITCODE -ne 0) {

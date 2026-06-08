@@ -56,6 +56,7 @@ struct RunConfig {
     bool createSncFriendMpSyncEnvelopeMode = false;
     bool verifySncFriendMpSyncEnvelopeMode = false;
     bool planSncFriendMpSyncInboxMode = false;
+    bool planSncFriendMpSyncOutboxMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
