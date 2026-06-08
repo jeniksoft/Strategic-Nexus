@@ -307,6 +307,30 @@ $sncGeneratedOverlayPublishGateSourceFiles = @(
     (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
     (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
+$sncPostPlayArtifactBackfillerExePath = Join-Path $repoRoot "dist/snc_post_play_artifact_backfiller_test.exe"
+$sncPostPlayArtifactBackfillerSourceFiles = @(
+    (Join-Path $repoRoot "tests/snc_post_play_artifact_backfiller_test.cpp"),
+    (Join-Path $repoRoot "src/SncPostPlayArtifactBackfiller.cpp"),
+    (Join-Path $repoRoot "src/SncCandidateDecisionPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src/SncGeneratedOverlayStager.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslParser.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/DslValidator.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/ManifestVerifier.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/MpOverlayPackage.cpp"),
+    (Join-Path $repoRoot "src/generated_overlay/OverlayCompiler.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
+$sncTrayStartupShortcutActionExePath = Join-Path $repoRoot "dist/snc_tray_startup_shortcut_action_test.exe"
+$sncTrayStartupShortcutActionSourceFiles = @(
+    (Join-Path $repoRoot "tests/snc_tray_startup_shortcut_action_test.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp")
+)
+$sncTraySupportReportActionExePath = Join-Path $repoRoot "dist/snc_tray_support_report_action_test.exe"
+$sncTraySupportReportActionSourceFiles = @(
+    (Join-Path $repoRoot "tests/snc_tray_support_report_action_test.cpp")
+)
 $strategicNexusCompanionExePath = Join-Path $repoRoot "dist/strategic_nexus_companion_test.exe"
 $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
@@ -335,7 +359,20 @@ function Invoke-ClCompile {
         [string]$OutputPath
     )
 
-    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $SourceFiles /Fe:$OutputPath
+    $objectRoot = Join-Path $repoRoot "dist\obj"
+    if (-not (Test-Path -LiteralPath $objectRoot)) {
+        New-Item -ItemType Directory -Force -Path $objectRoot | Out-Null
+    }
+
+    $safeName = ($Name -replace '[^A-Za-z0-9_.-]+', '_')
+    $objectDir = Join-Path $objectRoot $safeName
+    if (-not (Test-Path -LiteralPath $objectDir)) {
+        New-Item -ItemType Directory -Force -Path $objectDir | Out-Null
+    }
+    Get-ChildItem -LiteralPath $objectDir -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    $objectOutputArg = "/Fo$objectDir\\"
+
+    & cl.exe /nologo /MP /std:c++20 /EHsc /I "src" $objectOutputArg $SourceFiles /Fe:$OutputPath
     if ($LASTEXITCODE -ne 0) {
         throw "$Name compile failed (exit code $LASTEXITCODE)."
     }
@@ -371,6 +408,9 @@ try {
     Invoke-ClCompile -Name "snc_dsl_draft_package_builder_test" -SourceFiles $sncDslDraftPackageBuilderSourceFiles -OutputPath $sncDslDraftPackageBuilderExePath
     Invoke-ClCompile -Name "snc_generated_overlay_stager_test" -SourceFiles $sncGeneratedOverlayStagerSourceFiles -OutputPath $sncGeneratedOverlayStagerExePath
     Invoke-ClCompile -Name "snc_generated_overlay_publish_gate_test" -SourceFiles $sncGeneratedOverlayPublishGateSourceFiles -OutputPath $sncGeneratedOverlayPublishGateExePath
+    Invoke-ClCompile -Name "snc_post_play_artifact_backfiller_test" -SourceFiles $sncPostPlayArtifactBackfillerSourceFiles -OutputPath $sncPostPlayArtifactBackfillerExePath
+    Invoke-ClCompile -Name "snc_tray_startup_shortcut_action_test" -SourceFiles $sncTrayStartupShortcutActionSourceFiles -OutputPath $sncTrayStartupShortcutActionExePath
+    Invoke-ClCompile -Name "snc_tray_support_report_action_test" -SourceFiles $sncTraySupportReportActionSourceFiles -OutputPath $sncTraySupportReportActionExePath
     Invoke-ClCompile -Name "strategic_nexus_companion_test" -SourceFiles $strategicNexusCompanionSourceFiles -OutputPath $strategicNexusCompanionExePath
 } finally {
     Pop-Location
@@ -704,6 +744,7 @@ function Invoke-GeneratedOverlayCompileCase {
     $triggersText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "common/scripted_triggers/strategic_nexus_generated_triggers.txt")
     $manifestText = Get-Content -Raw -LiteralPath (Join-Path $overlayOutputPath "strategic_nexus_generated_manifest.json")
     $baseKernelEventText = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "mod/strategic_nexus_poc/events/strategic_nexus_poc_events.txt")
+    $baseKernelOnActionsText = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "mod/strategic_nexus_poc/common/on_actions/strategic_nexus_poc_on_actions.txt")
     $null = $manifestText | ConvertFrom-Json
 
     Assert-Contains -Name "generated_overlay_compile events" -Text $eventsText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = yes"
@@ -711,6 +752,12 @@ function Invoke-GeneratedOverlayCompileCase {
     Assert-Contains -Name "generated_overlay_compile effects" -Text $effectsText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = {"
     Assert-Contains -Name "generated_overlay_compile triggers" -Text $triggersText -Expected "has_global_flag = strategic_nexus_campaign_campaign_001"
     Assert-Contains -Name "generated_overlay_compile base kernel" -Text $baseKernelEventText -Expected "strategic_nexus_generated_monthly_strategy_tick_dispatch = yes"
+    Assert-Contains -Name "generated_overlay_compile base kernel" -Text $baseKernelEventText -Expected "strategic_nexus.1451"
+    Assert-Contains -Name "generated_overlay_compile base kernel" -Text $baseKernelEventText -Expected "strategic_nexus_generated_war_started_dispatch = yes"
+    Assert-Contains -Name "generated_overlay_compile base kernel" -Text $baseKernelEventText -Expected "strategic_nexus.1452"
+    Assert-Contains -Name "generated_overlay_compile base kernel" -Text $baseKernelEventText -Expected "strategic_nexus_generated_country_attacked_dispatch = yes"
+    Assert-Contains -Name "generated_overlay_compile base on_actions" -Text $baseKernelOnActionsText -Expected "strategic_nexus.1451"
+    Assert-Contains -Name "generated_overlay_compile base on_actions" -Text $baseKernelOnActionsText -Expected "strategic_nexus.1452"
     Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"snapshot_kind": "complete_replacement"'
     Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"multiplayer_requirement": "byte_identical_gameplay_affecting_files"'
     Assert-Contains -Name "generated_overlay_compile manifest" -Text $manifestText -Expected '"path": "common/scripted_effects/strategic_nexus_generated_effects.txt"'
@@ -1337,6 +1384,8 @@ function Invoke-SncStatusSnapshotCase {
     $mpPackageRoot = Join-Path $repoRoot "dist/snc_status_mp_package"
     $outputPath = Join-Path $repoRoot "dist/snc_status_snapshot.json"
     $mpOutputPath = Join-Path $repoRoot "dist/snc_status_snapshot_with_mp.json"
+    $supportReportPreviewPath = Join-Path $repoRoot "dist/snc_support_report_preview.txt"
+    $defaultSupportReportPreviewPath = Join-Path $repoRoot "dist/private_reports/snc_support_report_preview.txt"
     $stagingStatusPath = Join-Path $postPlayStatusRoot "generated_overlay_staging_status.json"
     $campaignLibraryPlanPath = Join-Path $postPlayStatusRoot "strategic_nexus_campaign_library_plan.json"
     $campaignLibraryPlanCliPath = $campaignLibraryPlanPath -replace '\\','/'
@@ -1348,6 +1397,7 @@ function Invoke-SncStatusSnapshotCase {
     Remove-Item -LiteralPath $mpPackageRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $outputPath -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $mpOutputPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $defaultSupportReportPreviewPath -Force -ErrorAction SilentlyContinue
 
     New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
     New-Item -ItemType Directory -Force -Path $overlayRoot | Out-Null
@@ -1395,7 +1445,19 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_app_name=Strategic Nexus Companion"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_abbreviation=SNC"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_startup_lifecycle_state=owner_enabled_start_with_windows"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_state=not_prepared"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_reason=prepare local support report preview before manual review or send"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_contact_email=support@jeniksoft.cz"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_send_requires_approval=true"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_raw_saves_included=false"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_prepare_command_hint=powershell -NoProfile -ExecutionPolicy Bypass -File tools\prepare_snc_support_report.ps1"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_start_with_windows_enabled=true"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_start_with_windows_source=config_override"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_start_with_windows_shortcut_state=override_enabled"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_start_with_windows_command_hint=cmd /c tools\remove_snc_tray_startup_shortcut.cmd"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_start_with_windows_command_hint_source=startup_shortcut_remove_command"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_start_with_windows_enable_command_hint=cmd /c tools\install_snc_tray_startup_shortcut.cmd"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_start_with_windows_disable_command_hint=cmd /c tools\remove_snc_tray_startup_shortcut.cmd"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_window_close_behavior=minimize_to_tray"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_explicit_exit_behavior=stop_without_restart"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_crash_restart_policy=bounded_backoff_with_crash_loop_guard"
@@ -1424,6 +1486,11 @@ function Invoke-SncStatusSnapshotCase {
     $null = $snapshotJson | ConvertFrom-Json
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"app_name": "Strategic Nexus Companion"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"abbreviation": "SNC"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"support_report_state": "not_prepared"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"support_report_contact_email": "support@jeniksoft.cz"'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"support_report_send_requires_approval": true'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"support_report_raw_saves_included": false'
+    Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"support_report_prepare_command_hint": "powershell -NoProfile -ExecutionPolicy Bypass -File tools\\prepare_snc_support_report.ps1"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"window_close_behavior": "minimize_to_tray"'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"manifest_hash": "'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"reactive_policy_pack_capability": "post_session_only"'
@@ -1434,6 +1501,20 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"campaign_library_skipped_due_to_limit_count": 2'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"owner_test_playbook_path": ""'
     Assert-Contains -Name "snc_status_snapshot json" -Text $snapshotJson -Expected '"status_center":'
+
+    Remove-Item -LiteralPath $supportReportPreviewPath -Force -ErrorAction SilentlyContinue
+    $supportPreviewOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repoRoot "tools\prepare_snc_support_report.ps1") -StatusPath $outputPath -OutputPath $supportReportPreviewPath
+    if ($LASTEXITCODE -ne 0) {
+        $supportPreviewText = $supportPreviewOutput -join "`n"
+        throw "snc support report preview generation failed. Actual output:`n$supportPreviewText"
+    }
+    if (-not (Test-Path -LiteralPath $supportReportPreviewPath)) {
+        throw "snc support report preview generation did not create $supportReportPreviewPath"
+    }
+    $supportReportPreviewText = Get-Content -Raw -LiteralPath $supportReportPreviewPath
+    Assert-Contains -Name "snc support report preview" -Text $supportReportPreviewText -Expected "support@jeniksoft.cz"
+    Assert-Contains -Name "snc support report preview" -Text $supportReportPreviewText -Expected "explicit owner approval required"
+    Assert-Contains -Name "snc support report preview" -Text $supportReportPreviewText -Expected "Raw saves included: no"
 
     $mpExportOutput = & $exePath `
         --export-mp-overlay-package `
@@ -1468,6 +1549,12 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_mp_overlay_package_state=ready"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_startup_lifecycle_state=owner_enabled_start_with_windows"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_start_with_windows_enabled=true"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_start_with_windows_source=config_override"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_start_with_windows_shortcut_state=override_enabled"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_start_with_windows_command_hint=cmd /c tools\remove_snc_tray_startup_shortcut.cmd"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_start_with_windows_command_hint_source=startup_shortcut_remove_command"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_start_with_windows_enable_command_hint=cmd /c tools\install_snc_tray_startup_shortcut.cmd"
+    Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_start_with_windows_disable_command_hint=cmd /c tools\remove_snc_tray_startup_shortcut.cmd"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_window_close_behavior=minimize_to_tray"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_explicit_exit_behavior=stop_without_restart"
     Assert-Contains -Name "snc_status_snapshot mp app" -Text $sncMpText -Expected "snc_crash_restart_policy=bounded_backoff_with_crash_loop_guard"
@@ -3763,9 +3850,46 @@ if ($LASTEXITCODE -ne 0) {
     throw "SNC generated overlay publish gate tests failed."
 }
 
+& $sncPostPlayArtifactBackfillerExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC post-play artifact backfiller tests failed."
+}
+
+& $sncTrayStartupShortcutActionExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC tray startup shortcut action tests failed."
+}
+
+& $sncTraySupportReportActionExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC tray support report action tests failed."
+}
+
 & $strategicNexusCompanionExePath
 if ($LASTEXITCODE -ne 0) {
     throw "strategic nexus companion tests failed."
+}
+
+$existingTrayProcess = Get-Process -Name "StrategicNexusCompanionTray" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($null -ne $existingTrayProcess) {
+    Write-Host "[SKIP] snc_tray_smoke_existing_owner_instance"
+} else {
+    $sncTrayBackfillSmokeOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repoRoot "tools\smoke_snc_tray.ps1") -PostPlayBackfillFixture
+    if ($LASTEXITCODE -ne 0) {
+        throw "SNC tray post-play backfill smoke failed."
+    }
+    $sncTrayBackfillSmokeText = $sncTrayBackfillSmokeOutput -join "`n"
+    Assert-Contains -Name "snc tray backfill smoke output" -Text $sncTrayBackfillSmokeText -Expected "snc_tray_smoke_success=true"
+    Assert-Contains -Name "snc tray backfill smoke output" -Text $sncTrayBackfillSmokeText -Expected "snc_tray_smoke_next_action=review_staged_overlay_and_publish_if_desired"
+
+    $sncTrayReadyOwnerSmokeOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repoRoot "tools\smoke_snc_tray.ps1") -ReadyOwnerTestFixture
+    if ($LASTEXITCODE -ne 0) {
+        throw "SNC tray ready-owner-test smoke failed."
+    }
+    $sncTrayReadyOwnerSmokeText = $sncTrayReadyOwnerSmokeOutput -join "`n"
+    Assert-Contains -Name "snc tray ready owner smoke output" -Text $sncTrayReadyOwnerSmokeText -Expected "snc_tray_smoke_success=true"
+    Assert-Contains -Name "snc tray ready owner smoke output" -Text $sncTrayReadyOwnerSmokeText -Expected "snc_tray_smoke_next_action=run_monthly_reactive_owner_test"
+    Assert-Contains -Name "snc tray ready owner smoke output" -Text $sncTrayReadyOwnerSmokeText -Expected "snc_tray_smoke_owner_test_playbook_path=docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md"
 }
 
 Write-Host "V0 strategic pipeline tests passed."

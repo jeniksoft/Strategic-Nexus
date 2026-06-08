@@ -119,11 +119,35 @@ struct StatusDashboardData {
     std::wstring nextActionPath;
     std::wstring supportReportState;
     std::wstring supportReportPath;
+    std::wstring crashRecoveryState;
+    std::wstring crashRecoveryReason;
+    std::wstring crashRecoveryPath;
 };
 
 struct DashboardSectionSpec {
     const wchar_t* title;
     std::array<StatusFieldId, 4> fields;
+};
+
+struct StatusScrollMetrics {
+    int firstVisibleLine = 0;
+    int visibleLines = 0;
+    int totalLines = 0;
+    int maxFirstVisibleLine = 0;
+    bool canScroll = false;
+};
+
+struct StatusCustomScrollbar {
+    RECT trackRect{};
+    RECT thumbRect{};
+    bool reserved = false;
+    bool visible = false;
+};
+
+enum class StatusScrollTargetKind {
+    None = 0,
+    Field,
+    Details
 };
 
 std::atomic_bool g_stopRequested{false};
@@ -144,6 +168,7 @@ std::filesystem::path g_dslDraftPath;
 std::filesystem::path g_dslDraftAuditPath;
 std::filesystem::path g_nextStepsBriefPath;
 std::filesystem::path g_supportReportPreviewPath;
+std::filesystem::path g_crashRecoveryStatePath;
 std::filesystem::path g_generatedOverlayStagingDirectory;
 std::filesystem::path g_generatedOverlayStagingStatusPath;
 std::filesystem::path g_generatedOverlayActiveDirectory;
@@ -155,7 +180,9 @@ std::filesystem::path g_mpOverlayPackageZipPath;
 std::filesystem::path g_trayIconPath;
 std::array<HWND, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldLabels{};
 std::array<HWND, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldValues{};
+std::array<StatusCustomScrollbar, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldScrollbars{};
 std::array<HWND, 4> g_statusSectionTitles{};
+StatusCustomScrollbar g_statusDetailsScrollbar{};
 HWND g_statusBottomTitle = nullptr;
 HWND g_statusRefreshButton = nullptr;
 HWND g_statusCopyButton = nullptr;
@@ -170,6 +197,9 @@ HWND g_statusWindow = nullptr;
 HWND g_statusHeader = nullptr;
 HWND g_statusSubtitle = nullptr;
 HWND g_statusDetails = nullptr;
+StatusScrollTargetKind g_statusScrollDragTargetKind = StatusScrollTargetKind::None;
+std::size_t g_statusScrollDragFieldIndex = 0;
+int g_statusScrollDragOffsetY = 0;
 HFONT g_statusHeaderFont = nullptr;
 HFONT g_statusSectionFont = nullptr;
 HFONT g_statusFieldFont = nullptr;
@@ -203,11 +233,17 @@ constexpr COLORREF kStatusButtonDisabledFillColor = RGB(6, 11, 13);
 constexpr COLORREF kStatusButtonBorderColor = RGB(164, 122, 69);
 constexpr COLORREF kStatusButtonTextColor = RGB(211, 228, 221);
 constexpr COLORREF kStatusButtonDisabledTextColor = RGB(92, 102, 100);
+constexpr COLORREF kStatusScrollTrackColor = RGB(10, 28, 34);
+constexpr COLORREF kStatusScrollThumbColor = RGB(83, 123, 116);
+constexpr COLORREF kStatusScrollThumbDragColor = RGB(115, 156, 148);
 constexpr const wchar_t* kStatusEmptyValue = L"\u2014";
 constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWindow";
 constexpr int kStatusTitleBarHeight = 34;
 constexpr int kStatusTitleButtonWidth = 42;
 constexpr int kStatusResizeBorder = 8;
+constexpr int kStatusScrollbarTrackWidth = 12;
+constexpr int kStatusScrollbarThumbWidth = 8;
+constexpr UINT_PTR kStatusScrollSyncTimerId = 1;
 constexpr int kSncTrayIconResourceId = 1;
 constexpr wchar_t kSncAppUserModelId[] = L"StrategicNexus.Companion";
 NOTIFYICONDATAW g_trayIcon{};
@@ -226,11 +262,24 @@ std::wstring compactBoolText(const std::string& value, const wchar_t* yesText = 
 std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator = L" | ");
 std::filesystem::path findRepoRoot();
 const wchar_t* statusFieldLabel(StatusFieldId id);
+bool statusFieldUsesMultiline(StatusFieldId id);
+int statusFieldLineUnits(StatusFieldId id);
 void setWindowFont(HWND hwnd, HFONT font);
 HWND createStatusStatic(HWND parent, const wchar_t* text, DWORD style = WS_CHILD | WS_VISIBLE);
-HWND createStatusValue(HWND parent, const wchar_t* text = L"");
+HWND createStatusValue(HWND parent, StatusFieldId fieldId, const wchar_t* text = L"");
 HWND createStatusButton(HWND parent, UINT id, const wchar_t* text);
 void drawStatusButton(const DRAWITEMSTRUCT& drawItem);
+StatusScrollMetrics measureStatusScrollMetrics(HWND control);
+StatusCustomScrollbar composeStatusScrollbar(const RECT& trackRect, const StatusScrollMetrics& metrics, bool reserveSpace);
+void syncStatusCustomScrollbars(HWND hwnd, bool forceInvalidate = false);
+void paintStatusCustomScrollbars(HDC hdc);
+HWND statusScrollTargetWindow(StatusScrollTargetKind kind, std::size_t fieldIndex);
+StatusCustomScrollbar* statusScrollTargetScrollbar(StatusScrollTargetKind kind, std::size_t fieldIndex);
+bool statusPointHitsCustomScrollbar(POINT point, StatusScrollTargetKind* kind, std::size_t* fieldIndex);
+void clearStatusScrollDrag();
+void scrollStatusTargetByLines(StatusScrollTargetKind kind, std::size_t fieldIndex, int lineDelta);
+void scrollStatusTargetByPage(StatusScrollTargetKind kind, std::size_t fieldIndex, bool forward);
+void dragStatusScrollbarThumb(HWND hwnd, POINT point);
 void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
 void updateTrayTip(HWND hwnd, const std::wstring& text);
 void updateStatusCaptionButtons(HWND hwnd);
@@ -393,6 +442,37 @@ const wchar_t* statusFieldLabel(const StatusFieldId id)
     return L"";
 }
 
+bool statusFieldUsesMultiline(const StatusFieldId id)
+{
+    switch (id) {
+    case StatusFieldId::LiveState:
+    case StatusFieldId::ArchivePath:
+    case StatusFieldId::OverlayGate:
+    case StatusFieldId::OverlayActive:
+    case StatusFieldId::ModelState:
+    case StatusFieldId::ModelRecommendation:
+        return true;
+    case StatusFieldId::LiveStellaris:
+    case StatusFieldId::LiveSession:
+    case StatusFieldId::LiveStartup:
+    case StatusFieldId::ArchiveVerified:
+    case StatusFieldId::ArchiveCopied:
+    case StatusFieldId::ArchiveSkipped:
+    case StatusFieldId::OverlayStaging:
+    case StatusFieldId::OverlayAllowed:
+    case StatusFieldId::ModelRuntime:
+    case StatusFieldId::ModelMode:
+    case StatusFieldId::Count:
+        break;
+    }
+    return false;
+}
+
+int statusFieldLineUnits(const StatusFieldId id)
+{
+    return statusFieldUsesMultiline(id) ? 2 : 1;
+}
+
 void setWindowFont(HWND hwnd, HFONT font)
 {
     if (hwnd != nullptr && font != nullptr) {
@@ -417,13 +497,20 @@ HWND createStatusStatic(HWND parent, const wchar_t* text, DWORD style)
         nullptr);
 }
 
-HWND createStatusValue(HWND parent, const wchar_t* text)
+HWND createStatusValue(HWND parent, const StatusFieldId fieldId, const wchar_t* text)
 {
+    DWORD style = WS_CHILD | WS_VISIBLE | ES_LEFT | ES_READONLY | ES_NOHIDESEL;
+    if (statusFieldUsesMultiline(fieldId)) {
+        style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN;
+    } else {
+        style |= ES_AUTOHSCROLL;
+    }
+
     return CreateWindowExW(
         WS_EX_CLIENTEDGE,
         L"EDIT",
         text,
-        WS_CHILD | WS_VISIBLE | ES_LEFT | ES_READONLY | ES_AUTOHSCROLL | ES_NOHIDESEL,
+        style,
         0,
         0,
         0,
@@ -494,6 +581,331 @@ void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
     }
 }
 
+StatusScrollMetrics measureStatusScrollMetrics(HWND control)
+{
+    StatusScrollMetrics metrics{};
+    if (control == nullptr || !IsWindow(control)) {
+        return metrics;
+    }
+
+    RECT textRect{};
+    SendMessageW(control, EM_GETRECT, 0, reinterpret_cast<LPARAM>(&textRect));
+    const int textHeight = textRect.bottom - textRect.top;
+
+    const HDC hdc = GetDC(control);
+    HFONT font = reinterpret_cast<HFONT>(SendMessageW(control, WM_GETFONT, 0, 0));
+    const HGDIOBJ oldFont = (hdc != nullptr && font != nullptr) ? SelectObject(hdc, font) : nullptr;
+    TEXTMETRICW textMetric{};
+    if (hdc != nullptr) {
+        GetTextMetricsW(hdc, &textMetric);
+    }
+    if (oldFont != nullptr) {
+        SelectObject(hdc, oldFont);
+    }
+    if (hdc != nullptr) {
+        ReleaseDC(control, hdc);
+    }
+
+    int lineHeight = textMetric.tmHeight;
+    if (lineHeight <= 0) {
+        lineHeight = 16;
+    }
+
+    metrics.totalLines = static_cast<int>(SendMessageW(control, EM_GETLINECOUNT, 0, 0));
+    if (metrics.totalLines <= 0) {
+        metrics.totalLines = 1;
+    }
+    metrics.visibleLines = textHeight > 0 ? (textHeight / lineHeight) : 1;
+    if (metrics.visibleLines <= 0) {
+        metrics.visibleLines = 1;
+    }
+    metrics.firstVisibleLine = static_cast<int>(SendMessageW(control, EM_GETFIRSTVISIBLELINE, 0, 0));
+    metrics.maxFirstVisibleLine = metrics.totalLines - metrics.visibleLines;
+    if (metrics.maxFirstVisibleLine < 0) {
+        metrics.maxFirstVisibleLine = 0;
+    }
+    if (metrics.firstVisibleLine < 0) {
+        metrics.firstVisibleLine = 0;
+    }
+    if (metrics.firstVisibleLine > metrics.maxFirstVisibleLine) {
+        metrics.firstVisibleLine = metrics.maxFirstVisibleLine;
+    }
+    metrics.canScroll = metrics.totalLines > metrics.visibleLines;
+    return metrics;
+}
+
+StatusCustomScrollbar composeStatusScrollbar(const RECT& trackRect, const StatusScrollMetrics& metrics, const bool reserveSpace)
+{
+    StatusCustomScrollbar scrollbar{};
+    scrollbar.reserved = reserveSpace;
+    scrollbar.trackRect = trackRect;
+    scrollbar.visible = reserveSpace;
+    SetRectEmpty(&scrollbar.thumbRect);
+
+    if (!reserveSpace) {
+        SetRectEmpty(&scrollbar.trackRect);
+        return scrollbar;
+    }
+
+    RECT innerTrack = trackRect;
+    InflateRect(&innerTrack, -2, -2);
+    if ((innerTrack.right - innerTrack.left) <= 0 || (innerTrack.bottom - innerTrack.top) <= 0) {
+        return scrollbar;
+    }
+
+    if (!metrics.canScroll) {
+        return scrollbar;
+    }
+
+    const int trackHeight = innerTrack.bottom - innerTrack.top;
+    int thumbHeight = trackHeight;
+    if (metrics.totalLines > 0) {
+        thumbHeight = (trackHeight * metrics.visibleLines) / metrics.totalLines;
+    }
+    if (thumbHeight < 22) {
+        thumbHeight = 22;
+    }
+    if (thumbHeight > trackHeight) {
+        thumbHeight = trackHeight;
+    }
+
+    const int thumbTravel = trackHeight - thumbHeight;
+    int thumbTop = innerTrack.top;
+    if (thumbTravel > 0 && metrics.maxFirstVisibleLine > 0) {
+        thumbTop += (thumbTravel * metrics.firstVisibleLine) / metrics.maxFirstVisibleLine;
+    }
+
+    const int trackWidth = innerTrack.right - innerTrack.left;
+    const int thumbWidth = (trackWidth >= kStatusScrollbarThumbWidth) ? kStatusScrollbarThumbWidth : trackWidth;
+    const int thumbLeft = innerTrack.left + ((trackWidth - thumbWidth) / 2);
+    scrollbar.thumbRect = { thumbLeft, thumbTop, thumbLeft + thumbWidth, thumbTop + thumbHeight };
+    return scrollbar;
+}
+
+HWND statusScrollTargetWindow(const StatusScrollTargetKind kind, const std::size_t fieldIndex)
+{
+    switch (kind) {
+    case StatusScrollTargetKind::Field:
+        if (fieldIndex < g_statusFieldValues.size()) {
+            return g_statusFieldValues[fieldIndex];
+        }
+        break;
+    case StatusScrollTargetKind::Details:
+        return g_statusDetails;
+    case StatusScrollTargetKind::None:
+        break;
+    }
+    return nullptr;
+}
+
+StatusCustomScrollbar* statusScrollTargetScrollbar(const StatusScrollTargetKind kind, const std::size_t fieldIndex)
+{
+    switch (kind) {
+    case StatusScrollTargetKind::Field:
+        if (fieldIndex < g_statusFieldScrollbars.size()) {
+            return &g_statusFieldScrollbars[fieldIndex];
+        }
+        break;
+    case StatusScrollTargetKind::Details:
+        return &g_statusDetailsScrollbar;
+    case StatusScrollTargetKind::None:
+        break;
+    }
+    return nullptr;
+}
+
+bool statusPointHitsCustomScrollbar(const POINT point, StatusScrollTargetKind* kind, std::size_t* fieldIndex)
+{
+    for (std::size_t index = 0; index < g_statusFieldScrollbars.size(); ++index) {
+        const auto& scrollbar = g_statusFieldScrollbars[index];
+        if (scrollbar.reserved && PtInRect(&scrollbar.trackRect, point)) {
+            if (kind != nullptr) {
+                *kind = StatusScrollTargetKind::Field;
+            }
+            if (fieldIndex != nullptr) {
+                *fieldIndex = index;
+            }
+            return true;
+        }
+    }
+
+    if (g_statusDetailsScrollbar.reserved && PtInRect(&g_statusDetailsScrollbar.trackRect, point)) {
+        if (kind != nullptr) {
+            *kind = StatusScrollTargetKind::Details;
+        }
+        if (fieldIndex != nullptr) {
+            *fieldIndex = 0;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+void clearStatusScrollDrag()
+{
+    g_statusScrollDragTargetKind = StatusScrollTargetKind::None;
+    g_statusScrollDragFieldIndex = 0;
+    g_statusScrollDragOffsetY = 0;
+}
+
+void scrollStatusTargetByLines(const StatusScrollTargetKind kind, const std::size_t fieldIndex, const int lineDelta)
+{
+    if (lineDelta == 0) {
+        return;
+    }
+
+    const HWND target = statusScrollTargetWindow(kind, fieldIndex);
+    if (target == nullptr || !IsWindow(target)) {
+        return;
+    }
+
+    SendMessageW(target, EM_LINESCROLL, 0, static_cast<LPARAM>(lineDelta));
+}
+
+void scrollStatusTargetByPage(const StatusScrollTargetKind kind, const std::size_t fieldIndex, const bool forward)
+{
+    const HWND target = statusScrollTargetWindow(kind, fieldIndex);
+    if (target == nullptr || !IsWindow(target)) {
+        return;
+    }
+
+    const auto metrics = measureStatusScrollMetrics(target);
+    int pageDelta = metrics.visibleLines - 1;
+    if (pageDelta < 1) {
+        pageDelta = 1;
+    }
+    scrollStatusTargetByLines(kind, fieldIndex, forward ? pageDelta : -pageDelta);
+}
+
+void dragStatusScrollbarThumb(HWND hwnd, const POINT point)
+{
+    if (g_statusScrollDragTargetKind == StatusScrollTargetKind::None) {
+        return;
+    }
+
+    const HWND target = statusScrollTargetWindow(g_statusScrollDragTargetKind, g_statusScrollDragFieldIndex);
+    auto* scrollbar = statusScrollTargetScrollbar(g_statusScrollDragTargetKind, g_statusScrollDragFieldIndex);
+    if (target == nullptr || scrollbar == nullptr || !scrollbar->reserved || !IsWindow(target)) {
+        return;
+    }
+
+    const auto metrics = measureStatusScrollMetrics(target);
+    if (!metrics.canScroll) {
+        return;
+    }
+
+    RECT innerTrack = scrollbar->trackRect;
+    InflateRect(&innerTrack, -2, -2);
+    const int trackHeight = innerTrack.bottom - innerTrack.top;
+    const int thumbHeight = scrollbar->thumbRect.bottom - scrollbar->thumbRect.top;
+    const int thumbTravel = trackHeight - thumbHeight;
+    if (thumbTravel <= 0 || metrics.maxFirstVisibleLine <= 0) {
+        return;
+    }
+
+    int desiredTop = point.y - g_statusScrollDragOffsetY;
+    if (desiredTop < innerTrack.top) {
+        desiredTop = innerTrack.top;
+    }
+    const int maxTop = innerTrack.bottom - thumbHeight;
+    if (desiredTop > maxTop) {
+        desiredTop = maxTop;
+    }
+
+    const int targetFirstVisibleLine =
+        ((desiredTop - innerTrack.top) * metrics.maxFirstVisibleLine + (thumbTravel / 2)) / thumbTravel;
+    const int lineDelta = targetFirstVisibleLine - metrics.firstVisibleLine;
+    if (lineDelta != 0) {
+        scrollStatusTargetByLines(g_statusScrollDragTargetKind, g_statusScrollDragFieldIndex, lineDelta);
+        syncStatusCustomScrollbars(hwnd);
+    }
+}
+
+void syncStatusCustomScrollbars(HWND hwnd, const bool forceInvalidate)
+{
+    if (hwnd == nullptr || !IsWindow(hwnd)) {
+        return;
+    }
+
+    for (std::size_t index = 0; index < g_statusFieldValues.size(); ++index) {
+        const HWND control = g_statusFieldValues[index];
+        auto& scrollbar = g_statusFieldScrollbars[index];
+        if (!scrollbar.reserved || control == nullptr || !IsWindow(control)) {
+            continue;
+        }
+
+        const auto previous = scrollbar;
+        scrollbar = composeStatusScrollbar(scrollbar.trackRect, measureStatusScrollMetrics(control), true);
+        if (forceInvalidate ||
+            !EqualRect(&previous.trackRect, &scrollbar.trackRect) ||
+            !EqualRect(&previous.thumbRect, &scrollbar.thumbRect) ||
+            previous.visible != scrollbar.visible) {
+            RECT invalidateRect = previous.trackRect;
+            UnionRect(&invalidateRect, &invalidateRect, &scrollbar.trackRect);
+            InvalidateRect(hwnd, &invalidateRect, FALSE);
+        }
+    }
+
+    if (g_statusDetailsScrollbar.reserved && g_statusDetails != nullptr && IsWindow(g_statusDetails)) {
+        const auto previous = g_statusDetailsScrollbar;
+        g_statusDetailsScrollbar =
+            composeStatusScrollbar(g_statusDetailsScrollbar.trackRect, measureStatusScrollMetrics(g_statusDetails), true);
+        if (forceInvalidate ||
+            !EqualRect(&previous.trackRect, &g_statusDetailsScrollbar.trackRect) ||
+            !EqualRect(&previous.thumbRect, &g_statusDetailsScrollbar.thumbRect) ||
+            previous.visible != g_statusDetailsScrollbar.visible) {
+            RECT invalidateRect = previous.trackRect;
+            UnionRect(&invalidateRect, &invalidateRect, &g_statusDetailsScrollbar.trackRect);
+            InvalidateRect(hwnd, &invalidateRect, FALSE);
+        }
+    }
+
+}
+
+void paintStatusCustomScrollbars(HDC hdc)
+{
+    if (hdc == nullptr) {
+        return;
+    }
+
+    const HBRUSH gutterBrush = CreateSolidBrush(kStatusValueBackgroundColor);
+    const HBRUSH borderBrush = CreateSolidBrush(kStatusValueBorderColor);
+    const HBRUSH trackBrush = CreateSolidBrush(kStatusScrollTrackColor);
+
+    const auto paintScrollbar = [&](const StatusCustomScrollbar& scrollbar, const bool dragged) {
+        if (!scrollbar.reserved) {
+            return;
+        }
+
+        FillRect(hdc, &scrollbar.trackRect, gutterBrush);
+        FrameRect(hdc, &scrollbar.trackRect, borderBrush);
+
+        RECT innerTrack = scrollbar.trackRect;
+        InflateRect(&innerTrack, -2, -2);
+        if ((innerTrack.right - innerTrack.left) > 0 && (innerTrack.bottom - innerTrack.top) > 0) {
+            FillRect(hdc, &innerTrack, trackBrush);
+        }
+
+        if (!IsRectEmpty(&scrollbar.thumbRect)) {
+            const HBRUSH activeThumbBrush = CreateSolidBrush(dragged ? kStatusScrollThumbDragColor : kStatusScrollThumbColor);
+            FillRect(hdc, &scrollbar.thumbRect, activeThumbBrush);
+            DeleteObject(activeThumbBrush);
+        }
+    };
+
+    for (std::size_t index = 0; index < g_statusFieldScrollbars.size(); ++index) {
+        paintScrollbar(
+            g_statusFieldScrollbars[index],
+            g_statusScrollDragTargetKind == StatusScrollTargetKind::Field && g_statusScrollDragFieldIndex == index);
+    }
+    paintScrollbar(g_statusDetailsScrollbar, g_statusScrollDragTargetKind == StatusScrollTargetKind::Details);
+
+    DeleteObject(trackBrush);
+    DeleteObject(borderBrush);
+    DeleteObject(gutterBrush);
+}
+
 void openPathWithShell(HWND hwnd, const std::filesystem::path& path)
 {
     if (path.empty()) {
@@ -553,6 +965,9 @@ StatusDashboardData loadStatusDashboardData()
     data.nextActionPath = L"\u2014";
     data.supportReportState = L"\u2014";
     data.supportReportPath = g_supportReportPreviewPath.empty() ? L"\u2014" : utf8ToWide(pathString(g_supportReportPreviewPath));
+    data.crashRecoveryState = L"\u2014";
+    data.crashRecoveryReason = L"\u2014";
+    data.crashRecoveryPath = g_crashRecoveryStatePath.empty() ? L"\u2014" : utf8ToWide(pathString(g_crashRecoveryStatePath));
 
     std::string json;
     if (!strategic_nexus::common::tryReadTextFile(g_trayStatusPath, json)) {
@@ -666,6 +1081,12 @@ StatusDashboardData loadStatusDashboardData()
     data.supportReportState = utf8ToWide(strategic_nexus::common::extractJsonString(json, "support_report_state").value_or(""));
     data.supportReportPath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "support_report_preview_path").value_or(""));
+    data.crashRecoveryState =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_state").value_or(""));
+    data.crashRecoveryReason =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_reason").value_or(""));
+    data.crashRecoveryPath =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_state_path").value_or(""));
     return data;
 }
 
@@ -685,6 +1106,12 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.supportReportState.empty() ? kStatusEmptyValue : data.supportReportState;
     text += L"\r\nReport cesta: ";
     text += data.supportReportPath.empty() ? kStatusEmptyValue : data.supportReportPath;
+    text += L"\r\nRecovery: ";
+    text += data.crashRecoveryState.empty() ? kStatusEmptyValue : data.crashRecoveryState;
+    text += L"\r\nRecovery duvod: ";
+    text += data.crashRecoveryReason.empty() ? kStatusEmptyValue : data.crashRecoveryReason;
+    text += L"\r\nRecovery cesta: ";
+    text += data.crashRecoveryPath.empty() ? kStatusEmptyValue : data.crashRecoveryPath;
     return text;
 }
 
@@ -701,7 +1128,8 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"LLM: " + data.modelState + L"\n";
     text += L"Dal\u0161\u00ED krok: " + data.nextAction + L"\n";
     text += L"Hint: " + data.nextHint + L"\n";
-    text += L"Support report: " + data.supportReportState;
+    text += L"Support report: " + data.supportReportState + L"\n";
+    text += L"Crash recovery: " + data.crashRecoveryState;
     return text;
 }
 
@@ -922,6 +1350,7 @@ void refreshStatusWindowContent()
         EnableWindow(g_statusMinimizeButton, TRUE);
     }
     updateStatusCaptionButtons(g_statusWindow);
+    syncStatusCustomScrollbars(g_statusWindow, true);
 
     RedrawWindow(g_statusWindow, nullptr, nullptr, RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_FRAME);
 }
@@ -1032,10 +1461,7 @@ void layoutStatusWindow(HWND hwnd)
     }
 
     const int fieldGap = 6;
-    int rowHeight = (cardHeight - 26 - (fieldGap * 3)) / 4;
-    if (rowHeight < 20) {
-        rowHeight = 20;
-    }
+    const int scrollbarReserveWidth = kStatusScrollbarTrackWidth + 4;
 
     if (g_statusHeader != nullptr) {
         MoveWindow(g_statusHeader, margin, top, headerWidth, headerHeight, TRUE);
@@ -1099,16 +1525,57 @@ void layoutStatusWindow(HWND hwnd)
 
         const int titleOffset = 24;
         const int fieldBaseTop = cardTop + titleOffset;
+        int totalLineUnits = 0;
+        for (const auto field : kStatusSections[sectionIndex].fields) {
+            totalLineUnits += statusFieldLineUnits(field);
+        }
+        int unitHeight =
+            (cardHeight - titleOffset - (fieldGap * static_cast<int>(kStatusSections[sectionIndex].fields.size() - 1))) /
+            (totalLineUnits > 0 ? totalLineUnits : 1);
+        if (unitHeight < 14) {
+            unitHeight = 14;
+        }
+
+        int currentFieldTop = fieldBaseTop;
         for (std::size_t fieldIndex = 0; fieldIndex < kStatusSections[sectionIndex].fields.size(); ++fieldIndex) {
             const auto fieldId = kStatusSections[sectionIndex].fields[fieldIndex];
             const std::size_t fieldSlot = static_cast<std::size_t>(fieldId);
-            const int fieldTop = fieldBaseTop + static_cast<int>(fieldIndex) * (rowHeight + fieldGap);
+            const int fieldHeight = unitHeight * statusFieldLineUnits(fieldId);
             if (g_statusFieldLabels[fieldSlot] != nullptr) {
-                MoveWindow(g_statusFieldLabels[fieldSlot], cardLeft, fieldTop + 4, labelWidth - 4, rowHeight, TRUE);
+                MoveWindow(
+                    g_statusFieldLabels[fieldSlot],
+                    cardLeft,
+                    currentFieldTop + 4,
+                    labelWidth - 4,
+                    18,
+                    TRUE);
             }
             if (g_statusFieldValues[fieldSlot] != nullptr) {
-                MoveWindow(g_statusFieldValues[fieldSlot], cardLeft + labelWidth, fieldTop, valueWidth, rowHeight + 4, TRUE);
+                int controlWidth = valueWidth;
+                if (statusFieldUsesMultiline(fieldId) && valueWidth > (scrollbarReserveWidth + 60)) {
+                    controlWidth -= scrollbarReserveWidth;
+                }
+                MoveWindow(
+                    g_statusFieldValues[fieldSlot],
+                    cardLeft + labelWidth,
+                    currentFieldTop,
+                    controlWidth,
+                    fieldHeight + 4,
+                    TRUE);
             }
+            if (statusFieldUsesMultiline(fieldId) && valueWidth > (scrollbarReserveWidth + 60)) {
+                const RECT trackRect = {
+                    cardLeft + labelWidth + valueWidth - kStatusScrollbarTrackWidth,
+                    currentFieldTop,
+                    cardLeft + labelWidth + valueWidth,
+                    currentFieldTop + fieldHeight + 4
+                };
+                g_statusFieldScrollbars[fieldSlot] =
+                    composeStatusScrollbar(trackRect, measureStatusScrollMetrics(g_statusFieldValues[fieldSlot]), true);
+            } else {
+                g_statusFieldScrollbars[fieldSlot] = {};
+            }
+            currentFieldTop += fieldHeight + fieldGap;
         }
     }
 
@@ -1118,8 +1585,22 @@ void layoutStatusWindow(HWND hwnd)
     if (g_statusDetails != nullptr) {
         const int detailsTop = bottomTop + 24;
         const int detailsHeight = height - detailsTop - margin;
-        MoveWindow(g_statusDetails, margin, detailsTop, availableWidth, detailsHeight, TRUE);
+        int detailsWidth = availableWidth;
+        if (availableWidth > (scrollbarReserveWidth + 80)) {
+            detailsWidth -= scrollbarReserveWidth;
+        }
+        MoveWindow(g_statusDetails, margin, detailsTop, detailsWidth, detailsHeight, TRUE);
+        const RECT detailsTrackRect = {
+            margin + availableWidth - kStatusScrollbarTrackWidth,
+            detailsTop,
+            margin + availableWidth,
+            detailsTop + detailsHeight
+        };
+        g_statusDetailsScrollbar =
+            composeStatusScrollbar(detailsTrackRect, measureStatusScrollMetrics(g_statusDetails), true);
     }
+
+    syncStatusCustomScrollbars(hwnd, true);
 }
 
 void registerStatusWindowClass()
@@ -1169,7 +1650,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             WS_EX_CLIENTEDGE,
             L"EDIT",
             L"",
-            WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL | ES_NOHIDESEL,
+            WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_WANTRETURN | ES_NOHIDESEL,
             0,
             0,
             0,
@@ -1185,7 +1666,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             for (const auto field : kStatusSections[index].fields) {
                 const std::size_t slot = static_cast<std::size_t>(field);
                 g_statusFieldLabels[slot] = createStatusStatic(hwnd, statusFieldLabel(field), WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
-                g_statusFieldValues[slot] = createStatusValue(hwnd, kStatusEmptyValue);
+                g_statusFieldValues[slot] = createStatusValue(hwnd, field, kStatusEmptyValue);
                 setWindowFont(g_statusFieldLabels[slot], g_statusFieldFont);
                 setWindowFont(g_statusFieldValues[slot], g_statusFieldFont);
             }
@@ -1206,6 +1687,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusDetails, g_statusDetailsFont);
 
         applyWindowIcons(hwnd);
+        SetTimer(hwnd, kStatusScrollSyncTimerId, 120, nullptr);
         layoutStatusWindow(hwnd);
         refreshStatusWindowContent();
         return 0;
@@ -1258,6 +1740,12 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         }
         break;
     }
+    case WM_TIMER:
+        if (wParam == kStatusScrollSyncTimerId) {
+            syncStatusCustomScrollbars(hwnd);
+            return 0;
+        }
+        break;
     case WM_SNC_STATUS_REFRESH:
         refreshStatusWindowContent();
         return 0;
@@ -1377,10 +1865,58 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         return 1;
     }
+    case WM_PAINT: {
+        PAINTSTRUCT paint{};
+        const HDC hdc = BeginPaint(hwnd, &paint);
+        paintStatusCustomScrollbars(hdc);
+        EndPaint(hwnd, &paint);
+        return 0;
+    }
+    case WM_LBUTTONDOWN: {
+        POINT point{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+        StatusScrollTargetKind kind = StatusScrollTargetKind::None;
+        std::size_t fieldIndex = 0;
+        if (statusPointHitsCustomScrollbar(point, &kind, &fieldIndex)) {
+            auto* scrollbar = statusScrollTargetScrollbar(kind, fieldIndex);
+            if (scrollbar != nullptr && !IsRectEmpty(&scrollbar->thumbRect) && PtInRect(&scrollbar->thumbRect, point)) {
+                g_statusScrollDragTargetKind = kind;
+                g_statusScrollDragFieldIndex = fieldIndex;
+                g_statusScrollDragOffsetY = point.y - scrollbar->thumbRect.top;
+                SetCapture(hwnd);
+            } else {
+                const bool forward = scrollbar == nullptr || point.y >= scrollbar->thumbRect.bottom;
+                scrollStatusTargetByPage(kind, fieldIndex, forward);
+                syncStatusCustomScrollbars(hwnd);
+            }
+            return 0;
+        }
+        break;
+    }
+    case WM_MOUSEMOVE:
+        if (g_statusScrollDragTargetKind != StatusScrollTargetKind::None && GetCapture() == hwnd) {
+            POINT point{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            dragStatusScrollbarThumb(hwnd, point);
+            return 0;
+        }
+        break;
+    case WM_LBUTTONUP:
+        if (g_statusScrollDragTargetKind != StatusScrollTargetKind::None && GetCapture() == hwnd) {
+            ReleaseCapture();
+            clearStatusScrollDrag();
+            syncStatusCustomScrollbars(hwnd, true);
+            return 0;
+        }
+        break;
+    case WM_CAPTURECHANGED:
+        clearStatusScrollDrag();
+        syncStatusCustomScrollbars(hwnd, true);
+        return 0;
     case WM_CLOSE:
         DestroyWindow(hwnd);
         return 0;
     case WM_DESTROY:
+        KillTimer(hwnd, kStatusScrollSyncTimerId);
+        clearStatusScrollDrag();
         if (g_statusWindow == hwnd) {
             g_statusWindow = nullptr;
         }
@@ -1403,6 +1939,10 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         for (auto& value : g_statusFieldValues) {
             value = nullptr;
         }
+        for (auto& scrollbar : g_statusFieldScrollbars) {
+            scrollbar = {};
+        }
+        g_statusDetailsScrollbar = {};
         for (auto& sectionTitle : g_statusSectionTitles) {
             sectionTitle = nullptr;
         }
@@ -2345,6 +2885,9 @@ std::string buildNextAction(
     if (state == "capturing") {
         return "keep_playing_capture_active";
     }
+    if (companionNextAction == "review_crash_recovery_status") {
+        return companionNextAction;
+    }
     if (generatedOverlayPublishAllowed || generatedOverlayPublishGateCanPublish) {
         return "review_staged_overlay_and_publish_if_desired";
     }
@@ -2389,6 +2932,9 @@ std::string buildNextActionReason(
 {
     if (state == "capturing") {
         return "stellaris_running_capture_window_active";
+    }
+    if (companionNextAction == "review_crash_recovery_status") {
+        return companionNextActionReason;
     }
     if (generatedOverlayPublishAllowed || generatedOverlayPublishGateCanPublish) {
         return "staged_overlay_ready_owner_gate_available";
@@ -2556,6 +3102,7 @@ std::string buildStatusCenterSummaryText(
     const strategic_nexus::CompanionLocalLlmStatus& localLlm,
     const strategic_nexus::CompanionLifecycleStatus& lifecycle,
     const strategic_nexus::CompanionSupportReportStatus& supportReport,
+    const strategic_nexus::CompanionCrashRecoveryStatus& crashRecovery,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason)
 {
@@ -2743,6 +3290,33 @@ std::string buildStatusCenterSummaryText(
     if (!supportReport.openCommandHint.empty()) {
         summary << "support_report_open_command_hint: " << supportReport.openCommandHint << "\n";
     }
+    summary << "crash_recovery_state: " << crashRecovery.state << "\n";
+    summary << "crash_recovery_reason: " << crashRecovery.reason << "\n";
+    if (!crashRecovery.statePath.empty()) {
+        summary << "crash_recovery_state_path: " << pathString(crashRecovery.statePath) << "\n";
+    }
+    if (!crashRecovery.lastCrashAtLocal.empty()) {
+        summary << "crash_recovery_last_crash_at_local: " << crashRecovery.lastCrashAtLocal << "\n";
+    }
+    if (!crashRecovery.lastRecoveryAction.empty()) {
+        summary << "crash_recovery_last_recovery_action: " << crashRecovery.lastRecoveryAction << "\n";
+    }
+    if (!crashRecovery.lastOperation.empty()) {
+        summary << "crash_recovery_last_operation: " << crashRecovery.lastOperation << "\n";
+    }
+    if (!crashRecovery.appVersion.empty()) {
+        summary << "crash_recovery_app_version: " << crashRecovery.appVersion << "\n";
+    }
+    summary << "crash_recovery_recent_unexpected_restart_count: "
+            << crashRecovery.recentUnexpectedRestartCount << "\n";
+    summary << "crash_recovery_restart_window_minutes: " << crashRecovery.restartWindowMinutes << "\n";
+    summary << "crash_recovery_next_backoff_seconds: " << crashRecovery.nextBackoffSeconds << "\n";
+    summary << "crash_recovery_restart_budget_exhausted: "
+            << (crashRecovery.restartBudgetExhausted ? "true" : "false") << "\n";
+    summary << "crash_recovery_warning_visible: "
+            << (crashRecovery.warningVisible ? "true" : "false") << "\n";
+    summary << "crash_recovery_support_report_recommended: "
+            << (crashRecovery.supportReportRecommended ? "true" : "false") << "\n";
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -2773,6 +3347,7 @@ void writeNextStepsBrief(
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const strategic_nexus::CompanionLifecycleStatus& lifecycle,
     const strategic_nexus::CompanionSupportReportStatus& supportReport,
+    const strategic_nexus::CompanionCrashRecoveryStatus& crashRecovery,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason,
     const std::string& nextAction,
@@ -2901,6 +3476,31 @@ void writeNextStepsBrief(
     if (!supportReport.dataCategories.empty()) {
         brief << "- Support report data categories: " << joinStrings(supportReport.dataCategories, ",") << "\n";
     }
+    brief << "- Crash recovery state: " << crashRecovery.state;
+    if (!crashRecovery.reason.empty()) {
+        brief << " (" << crashRecovery.reason << ")";
+    }
+    brief << "\n";
+    brief << "- Crash recovery restart budget exhausted: "
+          << (crashRecovery.restartBudgetExhausted ? "ano" : "ne") << "\n";
+    brief << "- Crash recovery warning visible: " << (crashRecovery.warningVisible ? "ano" : "ne") << "\n";
+    brief << "- Crash recovery support report doporuceny: "
+          << (crashRecovery.supportReportRecommended ? "ano" : "ne") << "\n";
+    if (!crashRecovery.statePath.empty()) {
+        brief << "- Crash recovery state path: " << pathString(crashRecovery.statePath) << "\n";
+    }
+    if (!crashRecovery.lastCrashAtLocal.empty()) {
+        brief << "- Crash recovery last crash: " << crashRecovery.lastCrashAtLocal << "\n";
+    }
+    if (!crashRecovery.lastRecoveryAction.empty()) {
+        brief << "- Crash recovery last action: " << crashRecovery.lastRecoveryAction << "\n";
+    }
+    if (!crashRecovery.lastOperation.empty()) {
+        brief << "- Crash recovery last operation: " << crashRecovery.lastOperation << "\n";
+    }
+    brief << "- Crash recovery recent restart count: " << crashRecovery.recentUnexpectedRestartCount << "\n";
+    brief << "- Crash recovery restart window minutes: " << crashRecovery.restartWindowMinutes << "\n";
+    brief << "- Crash recovery next backoff seconds: " << crashRecovery.nextBackoffSeconds << "\n";
     brief << "- Active overlay snapshot: " << pathString(g_generatedOverlayActiveDirectory) << "\n";
     brief << "- Publish status output: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     if (!generatedOverlayPublishGate.manifestHash.empty()) {
@@ -3038,6 +3638,7 @@ void writeStatus(
     companionConfig.postPlayGeneratedOverlayStagingStatusPath = g_generatedOverlayStagingStatusPath;
     companionConfig.mpOverlayPackageZipPath = g_mpOverlayPackageZipPath;
     companionConfig.supportReportPreviewPath = g_supportReportPreviewPath;
+    companionConfig.crashRecoveryStatePath = g_crashRecoveryStatePath;
     const auto companionSnapshot = companion.buildStatusSnapshot(companionConfig);
     const auto& diskPipeline = companionSnapshot.postPlayPipeline;
 
@@ -3163,14 +3764,22 @@ void writeStatus(
         effectiveCandidateDecisionPackageReadiness,
         companionSnapshot.nextAction,
         companionSnapshot.nextActionReason);
-    const auto nextActionCommandHint =
+    auto nextActionCommandHint =
         buildNextActionCommandHint(
             nextAction,
             g_nextStepsBriefPath,
             companionSnapshot.ownerTestPlaybookPath,
             companionSnapshot.generatedOverlayPublishGate.publishCommand);
-    const auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextAction, nextActionCommandHint);
-    const auto nextActionPath = buildNextActionPath(
+    if (nextAction == "review_crash_recovery_status" && nextActionCommandHint.empty()) {
+        nextActionCommandHint = companionSnapshot.nextActionCommandHint;
+    }
+    auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextAction, nextActionCommandHint);
+    if (nextAction == "review_crash_recovery_status" &&
+        !companionSnapshot.nextActionCommandHintSource.empty() &&
+        companionSnapshot.nextActionCommandHintSource != "none") {
+        nextActionCommandHintSource = companionSnapshot.nextActionCommandHintSource;
+    }
+    auto nextActionPath = buildNextActionPath(
         nextAction,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
@@ -3181,6 +3790,10 @@ void writeStatus(
         effectiveGeneratedOverlayStagingStatusPath,
         g_trayStatusPath,
         companionSnapshot.nextActionPath);
+    if (nextAction == "review_crash_recovery_status" && nextActionPath == g_trayStatusPath &&
+        !companionSnapshot.nextActionPath.empty()) {
+        nextActionPath = companionSnapshot.nextActionPath;
+    }
     const auto statusCenterSummaryText = buildStatusCenterSummaryText(
         state,
         reason,
@@ -3232,6 +3845,7 @@ void writeStatus(
         companionSnapshot.localLlm,
         companionSnapshot.lifecycle,
         companionSnapshot.supportReport,
+        companionSnapshot.crashRecovery,
         mpPackageRefreshState,
         mpPackageRefreshReason);
     writeNextStepsBrief(
@@ -3260,6 +3874,7 @@ void writeStatus(
         companionSnapshot.mpOverlayPackage,
         companionSnapshot.lifecycle,
         companionSnapshot.supportReport,
+        companionSnapshot.crashRecovery,
         mpPackageRefreshState,
         mpPackageRefreshReason,
         nextAction,
@@ -3320,6 +3935,32 @@ void writeStatus(
     json << "  \"support_report_data_categories\": ";
     writeStringArrayJson(json, companionSnapshot.supportReport.dataCategories);
     json << ",\n";
+    json << "  \"crash_recovery_state\": \""
+         << jsonEscape(companionSnapshot.crashRecovery.state) << "\",\n";
+    json << "  \"crash_recovery_reason\": \""
+         << jsonEscape(companionSnapshot.crashRecovery.reason) << "\",\n";
+    json << "  \"crash_recovery_state_path\": \""
+         << jsonEscape(pathString(companionSnapshot.crashRecovery.statePath)) << "\",\n";
+    json << "  \"crash_recovery_last_crash_at_local\": \""
+         << jsonEscape(companionSnapshot.crashRecovery.lastCrashAtLocal) << "\",\n";
+    json << "  \"crash_recovery_last_recovery_action\": \""
+         << jsonEscape(companionSnapshot.crashRecovery.lastRecoveryAction) << "\",\n";
+    json << "  \"crash_recovery_last_operation\": \""
+         << jsonEscape(companionSnapshot.crashRecovery.lastOperation) << "\",\n";
+    json << "  \"crash_recovery_app_version\": \""
+         << jsonEscape(companionSnapshot.crashRecovery.appVersion) << "\",\n";
+    json << "  \"crash_recovery_recent_unexpected_restart_count\": "
+         << companionSnapshot.crashRecovery.recentUnexpectedRestartCount << ",\n";
+    json << "  \"crash_recovery_restart_window_minutes\": "
+         << companionSnapshot.crashRecovery.restartWindowMinutes << ",\n";
+    json << "  \"crash_recovery_next_backoff_seconds\": "
+         << companionSnapshot.crashRecovery.nextBackoffSeconds << ",\n";
+    json << "  \"crash_recovery_restart_budget_exhausted\": "
+         << (companionSnapshot.crashRecovery.restartBudgetExhausted ? "true" : "false") << ",\n";
+    json << "  \"crash_recovery_warning_visible\": "
+         << (companionSnapshot.crashRecovery.warningVisible ? "true" : "false") << ",\n";
+    json << "  \"crash_recovery_support_report_recommended\": "
+         << (companionSnapshot.crashRecovery.supportReportRecommended ? "true" : "false") << ",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
     json << "  \"session_id\": \"" << jsonEscape(sessionId) << "\",\n";
     json << "  \"capture_session_directory\": \"" << jsonEscape(pathString(sessionDirectory)) << "\",\n";
@@ -4301,6 +4942,7 @@ void initializePaths()
     g_dslDraftAuditPath = g_repoRoot / "dist" / "private_reports" / "snc_dsl_draft_package.json";
     g_nextStepsBriefPath = g_repoRoot / "dist" / "private_reports" / "snc_next_steps_brief.txt";
     g_supportReportPreviewPath = g_repoRoot / "dist" / "private_reports" / "snc_support_report_preview.txt";
+    g_crashRecoveryStatePath = g_repoRoot / "dist" / "private_reports" / "snc_crash_recovery_state.json";
     g_generatedOverlayStagingDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staged";
     g_generatedOverlayStagingStatusPath = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_staging_status.json";
     g_generatedOverlayActiveDirectory = g_repoRoot / "dist" / "private_reports" / "snc_generated_overlay_active";

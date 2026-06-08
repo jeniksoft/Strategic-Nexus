@@ -3,12 +3,18 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $outputDir = Join-Path $repoRoot "dist\private_tools"
 $outputPath = Join-Path $outputDir "StrategicNexusCompanionTray.exe"
+$objectDir = Join-Path $outputDir "obj\StrategicNexusCompanionTray"
 $resourceFile = Join-Path $repoRoot "resources\StrategicNexusCompanion.rc"
-$resourceOutput = Join-Path $outputDir "StrategicNexusCompanionTray.res"
+$resourceOutput = Join-Path $objectDir "StrategicNexusCompanionTray.res"
 
 if (-not (Test-Path -LiteralPath $outputDir)) {
     New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
 }
+if (-not (Test-Path -LiteralPath $objectDir)) {
+    New-Item -ItemType Directory -Force -Path $objectDir | Out-Null
+}
+Get-ChildItem -LiteralPath $objectDir -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+$objectOutputArg = "/Fo$objectDir\\"
 
 function Invoke-WithDeveloperShell {
     param(
@@ -67,6 +73,7 @@ $sourceFiles = @(
     (Join-Path $repoRoot "src\SncDecisionInputPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\SncDslDraftPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\LocalLlmModelManager.cpp"),
+    (Join-Path $repoRoot "src\SncPostPlayArtifactBackfiller.cpp"),
     (Join-Path $repoRoot "src\StrategicNexusCompanion.cpp"),
     (Join-Path $repoRoot "src\SncGeneratedOverlayPublishGate.cpp"),
     (Join-Path $repoRoot "src\SncGeneratedOverlayStager.cpp"),
@@ -90,6 +97,7 @@ $sourceFiles = @(
     /DUNICODE `
     /D_UNICODE `
     /I (Join-Path $repoRoot "src") `
+    $objectOutputArg `
     $sourceFiles `
     /Fe:$outputPath `
     /link `

@@ -158,6 +158,7 @@ struct RunConfig {
     std::string localLlmPrepareRuntimeUrl = "http://127.0.0.1:11434";
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
+    bool sncUseConfiguredStartWithWindowsState = false;
     bool sncUseDetectedStellarisState = true;
     bool sncStellarisRunningOverride = false;
     bool sncLiveAutosaveUseDetectedStellarisState = true;

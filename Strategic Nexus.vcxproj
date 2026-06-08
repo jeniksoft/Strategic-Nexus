@@ -196,6 +196,7 @@
     <ClCompile Include="src\SncDslDraftPackageBuilder.cpp" />
     <ClCompile Include="src\SncGeneratedOverlayPublishGate.cpp" />
     <ClCompile Include="src\SncGeneratedOverlayStager.cpp" />
+    <ClCompile Include="src\SncPostPlayArtifactBackfiller.cpp" />
     <ClCompile Include="src\SeasonDeltaLedgerBuilder.cpp" />
     <ClCompile Include="src\SeasonEmpireBriefBuilder.cpp" />
     <ClCompile Include="src\StellarisProcessDetector.cpp" />
@@ -260,6 +261,7 @@
     <ClInclude Include="src\SncDslDraftPackageBuilder.h" />
     <ClInclude Include="src\SncGeneratedOverlayPublishGate.h" />
     <ClInclude Include="src\SncGeneratedOverlayStager.h" />
+    <ClInclude Include="src\SncPostPlayArtifactBackfiller.h" />
     <ClInclude Include="src\SeasonDeltaLedgerBuilder.h" />
     <ClInclude Include="src\SeasonEmpireBriefBuilder.h" />
     <ClInclude Include="src\StellarisProcessDetector.h" />

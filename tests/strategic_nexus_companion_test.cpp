@@ -67,6 +67,7 @@ int main()
     const auto mpPackageZipPath = root / "mp_overlay_package.zip";
     const auto missingGameplayAcceptanceReport = root / "missing_gameplay_acceptance_v0.json";
     const auto readyGameplayAcceptanceReport = root / "generated_overlay_gameplay_acceptance_v0.json";
+    const auto crashRecoveryStatePath = root / "snc_crash_recovery_state.json";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
     std::filesystem::create_directories(overlayRoot);
@@ -282,32 +283,95 @@ int main()
         "}\n");
 
     const strategic_nexus::StrategicNexusCompanion companion;
-    const strategic_nexus::CompanionStatusConfig readyConfig{
-        archiveRoot,
-        overlayRoot,
-        mpPackageRoot,
-        true,
-        false,
-        false,
-        missingGameplayAcceptanceReport,
-        std::filesystem::path(),
-        std::filesystem::path(),
-        std::filesystem::path(),
-        std::filesystem::path(),
-        entryPointAnalysisPath,
-        postPlayPackagePath,
-        decisionInputPackagePath,
-        candidateDecisionPackagePath,
-        dslDraftPath,
-        dslDraftAuditPath,
-        generatedOverlayStagingStatusPath,
-        mpPackageZipPath
-    };
+    strategic_nexus::CompanionStatusConfig readyConfig;
+    readyConfig.archiveRoot = archiveRoot;
+    readyConfig.generatedOverlayDirectory = overlayRoot;
+    readyConfig.mpOverlayPackageDirectory = mpPackageRoot;
+    readyConfig.startWithWindowsEnabled = true;
+    readyConfig.useConfiguredStartWithWindowsState = true;
+    readyConfig.useDetectedStellarisState = false;
+    readyConfig.stellarisRunningOverride = false;
+    readyConfig.gameplayAcceptanceReportPath = missingGameplayAcceptanceReport;
+    readyConfig.entryPointAnalysisPath = entryPointAnalysisPath;
+    readyConfig.postPlayPackagePath = postPlayPackagePath;
+    readyConfig.decisionInputPackagePath = decisionInputPackagePath;
+    readyConfig.candidateDecisionPackagePath = candidateDecisionPackagePath;
+    readyConfig.dslDraftPath = dslDraftPath;
+    readyConfig.dslDraftAuditPath = dslDraftAuditPath;
+    readyConfig.postPlayGeneratedOverlayStagingStatusPath = generatedOverlayStagingStatusPath;
+    readyConfig.mpOverlayPackageZipPath = mpPackageZipPath;
+    readyConfig.startWithWindowsShortcutPath = root / "Strategic Nexus Companion.lnk";
+    readyConfig.supportReportPreviewPath = root / "snc_support_report_preview.txt";
+    readyConfig.crashRecoveryStatePath = crashRecoveryStatePath;
     const auto ready = companion.buildStatusSnapshot(readyConfig);
 
     requireCondition(ready.appName == "Strategic Nexus Companion", "SNC app name should be stable");
     requireCondition(ready.abbreviation == "SNC", "SNC abbreviation should be stable");
     requireCondition(ready.lifecycle.startWithWindowsEnabled, "lifecycle should carry start-with-Windows state");
+    requireCondition(
+        ready.lifecycle.startWithWindowsSource == "config_override",
+        "lifecycle should expose configured start-with-Windows source");
+    requireCondition(
+        ready.lifecycle.startWithWindowsShortcutState == "override_enabled",
+        "lifecycle should expose configured shortcut state");
+    requireCondition(
+        ready.lifecycle.startWithWindowsShortcutPath == readyConfig.startWithWindowsShortcutPath,
+        "lifecycle should expose configured startup shortcut path");
+    requireCondition(
+        ready.lifecycle.startWithWindowsCommandHint == "cmd /c tools\\remove_snc_tray_startup_shortcut.cmd",
+        "enabled lifecycle should expose startup removal command hint");
+    requireCondition(
+        ready.lifecycle.startWithWindowsCommandHintSource == "startup_shortcut_remove_command",
+        "enabled lifecycle should expose startup removal command source");
+    requireCondition(
+        ready.lifecycle.startWithWindowsEnableCommandHint == "cmd /c tools\\install_snc_tray_startup_shortcut.cmd",
+        "lifecycle should expose startup install command hint");
+    requireCondition(
+        ready.lifecycle.startWithWindowsDisableCommandHint == "cmd /c tools\\remove_snc_tray_startup_shortcut.cmd",
+        "lifecycle should expose startup remove command hint");
+    requireCondition(
+        ready.supportReport.state == "not_prepared",
+        "support report should start as not prepared when preview file is missing");
+    requireCondition(
+        ready.supportReport.reason == "prepare local support report preview before manual review or send",
+        "support report should explain missing preview state");
+    requireCondition(
+        ready.supportReport.previewPath == readyConfig.supportReportPreviewPath,
+        "support report should expose configured preview path");
+    requireCondition(
+        ready.supportReport.supportContactEmail == "support@jeniksoft.cz",
+        "support report should expose support contact");
+    requireCondition(
+        ready.supportReport.sendRequiresApproval,
+        "support report should require explicit approval before send");
+    requireCondition(
+        !ready.supportReport.rawSavesIncluded,
+        "support report should avoid raw saves by default");
+    requireCondition(
+        ready.supportReport.prepareCommandHint ==
+            "powershell -NoProfile -ExecutionPolicy Bypass -File tools\\prepare_snc_support_report.ps1",
+        "support report should expose the preview prepare command");
+    requireCondition(
+        ready.supportReport.openCommandHint.empty(),
+        "support report should not expose an open command before the preview exists");
+    requireCondition(
+        ready.crashRecovery.state == "no_recent_unexpected_crash",
+        "crash recovery should default to a clean baseline when no state file exists");
+    requireCondition(
+        ready.crashRecovery.reason == "no crash recovery record present",
+        "crash recovery baseline should explain the missing state file");
+    requireCondition(
+        ready.crashRecovery.statePath == crashRecoveryStatePath,
+        "crash recovery should expose the configured state path");
+    requireCondition(
+        !ready.crashRecovery.restartBudgetExhausted,
+        "crash recovery baseline should not exhaust the restart budget");
+    requireCondition(
+        !ready.crashRecovery.warningVisible,
+        "crash recovery baseline should not show a warning");
+    requireCondition(
+        !ready.crashRecovery.supportReportRecommended,
+        "crash recovery baseline should not recommend a support report");
     requireCondition(ready.lifecycle.windowCloseBehavior == "minimize_to_tray", "window close should minimize to tray");
     requireCondition(ready.lifecycle.explicitExitBehavior == "stop_without_restart", "explicit exit should stop without restart");
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");
@@ -434,6 +498,70 @@ int main()
         unsupportedModel.statusCenterSummaryText.find("local_llm_model: model_license_not_supported") !=
             std::string::npos,
         "status center summary should expose unsupported local LLM model state");
+
+    const auto crashRecoveryWarningStatePath = root / "snc_crash_recovery_warning.json";
+    writeTextFileAtomically(
+        crashRecoveryWarningStatePath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"state\": \"restart_budget_exhausted\",\n"
+        "  \"reason\": \"unexpected crashes exhausted restart budget; manual start required\",\n"
+        "  \"last_crash_at_local\": \"8.6.2026  0:41:22\",\n"
+        "  \"last_recovery_action\": \"restart_blocked_until_manual_start\",\n"
+        "  \"last_operation\": \"publish_generated_overlay\",\n"
+        "  \"app_version\": \"v0-fixture\",\n"
+        "  \"recent_unexpected_restart_count\": 3,\n"
+        "  \"restart_window_minutes\": 10,\n"
+        "  \"next_backoff_seconds\": 300,\n"
+        "  \"restart_budget_exhausted\": true,\n"
+        "  \"warning_visible\": true,\n"
+        "  \"support_report_recommended\": true\n"
+        "}\n");
+    auto crashRecoveryWarningConfig = readyConfig;
+    crashRecoveryWarningConfig.crashRecoveryStatePath = crashRecoveryWarningStatePath;
+    const auto crashRecoveryWarning = companion.buildStatusSnapshot(crashRecoveryWarningConfig);
+    requireCondition(
+        crashRecoveryWarning.crashRecovery.state == "restart_budget_exhausted",
+        "crash recovery warning fixture should expose exhausted restart budget state");
+    requireCondition(
+        crashRecoveryWarning.crashRecovery.restartBudgetExhausted,
+        "crash recovery warning fixture should mark restart budget exhausted");
+    requireCondition(
+        crashRecoveryWarning.crashRecovery.warningVisible,
+        "crash recovery warning fixture should expose a visible warning");
+    requireCondition(
+        crashRecoveryWarning.crashRecovery.supportReportRecommended,
+        "crash recovery warning fixture should recommend a support report");
+    requireCondition(
+        crashRecoveryWarning.statusCenter.state == "attention_required",
+        "crash recovery warning should lift Status Center into attention_required");
+    requireCondition(
+        crashRecoveryWarning.statusCenter.reason == "crash recovery needs attention",
+        "crash recovery warning should expose a stable Status Center reason");
+    requireCondition(
+        crashRecoveryWarning.nextAction == "review_crash_recovery_status",
+        "crash recovery warning should become the top-level next action");
+    requireCondition(
+        crashRecoveryWarning.nextActionReason == "unexpected crashes exhausted restart budget; manual start required",
+        "crash recovery warning should expose the state-file reason as next-action reason");
+    requireCondition(
+        crashRecoveryWarning.nextActionCommandHint ==
+            "powershell -NoProfile -ExecutionPolicy Bypass -File tools\\prepare_snc_support_report.ps1",
+        "crash recovery warning should recommend preparing the support report");
+    requireCondition(
+        crashRecoveryWarning.nextActionCommandHintSource == "support_report_prepare_command",
+        "crash recovery warning should expose the support report prepare command source");
+    requireCondition(
+        crashRecoveryWarning.nextActionPath == readyConfig.supportReportPreviewPath,
+        "crash recovery warning should point follow-up at the support report preview path");
+    requireCondition(
+        crashRecoveryWarning.statusCenterSummaryText.find("crash_recovery_state: restart_budget_exhausted") !=
+            std::string::npos,
+        "crash recovery warning should be copied into the status center summary");
+    requireCondition(
+        crashRecoveryWarning.statusCenterSummaryText.find(
+            "crash_recovery_last_recovery_action: restart_blocked_until_manual_start") != std::string::npos,
+        "crash recovery warning summary should expose the last recovery action");
 
     requireCondition(
         strategic_nexus::ollamaModelNameFromCatalogId("ollama:llama3.2:3b") == "llama3.2:3b",
@@ -767,6 +895,78 @@ int main()
         ready.statusCenterSummaryText.find("startup_start_with_windows_enabled: true") !=
             std::string::npos,
         "status center summary should expose start-with-Windows enabled flag");
+    requireCondition(
+        ready.statusCenterSummaryText.find("startup_start_with_windows_source: config_override") !=
+            std::string::npos,
+        "status center summary should expose start-with-Windows source");
+    requireCondition(
+        ready.statusCenterSummaryText.find("startup_start_with_windows_shortcut_state: override_enabled") !=
+            std::string::npos,
+        "status center summary should expose startup shortcut state");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "startup_start_with_windows_shortcut_path: " +
+            readyConfig.startWithWindowsShortcutPath.generic_string()) != std::string::npos,
+        "status center summary should expose startup shortcut path");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "startup_start_with_windows_command_hint: cmd /c tools\\remove_snc_tray_startup_shortcut.cmd") !=
+            std::string::npos,
+        "status center summary should expose startup command hint");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "startup_start_with_windows_command_hint_source: startup_shortcut_remove_command") !=
+            std::string::npos,
+        "status center summary should expose startup command hint source");
+    requireCondition(
+        ready.statusCenterSummaryText.find("support_report_state: not_prepared") != std::string::npos,
+        "status center summary should expose support report state");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "support_report_preview_path: " + readyConfig.supportReportPreviewPath.generic_string()) !=
+            std::string::npos,
+        "status center summary should expose support report preview path");
+    requireCondition(
+        ready.statusCenterSummaryText.find("support_report_contact_email: support@jeniksoft.cz") !=
+            std::string::npos,
+        "status center summary should expose support contact email");
+    requireCondition(
+        ready.statusCenterSummaryText.find("support_report_send_requires_approval: true") !=
+            std::string::npos,
+        "status center summary should expose explicit approval requirement");
+    requireCondition(
+        ready.statusCenterSummaryText.find("support_report_raw_saves_included: false") !=
+            std::string::npos,
+        "status center summary should expose raw-save exclusion");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "support_report_prepare_command_hint: powershell -NoProfile -ExecutionPolicy Bypass -File tools\\prepare_snc_support_report.ps1") !=
+            std::string::npos,
+        "status center summary should expose support report prepare command");
+    requireCondition(
+        ready.statusCenterSummaryText.find("crash_recovery_state: no_recent_unexpected_crash") !=
+            std::string::npos,
+        "status center summary should expose crash recovery baseline state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("crash_recovery_reason: no crash recovery record present") !=
+            std::string::npos,
+        "status center summary should expose crash recovery baseline reason");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "crash_recovery_state_path: " + crashRecoveryStatePath.generic_string()) != std::string::npos,
+        "status center summary should expose crash recovery state path");
+    requireCondition(
+        ready.statusCenterSummaryText.find("crash_recovery_restart_budget_exhausted: false") !=
+            std::string::npos,
+        "status center summary should expose crash recovery budget state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("crash_recovery_warning_visible: false") !=
+            std::string::npos,
+        "status center summary should expose crash recovery warning visibility");
+    requireCondition(
+        ready.statusCenterSummaryText.find("crash_recovery_support_report_recommended: false") !=
+            std::string::npos,
+        "status center summary should expose crash recovery support-report recommendation state");
     requireCondition(
         ready.statusCenterSummaryText.find("stav: starting - waiting for archive to become ready") != std::string::npos,
         "status center summary should include overall state");
@@ -1609,6 +1809,79 @@ int main()
     requireCondition(
         json.find("\"startup_lifecycle_state\": \"owner_enabled_start_with_windows\"") != std::string::npos,
         "JSON should include startup lifecycle state");
+    requireCondition(
+        json.find("\"support_report_state\": \"not_prepared\"") != std::string::npos,
+        "JSON should include support report state");
+    requireCondition(
+        json.find("\"support_report_reason\": \"prepare local support report preview before manual review or send\"") !=
+            std::string::npos,
+        "JSON should include support report reason");
+    requireCondition(
+        json.find("\"support_report_preview_path\": \"" +
+                  readyConfig.supportReportPreviewPath.generic_string() + "\"") != std::string::npos,
+        "JSON should include support report preview path");
+    requireCondition(
+        json.find("\"support_report_contact_email\": \"support@jeniksoft.cz\"") != std::string::npos,
+        "JSON should include support report contact");
+    requireCondition(
+        json.find("\"support_report_send_requires_approval\": true") != std::string::npos,
+        "JSON should include support report approval requirement");
+    requireCondition(
+        json.find("\"support_report_raw_saves_included\": false") != std::string::npos,
+        "JSON should include support report raw-save exclusion");
+    requireCondition(
+        json.find(
+            "\"support_report_prepare_command_hint\": \"powershell -NoProfile -ExecutionPolicy Bypass -File tools\\\\prepare_snc_support_report.ps1\"") !=
+            std::string::npos,
+        "JSON should include support report prepare command");
+    requireCondition(
+        json.find("\"crash_recovery_state\": \"no_recent_unexpected_crash\"") != std::string::npos,
+        "JSON should include crash recovery baseline state");
+    requireCondition(
+        json.find("\"crash_recovery_reason\": \"no crash recovery record present\"") != std::string::npos,
+        "JSON should include crash recovery baseline reason");
+    requireCondition(
+        json.find("\"crash_recovery_state_path\": \"" + crashRecoveryStatePath.generic_string() + "\"") !=
+            std::string::npos,
+        "JSON should include crash recovery state path");
+    requireCondition(
+        json.find("\"crash_recovery_restart_budget_exhausted\": false") != std::string::npos,
+        "JSON should include crash recovery restart budget state");
+    requireCondition(
+        json.find("\"crash_recovery_warning_visible\": false") != std::string::npos,
+        "JSON should include crash recovery warning visibility");
+    requireCondition(
+        json.find("\"crash_recovery_support_report_recommended\": false") != std::string::npos,
+        "JSON should include crash recovery support-report recommendation state");
+    requireCondition(
+        json.find("\"crash_recovery\": ") != std::string::npos,
+        "JSON should include nested crash recovery object");
+    requireCondition(
+        json.find("\"start_with_windows_source\": \"config_override\"") != std::string::npos,
+        "JSON should include start-with-Windows source");
+    requireCondition(
+        json.find("\"start_with_windows_shortcut_state\": \"override_enabled\"") != std::string::npos,
+        "JSON should include startup shortcut state");
+    requireCondition(
+        json.find("\"start_with_windows_shortcut_path\": \"" +
+                  readyConfig.startWithWindowsShortcutPath.generic_string() + "\"") != std::string::npos,
+        "JSON should include startup shortcut path");
+    requireCondition(
+        json.find("\"start_with_windows_command_hint\": \"cmd /c tools\\\\remove_snc_tray_startup_shortcut.cmd\"") !=
+            std::string::npos,
+        "JSON should include startup command hint");
+    requireCondition(
+        json.find("\"start_with_windows_command_hint_source\": \"startup_shortcut_remove_command\"") !=
+            std::string::npos,
+        "JSON should include startup command hint source");
+    requireCondition(
+        json.find("\"start_with_windows_enable_command_hint\": \"cmd /c tools\\\\install_snc_tray_startup_shortcut.cmd\"") !=
+            std::string::npos,
+        "JSON should include startup install command hint");
+    requireCondition(
+        json.find("\"start_with_windows_disable_command_hint\": \"cmd /c tools\\\\remove_snc_tray_startup_shortcut.cmd\"") !=
+            std::string::npos,
+        "JSON should include startup remove command hint");
     requireCondition(json.find("\"status_center_summary_text\"") != std::string::npos, "JSON should include status center summary text");
     requireCondition(json.find("Strategic Nexus Status Center") != std::string::npos, "JSON should include copyable status center summary");
     requireCondition(
@@ -1632,6 +1905,59 @@ int main()
     requireCondition(
         json.find("mp_identity_mismatch_warning: false") != std::string::npos,
         "ready status center summary should include false identity mismatch warning");
+
+    strategic_nexus::CompanionStatusConfig detectedStartupConfig = readyConfig;
+    detectedStartupConfig.startWithWindowsEnabled = false;
+    detectedStartupConfig.useConfiguredStartWithWindowsState = false;
+    detectedStartupConfig.startWithWindowsShortcutPath = root / "startup-shortcut-probe.lnk";
+    std::filesystem::remove(detectedStartupConfig.startWithWindowsShortcutPath);
+    const auto detectedStartupDisabled = companion.buildStatusSnapshot(detectedStartupConfig);
+    requireCondition(
+        !detectedStartupDisabled.lifecycle.startWithWindowsEnabled,
+        "missing startup shortcut should keep start-with-Windows disabled");
+    requireCondition(
+        detectedStartupDisabled.lifecycle.startWithWindowsSource == "startup_shortcut_probe",
+        "missing startup shortcut should report probe source");
+    requireCondition(
+        detectedStartupDisabled.lifecycle.startWithWindowsShortcutState == "shortcut_not_installed",
+        "missing startup shortcut should report not installed");
+    requireCondition(
+        detectedStartupDisabled.lifecycle.startWithWindowsCommandHint ==
+            "cmd /c tools\\install_snc_tray_startup_shortcut.cmd",
+        "missing startup shortcut should recommend install command");
+    requireCondition(
+        detectedStartupDisabled.lifecycle.startWithWindowsCommandHintSource == "startup_shortcut_install_command",
+        "missing startup shortcut should report install command source");
+
+    writeTextFileAtomically(
+        detectedStartupConfig.startWithWindowsShortcutPath,
+        "synthetic startup shortcut for status detection test");
+    const auto detectedStartupEnabled = companion.buildStatusSnapshot(detectedStartupConfig);
+    requireCondition(
+        detectedStartupEnabled.lifecycle.startWithWindowsEnabled,
+        "present startup shortcut should enable detected start-with-Windows state");
+    requireCondition(
+        detectedStartupEnabled.lifecycle.startWithWindowsShortcutState == "shortcut_installed",
+        "present startup shortcut should report installed");
+    requireCondition(
+        detectedStartupEnabled.lifecycle.startWithWindowsCommandHint ==
+            "cmd /c tools\\remove_snc_tray_startup_shortcut.cmd",
+        "present startup shortcut should recommend remove command");
+
+    writeTextFileAtomically(
+        readyConfig.supportReportPreviewPath,
+        "synthetic local support report preview");
+    const auto readyWithSupportReport = companion.buildStatusSnapshot(readyConfig);
+    requireCondition(
+        readyWithSupportReport.supportReport.state == "ready_for_review",
+        "support report should become ready when local preview exists");
+    requireCondition(
+        readyWithSupportReport.supportReport.openCommandHint.find("cmd /c start") == 0,
+        "ready support report should expose an open command hint");
+    requireCondition(
+        readyWithSupportReport.statusCenterSummaryText.find("support_report_state: ready_for_review") !=
+            std::string::npos,
+        "ready status center summary should expose prepared support report state");
 
     const auto stagedPublishJson = strategic_nexus::serializeCompanionStatusSnapshot(stagedPublishReady);
     requireCondition(

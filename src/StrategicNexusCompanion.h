@@ -41,6 +41,12 @@ struct CompanionStatusConfig {
     std::filesystem::path mpOverlayPackageZipPath;
     std::filesystem::path localLlmModelStatePath =
         "dist/private_reports/snc_local_model_state.json";
+    std::filesystem::path startWithWindowsShortcutPath;
+    std::filesystem::path supportReportPreviewPath =
+        "dist/private_reports/snc_support_report_preview.txt";
+    std::filesystem::path crashRecoveryStatePath =
+        "dist/private_reports/snc_crash_recovery_state.json";
+    bool useConfiguredStartWithWindowsState = false;
 };
 
 struct CompanionStatusLoopConfig {
@@ -213,6 +219,41 @@ struct CompanionLifecycleStatus {
     std::string windowCloseBehavior = "minimize_to_tray";
     std::string explicitExitBehavior = "stop_without_restart";
     std::string crashRestartPolicy = "bounded_backoff_with_crash_loop_guard";
+    std::string startWithWindowsSource = "startup_shortcut_probe";
+    std::string startWithWindowsShortcutState = "shortcut_not_installed";
+    std::filesystem::path startWithWindowsShortcutPath;
+    std::string startWithWindowsCommandHint;
+    std::string startWithWindowsCommandHintSource;
+    std::string startWithWindowsEnableCommandHint;
+    std::string startWithWindowsDisableCommandHint;
+};
+
+struct CompanionSupportReportStatus {
+    std::string state;
+    std::string reason;
+    std::filesystem::path previewPath;
+    std::string supportContactEmail = "support@jeniksoft.cz";
+    bool sendRequiresApproval = true;
+    bool rawSavesIncluded = false;
+    std::vector<std::string> dataCategories;
+    std::string prepareCommandHint;
+    std::string openCommandHint;
+};
+
+struct CompanionCrashRecoveryStatus {
+    std::string state = "no_recent_unexpected_crash";
+    std::string reason = "no crash recovery record present";
+    std::filesystem::path statePath;
+    std::string lastCrashAtLocal;
+    std::string lastRecoveryAction;
+    std::string lastOperation;
+    std::string appVersion;
+    std::size_t recentUnexpectedRestartCount = 0;
+    std::size_t restartWindowMinutes = 10;
+    std::size_t nextBackoffSeconds = 0;
+    bool restartBudgetExhausted = false;
+    bool warningVisible = false;
+    bool supportReportRecommended = false;
 };
 
 struct CompanionLocalLlmStatus {
@@ -240,6 +281,8 @@ struct CompanionStatusSnapshot {
     std::string abbreviation = "SNC";
     std::string generatedAtLocal;
     CompanionLifecycleStatus lifecycle;
+    CompanionSupportReportStatus supportReport;
+    CompanionCrashRecoveryStatus crashRecovery;
     CompanionSubsystemStatus saveDiscovery;
     CompanionSubsystemStatus archive;
     CompanionSubsystemStatus generatedOverlay;

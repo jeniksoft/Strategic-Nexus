@@ -14,6 +14,7 @@
 
 #include <filesystem>
 #include <cctype>
+#include <cstdlib>
 #include <iomanip>
 #include <ctime>
 #include <optional>
@@ -316,6 +317,95 @@ std::string pathString(const std::filesystem::path& path)
     return path.generic_string();
 }
 
+std::filesystem::path buildDefaultSncStartupShortcutPath()
+{
+    const char* appData = std::getenv("APPDATA");
+    if (appData == nullptr || *appData == '\0') {
+        return {};
+    }
+
+    return std::filesystem::path(appData) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup" /
+           "Strategic Nexus Companion.lnk";
+}
+
+std::string buildInstallSncStartupShortcutCommandHint()
+{
+    return R"(cmd /c tools\install_snc_tray_startup_shortcut.cmd)";
+}
+
+std::string buildRemoveSncStartupShortcutCommandHint()
+{
+    return R"(cmd /c tools\remove_snc_tray_startup_shortcut.cmd)";
+}
+
+std::string buildPrepareSncSupportReportCommandHint()
+{
+    return R"(powershell -NoProfile -ExecutionPolicy Bypass -File tools\prepare_snc_support_report.ps1)";
+}
+
+CompanionLifecycleStatus buildLifecycleStatus(const CompanionStatusConfig& config)
+{
+    CompanionLifecycleStatus lifecycle;
+    lifecycle.startWithWindowsEnableCommandHint = buildInstallSncStartupShortcutCommandHint();
+    lifecycle.startWithWindowsDisableCommandHint = buildRemoveSncStartupShortcutCommandHint();
+    lifecycle.startWithWindowsShortcutPath =
+        config.startWithWindowsShortcutPath.empty() ? buildDefaultSncStartupShortcutPath()
+                                                    : config.startWithWindowsShortcutPath;
+
+    if (config.useConfiguredStartWithWindowsState) {
+        lifecycle.startWithWindowsEnabled = config.startWithWindowsEnabled;
+        lifecycle.startWithWindowsSource = "config_override";
+        lifecycle.startWithWindowsShortcutState =
+            lifecycle.startWithWindowsEnabled ? "override_enabled" : "override_disabled";
+        lifecycle.startWithWindowsCommandHint =
+            lifecycle.startWithWindowsEnabled ? lifecycle.startWithWindowsDisableCommandHint
+                                              : lifecycle.startWithWindowsEnableCommandHint;
+        lifecycle.startWithWindowsCommandHintSource =
+            lifecycle.startWithWindowsEnabled ? "startup_shortcut_remove_command"
+                                              : "startup_shortcut_install_command";
+        return lifecycle;
+    }
+
+    if (lifecycle.startWithWindowsShortcutPath.empty()) {
+        lifecycle.startWithWindowsEnabled = false;
+        lifecycle.startWithWindowsShortcutState = "shortcut_path_unavailable";
+        lifecycle.startWithWindowsCommandHintSource = "startup_shortcut_unavailable";
+        return lifecycle;
+    }
+
+    std::error_code error;
+    const bool shortcutExists = std::filesystem::exists(lifecycle.startWithWindowsShortcutPath, error);
+    if (error) {
+        lifecycle.startWithWindowsEnabled = false;
+        lifecycle.startWithWindowsShortcutState = "shortcut_probe_failed";
+        lifecycle.startWithWindowsCommandHint = lifecycle.startWithWindowsEnableCommandHint;
+        lifecycle.startWithWindowsCommandHintSource = "startup_shortcut_install_command";
+        return lifecycle;
+    }
+
+    if (!shortcutExists) {
+        lifecycle.startWithWindowsEnabled = false;
+        lifecycle.startWithWindowsShortcutState = "shortcut_not_installed";
+        lifecycle.startWithWindowsCommandHint = lifecycle.startWithWindowsEnableCommandHint;
+        lifecycle.startWithWindowsCommandHintSource = "startup_shortcut_install_command";
+        return lifecycle;
+    }
+
+    if (!std::filesystem::is_regular_file(lifecycle.startWithWindowsShortcutPath, error) || error) {
+        lifecycle.startWithWindowsEnabled = false;
+        lifecycle.startWithWindowsShortcutState = "shortcut_path_not_file";
+        lifecycle.startWithWindowsCommandHint = lifecycle.startWithWindowsEnableCommandHint;
+        lifecycle.startWithWindowsCommandHintSource = "startup_shortcut_install_command";
+        return lifecycle;
+    }
+
+    lifecycle.startWithWindowsEnabled = true;
+    lifecycle.startWithWindowsShortcutState = "shortcut_installed";
+    lifecycle.startWithWindowsCommandHint = lifecycle.startWithWindowsDisableCommandHint;
+    lifecycle.startWithWindowsCommandHintSource = "startup_shortcut_remove_command";
+    return lifecycle;
+}
+
 std::string normalizedPathKey(const std::filesystem::path& path)
 {
     return path.lexically_normal().generic_string();
@@ -381,6 +471,183 @@ std::string quoteCliPathArg(const std::filesystem::path& path)
         escaped.push_back(ch);
     }
     return "\"" + escaped + "\"";
+}
+
+std::string buildOpenSncSupportReportCommandHint(const std::filesystem::path& previewPath)
+{
+    if (previewPath.empty()) {
+        return std::string();
+    }
+    return "cmd /c start \"\" " + quoteCliPathArg(previewPath);
+}
+
+std::optional<bool> extractJsonBool(const std::string& json, const char* key);
+std::optional<std::size_t> extractJsonSize(const std::string& json, const char* key);
+
+CompanionSupportReportStatus buildSupportReportStatus(const CompanionStatusConfig& config)
+{
+    CompanionSupportReportStatus status;
+    status.previewPath = config.supportReportPreviewPath;
+    status.dataCategories = {
+        "status_center_state_and_reason",
+        "next_action_guidance",
+        "post_play_pipeline_artifact_refs",
+        "generated_overlay_publish_gate_state",
+        "mp_overlay_package_metadata",
+        "local_llm_model_state",
+        "startup_lifecycle_state"
+    };
+    status.prepareCommandHint = buildPrepareSncSupportReportCommandHint();
+
+    if (status.previewPath.empty()) {
+        status.state = "preview_path_unavailable";
+        status.reason = "support report preview path unavailable";
+        return status;
+    }
+
+    std::error_code error;
+    const bool previewExists = std::filesystem::exists(status.previewPath, error);
+    if (error) {
+        status.state = "preview_probe_failed";
+        status.reason = "support report preview probe failed";
+        return status;
+    }
+
+    if (!previewExists) {
+        status.state = "not_prepared";
+        status.reason = "prepare local support report preview before manual review or send";
+        return status;
+    }
+
+    if (!std::filesystem::is_regular_file(status.previewPath, error) || error) {
+        status.state = "preview_path_not_file";
+        status.reason = "support report preview path is not a file";
+        return status;
+    }
+
+    status.state = "ready_for_review";
+    status.reason = "local support report preview prepared; explicit approval required before sending";
+    status.openCommandHint = buildOpenSncSupportReportCommandHint(status.previewPath);
+    return status;
+}
+
+std::string defaultCrashRecoveryReasonForState(const std::string& state)
+{
+    if (state == "no_recent_unexpected_crash") {
+        return "no crash recovery record present";
+    }
+    if (state == "recent_unexpected_crash_recovered") {
+        return "unexpected crash recorded; SNC recovered within restart budget";
+    }
+    if (state == "waiting_for_bounded_restart") {
+        return "unexpected crash recorded; bounded restart backoff is active";
+    }
+    if (state == "restart_budget_exhausted") {
+        return "unexpected crashes exhausted restart budget; manual start required";
+    }
+    if (state == "disabled_until_manual_start") {
+        return "auto-restart disabled until manual SNC start";
+    }
+    if (state == "explicit_exit_recorded") {
+        return "latest SNC stop was explicit exit; auto-restart stayed disabled";
+    }
+    if (state == "os_shutdown_recorded") {
+        return "latest SNC stop matched Windows shutdown or logoff";
+    }
+    if (state == "state_unavailable") {
+        return "crash recovery state unavailable";
+    }
+    return "crash recovery state loaded";
+}
+
+CompanionCrashRecoveryStatus buildCrashRecoveryStatus(const CompanionStatusConfig& config)
+{
+    CompanionCrashRecoveryStatus status;
+    status.statePath = config.crashRecoveryStatePath;
+
+    if (status.statePath.empty()) {
+        status.state = "state_unavailable";
+        status.reason = "crash recovery state path unavailable";
+        status.warningVisible = true;
+        return status;
+    }
+
+    std::error_code error;
+    const bool stateExists = std::filesystem::exists(status.statePath, error);
+    if (error) {
+        status.state = "state_unavailable";
+        status.reason = "crash recovery state probe failed";
+        status.warningVisible = true;
+        return status;
+    }
+    if (!stateExists) {
+        status.state = "no_recent_unexpected_crash";
+        status.reason = "no crash recovery record present";
+        return status;
+    }
+    if (!std::filesystem::is_regular_file(status.statePath, error) || error) {
+        status.state = "needs_attention";
+        status.reason = "crash recovery state path is not a file";
+        status.warningVisible = true;
+        return status;
+    }
+
+    std::string json;
+    if (!common::tryReadTextFile(status.statePath, json)) {
+        status.state = "needs_attention";
+        status.reason = "crash recovery state unreadable";
+        status.warningVisible = true;
+        return status;
+    }
+
+    const auto schemaVersion = extractJsonSize(json, "schema_version");
+    if (!schemaVersion.has_value() || *schemaVersion != 1) {
+        status.state = "needs_attention";
+        status.reason = "crash recovery state schema unsupported";
+        status.warningVisible = true;
+        return status;
+    }
+
+    const auto stateValue = common::extractJsonString(json, "state");
+    if (!stateValue.has_value() || stateValue->empty()) {
+        status.state = "needs_attention";
+        status.reason = "crash recovery state malformed";
+        status.warningVisible = true;
+        return status;
+    }
+
+    status.state = *stateValue;
+    status.reason =
+        common::extractJsonString(json, "reason").value_or(defaultCrashRecoveryReasonForState(status.state));
+    status.lastCrashAtLocal = common::extractJsonString(json, "last_crash_at_local").value_or("");
+    status.lastRecoveryAction = common::extractJsonString(json, "last_recovery_action").value_or("");
+    status.lastOperation = common::extractJsonString(json, "last_operation").value_or("");
+    status.appVersion = common::extractJsonString(json, "app_version").value_or("");
+    status.recentUnexpectedRestartCount = extractJsonSize(json, "recent_unexpected_restart_count").value_or(0);
+    status.restartWindowMinutes = extractJsonSize(json, "restart_window_minutes").value_or(10);
+    status.nextBackoffSeconds = extractJsonSize(json, "next_backoff_seconds").value_or(0);
+    status.restartBudgetExhausted = extractJsonBool(json, "restart_budget_exhausted").value_or(false);
+    status.warningVisible = extractJsonBool(json, "warning_visible").value_or(false);
+    status.supportReportRecommended = extractJsonBool(json, "support_report_recommended").value_or(false);
+
+    if (status.state == "restart_budget_exhausted" || status.state == "disabled_until_manual_start") {
+        status.restartBudgetExhausted = true;
+    }
+    if (status.restartBudgetExhausted) {
+        status.warningVisible = true;
+        status.supportReportRecommended = true;
+    }
+    if (status.state == "needs_attention" || status.state == "state_unavailable") {
+        status.warningVisible = true;
+    }
+
+    return status;
+}
+
+bool crashRecoveryNeedsAttention(const CompanionCrashRecoveryStatus& status)
+{
+    return status.warningVisible || status.restartBudgetExhausted || status.state == "needs_attention" ||
+           status.state == "state_unavailable";
 }
 
 std::optional<bool> extractJsonBool(const std::string& json, const char* key)
@@ -1659,6 +1926,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const CompanionPostPlayPipelineStatus& postPlayPipeline,
     const CompanionSubsystemStatus& gameplayAcceptance,
+    const CompanionCrashRecoveryStatus& crashRecovery,
     const CompanionLocalLlmStatus& localLlm)
 {
     CompanionSubsystemStatus status;
@@ -1674,6 +1942,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const bool mpNeedsAttention = mpOverlayPackage.state == "needs_attention";
     const bool postPlayNeedsAttention = postPlayPipeline.state == "needs_attention";
     const bool gameplayAcceptanceNeedsAttention = gameplayAcceptance.state == "needs_attention";
+    const bool recoveryNeedsAttention = crashRecoveryNeedsAttention(crashRecovery);
     const bool localLlmNeedsAttention =
         localLlm.state == "model_incompatible_with_hardware"
         || localLlm.state == "model_license_not_supported"
@@ -1682,7 +1951,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         || localLlm.state == "model_changed_revalidation_needed";
 
     if (archiveNeedsAttention || overlayNeedsAttention || publishGateNeedsAttention || mpNeedsAttention ||
-        postPlayNeedsAttention || gameplayAcceptanceNeedsAttention || localLlmNeedsAttention) {
+        postPlayNeedsAttention || gameplayAcceptanceNeedsAttention || recoveryNeedsAttention || localLlmNeedsAttention) {
         status.state = "attention_required";
         if (archiveNeedsAttention && overlayNeedsAttention && publishGateNeedsAttention && mpNeedsAttention) {
             status.reason = "archive, generated overlay, publish gate, and mp overlay package need attention";
@@ -1730,6 +1999,14 @@ CompanionSubsystemStatus buildStatusCenterStatus(
             }
             return status;
         }
+        if (postPlayNeedsAttention && recoveryNeedsAttention) {
+            status.reason = "post-play pipeline and crash recovery need attention";
+            status.path = postPlayPipelineFocusPath(postPlayPipeline);
+            if (status.path.empty()) {
+                status.path = crashRecovery.statePath;
+            }
+            return status;
+        }
         if (postPlayNeedsAttention) {
             status.reason = "post-play pipeline needs attention";
             status.path = postPlayPipelineFocusPath(postPlayPipeline);
@@ -1738,6 +2015,11 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         if (gameplayAcceptanceNeedsAttention) {
             status.reason = "gameplay acceptance needs attention";
             status.path = gameplayAcceptance.path;
+            return status;
+        }
+        if (recoveryNeedsAttention) {
+            status.reason = "crash recovery needs attention";
+            status.path = crashRecovery.statePath;
             return status;
         }
         if (localLlmNeedsAttention) {
@@ -1820,6 +2102,8 @@ CompanionSubsystemStatus buildStatusCenterStatus(
 std::string buildStatusCenterSummaryText(
     const std::string& generatedAtLocal,
     const CompanionLifecycleStatus& lifecycle,
+    const CompanionSupportReportStatus& supportReport,
+    const CompanionCrashRecoveryStatus& crashRecovery,
     const CompanionSubsystemStatus& saveDiscovery,
     const CompanionSubsystemStatus& archive,
     const CompanionSubsystemStatus& generatedOverlay,
@@ -1850,6 +2134,76 @@ std::string buildStatusCenterSummaryText(
          << (lifecycle.startWithWindowsEnabled ? "owner_enabled_start_with_windows" : "manual_start_only") << "\n";
     text << "startup_start_with_windows_enabled: "
          << (lifecycle.startWithWindowsEnabled ? "true" : "false") << "\n";
+    text << "startup_start_with_windows_source: " << lifecycle.startWithWindowsSource << "\n";
+    text << "startup_start_with_windows_shortcut_state: "
+         << lifecycle.startWithWindowsShortcutState << "\n";
+    if (!lifecycle.startWithWindowsShortcutPath.empty()) {
+        text << "startup_start_with_windows_shortcut_path: "
+             << pathString(lifecycle.startWithWindowsShortcutPath) << "\n";
+    }
+    text << "startup_start_with_windows_command_hint_source: "
+         << lifecycle.startWithWindowsCommandHintSource << "\n";
+    if (!lifecycle.startWithWindowsCommandHint.empty()) {
+        text << "startup_start_with_windows_command_hint: "
+             << lifecycle.startWithWindowsCommandHint << "\n";
+    }
+    if (!lifecycle.startWithWindowsEnableCommandHint.empty()) {
+        text << "startup_start_with_windows_enable_command_hint: "
+             << lifecycle.startWithWindowsEnableCommandHint << "\n";
+    }
+    if (!lifecycle.startWithWindowsDisableCommandHint.empty()) {
+        text << "startup_start_with_windows_disable_command_hint: "
+             << lifecycle.startWithWindowsDisableCommandHint << "\n";
+    }
+    text << "support_report_state: " << supportReport.state << "\n";
+    text << "support_report_reason: " << supportReport.reason << "\n";
+    if (!supportReport.previewPath.empty()) {
+        text << "support_report_preview_path: " << pathString(supportReport.previewPath) << "\n";
+    }
+    text << "support_report_contact_email: " << supportReport.supportContactEmail << "\n";
+    text << "support_report_send_requires_approval: "
+         << (supportReport.sendRequiresApproval ? "true" : "false") << "\n";
+    text << "support_report_raw_saves_included: "
+         << (supportReport.rawSavesIncluded ? "true" : "false") << "\n";
+    if (!supportReport.dataCategories.empty()) {
+        text << "support_report_data_categories: "
+             << joinStrings(supportReport.dataCategories, ",") << "\n";
+    }
+    if (!supportReport.prepareCommandHint.empty()) {
+        text << "support_report_prepare_command_hint: "
+             << supportReport.prepareCommandHint << "\n";
+    }
+    if (!supportReport.openCommandHint.empty()) {
+        text << "support_report_open_command_hint: "
+             << supportReport.openCommandHint << "\n";
+    }
+    text << "crash_recovery_state: " << crashRecovery.state << "\n";
+    text << "crash_recovery_reason: " << crashRecovery.reason << "\n";
+    if (!crashRecovery.statePath.empty()) {
+        text << "crash_recovery_state_path: " << pathString(crashRecovery.statePath) << "\n";
+    }
+    if (!crashRecovery.lastCrashAtLocal.empty()) {
+        text << "crash_recovery_last_crash_at_local: " << crashRecovery.lastCrashAtLocal << "\n";
+    }
+    if (!crashRecovery.lastRecoveryAction.empty()) {
+        text << "crash_recovery_last_recovery_action: " << crashRecovery.lastRecoveryAction << "\n";
+    }
+    if (!crashRecovery.lastOperation.empty()) {
+        text << "crash_recovery_last_operation: " << crashRecovery.lastOperation << "\n";
+    }
+    if (!crashRecovery.appVersion.empty()) {
+        text << "crash_recovery_app_version: " << crashRecovery.appVersion << "\n";
+    }
+    text << "crash_recovery_recent_unexpected_restart_count: "
+         << crashRecovery.recentUnexpectedRestartCount << "\n";
+    text << "crash_recovery_restart_window_minutes: " << crashRecovery.restartWindowMinutes << "\n";
+    text << "crash_recovery_next_backoff_seconds: " << crashRecovery.nextBackoffSeconds << "\n";
+    text << "crash_recovery_restart_budget_exhausted: "
+         << (crashRecovery.restartBudgetExhausted ? "true" : "false") << "\n";
+    text << "crash_recovery_warning_visible: "
+         << (crashRecovery.warningVisible ? "true" : "false") << "\n";
+    text << "crash_recovery_support_report_recommended: "
+         << (crashRecovery.supportReportRecommended ? "true" : "false") << "\n";
     text << "stav: " << statusCenter.state << " - " << statusCenter.reason << "\n";
     text << "nalezeni_uloziste: " << saveDiscovery.state << " - " << saveDiscovery.reason << "\n";
     if (!saveDiscovery.path.empty()) {
@@ -2200,6 +2554,9 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     if (snapshot.mpOverlayPackage.identityMismatchWarning) {
         return "review_mp_package_mismatch_warning";
     }
+    if (crashRecoveryNeedsAttention(snapshot.crashRecovery)) {
+        return "review_crash_recovery_status";
+    }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         return "review_mp_handoff_continuity";
     }
@@ -2240,6 +2597,9 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
 {
     if (snapshot.mpOverlayPackage.identityMismatchWarning) {
         return "package_identity_mismatch_detected";
+    }
+    if (crashRecoveryNeedsAttention(snapshot.crashRecovery)) {
+        return snapshot.crashRecovery.reason.empty() ? snapshot.crashRecovery.state : snapshot.crashRecovery.reason;
     }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         return "mp_handoff_degraded_previous_host_unavailable";
@@ -2285,6 +2645,14 @@ std::string buildCompanionNextActionCommandHint(const CompanionStatusSnapshot& s
             return snapshot.mpOverlayPackage.verifyCommand;
         }
     }
+    if (crashRecoveryNeedsAttention(snapshot.crashRecovery)) {
+        if (snapshot.crashRecovery.supportReportRecommended && !snapshot.supportReport.openCommandHint.empty()) {
+            return snapshot.supportReport.openCommandHint;
+        }
+        if (snapshot.crashRecovery.supportReportRecommended && !snapshot.supportReport.prepareCommandHint.empty()) {
+            return snapshot.supportReport.prepareCommandHint;
+        }
+    }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         if (!snapshot.mpOverlayPackage.strictVerifyCommand.empty()) {
             return snapshot.mpOverlayPackage.strictVerifyCommand;
@@ -2312,6 +2680,14 @@ std::string buildCompanionNextActionCommandHintSource(const CompanionStatusSnaps
             return "mp_overlay_package_verify_command";
         }
     }
+    if (crashRecoveryNeedsAttention(snapshot.crashRecovery)) {
+        if (snapshot.crashRecovery.supportReportRecommended && !snapshot.supportReport.openCommandHint.empty()) {
+            return "support_report_open_command";
+        }
+        if (snapshot.crashRecovery.supportReportRecommended && !snapshot.supportReport.prepareCommandHint.empty()) {
+            return "support_report_prepare_command";
+        }
+    }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         if (!snapshot.mpOverlayPackage.strictVerifyCommand.empty()) {
             return "mp_overlay_package_strict_verify_command";
@@ -2331,9 +2707,16 @@ std::string buildCompanionNextActionCommandHintSource(const CompanionStatusSnaps
 
 std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot& snapshot)
 {
-    if (snapshot.mpOverlayPackage.identityMismatchWarning ||
-        hasDegradedMpHandoffContinuity(snapshot) ||
-        snapshot.mpOverlayPackage.state == "needs_attention") {
+    if (snapshot.mpOverlayPackage.identityMismatchWarning) {
+        return snapshot.mpOverlayPackage.path;
+    }
+    if (crashRecoveryNeedsAttention(snapshot.crashRecovery)) {
+        if (snapshot.crashRecovery.supportReportRecommended && !snapshot.supportReport.previewPath.empty()) {
+            return snapshot.supportReport.previewPath;
+        }
+        return snapshot.crashRecovery.statePath;
+    }
+    if (hasDegradedMpHandoffContinuity(snapshot) || snapshot.mpOverlayPackage.state == "needs_attention") {
         return snapshot.mpOverlayPackage.path;
     }
     if (snapshot.generatedOverlayPublishGate.canPublish) {
@@ -2440,6 +2823,31 @@ void writeLocalLlmJson(
     output << indent << "  \"user_action_required\": "
            << (status.userActionRequired ? "true" : "false") << ",\n";
     output << indent << "  \"download_allowed\": " << (status.downloadAllowed ? "true" : "false") << "\n";
+    output << indent << "}";
+}
+
+void writeCrashRecoveryJson(
+    std::ostringstream& output,
+    const CompanionCrashRecoveryStatus& status,
+    const std::string& indent)
+{
+    output << indent << "{\n";
+    output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
+    output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
+    output << indent << "  \"state_path\": " << jsonString(pathString(status.statePath)) << ",\n";
+    output << indent << "  \"last_crash_at_local\": " << jsonString(status.lastCrashAtLocal) << ",\n";
+    output << indent << "  \"last_recovery_action\": " << jsonString(status.lastRecoveryAction) << ",\n";
+    output << indent << "  \"last_operation\": " << jsonString(status.lastOperation) << ",\n";
+    output << indent << "  \"app_version\": " << jsonString(status.appVersion) << ",\n";
+    output << indent << "  \"recent_unexpected_restart_count\": "
+           << status.recentUnexpectedRestartCount << ",\n";
+    output << indent << "  \"restart_window_minutes\": " << status.restartWindowMinutes << ",\n";
+    output << indent << "  \"next_backoff_seconds\": " << status.nextBackoffSeconds << ",\n";
+    output << indent << "  \"restart_budget_exhausted\": "
+           << (status.restartBudgetExhausted ? "true" : "false") << ",\n";
+    output << indent << "  \"warning_visible\": " << (status.warningVisible ? "true" : "false") << ",\n";
+    output << indent << "  \"support_report_recommended\": "
+           << (status.supportReportRecommended ? "true" : "false") << "\n";
     output << indent << "}";
 }
 
@@ -2643,7 +3051,9 @@ void writePostPlayPipelineJson(
 CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const CompanionStatusConfig& config) const
 {
     CompanionStatusSnapshot snapshot;
-    snapshot.lifecycle.startWithWindowsEnabled = config.startWithWindowsEnabled;
+    snapshot.lifecycle = buildLifecycleStatus(config);
+    snapshot.supportReport = buildSupportReportStatus(config);
+    snapshot.crashRecovery = buildCrashRecoveryStatus(config);
     snapshot.generatedAtLocal = formatLocalTimestamp(std::chrono::system_clock::now());
     snapshot.saveDiscovery = buildSaveDiscoveryStatus();
     snapshot.archive = buildArchiveStatus(config.archiveRoot);
@@ -2685,6 +3095,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
             snapshot.mpOverlayPackage,
             snapshot.postPlayPipeline,
             snapshot.gameplayAcceptance,
+            snapshot.crashRecovery,
             snapshot.localLlm);
     snapshot.nextAction = buildCompanionNextAction(snapshot);
     snapshot.nextActionReason = buildCompanionNextActionReason(snapshot);
@@ -2695,6 +3106,8 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
         snapshot.generatedAtLocal,
         snapshot.lifecycle,
+        snapshot.supportReport,
+        snapshot.crashRecovery,
         snapshot.saveDiscovery,
         snapshot.archive,
         snapshot.generatedOverlay,
@@ -2723,6 +3136,20 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"lifecycle\": {\n";
     output << "    \"start_with_windows_enabled\": "
            << (snapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << ",\n";
+    output << "    \"start_with_windows_source\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsSource) << ",\n";
+    output << "    \"start_with_windows_shortcut_state\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsShortcutState) << ",\n";
+    output << "    \"start_with_windows_shortcut_path\": "
+           << jsonString(pathString(snapshot.lifecycle.startWithWindowsShortcutPath)) << ",\n";
+    output << "    \"start_with_windows_command_hint\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsCommandHint) << ",\n";
+    output << "    \"start_with_windows_command_hint_source\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsCommandHintSource) << ",\n";
+    output << "    \"start_with_windows_enable_command_hint\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsEnableCommandHint) << ",\n";
+    output << "    \"start_with_windows_disable_command_hint\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsDisableCommandHint) << ",\n";
     output << "    \"window_close_behavior\": "
            << jsonString(snapshot.lifecycle.windowCloseBehavior) << ",\n";
     output << "    \"explicit_exit_behavior\": "
@@ -2736,6 +3163,70 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
                       ? "owner_enabled_start_with_windows"
                       : "manual_start_only")
            << ",\n";
+    output << "  \"support_report_state\": "
+           << jsonString(snapshot.supportReport.state) << ",\n";
+    output << "  \"support_report_reason\": "
+           << jsonString(snapshot.supportReport.reason) << ",\n";
+    output << "  \"support_report_preview_path\": "
+           << jsonString(pathString(snapshot.supportReport.previewPath)) << ",\n";
+    output << "  \"support_report_contact_email\": "
+           << jsonString(snapshot.supportReport.supportContactEmail) << ",\n";
+    output << "  \"support_report_send_requires_approval\": "
+           << (snapshot.supportReport.sendRequiresApproval ? "true" : "false") << ",\n";
+    output << "  \"support_report_raw_saves_included\": "
+           << (snapshot.supportReport.rawSavesIncluded ? "true" : "false") << ",\n";
+    output << "  \"support_report_data_categories\": [";
+    for (std::size_t index = 0; index < snapshot.supportReport.dataCategories.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+        output << jsonString(snapshot.supportReport.dataCategories[index]);
+    }
+    output << "],\n";
+    output << "  \"support_report_prepare_command_hint\": "
+           << jsonString(snapshot.supportReport.prepareCommandHint) << ",\n";
+    output << "  \"support_report_open_command_hint\": "
+           << jsonString(snapshot.supportReport.openCommandHint) << ",\n";
+    output << "  \"crash_recovery_state\": "
+           << jsonString(snapshot.crashRecovery.state) << ",\n";
+    output << "  \"crash_recovery_reason\": "
+           << jsonString(snapshot.crashRecovery.reason) << ",\n";
+    output << "  \"crash_recovery_state_path\": "
+           << jsonString(pathString(snapshot.crashRecovery.statePath)) << ",\n";
+    output << "  \"crash_recovery_last_crash_at_local\": "
+           << jsonString(snapshot.crashRecovery.lastCrashAtLocal) << ",\n";
+    output << "  \"crash_recovery_last_recovery_action\": "
+           << jsonString(snapshot.crashRecovery.lastRecoveryAction) << ",\n";
+    output << "  \"crash_recovery_last_operation\": "
+           << jsonString(snapshot.crashRecovery.lastOperation) << ",\n";
+    output << "  \"crash_recovery_app_version\": "
+           << jsonString(snapshot.crashRecovery.appVersion) << ",\n";
+    output << "  \"crash_recovery_recent_unexpected_restart_count\": "
+           << snapshot.crashRecovery.recentUnexpectedRestartCount << ",\n";
+    output << "  \"crash_recovery_restart_window_minutes\": "
+           << snapshot.crashRecovery.restartWindowMinutes << ",\n";
+    output << "  \"crash_recovery_next_backoff_seconds\": "
+           << snapshot.crashRecovery.nextBackoffSeconds << ",\n";
+    output << "  \"crash_recovery_restart_budget_exhausted\": "
+           << (snapshot.crashRecovery.restartBudgetExhausted ? "true" : "false") << ",\n";
+    output << "  \"crash_recovery_warning_visible\": "
+           << (snapshot.crashRecovery.warningVisible ? "true" : "false") << ",\n";
+    output << "  \"crash_recovery_support_report_recommended\": "
+           << (snapshot.crashRecovery.supportReportRecommended ? "true" : "false") << ",\n";
+    output << "  \"start_with_windows_source\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsSource) << ",\n";
+    output << "  \"start_with_windows_shortcut_state\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsShortcutState) << ",\n";
+    output << "  \"start_with_windows_shortcut_path\": "
+           << jsonString(pathString(snapshot.lifecycle.startWithWindowsShortcutPath)) << ",\n";
+    output << "  \"start_with_windows_command_hint\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsCommandHint) << ",\n";
+    output << "  \"start_with_windows_command_hint_source\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsCommandHintSource) << ",\n";
+    output << "  \"start_with_windows_enable_command_hint\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsEnableCommandHint) << ",\n";
+    output << "  \"start_with_windows_disable_command_hint\": "
+           << jsonString(snapshot.lifecycle.startWithWindowsDisableCommandHint) << ",\n";
     output << "  \"archive_status\": ";
     writeSubsystemJson(output, snapshot.archive, "  ");
     output << ",\n";
@@ -2759,6 +3250,9 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << ",\n";
     output << "  \"local_llm_model_status\": ";
     writeLocalLlmJson(output, snapshot.localLlm, "  ");
+    output << ",\n";
+    output << "  \"crash_recovery\": ";
+    writeCrashRecoveryJson(output, snapshot.crashRecovery, "  ");
     output << ",\n";
     output << "  \"status_center\": ";
     writeSubsystemJson(output, snapshot.statusCenter, "  ");

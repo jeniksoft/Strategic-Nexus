@@ -412,6 +412,7 @@ RunConfig parseRunConfig(int argc, char* argv[])
         if (argc > 4) {
             config.sncStatusOutputPath = argv[4];
         }
+        config.sncUseConfiguredStartWithWindowsState = argc > 5;
         config.sncStartWithWindowsEnabled = argc > 5 ? std::string(argv[5]) == "true" : false;
         if (argc > 6) {
             const std::string value = argv[6];
@@ -1716,6 +1717,7 @@ int Application::run(const RunConfig& config) const
             statusConfig.mpOverlayPackageDirectory = config.mpOverlayPackageDirectory;
             statusConfig.mpOverlayPackageZipPath = config.sncMpOverlayPackageZipPath;
             statusConfig.startWithWindowsEnabled = config.sncStartWithWindowsEnabled;
+            statusConfig.useConfiguredStartWithWindowsState = config.sncUseConfiguredStartWithWindowsState;
             statusConfig.useDetectedStellarisState = config.sncUseDetectedStellarisState;
             statusConfig.stellarisRunningOverride = config.sncStellarisRunningOverride;
             statusConfig.generatedOverlayStagingStatusPath =
@@ -1748,8 +1750,70 @@ int Application::run(const RunConfig& config) const
                                  ? "owner_enabled_start_with_windows"
                                  : "manual_start_only")
                       << "\n";
+            std::cout << "snc_support_report_state="
+                      << sanitizeCliValue(snapshot.supportReport.state) << "\n";
+            std::cout << "snc_support_report_reason="
+                      << sanitizeCliValue(snapshot.supportReport.reason) << "\n";
+            std::cout << "snc_support_report_preview_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.supportReport.previewPath)) << "\n";
+            std::cout << "snc_support_report_contact_email="
+                      << sanitizeCliValue(snapshot.supportReport.supportContactEmail) << "\n";
+            std::cout << "snc_support_report_send_requires_approval="
+                      << (snapshot.supportReport.sendRequiresApproval ? "true" : "false") << "\n";
+            std::cout << "snc_support_report_raw_saves_included="
+                      << (snapshot.supportReport.rawSavesIncluded ? "true" : "false") << "\n";
+            std::cout << "snc_support_report_data_category_count="
+                      << snapshot.supportReport.dataCategories.size() << "\n";
+            for (const auto& dataCategory : snapshot.supportReport.dataCategories) {
+                std::cout << "snc_support_report_data_category="
+                          << sanitizeCliValue(dataCategory) << "\n";
+            }
+            std::cout << "snc_support_report_prepare_command_hint="
+                      << sanitizeCliValue(snapshot.supportReport.prepareCommandHint) << "\n";
+            std::cout << "snc_support_report_open_command_hint="
+                      << sanitizeCliValue(snapshot.supportReport.openCommandHint) << "\n";
+            std::cout << "snc_crash_recovery_state="
+                      << sanitizeCliValue(snapshot.crashRecovery.state) << "\n";
+            std::cout << "snc_crash_recovery_reason="
+                      << sanitizeCliValue(snapshot.crashRecovery.reason) << "\n";
+            std::cout << "snc_crash_recovery_state_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.crashRecovery.statePath)) << "\n";
+            std::cout << "snc_crash_recovery_last_crash_at_local="
+                      << sanitizeCliValue(snapshot.crashRecovery.lastCrashAtLocal) << "\n";
+            std::cout << "snc_crash_recovery_last_recovery_action="
+                      << sanitizeCliValue(snapshot.crashRecovery.lastRecoveryAction) << "\n";
+            std::cout << "snc_crash_recovery_last_operation="
+                      << sanitizeCliValue(snapshot.crashRecovery.lastOperation) << "\n";
+            std::cout << "snc_crash_recovery_app_version="
+                      << sanitizeCliValue(snapshot.crashRecovery.appVersion) << "\n";
+            std::cout << "snc_crash_recovery_recent_unexpected_restart_count="
+                      << snapshot.crashRecovery.recentUnexpectedRestartCount << "\n";
+            std::cout << "snc_crash_recovery_restart_window_minutes="
+                      << snapshot.crashRecovery.restartWindowMinutes << "\n";
+            std::cout << "snc_crash_recovery_next_backoff_seconds="
+                      << snapshot.crashRecovery.nextBackoffSeconds << "\n";
+            std::cout << "snc_crash_recovery_restart_budget_exhausted="
+                      << (snapshot.crashRecovery.restartBudgetExhausted ? "true" : "false") << "\n";
+            std::cout << "snc_crash_recovery_warning_visible="
+                      << (snapshot.crashRecovery.warningVisible ? "true" : "false") << "\n";
+            std::cout << "snc_crash_recovery_support_report_recommended="
+                      << (snapshot.crashRecovery.supportReportRecommended ? "true" : "false") << "\n";
             std::cout << "snc_start_with_windows_enabled="
                       << (snapshot.lifecycle.startWithWindowsEnabled ? "true" : "false") << "\n";
+            std::cout << "snc_start_with_windows_source="
+                      << sanitizeCliValue(snapshot.lifecycle.startWithWindowsSource) << "\n";
+            std::cout << "snc_start_with_windows_shortcut_state="
+                      << sanitizeCliValue(snapshot.lifecycle.startWithWindowsShortcutState) << "\n";
+            std::cout << "snc_start_with_windows_shortcut_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.lifecycle.startWithWindowsShortcutPath)) << "\n";
+            std::cout << "snc_start_with_windows_command_hint="
+                      << sanitizeCliValue(snapshot.lifecycle.startWithWindowsCommandHint) << "\n";
+            std::cout << "snc_start_with_windows_command_hint_source="
+                      << sanitizeCliValue(snapshot.lifecycle.startWithWindowsCommandHintSource) << "\n";
+            std::cout << "snc_start_with_windows_enable_command_hint="
+                      << sanitizeCliValue(snapshot.lifecycle.startWithWindowsEnableCommandHint) << "\n";
+            std::cout << "snc_start_with_windows_disable_command_hint="
+                      << sanitizeCliValue(snapshot.lifecycle.startWithWindowsDisableCommandHint) << "\n";
             std::cout << "snc_window_close_behavior="
                       << sanitizeCliValue(snapshot.lifecycle.windowCloseBehavior) << "\n";
             std::cout << "snc_explicit_exit_behavior="
