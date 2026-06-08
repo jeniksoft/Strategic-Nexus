@@ -105,6 +105,7 @@ It is a quiet user-facing place for:
 * warnings and recoverable problems
 * optional settings
 * multiplayer package/export status
+* multiplayer friend/package sync status
 * copyable multiplayer package/invite status text
 
 It should not ask the user to manage routine development tasks.
@@ -279,6 +280,7 @@ It should become visible or notify the user only when:
 * repeated crashes disabled auto-restart
 * overlay staging failed or is unsafe
 * multiplayer package/export must be confirmed
+* multiplayer friend sync needs confirmation or reports a package mismatch
 * support report approval is needed
 
 It should not behave like the development Task Board.

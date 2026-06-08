@@ -85,7 +85,7 @@ Core documents:
 * [META_RULE_LANGUAGE_AND_COMPILER.md](META_RULE_LANGUAGE_AND_COMPILER.md) - bounded DSL and deterministic compiler from LLM proposals to generated mod overlay
 * [GENERATED_OVERLAY_LAYOUT_CONTRACT.md](GENERATED_OVERLAY_LAYOUT_CONTRACT.md) - v0 generated overlay file layout and staging contract
 * [GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md](GENERATED_OVERLAY_GAMEPLAY_ACCEPTANCE_PLAN.md) - bounded functional acceptance plan for proving generated overlay gameplay effect in v0 domains; primary evidence artifact `dist/private_reports/generated_overlay_gameplay_acceptance_v0.json`
-* [MULTIPLAYER_SEASON_ORCHESTRATOR.md](MULTIPLAYER_SEASON_ORCHESTRATOR.md) - host-coordinated low-friction multiplayer season/package architecture
+* [MULTIPLAYER_SEASON_ORCHESTRATOR.md](MULTIPLAYER_SEASON_ORCHESTRATOR.md) - host-coordinated low-friction multiplayer season/package architecture, including SNC friend mesh and automatic MP preparation
 * [LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md](LEGACY_RUNTIME_ARCHITECTURE_INTERPRETATION_RULES.md) - how to read older daemon, bridge, and cadence documents after the offline architecture shift
 * [DOCUMENTATION_CONSISTENCY_AUDIT.md](DOCUMENTATION_CONSISTENCY_AUDIT.md) - focused audits for contradictions between architecture documents
 * [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) - implementation order and milestone status
@@ -272,7 +272,7 @@ Target release direction:
 
 ```text
 host orchestrator builds and verifies one canonical MP generated overlay package
--> players install the identical package
+-> SNC friend/package sync distributes and stages the identical package for accepted friends
 -> players join through normal Stellaris/Steam lobby flow
 -> checksum/load-order compatibility remains the primary join gate
 ```

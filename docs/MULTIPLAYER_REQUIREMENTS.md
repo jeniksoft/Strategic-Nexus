@@ -136,6 +136,33 @@ Steam friends / normal Stellaris lobby invite
 
 The release Status Center may provide copyable package/invite status text, but it should not replace the normal Stellaris multiplayer lobby system.
 
+## SNC Friend Mesh Rule
+
+Manual package sharing is a development/fallback path.
+
+The target release companion should automate multiplayer preparation through user-approved SNC friendships:
+
+- one SNC creates a friend request package/code
+- the other SNC imports it and confirms the displayed identity/fingerprint
+- the first SNC receives/imports the acceptance
+- both SNC installs can then exchange encrypted, signed Strategic Nexus MP packages and host-rotation handoff packages automatically
+
+This friend mesh is only an out-of-game package sync layer.
+
+It must not:
+
+- replace the normal Stellaris lobby
+- require IP address sharing
+- transmit live gameplay commands
+- let clients generate divergent gameplay-affecting overlays
+- trust a package without manifest/hash/version verification
+- send raw saves or personal identity data by default
+
+Automatic sync may download, verify, and stage trusted friend packages before launch.
+Publishing gameplay-affecting files remains fail-closed and must never happen while `stellaris.exe` is running.
+
+The detailed target design is in [MULTIPLAYER_SEASON_ORCHESTRATOR.md](MULTIPLAYER_SEASON_ORCHESTRATOR.md).
+
 ## Development Harness Rule
 
 Manual debug workflows are not part of the supported architecture.

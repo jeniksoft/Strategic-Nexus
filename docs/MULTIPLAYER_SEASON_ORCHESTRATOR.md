@@ -45,6 +45,180 @@ Strategic Nexus should use that gate instead of inventing a hidden network proto
 
 ---
 
+# SNC Friend Mesh And Automatic MP Preparation
+
+Release multiplayer preparation must become automatic after the first explicit user-approved pairing.
+
+Manual ZIP sharing, copyable commands, and open-directory buttons are useful development and fallback surfaces, but they are not the target product experience.
+
+Target owner-facing flow:
+
+```text
+Player A opens SNC
+-> SNC creates a friend request package/code
+-> Player A sends it to Player B through any ordinary channel
+-> Player B imports it in SNC and confirms the displayed identity/fingerprint
+-> SNC creates/returns an acceptance package/code
+-> both SNC installs store each other as trusted friends
+-> future MP packages and handoff updates synchronize automatically when allowed
+```
+
+A user may have any number of Strategic Nexus friends.
+
+Friendship is local companion-app trust metadata. It is not a Steam identity, legal identity, proof of real-world identity, or Stellaris lobby authority.
+
+It only authorizes encrypted out-of-game Strategic Nexus package exchange.
+
+## Pairing Identity
+
+Each SNC installation should create a local node identity:
+
+```json
+{
+  "node_id": "stable-random-install-id",
+  "display_name": "owner-chosen-name",
+  "signing_public_key": "ed25519-or-equivalent",
+  "encryption_public_key": "x25519-or-equivalent",
+  "capabilities": ["mp_package_sync", "handoff_sync"],
+  "created_at": "...",
+  "expires_at": "optional-invite-expiry"
+}
+```
+
+The private keys stay local.
+
+The friend request should be portable as:
+
+* a small `.snc-friend-request` file
+* copyable text
+* QR code when useful
+
+The confirmation UI should show a short human-verifiable fingerprint.
+
+The recipient must explicitly accept the request before the contact becomes trusted.
+
+The originating user must receive/import the response or the transport layer must deliver it automatically before the trust relationship is complete.
+
+SNC should support:
+
+* rename friend locally
+* disable auto-sync per friend
+* revoke/block friend
+* rotate local identity keys with clear warnings
+* export/import friend trust backup only with explicit user action
+
+Revocation is not retroactive. A revoked friend may still possess old packages already sent before revocation.
+
+## Transport Adapters
+
+The friendship layer should use pluggable transport adapters.
+
+Preferred release order:
+
+1. Manual import/export fallback for friend requests, acceptance packages, and MP handoff packages.
+2. User-selected shared-folder/cloud-folder adapter, such as a folder synchronized by an external provider.
+3. Optional HTTPS relay mailbox owned by the project or user, storing only encrypted blobs.
+4. Optional LAN/direct adapter, only after explicit user consent and without requiring public IP sharing.
+
+The architecture must not require IP address sharing.
+
+The architecture must not require a custom real-time network path into the active Stellaris session.
+
+If a relay exists, it is only a mailbox for encrypted package blobs and delivery metadata. The relay must not be trusted with raw saves, generated package contents in plaintext, model outputs, or friend private keys.
+
+All synced payloads should be:
+
+* signed by the sending SNC node
+* encrypted for the recipient node or MP season group
+* schema-versioned
+* content-addressed by SHA-256 or stronger hash
+* replay-protected with nonce/timestamp/season id
+* bounded by size limits
+* safe to ignore if unknown, stale, mismatched, or malformed
+
+## Automatic MP Package Sync
+
+After friends are paired, the host/coordinator should be able to create an MP season group from accepted friends.
+
+The host SNC then prepares a canonical MP package for the campaign and publishes a signed package announcement:
+
+```json
+{
+  "message_type": "mp_package_announcement",
+  "season_id": "mp-season-0007",
+  "campaign_marker": "sn-marker-...",
+  "game_version": "...",
+  "mod_version": "...",
+  "generated_overlay_manifest_hash": "...",
+  "package_zip_sha256": "...",
+  "package_bytes": 123456,
+  "host_node_id": "...",
+  "created_at": "..."
+}
+```
+
+Friend SNC instances should automatically:
+
+1. receive the announcement through the configured transport
+2. download/import the encrypted package
+3. verify sender trust, campaign identity, schema version, package hash, manifest hash, file list, byte counts, game version, mod version, and load-order assumptions
+4. stage the package locally for next launch
+5. show a clear Status Center state such as `MP package ready`, `MP package waiting for approval`, or `MP package mismatch`
+
+Automatic sync may download and verify packages without another manual step once the friend/season trust policy allows it.
+
+Publishing gameplay-affecting files into the active generated overlay remains fail-closed:
+
+* never publish while `stellaris.exe` is running
+* never publish when campaign identity or package identity mismatches
+* never publish malformed or unverified packages
+* never run recipient-side LLM generation to "fix" a host package
+* default to staging plus clear approval unless the user explicitly enables a trusted auto-apply policy for that friend/season
+
+The host remains package authority for the MP season.
+
+Clients may have local models installed, but they must not generate divergent gameplay-affecting rules for that MP campaign.
+
+## Host Rotation And Automatic Handoff Sync
+
+The same friend mesh should carry host-rotation handoff packages.
+
+After an MP session ends, the current host SNC should automatically prepare and sync:
+
+* generated overlay package
+* package manifest
+* previous-host continuity metadata
+* latest-session delta ledger
+* bounded campaign memory snapshot
+* empire memory/personality snapshot
+* analysis audit summary
+
+The next host SNC should import and verify the latest trusted handoff before hosting.
+
+If no trusted handoff arrives, Status Center should explicitly show degraded continuity and the recovery options.
+
+This turns host rotation from a manual "find and send the right ZIP" task into an automatic verified sync state.
+
+## Privacy And Safety Boundaries
+
+The friend mesh must obey the same multiplayer safety boundaries as the rest of Strategic Nexus:
+
+* no save editing
+* no modification of the running game program
+* no custom game-state network channel during active Stellaris play
+* no per-client gameplay LLM decisions
+* no plaintext raw saves sent by default
+* no silent upload of personal paths, account names, IP addresses, or player identities
+* no package trust solely because a sender is a friend; manifest verification is still mandatory
+
+Raw saves or detailed campaign archives may be shared only through explicit user action.
+
+The normal Stellaris multiplayer lobby and checksum gate remain authoritative for joining a game.
+
+Strategic Nexus only prepares, verifies, and synchronizes the files needed before that normal join flow.
+
+---
+
 # Stellaris Campaign Multiplayer Eligibility
 
 Stellaris multiplayer eligibility is a campaign property, not just a current player-count property.
