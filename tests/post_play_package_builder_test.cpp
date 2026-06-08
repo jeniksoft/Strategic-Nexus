@@ -113,6 +113,56 @@ int main()
         json.find("\"later_archived_evidence_samples\":") != std::string::npos,
         "JSON should expose bounded later evidence samples");
 
+    const auto ambiguousRoot = root / "ambiguous";
+    const auto ambiguousCaptureRoot = ambiguousRoot / "capture_root";
+    const auto ambiguousCurrentRoot = ambiguousRoot / "current_root";
+    const auto ambiguousArchiveRoot = ambiguousRoot / "archive";
+    const std::string ambiguousSessionId = "session_post_play_ambiguous_fixture";
+
+    writeFile(ambiguousCaptureRoot / "Gamma Campaign" / "autosave_2200.01.01.sav", "gamma branch one");
+    archiveResult = archiver.archiveLiveSaves(
+        ambiguousCaptureRoot,
+        ambiguousArchiveRoot,
+        ambiguousSessionId,
+        0);
+    requireCondition(archiveResult.copiedCount == 1, "first gamma branch autosave should be archived");
+
+    writeFile(ambiguousCaptureRoot / "Gamma Campaign" / "autosave_2200.01.01.sav", "gamma branch two");
+    archiveResult = archiver.archiveLiveSaves(
+        ambiguousCaptureRoot,
+        ambiguousArchiveRoot,
+        ambiguousSessionId,
+        0);
+    requireCondition(archiveResult.copiedCount == 1, "second gamma branch autosave should be archived");
+
+    writeFile(ambiguousCurrentRoot / "Gamma Campaign" / "autosave_2200.01.01.sav", "gamma branch two");
+    writeFile(ambiguousCurrentRoot / "Gamma Campaign" / "2200.02.01.sav", "gamma manual entry point");
+
+    const auto ambiguousSummary = summarizer.summarize(ambiguousArchiveRoot / ambiguousSessionId);
+    const auto ambiguousAnalysis = analyzer.analyze(ambiguousArchiveRoot / ambiguousSessionId, {ambiguousCurrentRoot});
+    const auto ambiguousPackage = builder.build(ambiguousSummary, ambiguousAnalysis);
+
+    requireCondition(ambiguousPackage.ok, "ambiguous post-play package should still serialize as evidence");
+    requireCondition(ambiguousPackage.branchAmbiguityDetected, "ambiguous package should expose branch ambiguity");
+    requireCondition(
+        ambiguousPackage.readiness == "ambiguous",
+        "campaign-level branch ambiguity should block all decision inputs");
+    requireCondition(
+        ambiguousPackage.decisionReadyEntryCount == 0,
+        "ambiguous campaign should not produce decision-ready entries");
+
+    for (const auto& entry : ambiguousPackage.entries) {
+        requireCondition(!entry.decisionInputAllowed, "ambiguous campaign entry should not allow decision input");
+        requireCondition(
+            entry.decisionInputState == "blocked_branch_ambiguity",
+            "ambiguous campaign entry should be blocked by branch ambiguity");
+    }
+
+    const auto ambiguousJson = strategic_nexus::serializePostPlayPackage(ambiguousPackage);
+    requireCondition(
+        ambiguousJson.find("\"post_play_branch_ambiguity_blocks_decision_input\"") != std::string::npos,
+        "ambiguous JSON should expose decision-input blocker warning");
+
     std::cout << "post-play package builder tests passed.\n";
     return 0;
 }

@@ -63,7 +63,7 @@ std::string ruleScopeFor(const SaveEntryPoint& entry)
     return scope.str();
 }
 
-PostPlayPackageEntry buildEntry(const SaveEntryPoint& entry)
+PostPlayPackageEntry buildEntry(const SaveEntryPoint& entry, const bool campaignBranchAmbiguous)
 {
     PostPlayPackageEntry packageEntry;
     packageEntry.entryPointId = entry.id;
@@ -85,7 +85,7 @@ PostPlayPackageEntry buildEntry(const SaveEntryPoint& entry)
     packageEntry.futureEvidenceExcluded = entry.laterArchivedEvidenceCount > 0;
     packageEntry.warningCodes = entry.warningCodes;
 
-    if (entry.analysisState == "ambiguous") {
+    if (campaignBranchAmbiguous) {
         packageEntry.decisionInputState = "blocked_branch_ambiguity";
         packageEntry.evidencePolicy = "blocked";
         packageEntry.decisionInputAllowed = false;
@@ -189,6 +189,7 @@ PostPlayPackage PostPlayPackageBuilder::build(
     }
 
     std::map<std::string, PostPlayPackageCampaign> campaignPackages;
+    std::map<std::string, bool> ambiguousCampaigns;
     for (const auto& campaign : entryPointAnalysis.campaigns) {
         auto& item = campaignPackages[campaign.campaignKey];
         item.campaignKey = campaign.campaignKey;
@@ -196,13 +197,15 @@ PostPlayPackage PostPlayPackageBuilder::build(
         item.archivedEvidenceCount = campaign.archivedEvidenceCount;
         item.branchAmbiguityDetected = campaign.branchAmbiguityDetected;
         item.warningCodes = campaign.warningCodes;
+        ambiguousCampaigns[campaign.campaignKey] = campaign.branchAmbiguityDetected;
     }
 
     bool anyReady = false;
     bool anyBlocked = false;
     bool anyFutureExcluded = false;
     for (const auto& entry : entryPointAnalysis.entryPoints) {
-        auto packageEntry = buildEntry(entry);
+        const bool campaignBranchAmbiguous = ambiguousCampaigns[entry.campaignKey];
+        auto packageEntry = buildEntry(entry, campaignBranchAmbiguous);
         anyReady = anyReady || packageEntry.decisionInputAllowed;
         anyBlocked = anyBlocked || !packageEntry.decisionInputAllowed;
         anyFutureExcluded = anyFutureExcluded || packageEntry.futureEvidenceExcluded;
