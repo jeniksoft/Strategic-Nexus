@@ -993,6 +993,26 @@
       "dependencies": [
         "v0-sprint-134-surface-friend-pairing-companion-snapshot-template"
       ]
+    },
+    {
+      "id": "v0-sprint-136-surface-friend-pairing-guide-status-contract",
+      "title": "Surface friend pairing guide status contract",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / user-approved SNC friend request and acceptance workflow",
+      "goal": "Expose the manual SNC friend-pairing guide as a stable tray status JSON field for release-companion consumption, without enabling automatic sync or transport trust.",
+      "acceptance": [
+        "snc_tray_status.json exposes friend_pairing_guide_text alongside friend_pairing_command_template.",
+        "The guide text includes request, acceptance, import, and auto-sync-disabled safety guidance.",
+        "The smoke test verifies the stable status JSON guide field."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-135-surface-friend-pairing-ui-guidance"
+      ]
     }
   ]
 }

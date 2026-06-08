@@ -1141,6 +1141,12 @@ std::string buildFriendPairingCommandTemplateUtf8()
     return command;
 }
 
+std::string buildFriendPairingGuideTextUtf8()
+{
+    return "SNC friend pairing guide: 1) create request; 2) friend verifies fingerprint and creates acceptance; "
+           "3) import acceptance into local trust store. Auto-sync stays disabled until signed/encrypted transport is active.";
+}
+
 std::wstring buildFriendPairingGuideText(const StatusDashboardData& data)
 {
     std::wstring guide;
@@ -4365,8 +4371,7 @@ void writeNextStepsBrief(
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
         brief << "- MP recovery: " << mpOverlayPackage.handoffRecoveryHint << "\n";
     }
-    brief << "- SNC friend pairing guide: "
-          << "1) create request; 2) friend verifies fingerprint and creates acceptance; 3) import acceptance into local trust store.\n";
+    brief << "- " << buildFriendPairingGuideTextUtf8() << "\n";
     brief << "- SNC friend pairing auto-sync: vypnuto, dokud neni hotovy signed/encrypted transport.\n";
     brief << "- SNC friend pairing command template: "
           << buildFriendPairingCommandTemplateUtf8() << "\n";
@@ -4831,6 +4836,8 @@ void writeStatus(
          << (companionSnapshot.friendTrustStore.autoSyncAvailable ? "true" : "false") << ",\n";
     json << "  \"friend_pairing_command_template\": \""
          << jsonEscape(buildFriendPairingCommandTemplateUtf8()) << "\",\n";
+    json << "  \"friend_pairing_guide_text\": \""
+         << jsonEscape(buildFriendPairingGuideTextUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
     json << "  \"session_id\": \"" << jsonEscape(sessionId) << "\",\n";
     json << "  \"capture_session_directory\": \"" << jsonEscape(pathString(sessionDirectory)) << "\",\n";
