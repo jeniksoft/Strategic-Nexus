@@ -41,6 +41,8 @@ struct CompanionStatusConfig {
     std::filesystem::path mpOverlayPackageZipPath;
     std::filesystem::path localLlmModelStatePath =
         "dist/private_reports/snc_local_model_state.json";
+    std::filesystem::path friendTrustStorePath =
+        "dist/private_reports/snc_friend_trust_store.json";
     std::filesystem::path startWithWindowsShortcutPath;
     std::filesystem::path supportReportPreviewPath =
         "dist/private_reports/snc_support_report_preview.txt";
@@ -298,6 +300,17 @@ struct CompanionLocalLlmStatus {
     bool downloadAllowed = false;
 };
 
+struct CompanionFriendTrustStoreStatus {
+    std::string state = "not_configured";
+    std::string reason = "friend trust store not present; automatic friend sync disabled";
+    std::filesystem::path path;
+    std::size_t trustedFriendCount = 0;
+    std::size_t revokedFriendCount = 0;
+    std::size_t blockedFriendCount = 0;
+    std::size_t autoSyncEnabledCount = 0;
+    bool autoSyncAvailable = false;
+};
+
 struct CompanionStatusSnapshot {
     std::string appName = "Strategic Nexus Companion";
     std::string abbreviation = "SNC";
@@ -313,6 +326,7 @@ struct CompanionStatusSnapshot {
     CompanionPostPlayPipelineStatus postPlayPipeline;
     CompanionSubsystemStatus gameplayAcceptance;
     CompanionLocalLlmStatus localLlm;
+    CompanionFriendTrustStoreStatus friendTrustStore;
     CompanionSubsystemStatus statusCenter;
     std::string nextAction;
     std::string nextActionReason;

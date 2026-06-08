@@ -2032,6 +2032,22 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_gameplay_acceptance_state=" << sanitizeCliValue(snapshot.gameplayAcceptance.state) << "\n";
             std::cout << "snc_gameplay_acceptance_reason=" << sanitizeCliValue(snapshot.gameplayAcceptance.reason) << "\n";
             std::cout << "snc_gameplay_acceptance_path=" << sanitizeCliValue(stdoutPath(snapshot.gameplayAcceptance.path)) << "\n";
+            std::cout << "snc_friend_trust_store_state="
+                      << sanitizeCliValue(snapshot.friendTrustStore.state) << "\n";
+            std::cout << "snc_friend_trust_store_reason="
+                      << sanitizeCliValue(snapshot.friendTrustStore.reason) << "\n";
+            std::cout << "snc_friend_trust_store_path="
+                      << sanitizeCliValue(stdoutPath(snapshot.friendTrustStore.path)) << "\n";
+            std::cout << "snc_friend_trust_store_trusted_count="
+                      << snapshot.friendTrustStore.trustedFriendCount << "\n";
+            std::cout << "snc_friend_trust_store_revoked_count="
+                      << snapshot.friendTrustStore.revokedFriendCount << "\n";
+            std::cout << "snc_friend_trust_store_blocked_count="
+                      << snapshot.friendTrustStore.blockedFriendCount << "\n";
+            std::cout << "snc_friend_trust_store_auto_sync_enabled_count="
+                      << snapshot.friendTrustStore.autoSyncEnabledCount << "\n";
+            std::cout << "snc_friend_trust_store_auto_sync_available="
+                      << (snapshot.friendTrustStore.autoSyncAvailable ? "true" : "false") << "\n";
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";
             std::cout << "snc_status_center_reason=" << sanitizeCliValue(snapshot.statusCenter.reason) << "\n";
             std::cout << "snc_status_center_path=" << sanitizeCliValue(stdoutPath(snapshot.statusCenter.path)) << "\n";

@@ -72,6 +72,7 @@ $sourceFiles = @(
     (Join-Path $repoRoot "src\SncCandidateDecisionPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\SncDecisionInputPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\SncDslDraftPackageBuilder.cpp"),
+    (Join-Path $repoRoot "src\SncFriendPackage.cpp"),
     (Join-Path $repoRoot "src\LocalLlmModelManager.cpp"),
     (Join-Path $repoRoot "src\SncPostPlayArtifactBackfiller.cpp"),
     (Join-Path $repoRoot "src\StrategicNexusCompanion.cpp"),

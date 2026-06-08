@@ -9,6 +9,7 @@
 #include "generated_overlay/ManifestVerifier.h"
 #include "generated_overlay/MpOverlayPackage.h"
 #include "LocalLlmModelManager.h"
+#include "SncFriendPackage.h"
 #include "StellarisProcessDetector.h"
 #include "StellarisSavePathResolver.h"
 
@@ -2116,7 +2117,8 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionPostPlayPipelineStatus& postPlayPipeline,
     const CompanionSubsystemStatus& gameplayAcceptance,
     const CompanionCrashRecoveryStatus& crashRecovery,
-    const CompanionLocalLlmStatus& localLlm)
+    const CompanionLocalLlmStatus& localLlm,
+    const CompanionFriendTrustStoreStatus& friendTrustStore)
 {
     CompanionSubsystemStatus status;
     status.state = "ready";
@@ -2132,6 +2134,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const bool postPlayNeedsAttention = postPlayPipeline.state == "needs_attention";
     const bool memoryRecoveryNeedsAttention = postPlayPipeline.memoryRecovery.warningVisible;
     const bool gameplayAcceptanceNeedsAttention = gameplayAcceptance.state == "needs_attention";
+    const bool friendTrustStoreNeedsAttention = friendTrustStore.state == "needs_attention";
     const bool recoveryNeedsAttention = crashRecoveryNeedsAttention(crashRecovery);
     const bool localLlmNeedsAttention =
         localLlm.state == "model_incompatible_with_hardware"
@@ -2142,7 +2145,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
 
     if (archiveNeedsAttention || overlayNeedsAttention || publishGateNeedsAttention || mpNeedsAttention ||
         postPlayNeedsAttention || memoryRecoveryNeedsAttention || gameplayAcceptanceNeedsAttention ||
-        recoveryNeedsAttention || localLlmNeedsAttention) {
+        friendTrustStoreNeedsAttention || recoveryNeedsAttention || localLlmNeedsAttention) {
         status.state = "attention_required";
         if (archiveNeedsAttention && overlayNeedsAttention && publishGateNeedsAttention && mpNeedsAttention) {
             status.reason = "archive, generated overlay, publish gate, and mp overlay package need attention";
@@ -2223,6 +2226,11 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         if (gameplayAcceptanceNeedsAttention) {
             status.reason = "gameplay acceptance needs attention";
             status.path = gameplayAcceptance.path;
+            return status;
+        }
+        if (friendTrustStoreNeedsAttention) {
+            status.reason = "friend trust store needs attention";
+            status.path = friendTrustStore.path;
             return status;
         }
         if (recoveryNeedsAttention) {
@@ -2323,6 +2331,61 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     return status;
 }
 
+CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatusConfig& config)
+{
+    CompanionFriendTrustStoreStatus status;
+    status.path = config.friendTrustStorePath;
+    if (status.path.empty()) {
+        status.reason = "friend trust store path not configured; automatic friend sync disabled";
+        return status;
+    }
+
+    std::string json;
+    std::error_code error;
+    if (!std::filesystem::exists(status.path, error) || error) {
+        status.reason = "friend trust store not present; automatic friend sync disabled";
+        return status;
+    }
+    if (!std::filesystem::is_regular_file(status.path, error) || error) {
+        status.state = "needs_attention";
+        status.reason = "friend trust store path is not a file";
+        return status;
+    }
+    if (!common::tryReadTextFile(status.path, json)) {
+        status.state = "needs_attention";
+        status.reason = "friend trust store path is not readable";
+        return status;
+    }
+
+    const auto store = parseSncFriendTrustStoreJson(json);
+    if (!store.ok) {
+        status.state = "needs_attention";
+        status.reason = store.reason.empty()
+            ? "friend trust store failed validation"
+            : store.reason;
+        return status;
+    }
+
+    for (const auto& friendEntry : store.friends) {
+        if (friendEntry.trustState == "trusted") {
+            ++status.trustedFriendCount;
+            if (friendEntry.autoSyncEnabled) {
+                ++status.autoSyncEnabledCount;
+            }
+        } else if (friendEntry.trustState == "revoked") {
+            ++status.revokedFriendCount;
+        } else if (friendEntry.trustState == "blocked") {
+            ++status.blockedFriendCount;
+        }
+    }
+    status.autoSyncAvailable = status.autoSyncEnabledCount > 0;
+    status.state = status.autoSyncAvailable ? "ready" : "ready_disabled";
+    status.reason = status.autoSyncAvailable
+        ? "trusted friends available for future explicit package sync"
+        : "friend trust store parsed; no trusted friend has auto-sync enabled";
+    return status;
+}
+
 std::string buildStatusCenterSummaryText(
     const std::string& generatedAtLocal,
     const CompanionLifecycleStatus& lifecycle,
@@ -2336,6 +2399,7 @@ std::string buildStatusCenterSummaryText(
     const CompanionPostPlayPipelineStatus& postPlayPipeline,
     const CompanionSubsystemStatus& gameplayAcceptance,
     const CompanionLocalLlmStatus& localLlm,
+    const CompanionFriendTrustStoreStatus& friendTrustStore,
     const CompanionSubsystemStatus& statusCenter,
     const std::string& nextAction,
     const std::string& nextActionReason,
@@ -2805,6 +2869,21 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.prepareCommandHint.empty()) {
         text << "local_llm_prepare_command_hint: " << localLlm.prepareCommandHint << "\n";
     }
+    text << "friend_trust_store: " << friendTrustStore.state << " - "
+         << friendTrustStore.reason << "\n";
+    if (!friendTrustStore.path.empty()) {
+        text << "friend_trust_store_path: " << pathString(friendTrustStore.path) << "\n";
+    }
+    text << "friend_trust_store_trusted_count: "
+         << friendTrustStore.trustedFriendCount << "\n";
+    text << "friend_trust_store_revoked_count: "
+         << friendTrustStore.revokedFriendCount << "\n";
+    text << "friend_trust_store_blocked_count: "
+         << friendTrustStore.blockedFriendCount << "\n";
+    text << "friend_trust_store_auto_sync_enabled_count: "
+         << friendTrustStore.autoSyncEnabledCount << "\n";
+    text << "friend_trust_store_auto_sync_available: "
+         << (friendTrustStore.autoSyncAvailable ? "true" : "false") << "\n";
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
@@ -3120,6 +3199,24 @@ void writeLocalLlmJson(
     output << indent << "}";
 }
 
+void writeFriendTrustStoreJson(
+    std::ostringstream& output,
+    const CompanionFriendTrustStoreStatus& status,
+    const std::string& indent)
+{
+    output << indent << "{\n";
+    output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
+    output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
+    output << indent << "  \"path\": " << jsonString(pathString(status.path)) << ",\n";
+    output << indent << "  \"trusted_friend_count\": " << status.trustedFriendCount << ",\n";
+    output << indent << "  \"revoked_friend_count\": " << status.revokedFriendCount << ",\n";
+    output << indent << "  \"blocked_friend_count\": " << status.blockedFriendCount << ",\n";
+    output << indent << "  \"auto_sync_enabled_count\": " << status.autoSyncEnabledCount << ",\n";
+    output << indent << "  \"auto_sync_available\": "
+           << (status.autoSyncAvailable ? "true" : "false") << "\n";
+    output << indent << "}";
+}
+
 void writeCrashRecoveryJson(
     std::ostringstream& output,
     const CompanionCrashRecoveryStatus& status,
@@ -3403,6 +3500,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.postPlayPipeline = buildPostPlayPipelineStatus(config);
     snapshot.gameplayAcceptance = buildGameplayAcceptanceStatus(config.gameplayAcceptanceReportPath);
     snapshot.localLlm = buildLocalLlmStatus(config);
+    snapshot.friendTrustStore = buildFriendTrustStoreStatus(config);
     snapshot.statusCenter =
         buildStatusCenterStatus(
             snapshot.saveDiscovery,
@@ -3413,7 +3511,8 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
             snapshot.postPlayPipeline,
             snapshot.gameplayAcceptance,
             snapshot.crashRecovery,
-            snapshot.localLlm);
+            snapshot.localLlm,
+            snapshot.friendTrustStore);
     snapshot.nextAction = buildCompanionNextAction(snapshot);
     snapshot.nextActionReason = buildCompanionNextActionReason(snapshot);
     snapshot.nextActionCommandHint = buildCompanionNextActionCommandHint(snapshot);
@@ -3433,6 +3532,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
         snapshot.postPlayPipeline,
         snapshot.gameplayAcceptance,
         snapshot.localLlm,
+        snapshot.friendTrustStore,
         snapshot.statusCenter,
         snapshot.nextAction,
         snapshot.nextActionReason,
@@ -3575,6 +3675,9 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << ",\n";
     output << "  \"local_llm_model_status\": ";
     writeLocalLlmJson(output, snapshot.localLlm, "  ");
+    output << ",\n";
+    output << "  \"friend_trust_store_status\": ";
+    writeFriendTrustStoreJson(output, snapshot.friendTrustStore, "  ");
     output << ",\n";
     output << "  \"crash_recovery\": ";
     writeCrashRecoveryJson(output, snapshot.crashRecovery, "  ");

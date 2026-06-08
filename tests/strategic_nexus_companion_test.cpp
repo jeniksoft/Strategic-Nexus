@@ -4,6 +4,7 @@
 #include "StrategicNexusCompanion.h"
 #include "LocalLlmModelManager.h"
 #include "LocalLlmRuntimeAdapter.h"
+#include "SncFriendPackage.h"
 
 #include "common/FileUtil.h"
 #include "generated_overlay/ManifestVerifier.h"
@@ -47,6 +48,21 @@ std::size_t countSavFiles(const std::filesystem::path& path)
     return count;
 }
 
+strategic_nexus::SncFriendPackageIdentity makeFriendIdentity(
+    const std::string& nodeId,
+    const std::string& displayName,
+    const std::string& fingerprint)
+{
+    strategic_nexus::SncFriendPackageIdentity identity;
+    identity.nodeId = nodeId;
+    identity.displayName = displayName;
+    identity.signingPublicKey = "ed25519:" + nodeId + "-signing-public-key";
+    identity.encryptionPublicKey = "x25519:" + nodeId + "-encryption-public-key";
+    identity.fingerprint = fingerprint;
+    identity.capabilities = { "mp_package_sync", "handoff_sync" };
+    return identity;
+}
+
 } // namespace
 
 int main()
@@ -70,6 +86,8 @@ int main()
     const auto missingGameplayAcceptanceReport = root / "missing_gameplay_acceptance_v0.json";
     const auto readyGameplayAcceptanceReport = root / "generated_overlay_gameplay_acceptance_v0.json";
     const auto crashRecoveryStatePath = root / "snc_crash_recovery_state.json";
+    const auto friendTrustStorePath = root / "snc_friend_trust_store.json";
+    const auto brokenFriendTrustStorePath = root / "snc_friend_trust_store_broken.json";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
     std::filesystem::create_directories(overlayRoot);
@@ -364,6 +382,45 @@ int main()
         "    { \"case_id\": \"case_f_manifest_drift_before_publish\", \"result\": \"pass\" }\n"
         "  ]\n"
         "}\n");
+    {
+        strategic_nexus::SncFriendTrustStore store;
+        store.ok = true;
+
+        strategic_nexus::SncTrustedFriend trustedFriend;
+        trustedFriend.identity = makeFriendIdentity("snc-node-client-001", "Client SNC", "fp-client-001");
+        trustedFriend.localAlias = "Client";
+        trustedFriend.trustState = "trusted";
+        trustedFriend.autoSyncEnabled = true;
+        trustedFriend.acceptedAt = "2026-06-08T17:36:00Z";
+        trustedFriend.updatedAt = "2026-06-08T17:36:00Z";
+        store.friends.push_back(trustedFriend);
+
+        strategic_nexus::SncTrustedFriend revokedFriend;
+        revokedFriend.identity = makeFriendIdentity("snc-node-revoked-001", "Revoked SNC", "fp-revoked-001");
+        revokedFriend.localAlias = "Revoked";
+        revokedFriend.trustState = "revoked";
+        revokedFriend.autoSyncEnabled = false;
+        revokedFriend.acceptedAt = "2026-06-07T17:36:00Z";
+        revokedFriend.updatedAt = "2026-06-08T17:36:00Z";
+        store.friends.push_back(revokedFriend);
+
+        strategic_nexus::SncTrustedFriend blockedFriend;
+        blockedFriend.identity = makeFriendIdentity("snc-node-blocked-001", "Blocked SNC", "fp-blocked-001");
+        blockedFriend.localAlias = "Blocked";
+        blockedFriend.trustState = "blocked";
+        blockedFriend.autoSyncEnabled = false;
+        blockedFriend.acceptedAt = "2026-06-07T17:36:00Z";
+        blockedFriend.updatedAt = "2026-06-08T17:36:00Z";
+        store.friends.push_back(blockedFriend);
+
+        writeTextFileAtomically(friendTrustStorePath, strategic_nexus::serializeSncFriendTrustStore(store));
+    }
+    writeTextFileAtomically(
+        brokenFriendTrustStorePath,
+        "{\n"
+        "  \"schema_version\": 2,\n"
+        "  \"friends\": []\n"
+        "}\n");
 
     const strategic_nexus::StrategicNexusCompanion companion;
     strategic_nexus::CompanionStatusConfig readyConfig;
@@ -386,6 +443,7 @@ int main()
     readyConfig.startWithWindowsShortcutPath = root / "Strategic Nexus Companion.lnk";
     readyConfig.supportReportPreviewPath = root / "snc_support_report_preview.txt";
     readyConfig.crashRecoveryStatePath = crashRecoveryStatePath;
+    readyConfig.friendTrustStorePath = friendTrustStorePath;
     const auto ready = companion.buildStatusSnapshot(readyConfig);
 
     requireCondition(ready.appName == "Strategic Nexus Companion", "SNC app name should be stable");
@@ -455,6 +513,42 @@ int main()
     requireCondition(
         !ready.crashRecovery.supportReportRecommended,
         "crash recovery baseline should not recommend a support report");
+    requireCondition(
+        ready.friendTrustStore.state == "ready",
+        "valid friend trust store with auto-sync should be ready");
+    requireCondition(
+        ready.friendTrustStore.trustedFriendCount == 1,
+        "friend trust store should expose trusted friend count");
+    requireCondition(
+        ready.friendTrustStore.revokedFriendCount == 1,
+        "friend trust store should expose revoked friend count");
+    requireCondition(
+        ready.friendTrustStore.blockedFriendCount == 1,
+        "friend trust store should expose blocked friend count");
+    requireCondition(
+        ready.friendTrustStore.autoSyncEnabledCount == 1 && ready.friendTrustStore.autoSyncAvailable,
+        "friend trust store should expose auto-sync availability");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
+        "status center summary should expose friend trust store auto-sync count");
+    auto brokenFriendConfig = readyConfig;
+    brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
+    const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);
+    requireCondition(
+        brokenFriendTrustStore.friendTrustStore.state == "needs_attention",
+        "unsupported friend trust store schema should fail closed");
+    requireCondition(
+        brokenFriendTrustStore.friendTrustStore.reason == "unsupported friend trust store schema",
+        "unsupported friend trust store schema should expose parser reason");
+    requireCondition(
+        brokenFriendTrustStore.statusCenter.state == "attention_required",
+        "status center should surface invalid friend trust store");
+    requireCondition(
+        brokenFriendTrustStore.statusCenter.reason == "friend trust store needs attention",
+        "status center should attribute invalid friend trust store");
+    requireCondition(
+        brokenFriendTrustStore.statusCenter.path == brokenFriendTrustStorePath,
+        "status center should point to invalid friend trust store");
     requireCondition(ready.lifecycle.windowCloseBehavior == "minimize_to_tray", "window close should minimize to tray");
     requireCondition(ready.lifecycle.explicitExitBehavior == "stop_without_restart", "explicit exit should stop without restart");
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");

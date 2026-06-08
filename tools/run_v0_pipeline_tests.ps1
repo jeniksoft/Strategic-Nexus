@@ -343,6 +343,7 @@ $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "src/LocalLlmModelManager.cpp"),
     (Join-Path $repoRoot "src/LocalLlmRuntimeAdapter.cpp"),
     (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp"),
+    (Join-Path $repoRoot "src/SncFriendPackage.cpp"),
     (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),
     (Join-Path $repoRoot "src/StellarisProcessDetector.cpp"),
     (Join-Path $repoRoot "src/StellarisSavePathResolver.cpp"),
