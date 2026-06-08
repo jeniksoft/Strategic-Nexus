@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T06:27:00.0000000+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: verify the Status Center reactive capability and bootstrap source-quality signal stays explicit across companion JSON, tray text, and CLI output.",
+  "updated_at": "2026-06-08T07:45:00.0000000+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: surface the MP package status-window open action, then continue the remaining release-companion MP package UX polish.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the next bounded gap is the release-companion MP package UX verification slice from the host/client handoff roadmap path.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the next bounded gap is the release-companion MP package status-window open action from the host/client handoff roadmap path.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -276,7 +276,7 @@
     {
       "id": "v0-sprint-099-surface-mp-package-copy-and-tray-open-action",
       "title": "Surface MP package copy and tray open action",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "Release Companion MP Package UX / copyable handoff summary",
       "goal": "Make MP package handoff details directly usable from the companion status window and tray by copying the package path, zip, manifest hash, and host/client guidance, and by exposing a tray action that opens the MP package directory.",
@@ -293,7 +293,7 @@
     {
       "id": "v0-sprint-100-surface-entry-point-memory-recovery-signals",
       "title": "Surface entry-point memory recovery signals",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Daemon-Loss Memory Recovery",
       "goal": "Expose branch-aware memory recovery anchors and degraded-memory warnings in the real-session loop evidence so loadable save anchors are visible when autosave history is partial or missing.",
@@ -328,7 +328,7 @@
     {
       "id": "v0-sprint-102-surface-daemon-loss-memory-recovery-signals",
       "title": "Surface daemon-loss memory recovery signals",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "Branch-aware memory reconstruction / daemon-loss memory recovery",
       "goal": "Expose a fail-closed memory recovery anchor in the companion status surfaces so the owner can see when SNC is falling back to the latest loadable save because autosave history is partial or missing.",
@@ -367,7 +367,7 @@
     {
       "id": "v0-sprint-104-verify-local-llm-model-manager-surface-contract",
       "title": "Verify local LLM model manager surface contract",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Local LLM Model Manager / reduced mode and model readiness visibility",
       "goal": "Verify that SNC status and tray surfaces keep local LLM reduced mode, accepted model readiness, and explicit prepare command guidance visible and fail closed.",
@@ -379,6 +379,24 @@
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-105-surface-mp-package-status-window-open-action",
+      "title": "Surface MP package status-window open action",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / status-window open-directory affordance",
+      "goal": "Add a direct status-window action that opens the MP overlay package directory so host users can reach the handoff package without leaving the companion window.",
+      "acceptance": [
+        "The companion status window includes a visible MP package open action/button.",
+        "The action creates the package directory if needed and opens it safely instead of failing on a missing directory.",
+        "The rest of the MP copy/share text remains unchanged and fail closed."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1",
+        "tools/smoke_snc_tray.ps1"
       ],
       "dependencies": []
     }

@@ -69,11 +69,12 @@ constexpr UINT ID_STATUS_REFRESH = 201;
 constexpr UINT ID_STATUS_COPY = 202;
 constexpr UINT ID_STATUS_OPEN_ARCHIVE = 203;
 constexpr UINT ID_STATUS_OPEN_BRIEF = 204;
-constexpr UINT ID_STATUS_CLOSE = 205;
-constexpr UINT ID_STATUS_MAXIMIZE = 206;
-constexpr UINT ID_STATUS_MINIMIZE = 207;
-constexpr UINT ID_STATUS_TOGGLE_STARTUP = 208;
-constexpr UINT ID_STATUS_SUPPORT_REPORT = 209;
+constexpr UINT ID_STATUS_OPEN_MP_PACKAGE = 205;
+constexpr UINT ID_STATUS_CLOSE = 206;
+constexpr UINT ID_STATUS_MAXIMIZE = 207;
+constexpr UINT ID_STATUS_MINIMIZE = 208;
+constexpr UINT ID_STATUS_TOGGLE_STARTUP = 209;
+constexpr UINT ID_STATUS_SUPPORT_REPORT = 210;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -201,6 +202,7 @@ HWND g_statusRefreshButton = nullptr;
 HWND g_statusCopyButton = nullptr;
 HWND g_statusOpenArchiveButton = nullptr;
 HWND g_statusOpenBriefButton = nullptr;
+HWND g_statusOpenMpPackageButton = nullptr;
 HWND g_statusSupportReportButton = nullptr;
 HWND g_statusToggleStartupButton = nullptr;
 HWND g_statusCloseButton = nullptr;
@@ -294,6 +296,7 @@ void scrollStatusTargetByLines(StatusScrollTargetKind kind, std::size_t fieldInd
 void scrollStatusTargetByPage(StatusScrollTargetKind kind, std::size_t fieldIndex, bool forward);
 void dragStatusScrollbarThumb(HWND hwnd, POINT point);
 void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
+void openMpOverlayPackageDirectory();
 void updateTrayTip(HWND hwnd, const std::wstring& text);
 void updateStatusCaptionButtons(HWND hwnd);
 bool copyTextToClipboard(HWND hwnd, const std::wstring& text);
@@ -1436,6 +1439,9 @@ void refreshStatusWindowContent()
     if (g_statusOpenBriefButton != nullptr) {
         EnableWindow(g_statusOpenBriefButton, briefAvailable);
     }
+    if (g_statusOpenMpPackageButton != nullptr) {
+        EnableWindow(g_statusOpenMpPackageButton, g_mpOverlayPackageDirectory.empty() ? FALSE : TRUE);
+    }
     if (g_statusCloseButton != nullptr) {
         EnableWindow(g_statusCloseButton, TRUE);
     }
@@ -1506,7 +1512,7 @@ void layoutStatusWindow(HWND hwnd)
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     int buttonWidth = 116;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 6;
+    constexpr int actionButtonCount = 7;
     const int requiredButtonWidth =
         (buttonWidth * actionButtonCount) + (buttonGap * (actionButtonCount - 1));
     if (requiredButtonWidth > availableWidth) {
@@ -1593,6 +1599,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusCopyButton,
         g_statusOpenArchiveButton,
         g_statusOpenBriefButton,
+        g_statusOpenMpPackageButton,
         g_statusSupportReportButton,
         g_statusToggleStartupButton
     };
@@ -1601,6 +1608,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Kop\u00EDrovat",
         L"Archiv",
         L"Souhrn",
+        L"MP balicek",
         supportReportButtonLabel,
         startupButtonLabel
     };
@@ -1739,6 +1747,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kop\u00EDrovat");
         g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
         g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
+        g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, L"MP balicek");
         g_statusSupportReportButton = createStatusButton(hwnd, ID_STATUS_SUPPORT_REPORT, L"Report");
         g_statusToggleStartupButton = createStatusButton(hwnd, ID_STATUS_TOGGLE_STARTUP, L"Start");
         g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"X");
@@ -1777,6 +1786,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusCopyButton, g_statusFieldFont);
         setWindowFont(g_statusOpenArchiveButton, g_statusFieldFont);
         setWindowFont(g_statusOpenBriefButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusSupportReportButton, g_statusFieldFont);
         setWindowFont(g_statusToggleStartupButton, g_statusFieldFont);
         setWindowFont(g_statusCloseButton, g_statusFieldFont);
@@ -1810,6 +1820,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_BRIEF:
             openPathWithShell(hwnd, g_nextStepsBriefPath);
+            return 0;
+        case ID_STATUS_OPEN_MP_PACKAGE:
+            openMpOverlayPackageDirectory();
             return 0;
         case ID_STATUS_SUPPORT_REPORT:
             prepareOrOpenSupportReport(hwnd);
@@ -2027,6 +2040,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyButton = nullptr;
         g_statusOpenArchiveButton = nullptr;
         g_statusOpenBriefButton = nullptr;
+        g_statusOpenMpPackageButton = nullptr;
         g_statusSupportReportButton = nullptr;
         g_statusToggleStartupButton = nullptr;
         g_statusCloseButton = nullptr;
@@ -4935,9 +4949,18 @@ void openArchiveDirectory()
 
 void openMpOverlayPackageDirectory()
 {
+    if (g_mpOverlayPackageDirectory.empty()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
     std::error_code error;
     std::filesystem::create_directories(g_mpOverlayPackageDirectory, error);
-    ShellExecuteW(nullptr, L"open", g_mpOverlayPackageDirectory.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    const HINSTANCE result =
+        ShellExecuteW(nullptr, L"open", g_mpOverlayPackageDirectory.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    if (reinterpret_cast<INT_PTR>(result) <= 32) {
+        MessageBeep(MB_ICONWARNING);
+    }
 }
 
 void publishStagedGeneratedOverlay(HWND hwnd)
