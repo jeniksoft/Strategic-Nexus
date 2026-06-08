@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T23:06:00+02:00",
+  "updated_at": "2026-06-08T23:07:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, and visible apply-gate template input are implemented and fail-closed; release-grade companion UI still needs actual signed/encrypted transport and real season validation.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, and fail-closed inbox/staging plan gate are implemented; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -1136,6 +1136,26 @@
       ],
       "dependencies": [
         "v0-sprint-141-add-friend-mp-sync-envelope-apply-gate"
+      ]
+    },
+    {
+      "id": "v0-sprint-143-add-friend-mp-sync-inbox-plan-gate",
+      "title": "Add friend MP sync inbox plan gate",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / signed and encrypted package sync guarded staging contract",
+      "goal": "Add a fail-closed local inbox/staging plan for received SNC friend MP sync envelopes so release-companion code can reason about encrypted payload presence, running-game safety, and auto-sync policy before any transport, decryption, or package staging exists.",
+      "acceptance": [
+        "A valid envelope plus encrypted payload path still reports package_staging_allowed=false and automatic_download_enabled=false until signed/encrypted transport and decrypt/verify staging exist.",
+        "Invalid envelopes, missing encrypted payloads, running Stellaris, and disabled friend auto-sync each produce explicit fail-closed states.",
+        "The CLI prints stable key=value fields for release-companion consumption without writing or staging gameplay-affecting files."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-142-surface-friend-mp-sync-apply-gate-template"
       ]
     }
   ]

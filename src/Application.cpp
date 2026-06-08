@@ -585,6 +585,24 @@ RunConfig parseRunConfig(int argc, char* argv[])
         return config;
     }
 
+    if (argc > 1 && std::string(argv[1]) == "--plan-snc-friend-mp-sync-inbox") {
+        config.planSncFriendMpSyncInboxMode = true;
+
+        if (argc > 2) {
+            config.sncFriendMpSyncEnvelopeInputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncFriendMpSyncEncryptedPayloadInputPath = argv[3];
+        }
+        if (argc > 4) {
+            config.sncFriendMpSyncEnvelopeStellarisRunning = std::string(argv[4]) == "true";
+        }
+        if (argc > 5) {
+            config.sncFriendMpSyncAutoSyncEnabled = std::string(argv[5]) == "true";
+        }
+        return config;
+    }
+
     if (argc > 1 && std::string(argv[1]) == "--snc-status-snapshot") {
         config.sncStatusSnapshotMode = true;
 
@@ -2198,6 +2216,60 @@ int Application::run(const RunConfig& config) const
                           << envelope.encryptedPayloadBytes << "\n";
             }
             return envelope.ok ? 0 : 1;
+        }
+
+        if (config.planSncFriendMpSyncInboxMode) {
+            if (config.sncFriendMpSyncEnvelopeInputPath.empty() ||
+                config.sncFriendMpSyncEncryptedPayloadInputPath.empty()) {
+                std::cout << "snc_friend_mp_sync_inbox_plan_success=false\n";
+                std::cout << "snc_friend_mp_sync_inbox_plan_reason=missing envelope input path or encrypted payload path\n";
+                return 1;
+            }
+
+            std::string envelopeJson;
+            if (!common::tryReadTextFile(config.sncFriendMpSyncEnvelopeInputPath, envelopeJson)) {
+                std::cout << "snc_friend_mp_sync_inbox_plan_success=false\n";
+                std::cout << "snc_friend_mp_sync_inbox_plan_reason=failed to read friend mp sync envelope\n";
+                return 1;
+            }
+
+            const auto envelope = parseSncFriendMpSyncEnvelopePackageJson(envelopeJson);
+            const bool encryptedPayloadPresent =
+                std::filesystem::is_regular_file(config.sncFriendMpSyncEncryptedPayloadInputPath);
+            const auto inboxPlan = planSncFriendMpSyncInboxStaging(
+                envelope,
+                encryptedPayloadPresent,
+                config.sncFriendMpSyncEnvelopeStellarisRunning,
+                config.sncFriendMpSyncAutoSyncEnabled);
+            const bool success = envelope.ok;
+            std::cout << "snc_friend_mp_sync_inbox_plan_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_inbox_plan_reason="
+                      << sanitizeCliValue(inboxPlan.reason) << "\n";
+            std::cout << "snc_friend_mp_sync_inbox_plan_state="
+                      << sanitizeCliValue(inboxPlan.state) << "\n";
+            std::cout << "snc_friend_mp_sync_inbox_plan_encrypted_payload_present="
+                      << (encryptedPayloadPresent ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_inbox_plan_stellaris_running="
+                      << (config.sncFriendMpSyncEnvelopeStellarisRunning ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_inbox_plan_friend_auto_sync_enabled="
+                      << (config.sncFriendMpSyncAutoSyncEnabled ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_inbox_plan_automatic_download_enabled="
+                      << (inboxPlan.automaticDownloadEnabled ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_inbox_plan_package_staging_allowed="
+                      << (inboxPlan.packageStagingAllowed ? "true" : "false") << "\n";
+            if (envelope.ok) {
+                std::cout << "snc_friend_mp_sync_inbox_plan_sender_node_id="
+                          << sanitizeCliValue(envelope.sender.nodeId) << "\n";
+                std::cout << "snc_friend_mp_sync_inbox_plan_recipient_node_id="
+                          << sanitizeCliValue(envelope.recipient.nodeId) << "\n";
+                std::cout << "snc_friend_mp_sync_inbox_plan_campaign_id="
+                          << sanitizeCliValue(envelope.campaignId) << "\n";
+                std::cout << "snc_friend_mp_sync_inbox_plan_package_manifest_hash="
+                          << sanitizeCliValue(envelope.packageManifestHash) << "\n";
+                std::cout << "snc_friend_mp_sync_inbox_plan_encrypted_payload_hash="
+                          << sanitizeCliValue(envelope.encryptedPayloadHash) << "\n";
+            }
+            return success ? 0 : 1;
         }
 
         if (config.sncStatusSnapshotMode) {

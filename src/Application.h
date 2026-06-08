@@ -55,6 +55,7 @@ struct RunConfig {
     bool importSncFriendAcceptanceMode = false;
     bool createSncFriendMpSyncEnvelopeMode = false;
     bool verifySncFriendMpSyncEnvelopeMode = false;
+    bool planSncFriendMpSyncInboxMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -153,6 +154,7 @@ struct RunConfig {
     std::filesystem::path sncFriendTrustStoreOutputPath;
     std::filesystem::path sncFriendMpSyncEnvelopeOutputPath;
     std::filesystem::path sncFriendMpSyncEnvelopeInputPath;
+    std::filesystem::path sncFriendMpSyncEncryptedPayloadInputPath;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;
@@ -204,6 +206,7 @@ struct RunConfig {
     bool sncGeneratedOverlayPublishStellarisRunning = false;
     bool sncGeneratedOverlayPublishUseDetectedStellarisState = true;
     bool sncFriendMpSyncEnvelopeStellarisRunning = false;
+    bool sncFriendMpSyncAutoSyncEnabled = false;
     bool localLlmPrepareUserLicenseAccepted = false;
     bool localLlmPrepareAllowDownload = false;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;

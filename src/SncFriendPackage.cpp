@@ -612,6 +612,42 @@ SncFriendMpSyncApplyGateResult evaluateSncFriendMpSyncApplyGate(
     return result;
 }
 
+SncFriendMpSyncInboxPlanResult planSncFriendMpSyncInboxStaging(
+    const SncFriendMpSyncEnvelopePackage& package,
+    const bool encryptedPayloadPresent,
+    const bool stellarisRunning,
+    const bool friendAutoSyncEnabled)
+{
+    SncFriendMpSyncInboxPlanResult result;
+    if (!package.ok) {
+        result.state = "invalid_envelope";
+        result.reason = package.reason.empty()
+            ? "friend mp sync envelope is invalid"
+            : package.reason;
+        return result;
+    }
+    if (stellarisRunning) {
+        result.state = "blocked_stellaris_running";
+        result.reason = "Stellaris is running; friend MP package inbox staging is deferred";
+        return result;
+    }
+    if (!encryptedPayloadPresent) {
+        result.state = "waiting_for_encrypted_payload";
+        result.reason = "friend MP sync envelope is valid but the encrypted payload is not present";
+        return result;
+    }
+    if (!friendAutoSyncEnabled) {
+        result.state = "waiting_for_owner_approval";
+        result.reason = "friend auto-sync is disabled; package remains manual review only";
+        return result;
+    }
+
+    result.state = "metadata_verified_transport_not_implemented";
+    result.reason =
+        "friend MP sync metadata and payload presence verified; signed/encrypted transport, decryption, and staging remain disabled";
+    return result;
+}
+
 std::string serializeSncFriendRequestPackage(const SncFriendRequestPackage& package)
 {
     std::ostringstream json;

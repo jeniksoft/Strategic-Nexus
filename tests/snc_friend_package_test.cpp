@@ -190,6 +190,42 @@ int main()
     requireCondition(
         !runningSyncApplyGate.applyAllowed && runningSyncApplyGate.state == "blocked_stellaris_running",
         "friend mp sync envelope apply gate should block while Stellaris is running");
+    const auto inboxPlanWithPayload = strategic_nexus::planSncFriendMpSyncInboxStaging(
+        parsedSyncEnvelope,
+        true,
+        false,
+        true);
+    requireCondition(
+        !inboxPlanWithPayload.packageStagingAllowed &&
+            !inboxPlanWithPayload.automaticDownloadEnabled &&
+            inboxPlanWithPayload.state == "metadata_verified_transport_not_implemented",
+        "friend mp sync inbox plan should not stage even when metadata and payload are present");
+    const auto missingPayloadInboxPlan = strategic_nexus::planSncFriendMpSyncInboxStaging(
+        parsedSyncEnvelope,
+        false,
+        false,
+        true);
+    requireCondition(
+        !missingPayloadInboxPlan.packageStagingAllowed &&
+            missingPayloadInboxPlan.state == "waiting_for_encrypted_payload",
+        "friend mp sync inbox plan should wait for missing encrypted payload");
+    const auto disabledAutoSyncInboxPlan = strategic_nexus::planSncFriendMpSyncInboxStaging(
+        parsedSyncEnvelope,
+        true,
+        false,
+        false);
+    requireCondition(
+        !disabledAutoSyncInboxPlan.packageStagingAllowed &&
+            disabledAutoSyncInboxPlan.state == "waiting_for_owner_approval",
+        "friend mp sync inbox plan should require owner approval when friend auto-sync is disabled");
+    const auto runningInboxPlan = strategic_nexus::planSncFriendMpSyncInboxStaging(
+        parsedSyncEnvelope,
+        true,
+        true,
+        true);
+    requireCondition(
+        !runningInboxPlan.packageStagingAllowed && runningInboxPlan.state == "blocked_stellaris_running",
+        "friend mp sync inbox plan should block while Stellaris is running");
 
     auto futureSyncEnvelopeJson = syncEnvelopeJson;
     const auto syncSchemaMarker = futureSyncEnvelopeJson.find("\"schema_version\": 1");
@@ -207,6 +243,14 @@ int main()
     requireCondition(
         !invalidSyncApplyGate.applyAllowed && invalidSyncApplyGate.state == "invalid_envelope",
         "invalid friend mp sync envelope should not pass the apply gate");
+    const auto invalidInboxPlan = strategic_nexus::planSncFriendMpSyncInboxStaging(
+        futureSyncEnvelope,
+        true,
+        false,
+        true);
+    requireCondition(
+        !invalidInboxPlan.packageStagingAllowed && invalidInboxPlan.state == "invalid_envelope",
+        "invalid friend mp sync envelope should not pass the inbox plan gate");
 
     auto unsupportedEncryptionEnvelopeJson = syncEnvelopeJson;
     const auto encryptionMarker = unsupportedEncryptionEnvelopeJson.find("x25519-xsalsa20-poly1305");
