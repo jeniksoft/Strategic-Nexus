@@ -1826,7 +1826,7 @@ void layoutStatusWindow(HWND hwnd)
         L"MP import",
         L"MP strict verify",
         L"MP strict import",
-        L"LLM priprava",
+        L"LLM p\u0159\u00EDprava",
         supportReportButtonLabel,
         startupButtonLabel
     };
@@ -1971,7 +1971,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyMpImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_IMPORT, L"MP import");
         g_statusCopyMpStrictVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_VERIFY, L"MP strict verify");
         g_statusCopyMpStrictImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_IMPORT, L"MP strict import");
-        g_statusCopyLlmPrepareButton = createStatusButton(hwnd, ID_STATUS_COPY_LLM_PREPARE, L"LLM priprava");
+        g_statusCopyLlmPrepareButton = createStatusButton(hwnd, ID_STATUS_COPY_LLM_PREPARE, L"LLM p\u0159\u00EDprava");
         g_statusSupportReportButton = createStatusButton(hwnd, ID_STATUS_SUPPORT_REPORT, L"Report");
         g_statusToggleStartupButton = createStatusButton(hwnd, ID_STATUS_TOGGLE_STARTUP, L"Start");
         g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"X");
