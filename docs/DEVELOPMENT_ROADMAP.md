@@ -2069,7 +2069,7 @@ Required:
 * no IP-address workflow dependency
 
 Current progress:
-Command/status surfaces exist, and the companion copy payload plus tray menu and status window now expose MP package handoff details plus direct open-directory actions. The visible status dashboard now also exposes quick-copy MP verify/import actions for the current package commands. `docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md` now records the exact owner-facing real-season validation checklist and the evidence artifacts to inspect after the run. Release-grade companion UI for MP package exchange still needs deeper host/client workflow polish and the actual in-game season validation itself.
+Command/status surfaces exist, and the companion copy payload plus tray menu and status window now expose MP package handoff details plus direct open-directory actions. The visible status dashboard now also exposes quick-copy MP verify/import actions for the current package commands. `docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md` now records the exact owner-facing real-season validation checklist and the evidence artifacts to inspect after the run. The post-action dashboard validation debt is closed on current HEAD: `tools/build_snc_tray.ps1`, `tools/smoke_snc_tray.ps1`, `dist/strategic_nexus_companion_test.exe`, `dist/mp_overlay_package_verifier_test.exe`, and `tools/run_v0_pipeline_tests.ps1` pass after stopping the stale local tray process that held the executable lock. Release-grade companion UI for MP package exchange still needs deeper host/client workflow polish and the actual in-game season validation itself.
 
 ---
 

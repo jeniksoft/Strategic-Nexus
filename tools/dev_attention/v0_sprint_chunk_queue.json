@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T08:38:34.4775262+02:00",
+  "updated_at": "2026-06-08T12:10:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -585,6 +585,30 @@
         "dist/strategic_nexus_companion_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-116-verify-dashboard-action-pipeline-gate",
+      "title": "Verify dashboard action pipeline gate",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Release Companion MP Package UX / Local LLM Model Manager / post-implementation validation debt",
+      "goal": "Close the validation gap left after the MP export and local LLM prepare dashboard actions were implemented while the broad v0 pipeline gate timed out during rebuild.",
+      "acceptance": [
+        "The current head passes targeted SNC dashboard/tray validation for the MP export and local LLM prepare action surfaces.",
+        "The relevant companion/package verifier binaries pass against the current head.",
+        "The result records whether the broad v0 pipeline gate now passes or remains a bounded retry item."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "dist/strategic_nexus_companion_test.exe",
+        "dist/mp_overlay_package_verifier_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-114-surface-mp-package-export-action",
+        "v0-sprint-115-surface-local-llm-prepare-copy-action"
+      ]
     }
   ]
 }
