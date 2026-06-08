@@ -437,6 +437,7 @@ try {
                 $null -ne $json.crash_recovery_restart_budget_exhausted -and
                 $null -ne $json.crash_recovery_warning_visible -and
                 $null -ne $json.crash_recovery_support_report_recommended -and
+                $null -ne $json.human_control_guard_state -and
                 $null -ne $json.status_center_summary_text -and
                 $null -ne $json.next_action -and
                 $null -ne $json.next_action_command_hint_source -and
@@ -654,6 +655,9 @@ try {
                 if ($summaryText -notlike "*support_report_raw_saves_included: false*") {
                     throw "SNC tray summary text did not expose support_report_raw_saves_included."
                 }
+                if ($summaryText -notlike "*human_control_guard_state:*") {
+                    throw "SNC tray summary text did not expose human_control_guard_state."
+                }
                 if ($mpPackageReady -and $summaryText -notlike "*mp_previous_host_available:*") {
                     throw "SNC tray summary text did not expose mp_previous_host_available."
                 }
@@ -664,6 +668,9 @@ try {
                     throw "SNC tray did not write the next-steps brief named by status JSON."
                 }
                 $briefText = Get-Content -Raw -LiteralPath $json.next_steps_brief_path
+                if ($briefText -notlike "*Human control guard:*") {
+                    throw "SNC tray next-steps brief did not expose human control guard."
+                }
                 if ($json.generated_overlay_publish_gate_can_publish -eq $true -and
                     $briefText -notlike "*Publish gate available: ano*") {
                     throw "SNC tray next-steps brief does not match publish gate availability from status JSON."

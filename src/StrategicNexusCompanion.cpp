@@ -2468,6 +2468,7 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.provenanceState.empty()) {
         text << "mp_provenance_state: " << mpOverlayPackage.provenanceState << "\n";
     }
+    text << "human_control_guard_state: " << mpOverlayPackage.humanControlGuardState << "\n";
     text << "mp_source_quality_count: " << mpOverlayPackage.sourceQualities.size() << "\n";
     for (const auto& sourceQuality : mpOverlayPackage.sourceQualities) {
         text << "mp_source_quality: " << sourceQuality << "\n";
