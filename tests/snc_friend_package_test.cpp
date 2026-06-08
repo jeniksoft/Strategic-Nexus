@@ -98,6 +98,61 @@ int main()
         !strategic_nexus::sncFriendAcceptanceMatchesRequest(parsedRequest, selfAcceptance),
         "self-acceptance should not match");
 
+    strategic_nexus::SncFriendTrustStore store;
+    store.ok = true;
+    strategic_nexus::SncTrustedFriend trustedFriend;
+    trustedFriend.identity = parsedAcceptance.accepter;
+    trustedFriend.localAlias = "Client";
+    trustedFriend.trustState = "trusted";
+    trustedFriend.autoSyncEnabled = true;
+    trustedFriend.acceptedAt = "2026-06-08T17:36:00Z";
+    trustedFriend.updatedAt = "2026-06-08T17:36:00Z";
+    store.friends.push_back(trustedFriend);
+
+    strategic_nexus::SncTrustedFriend revokedFriend;
+    revokedFriend.identity = makeIdentity("snc-node-old-client-001", "Old Client SNC", "fp-old-client-001");
+    revokedFriend.localAlias = "Old Client";
+    revokedFriend.trustState = "revoked";
+    revokedFriend.autoSyncEnabled = false;
+    revokedFriend.acceptedAt = "2026-06-07T10:00:00Z";
+    revokedFriend.updatedAt = "2026-06-08T10:00:00Z";
+    store.friends.push_back(revokedFriend);
+
+    const auto storeJson = strategic_nexus::serializeSncFriendTrustStore(store);
+    const auto parsedStore = strategic_nexus::parseSncFriendTrustStoreJson(storeJson);
+    requireCondition(parsedStore.ok, "valid friend trust store should parse");
+    requireCondition(parsedStore.friends.size() == 2, "friend trust store should preserve friend count");
+    requireCondition(parsedStore.friends[0].trustState == "trusted", "trusted friend state should roundtrip");
+    requireCondition(parsedStore.friends[0].autoSyncEnabled, "trusted friend auto-sync flag should roundtrip");
+    requireCondition(parsedStore.friends[1].trustState == "revoked", "revoked friend state should roundtrip");
+    requireCondition(!parsedStore.friends[1].autoSyncEnabled, "revoked friend should keep auto-sync disabled");
+
+    auto futureStoreJson = storeJson;
+    const auto storeSchemaMarker = futureStoreJson.find("\"schema_version\": 1");
+    requireCondition(storeSchemaMarker != std::string::npos, "trust store JSON should expose schema version");
+    futureStoreJson.replace(storeSchemaMarker, std::string("\"schema_version\": 1").size(), "\"schema_version\": 2");
+    const auto futureStore = strategic_nexus::parseSncFriendTrustStoreJson(futureStoreJson);
+    requireCondition(!futureStore.ok, "future trust store schema should fail closed");
+
+    auto duplicateStore = store;
+    duplicateStore.friends[1].identity.nodeId = duplicateStore.friends[0].identity.nodeId;
+    const auto duplicateStoreRead = strategic_nexus::parseSncFriendTrustStoreJson(
+        strategic_nexus::serializeSncFriendTrustStore(duplicateStore));
+    requireCondition(!duplicateStoreRead.ok, "duplicate friend node id should fail closed");
+
+    auto missingAcceptedAtStore = store;
+    missingAcceptedAtStore.friends[0].acceptedAt.clear();
+    const auto missingAcceptedAtRead = strategic_nexus::parseSncFriendTrustStoreJson(
+        strategic_nexus::serializeSncFriendTrustStore(missingAcceptedAtStore));
+    requireCondition(!missingAcceptedAtRead.ok, "trusted friend without accepted_at should fail closed");
+
+    auto blockedAutoSyncStore = store;
+    blockedAutoSyncStore.friends[0].trustState = "blocked";
+    blockedAutoSyncStore.friends[0].autoSyncEnabled = true;
+    const auto blockedAutoSyncRead = strategic_nexus::parseSncFriendTrustStoreJson(
+        strategic_nexus::serializeSncFriendTrustStore(blockedAutoSyncStore));
+    requireCondition(!blockedAutoSyncRead.ok, "blocked friend with auto-sync enabled should fail closed");
+
     std::cout << "SNC friend package tests passed.\n";
     return 0;
 }

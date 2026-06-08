@@ -852,6 +852,26 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-129-add-snc-friend-trust-store-contract",
+      "title": "Add SNC friend trust store contract",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / local friend trust store with revoke/block/disable-auto-sync controls",
+      "goal": "Add a local fail-closed trusted-friend store contract so accepted SNC friend identities can be represented with explicit revoked, blocked, and auto-sync-disabled states before any transport adapter exists.",
+      "acceptance": [
+        "The trust store serializes schema_version 1 friend entries with bounded identity, display alias, trust state, and auto-sync flag.",
+        "Parsing fails closed for unsupported schema, unsafe identities, unsupported states, duplicate friend node ids, and active friends with missing accepted_at evidence.",
+        "Revoked or blocked friends are represented as non-active and auto-sync disabled so future transport work cannot treat friendship as unconditional package trust."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-128-add-snc-friend-package-contract"
+      ]
     }
   ]
 }
