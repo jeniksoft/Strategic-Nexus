@@ -2369,6 +2369,11 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         "\"<friend_mp_sync_envelope_path>\" "
         "\"<encrypted_payload_path>\" "
         "[stellaris_running:true|false] [friend_auto_sync_enabled:true|false]";
+    status.mpSyncOutboxPlanCommandTemplate =
+        "Strategic Nexus.exe --plan-snc-friend-mp-sync-outbox "
+        "\"<friend_mp_sync_envelope_path>\" "
+        "\"<encrypted_payload_path>\" "
+        "[stellaris_running:true|false] [friend_auto_sync_enabled:true|false]";
     if (status.path.empty()) {
         status.reason = "friend trust store path not configured; automatic friend sync disabled";
         return status;
@@ -2930,6 +2935,10 @@ std::string buildStatusCenterSummaryText(
         text << "friend_mp_sync_inbox_plan_command_template: "
              << friendTrustStore.mpSyncInboxPlanCommandTemplate << "\n";
     }
+    if (!friendTrustStore.mpSyncOutboxPlanCommandTemplate.empty()) {
+        text << "friend_mp_sync_outbox_plan_command_template: "
+             << friendTrustStore.mpSyncOutboxPlanCommandTemplate << "\n";
+    }
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
@@ -3264,6 +3273,8 @@ void writeFriendTrustStoreJson(
            << jsonString(status.mpSyncEnvelopeCommandTemplate) << ",\n";
     output << indent << "  \"mp_sync_inbox_plan_command_template\": "
            << jsonString(status.mpSyncInboxPlanCommandTemplate) << ",\n";
+    output << indent << "  \"mp_sync_outbox_plan_command_template\": "
+           << jsonString(status.mpSyncOutboxPlanCommandTemplate) << ",\n";
     output << indent << "  \"auto_sync_available\": "
            << (status.autoSyncAvailable ? "true" : "false") << "\n";
     output << indent << "}";
