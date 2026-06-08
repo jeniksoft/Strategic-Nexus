@@ -973,6 +973,26 @@
       "dependencies": [
         "v0-sprint-133-surface-friend-pairing-dashboard-template"
       ]
+    },
+    {
+      "id": "v0-sprint-135-surface-friend-pairing-ui-guidance",
+      "title": "Surface friend pairing UI guidance",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / user-approved SNC friend request and acceptance workflow",
+      "goal": "Make the manual SNC friend-pairing fallback understandable from the visible companion dashboard without enabling automatic sync or pretending the transport layer exists.",
+      "acceptance": [
+        "The visible SNC dashboard exposes a concise friend-pairing guide/action that explains request, acceptance, and import sequencing from current status data.",
+        "The guide keeps auto-sync disabled by default and states that signed/encrypted transport is not active yet.",
+        "The change remains bounded to owner-facing guidance/UI around the existing manual CLI template and does not add transport trust."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-134-surface-friend-pairing-companion-snapshot-template"
+      ]
     }
   ]
 }

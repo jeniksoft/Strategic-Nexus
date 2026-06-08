@@ -1141,6 +1141,31 @@ std::string buildFriendPairingCommandTemplateUtf8()
     return command;
 }
 
+std::wstring buildFriendPairingGuideText(const StatusDashboardData& data)
+{
+    std::wstring guide;
+    guide += L"SNC friend pairing guide:\r\n";
+    guide += L"1. Prvni hrac vytvori friend request a posle ho druhemu hraci mimo SNC.\r\n";
+    guide += L"2. Druhy hrac overi jmeno/fingerprint, vytvori friend acceptance a posle ji zpet.\r\n";
+    guide += L"3. Prvni hrac importuje acceptance do lokalniho trust store.\r\n";
+    guide += L"Stav trust store: ";
+    guide += data.friendTrustStoreState.empty() ? kStatusEmptyValue : data.friendTrustStoreState;
+    if (!data.friendTrustStoreReason.empty()) {
+        guide += L" - ";
+        guide += data.friendTrustStoreReason;
+    }
+    if (!data.friendTrustStorePath.empty() && data.friendTrustStorePath != kStatusEmptyValue) {
+        guide += L"\r\nTrust store cesta: ";
+        guide += data.friendTrustStorePath;
+    }
+    guide += L"\r\nAuto-sync zustava vypnuty. Signed/encrypted transport jeste neni aktivni.";
+    if (!data.friendPairingCommandTemplate.empty()) {
+        guide += L"\r\n\r\nCLI sablona:\r\n";
+        guide += data.friendPairingCommandTemplate;
+    }
+    return guide;
+}
+
 void updateStatusCaptionButtons(HWND hwnd)
 {
     if (g_statusMaximizeButton != nullptr) {
@@ -1376,6 +1401,8 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.friendTrustStoreReason.empty() ? kStatusEmptyValue : data.friendTrustStoreReason;
     text += L"\r\nSNC pratele cesta: ";
     text += data.friendTrustStorePath.empty() ? kStatusEmptyValue : data.friendTrustStorePath;
+    text += L"\r\nSNC pairing guide: ";
+    text += buildFriendPairingGuideText(data);
     text += L"\r\nSNC pairing template: ";
     text += data.friendPairingCommandTemplate.empty() ? kStatusEmptyValue : data.friendPairingCommandTemplate;
     text += L"\r\nHuman control guard: ";
@@ -1457,6 +1484,8 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"Hint: " + data.nextHint + L"\n";
     text += L"Support report: " + data.supportReportState + L"\n";
     text += L"Crash recovery: " + data.crashRecoveryState;
+    text += L"\n";
+    text += buildFriendPairingGuideText(data);
     text += L"\nSNC pairing template: ";
     text += data.friendPairingCommandTemplate.empty() ? kStatusEmptyValue : data.friendPairingCommandTemplate;
     text += L"\nHuman control guard: ";
@@ -2352,14 +2381,14 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case ID_STATUS_COPY_FRIEND_PAIRING:
         {
             const auto data = loadStatusDashboardData();
-            if (data.friendPairingCommandTemplate.empty() ||
-                !copyTextToClipboard(hwnd, data.friendPairingCommandTemplate)) {
+            const auto guide = buildFriendPairingGuideText(data);
+            if (guide.empty() || !copyTextToClipboard(hwnd, guide)) {
                 MessageBeep(MB_ICONWARNING);
                 return 0;
             }
             MessageBoxW(
                 hwnd,
-                L"SNC friend-pairing CLI sablona je zkopirovana do schranky.\n\n"
+                L"SNC friend-pairing guide a CLI sablona jsou zkopirovane do schranky.\n\n"
                 L"Dopln lokalni node id, zobrazovaci jmeno, verejne klice, fingerprint a casy. "
                 L"Import stale ponecha auto-sync vypnuty, dokud nebude hotovy duveryhodny transport.",
                 L"Strategic Nexus Companion",
@@ -4336,6 +4365,9 @@ void writeNextStepsBrief(
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
         brief << "- MP recovery: " << mpOverlayPackage.handoffRecoveryHint << "\n";
     }
+    brief << "- SNC friend pairing guide: "
+          << "1) create request; 2) friend verifies fingerprint and creates acceptance; 3) import acceptance into local trust store.\n";
+    brief << "- SNC friend pairing auto-sync: vypnuto, dokud neni hotovy signed/encrypted transport.\n";
     brief << "- SNC friend pairing command template: "
           << buildFriendPairingCommandTemplateUtf8() << "\n";
     brief << "- Human control guard: ";

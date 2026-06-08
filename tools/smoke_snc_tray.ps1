@@ -892,6 +892,12 @@ try {
                     $briefText -notlike "*--import-snc-friend-acceptance*") {
                     throw "SNC tray next-steps brief did not expose the manual SNC friend-pairing command template."
                 }
+                if ($briefText -notlike "*SNC friend pairing guide:*create request*friend verifies fingerprint*import acceptance into local trust store*") {
+                    throw "SNC tray next-steps brief did not expose the manual SNC friend-pairing guide."
+                }
+                if ($briefText -notlike "*SNC friend pairing auto-sync: vypnuto, dokud neni hotovy signed/encrypted transport.*") {
+                    throw "SNC tray next-steps brief did not expose the friend-pairing auto-sync safety state."
+                }
                 if ($ReadyOwnerTestFixture -and
                     $briefText -notlike "*Owner test playbook: docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md*") {
                     throw "SNC tray ready-state next-steps brief did not expose the owner-test playbook path."
