@@ -834,6 +834,24 @@
       "dependencies": [
         "v0-sprint-121-surface-next-action-path-open-action"
       ]
+    },
+    {
+      "id": "v0-sprint-128-add-snc-friend-package-contract",
+      "title": "Add SNC friend package contract",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / user-approved SNC friend request and acceptance workflow",
+      "goal": "Add the first local fail-closed friend request/acceptance package contract so future SNC friend mesh work has bounded identity, fingerprint, and capability validation before any transport or automatic sync exists.",
+      "acceptance": [
+        "SNC friend request packages parse only schema_version 1 with package_type snc_friend_request and required bounded node identity fields.",
+        "SNC friend acceptance packages parse only schema_version 1 with package_type snc_friend_acceptance and match the original request by node id and fingerprint.",
+        "Unsupported capabilities, unsafe identity strings, future schemas, mismatched requests, and self-acceptance fail closed without creating trust."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
     }
   ]
 }

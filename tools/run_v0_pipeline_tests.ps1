@@ -322,6 +322,12 @@ $sncPostPlayArtifactBackfillerSourceFiles = @(
     (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
     (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
+$sncFriendPackageExePath = Join-Path $repoRoot "dist/snc_friend_package_test.exe"
+$sncFriendPackageSourceFiles = @(
+    (Join-Path $repoRoot "tests/snc_friend_package_test.cpp"),
+    (Join-Path $repoRoot "src/SncFriendPackage.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp")
+)
 $sncTrayStartupShortcutActionExePath = Join-Path $repoRoot "dist/snc_tray_startup_shortcut_action_test.exe"
 $sncTrayStartupShortcutActionSourceFiles = @(
     (Join-Path $repoRoot "tests/snc_tray_startup_shortcut_action_test.cpp"),
@@ -409,6 +415,7 @@ try {
     Invoke-ClCompile -Name "snc_generated_overlay_stager_test" -SourceFiles $sncGeneratedOverlayStagerSourceFiles -OutputPath $sncGeneratedOverlayStagerExePath
     Invoke-ClCompile -Name "snc_generated_overlay_publish_gate_test" -SourceFiles $sncGeneratedOverlayPublishGateSourceFiles -OutputPath $sncGeneratedOverlayPublishGateExePath
     Invoke-ClCompile -Name "snc_post_play_artifact_backfiller_test" -SourceFiles $sncPostPlayArtifactBackfillerSourceFiles -OutputPath $sncPostPlayArtifactBackfillerExePath
+    Invoke-ClCompile -Name "snc_friend_package_test" -SourceFiles $sncFriendPackageSourceFiles -OutputPath $sncFriendPackageExePath
     Invoke-ClCompile -Name "snc_tray_startup_shortcut_action_test" -SourceFiles $sncTrayStartupShortcutActionSourceFiles -OutputPath $sncTrayStartupShortcutActionExePath
     Invoke-ClCompile -Name "snc_tray_support_report_action_test" -SourceFiles $sncTraySupportReportActionSourceFiles -OutputPath $sncTraySupportReportActionExePath
     Invoke-ClCompile -Name "strategic_nexus_companion_test" -SourceFiles $strategicNexusCompanionSourceFiles -OutputPath $strategicNexusCompanionExePath
@@ -3881,6 +3888,11 @@ if ($LASTEXITCODE -ne 0) {
 & $sncPostPlayArtifactBackfillerExePath
 if ($LASTEXITCODE -ne 0) {
     throw "SNC post-play artifact backfiller tests failed."
+}
+
+& $sncFriendPackageExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend package tests failed."
 }
 
 & $sncTrayStartupShortcutActionExePath
