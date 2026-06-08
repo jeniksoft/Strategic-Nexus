@@ -630,6 +630,26 @@
         "v0-sprint-107-surface-mp-package-verify-import-copy-actions",
         "v0-sprint-110-surface-mp-package-strict-copy-actions"
       ]
+    },
+    {
+      "id": "v0-sprint-118-wrap-snc-dashboard-action-bar",
+      "title": "Wrap SNC dashboard action bar",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "SNC Owner UI And Presentation / layout resilience",
+      "goal": "Keep the expanded SNC status dashboard action set usable at the minimum owner-facing window width by wrapping actions instead of letting buttons overflow.",
+      "acceptance": [
+        "The status dashboard action buttons wrap into a second row when the full action set cannot fit in one row.",
+        "The status grid is pushed below the wrapped action rows instead of overlapping controls.",
+        "The change stays bounded to layout resilience and preserves existing button enable/command behavior."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-117-surface-mp-package-import-handoff-action"
+      ]
     }
   ]
 }

@@ -1753,23 +1753,29 @@ void layoutStatusWindow(HWND hwnd)
     const int buttonHeight = 29;
     const int buttonGap = 8;
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
-    int buttonWidth = 116;
     const int availableWidth = width - (margin * 2);
     constexpr int actionButtonCount = 14;
-    const int requiredButtonWidth =
-        (buttonWidth * actionButtonCount) + (buttonGap * (actionButtonCount - 1));
-    if (requiredButtonWidth > availableWidth) {
-        buttonWidth =
-            (availableWidth - (buttonGap * (actionButtonCount - 1))) / actionButtonCount;
-        if (buttonWidth < 76) {
-            buttonWidth = 76;
+    constexpr int preferredButtonWidth = 116;
+    constexpr int minimumButtonWidth = 76;
+    int buttonRows = 1;
+    int buttonsPerRow = actionButtonCount;
+    int buttonWidth = preferredButtonWidth;
+    const int singleRowRequiredWidth =
+        (preferredButtonWidth * actionButtonCount) + (buttonGap * (actionButtonCount - 1));
+    if (singleRowRequiredWidth > availableWidth) {
+        buttonRows = 2;
+        buttonsPerRow = (actionButtonCount + 1) / 2;
+        buttonWidth = (availableWidth - (buttonGap * (buttonsPerRow - 1))) / buttonsPerRow;
+        if (buttonWidth < minimumButtonWidth) {
+            buttonWidth = minimumButtonWidth;
         }
     }
 
     const int headerWidth = availableWidth - titleButtonsWidth - 12;
     const int subtitleTop = top + kStatusTitleBarHeight + 12;
     const int buttonTop = subtitleTop + subtitleHeight + 10;
-    const int gridTop = buttonTop + buttonHeight + 14;
+    const int actionRowsHeight = (buttonHeight * buttonRows) + (buttonGap * (buttonRows - 1));
+    const int gridTop = buttonTop + actionRowsHeight + 14;
 
     int bottomHeight = (height / 4) + 96;
     if (bottomHeight < 180) {
@@ -1872,7 +1878,15 @@ void layoutStatusWindow(HWND hwnd)
     for (std::size_t index = 0; index < std::size(buttons); ++index) {
         if (buttons[index] != nullptr) {
             SetWindowTextW(buttons[index], buttonTexts[index].c_str());
-            MoveWindow(buttons[index], margin + static_cast<int>(index) * (buttonWidth + buttonGap), buttonTop, buttonWidth, buttonHeight, TRUE);
+            const int row = static_cast<int>(index) / buttonsPerRow;
+            const int column = static_cast<int>(index) % buttonsPerRow;
+            MoveWindow(
+                buttons[index],
+                margin + column * (buttonWidth + buttonGap),
+                buttonTop + row * (buttonHeight + buttonGap),
+                buttonWidth,
+                buttonHeight,
+                TRUE);
         }
     }
 
