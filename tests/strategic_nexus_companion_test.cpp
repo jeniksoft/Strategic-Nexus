@@ -866,6 +866,9 @@ int main()
         ready.mpOverlayPackage.statusText.find("strict_import_command: Strategic Nexus.exe --import-mp-overlay-package ") != std::string::npos,
         "mp overlay package status text should include strict import command");
     requireCondition(
+        ready.mpOverlayPackage.statusText.find("human_control_guard: runtime_is_ai_yes") != std::string::npos,
+        "mp overlay package status text should expose the runtime human-control guard");
+    requireCondition(
         ready.mpOverlayPackage.previousHostAvailableKnown,
         "mp overlay package should expose whether previous-host continuity is known");
     requireCondition(
@@ -976,6 +979,9 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_overlay_balicek: ready - mp overlay package verified") != std::string::npos,
         "status center summary should include mp overlay package state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("human_control_guard: runtime_is_ai_yes") != std::string::npos,
+        "status center summary should include the runtime human-control guard");
     requireCondition(
         ready.statusCenterSummaryText.find("mp_previous_host_available: false") != std::string::npos,
         "status center summary should include explicit previous-host continuity state");

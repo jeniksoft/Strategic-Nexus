@@ -1341,6 +1341,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
         status.state = "ready";
         status.reason = "mp overlay package verified";
         status.statusText = verification.statusText;
+        status.statusText += "human_control_guard: runtime_is_ai_yes\n";
         const auto warningCodes = extractWarningCodesFromStatusText(status.statusText);
         if (!warningCodes.empty()) {
             status.warningCodes = warningCodes;
