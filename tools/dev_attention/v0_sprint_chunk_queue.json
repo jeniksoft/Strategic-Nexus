@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T07:45:00.0000000+02:00",
+  "updated_at": "2026-06-08T08:18:38.4321384+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -403,7 +403,7 @@
     {
       "id": "v0-sprint-106-surface-mp-package-command-hints-in-status-dashboard",
       "title": "Surface MP package command hints in status dashboard",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "Release Companion MP Package UX / visible verify-import hints",
       "goal": "Expose MP verify/import command hints in the visible status dashboard and copied handoff text so host and client users can act without hunting the raw JSON snapshot.",
@@ -415,6 +415,44 @@
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1",
         "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-107-surface-mp-package-verify-import-copy-actions",
+      "title": "Surface MP package verify/import copy actions",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / verify-import quick actions",
+      "goal": "Add visible quick-copy actions in the status dashboard for MP verify/import commands so host and client users can copy the exact commands without hunting the text block.",
+      "acceptance": [
+        "The status dashboard includes visible MP verify/import quick-copy actions when commands are present.",
+        "Clicking the actions copies the respective command to clipboard and leaves the existing dashboard copy/share text intact.",
+        "The buttons fail closed when command hints are unavailable or empty."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-108-surface-mp-package-handoff-status-in-visible-dashboard",
+      "title": "Surface MP package handoff status in visible dashboard",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / host-rotation continuity visibility",
+      "goal": "Expose MP handoff status in the visible dashboard so host-rotation continuity and degraded handoff state are visible without reopening the copied text block.",
+      "acceptance": [
+        "The visible dashboard text includes MP handoff status when the package snapshot provides it.",
+        "The added line stays fail closed when handoff status is unavailable or empty.",
+        "The copied dashboard/share text remains unchanged apart from any existing handoff fields already present."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
     }
