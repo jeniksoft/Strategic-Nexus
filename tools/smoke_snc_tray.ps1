@@ -789,6 +789,14 @@ try {
                 if ([string]$json.friend_trust_store_path -ne $expectedFriendTrustStorePathText) {
                     throw "SNC tray status JSON did not expose the expected friend_trust_store_path."
                 }
+                if ([string]::IsNullOrWhiteSpace([string]$json.friend_pairing_command_template)) {
+                    throw "SNC tray status JSON did not expose friend_pairing_command_template."
+                }
+                if ([string]$json.friend_pairing_command_template -notlike "*--create-snc-friend-request*" -or
+                    [string]$json.friend_pairing_command_template -notlike "*--create-snc-friend-acceptance*" -or
+                    [string]$json.friend_pairing_command_template -notlike "*--import-snc-friend-acceptance*") {
+                    throw "SNC tray friend_pairing_command_template did not include the manual request/accept/import flow."
+                }
                 if ($summaryText -notlike "*memory_recovery:*") {
                     throw "SNC tray summary text did not expose memory recovery state."
                 }
@@ -878,6 +886,11 @@ try {
                 }
                 if ($briefText -notlike "*Support report prepare command: powershell -NoProfile -ExecutionPolicy Bypass -File tools\prepare_snc_support_report.ps1*") {
                     throw "SNC tray next-steps brief did not expose support report prepare command."
+                }
+                if ($briefText -notlike "*SNC friend pairing command template:*--create-snc-friend-request*" -or
+                    $briefText -notlike "*--create-snc-friend-acceptance*" -or
+                    $briefText -notlike "*--import-snc-friend-acceptance*") {
+                    throw "SNC tray next-steps brief did not expose the manual SNC friend-pairing command template."
                 }
                 if ($ReadyOwnerTestFixture -and
                     $briefText -notlike "*Owner test playbook: docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md*") {

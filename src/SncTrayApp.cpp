@@ -88,6 +88,7 @@ constexpr UINT ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN = 220;
 constexpr UINT ID_STATUS_OPEN_CRASH_RECOVERY_STATE = 221;
 constexpr UINT ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT = 222;
 constexpr UINT ID_STATUS_OPEN_FRIEND_TRUST_STORE = 223;
+constexpr UINT ID_STATUS_COPY_FRIEND_PAIRING = 224;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -143,6 +144,7 @@ struct StatusDashboardData {
     std::wstring friendTrustStoreState;
     std::wstring friendTrustStoreReason;
     std::wstring friendTrustStorePath;
+    std::wstring friendPairingCommandTemplate;
     std::wstring humanControlGuardState;
     std::wstring mpPackageRefreshState;
     std::wstring mpPackageRefreshReason;
@@ -240,6 +242,7 @@ HWND g_statusOpenCampaignLibraryPlanButton = nullptr;
 HWND g_statusOpenCrashRecoveryStateButton = nullptr;
 HWND g_statusOpenGameplayAcceptanceReportButton = nullptr;
 HWND g_statusOpenFriendTrustStoreButton = nullptr;
+HWND g_statusCopyFriendPairingButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -313,6 +316,7 @@ std::wstring buildStatusDialogText();
 std::wstring buildStatusSubtitleText();
 std::wstring buildDashboardCopyText(const StatusDashboardData& data);
 std::wstring buildDashboardBottomText(const StatusDashboardData& data);
+std::string buildFriendPairingCommandTemplateUtf8();
 std::wstring utf8ToWide(const std::string& value);
 StatusDashboardData loadStatusDashboardData();
 std::optional<std::string> extractSummaryLineValue(const std::string& summary, const char* key);
@@ -1115,6 +1119,28 @@ void openFriendTrustStore(HWND hwnd)
     openPathWithShell(hwnd, path);
 }
 
+std::string buildFriendPairingCommandTemplateUtf8()
+{
+    std::string command;
+    command += "Strategic Nexus.exe --create-snc-friend-request ";
+    command += "\"dist/private_reports/snc_friend_request.snc-friend-request\" ";
+    command += "<local_node_id> \"<local_display_name>\" ";
+    command += "<signing_public_key> <encryption_public_key> <fingerprint> ";
+    command += "<created_at_utc> [expires_at_utc]\n";
+    command += "Strategic Nexus.exe --create-snc-friend-acceptance ";
+    command += "\"<friend_request_path>\" ";
+    command += "\"dist/private_reports/snc_friend_acceptance.snc-friend-acceptance\" ";
+    command += "<local_node_id> \"<local_display_name>\" ";
+    command += "<signing_public_key> <encryption_public_key> <fingerprint> ";
+    command += "<created_at_utc>\n";
+    command += "Strategic Nexus.exe --import-snc-friend-acceptance ";
+    command += "\"<original_friend_request_path>\" ";
+    command += "\"<friend_acceptance_path>\" ";
+    command += "\"dist/private_reports/snc_friend_trust_store.json\" ";
+    command += "<accepted_at_utc> [local_alias]";
+    return command;
+}
+
 void updateStatusCaptionButtons(HWND hwnd)
 {
     if (g_statusMaximizeButton != nullptr) {
@@ -1162,6 +1188,7 @@ StatusDashboardData loadStatusDashboardData()
     data.friendTrustStoreState = L"\u2014";
     data.friendTrustStoreReason = L"\u2014";
     data.friendTrustStorePath = L"\u2014";
+    data.friendPairingCommandTemplate = utf8ToWide(buildFriendPairingCommandTemplateUtf8());
     data.humanControlGuardState = L"\u2014";
 
     std::string json;
@@ -1349,6 +1376,8 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.friendTrustStoreReason.empty() ? kStatusEmptyValue : data.friendTrustStoreReason;
     text += L"\r\nSNC pratele cesta: ";
     text += data.friendTrustStorePath.empty() ? kStatusEmptyValue : data.friendTrustStorePath;
+    text += L"\r\nSNC pairing template: ";
+    text += data.friendPairingCommandTemplate.empty() ? kStatusEmptyValue : data.friendPairingCommandTemplate;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1428,6 +1457,8 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"Hint: " + data.nextHint + L"\n";
     text += L"Support report: " + data.supportReportState + L"\n";
     text += L"Crash recovery: " + data.crashRecoveryState;
+    text += L"\nSNC pairing template: ";
+    text += data.friendPairingCommandTemplate.empty() ? kStatusEmptyValue : data.friendPairingCommandTemplate;
     text += L"\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1742,6 +1773,9 @@ void refreshStatusWindowContent()
             g_statusOpenFriendTrustStoreButton,
             dashboardPathExists(data.friendTrustStorePath) ? TRUE : FALSE);
     }
+    if (g_statusCopyFriendPairingButton != nullptr) {
+        EnableWindow(g_statusCopyFriendPairingButton, data.friendPairingCommandTemplate.empty() ? FALSE : TRUE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -1904,18 +1938,22 @@ void layoutStatusWindow(HWND hwnd)
     const int buttonGap = 8;
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 20;
+    constexpr int actionButtonCount = 21;
     constexpr int preferredButtonWidth = 116;
     constexpr int minimumButtonWidth = 76;
-    int buttonRows = 1;
     int buttonsPerRow = actionButtonCount;
+    int buttonRows = 1;
+    while (buttonsPerRow > 1 &&
+           (preferredButtonWidth * buttonsPerRow) + (buttonGap * (buttonsPerRow - 1)) > availableWidth) {
+        ++buttonRows;
+        buttonsPerRow = (actionButtonCount + buttonRows - 1) / buttonRows;
+    }
     int buttonWidth = preferredButtonWidth;
-    const int singleRowRequiredWidth =
-        (preferredButtonWidth * actionButtonCount) + (buttonGap * (actionButtonCount - 1));
-    if (singleRowRequiredWidth > availableWidth) {
-        buttonRows = 2;
-        buttonsPerRow = (actionButtonCount + 1) / 2;
+    if (buttonsPerRow > 0) {
         buttonWidth = (availableWidth - (buttonGap * (buttonsPerRow - 1))) / buttonsPerRow;
+        if (buttonWidth > preferredButtonWidth) {
+            buttonWidth = preferredButtonWidth;
+        }
         if (buttonWidth < minimumButtonWidth) {
             buttonWidth = minimumButtonWidth;
         }
@@ -2005,6 +2043,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenCrashRecoveryStateButton,
         g_statusOpenGameplayAcceptanceReportButton,
         g_statusOpenFriendTrustStoreButton,
+        g_statusCopyFriendPairingButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -2027,6 +2066,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Crash stav",
         L"Gameplay",
         L"SNC pratele",
+        L"SNC pairing",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2192,6 +2232,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             createStatusButton(hwnd, ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, L"Gameplay");
         g_statusOpenFriendTrustStoreButton =
             createStatusButton(hwnd, ID_STATUS_OPEN_FRIEND_TRUST_STORE, L"SNC pratele");
+        g_statusCopyFriendPairingButton =
+            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_PAIRING, L"SNC pairing");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2244,6 +2286,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenCrashRecoveryStateButton, g_statusFieldFont);
         setWindowFont(g_statusOpenGameplayAcceptanceReportButton, g_statusFieldFont);
         setWindowFont(g_statusOpenFriendTrustStoreButton, g_statusFieldFont);
+        setWindowFont(g_statusCopyFriendPairingButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2306,6 +2349,23 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case ID_STATUS_OPEN_FRIEND_TRUST_STORE:
             openFriendTrustStore(hwnd);
             return 0;
+        case ID_STATUS_COPY_FRIEND_PAIRING:
+        {
+            const auto data = loadStatusDashboardData();
+            if (data.friendPairingCommandTemplate.empty() ||
+                !copyTextToClipboard(hwnd, data.friendPairingCommandTemplate)) {
+                MessageBeep(MB_ICONWARNING);
+                return 0;
+            }
+            MessageBoxW(
+                hwnd,
+                L"SNC friend-pairing CLI sablona je zkopirovana do schranky.\n\n"
+                L"Dopln lokalni node id, zobrazovaci jmeno, verejne klice, fingerprint a casy. "
+                L"Import stale ponecha auto-sync vypnuty, dokud nebude hotovy duveryhodny transport.",
+                L"Strategic Nexus Companion",
+                MB_OK | MB_ICONINFORMATION);
+            return 0;
+        }
         case ID_STATUS_EXPORT_MP_PACKAGE:
             requestMpPackageExportRefresh();
             return 0;
@@ -4276,6 +4336,8 @@ void writeNextStepsBrief(
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
         brief << "- MP recovery: " << mpOverlayPackage.handoffRecoveryHint << "\n";
     }
+    brief << "- SNC friend pairing command template: "
+          << buildFriendPairingCommandTemplateUtf8() << "\n";
     brief << "- Human control guard: ";
     brief << (mpOverlayPackage.humanControlGuardState.empty() ? std::string("unknown") : mpOverlayPackage.humanControlGuardState)
           << "\n";
@@ -4735,6 +4797,8 @@ void writeStatus(
          << companionSnapshot.friendTrustStore.autoSyncEnabledCount << ",\n";
     json << "  \"friend_trust_store_auto_sync_available\": "
          << (companionSnapshot.friendTrustStore.autoSyncAvailable ? "true" : "false") << ",\n";
+    json << "  \"friend_pairing_command_template\": \""
+         << jsonEscape(buildFriendPairingCommandTemplateUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
     json << "  \"session_id\": \"" << jsonEscape(sessionId) << "\",\n";
     json << "  \"capture_session_directory\": \"" << jsonEscape(pathString(sessionDirectory)) << "\",\n";
