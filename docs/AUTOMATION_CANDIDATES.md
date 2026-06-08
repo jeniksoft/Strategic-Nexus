@@ -15,15 +15,17 @@ They should not silently make major architecture decisions.
 
 These Codex app automations have been created, not merely proposed:
 
-* `sn-task-board-hygiene` - hourly Task Board hygiene
+* `sn-task-board-hygiene` - every 3 hours Task Board hygiene
 * `sn-safety-boundary-audit` - every 6 hours safety boundary audit
-* `sn-usage-budget-check` - hourly usage budget check
+* `sn-usage-budget-check` - every 3 hours usage budget check
 * `sn-free-work-readiness` - daily Free Work readiness review
-* `sn-bounded-free-work-execution` - frequent bounded Free Work execution gate
+* `sn-bounded-free-work-execution-2` - every 7 minutes bounded Free Work execution gate
 * `sn-architecture-consistency-review` - weekly architecture consistency review
 * `sn-local-test-health-check` - weekly local test health check
 * `sn-stellaris-modding-refresh` - weekly gated Stellaris/modding refresh check
 * `sn-docs-encoding-review-gate` - weekly docs encoding/mojibake gate
+* `sn-roadmap-progress-sync` - hourly roadmap/project progress sync
+* `sn-docs-hygiene` - every 6 hours docs consistency hygiene
 
 Important distinction:
 
@@ -138,7 +140,7 @@ Expected output:
 * write `dist/private_reports/freework_cadence_recommendation.json`
 * warn only if budget data is stale or missing during active Free Work
 * suggest current work mode from `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
-* recommend whether `sn-bounded-free-work-execution` should change cadence
+* recommend whether `sn-bounded-free-work-execution-2` should change cadence
 * when two valid post-reset budget checks exist, prefer the adaptive cadence formula `new interval = current interval * ((actual spend D) / (expected spend K))`, with the safe clamps documented in `docs/FREE_WORK_AND_USAGE_BUDGET_RULES.md`
 * if the recommendation differs, update the Free Work automation only when the change is clearly within approved budget rules; otherwise create a `Navrhy` item for owner review
 * if the recommendation matches current cadence, do not create report spam
@@ -178,7 +180,7 @@ Why:
 
 Expected output:
 
-* at the start of every gate invocation, run `tools/dev_attention/log_automation_run.ps1 -AutomationId sn-bounded-free-work-execution -Trigger unknown -Result started` (or `tools/dev_attention/log_automation_run.cmd ...` if PowerShell execution policy blocks direct `.ps1` invocation); use `manual_ui` only when the owner explicitly says this invocation was started from UI, otherwise use `unknown` because Codex may not be able to distinguish scheduled from manual app execution
+* at the start of every gate invocation, run `tools/dev_attention/log_automation_run.ps1 -AutomationId sn-bounded-free-work-execution-2 -Trigger unknown -Result started` (or `tools/dev_attention/log_automation_run.cmd ...` if PowerShell execution policy blocks direct `.ps1` invocation); use `manual_ui` only when the owner explicitly says this invocation was started from UI, otherwise use `unknown` because Codex may not be able to distinguish scheduled from manual app execution
 * before ending the gate, append a second run-log row with the same run id and a final result: `implemented`, `blocked`, `quiet`, `no_safe_task`, or `failed`
 * check unresolved dirty worktree state before modifying files
 * record dirty baseline paths and avoid overlapping them

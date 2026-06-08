@@ -9,8 +9,11 @@ $ErrorActionPreference = "Stop"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $launcherSourcePath = Join-Path $repoRoot "tools\dev_attention\TaskBoardLauncher.cs"
 $launcherOutputPath = Join-Path $repoRoot "dist\private_tools\StrategicNexusTaskBoardLauncher.exe"
+$nativeTaskBoardPath = Join-Path $repoRoot "dist\private_tools\StrategicNexusNativeTaskBoard.exe"
 $iconPath = Join-Path $repoRoot "tools\dev_attention\assets\task_board_calm.ico"
-$taskBoardAppUserModelId = "StrategicNexus.UserTaskBoard"
+$shortcutName = "Codex Task Board.lnk"
+$legacyShortcutNames = @("Strategic Nexus Task Board.lnk")
+$taskBoardAppUserModelId = "Codex.TaskBoard"
 $firstRunStartMenuShortcutMarkerPath = Join-Path $repoRoot "dist\private_reports\user_task_board_start_menu_shortcut.checked"
 
 Add-Type @"
@@ -152,6 +155,12 @@ function Ensure-TaskBoardLauncher {
     }
 }
 
+function Ensure-NativeTaskBoard {
+    if (-not (Test-Path -LiteralPath $nativeTaskBoardPath)) {
+        throw "Native Task Board executable not found: $nativeTaskBoardPath"
+    }
+}
+
 function New-TaskBoardShortcut {
     param([string]$ShortcutPath)
 
@@ -159,41 +168,62 @@ function New-TaskBoardShortcut {
 
     $shell = New-Object -ComObject WScript.Shell
     $shortcut = $shell.CreateShortcut($ShortcutPath)
-    $shortcut.TargetPath = $launcherOutputPath
-    $shortcut.Arguments = "`"$repoRoot`""
+    $shortcut.TargetPath = $nativeTaskBoardPath
+    $shortcut.Arguments = ""
     $shortcut.WorkingDirectory = $repoRoot
     $shortcut.WindowStyle = 1
-    $shortcut.Description = "Strategic Nexus user task board"
+    $shortcut.Description = "Codex task board"
     $shortcut.IconLocation = "$iconPath,0"
     $shortcut.Save()
     [StrategicNexusShortcutProperties]::SetAppUserModelId($ShortcutPath, $taskBoardAppUserModelId)
 }
 
-Ensure-TaskBoardLauncher
+function Remove-LegacyTaskBoardShortcuts {
+    param([string]$FolderPath)
+
+    foreach ($legacyShortcutName in $legacyShortcutNames) {
+        $legacyShortcutPath = Join-Path $FolderPath $legacyShortcutName
+        if (Test-Path -LiteralPath $legacyShortcutPath) {
+            Remove-Item -LiteralPath $legacyShortcutPath -Force
+        }
+    }
+}
+
+Ensure-NativeTaskBoard
 
 if ($InstallDesktopShortcut) {
     $desktop = [Environment]::GetFolderPath("Desktop")
-    New-TaskBoardShortcut -ShortcutPath (Join-Path $desktop "Strategic Nexus Task Board.lnk")
+    New-TaskBoardShortcut -ShortcutPath (Join-Path $desktop $shortcutName)
+    Remove-LegacyTaskBoardShortcuts -FolderPath $desktop
 }
 
 $startup = [Environment]::GetFolderPath("Startup")
-$startupShortcutPath = Join-Path $startup "Strategic Nexus Task Board.lnk"
+$startupShortcutPath = Join-Path $startup $shortcutName
 if ($InstallStartupShortcut) {
     New-TaskBoardShortcut -ShortcutPath $startupShortcutPath
+    Remove-LegacyTaskBoardShortcuts -FolderPath $startup
 } elseif (Test-Path -LiteralPath $startupShortcutPath) {
     Remove-Item -LiteralPath $startupShortcutPath -Force
 }
 
 if ($InstallStartMenuShortcut) {
     $startMenuPrograms = [Environment]::GetFolderPath("Programs")
-    $startMenuFolder = Join-Path $startMenuPrograms "Strategic Nexus"
-    New-TaskBoardShortcut -ShortcutPath (Join-Path $startMenuFolder "Strategic Nexus Task Board.lnk")
+    $startMenuFolder = Join-Path $startMenuPrograms "Codex"
+    New-TaskBoardShortcut -ShortcutPath (Join-Path $startMenuFolder $shortcutName)
+    Remove-LegacyTaskBoardShortcuts -FolderPath $startMenuFolder
+
+    $legacyStartMenuFolder = Join-Path $startMenuPrograms "Strategic Nexus"
+    Remove-LegacyTaskBoardShortcuts -FolderPath $legacyStartMenuFolder
+    if ((Test-Path -LiteralPath $legacyStartMenuFolder) -and -not (Get-ChildItem -LiteralPath $legacyStartMenuFolder -Force)) {
+        Remove-Item -LiteralPath $legacyStartMenuFolder -Force
+    }
+
     Ensure-Directory $firstRunStartMenuShortcutMarkerPath
     Set-Content -LiteralPath $firstRunStartMenuShortcutMarkerPath -Value (Get-Date).ToString("o") -Encoding UTF8
 }
 
 Write-Host "task_board_icon=$iconPath"
-Write-Host "task_board_launcher=$launcherOutputPath"
+Write-Host "task_board_target=$nativeTaskBoardPath"
 Write-Host "task_board_app_user_model_id=$taskBoardAppUserModelId"
 Write-Host "desktop_shortcut_installed=$InstallDesktopShortcut"
 Write-Host "startup_shortcut_installed=$InstallStartupShortcut"

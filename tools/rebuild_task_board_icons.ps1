@@ -1,7 +1,8 @@
 param(
     [string]$AssetsDirectory = "",
     [int]$EdgeThreshold = 22,
-    [int]$Padding = 10
+    [int]$Padding = 10,
+    [double]$TransparentMarginRatio = 0.11
 )
 
 $ErrorActionPreference = "Stop"
@@ -156,6 +157,37 @@ function New-CroppedSquareBitmap {
     return $square
 }
 
+function New-TransparentMarginBitmap {
+    param(
+        [System.Drawing.Bitmap]$Bitmap,
+        [double]$MarginRatio
+    )
+
+    $ratio = [Math]::Max(0.0, [Math]::Min(0.35, $MarginRatio))
+    $side = $Bitmap.Width
+    $margin = [int][Math]::Round($side * $ratio)
+    if ($margin -le 0) {
+        return $Bitmap.Clone([System.Drawing.Rectangle]::new(0, 0, $Bitmap.Width, $Bitmap.Height), [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    }
+
+    $padded = New-Object System.Drawing.Bitmap $side, $side, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $graphics = [System.Drawing.Graphics]::FromImage($padded)
+    try {
+        $graphics.Clear([System.Drawing.Color]::FromArgb(0, 0, 0, 0))
+        $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+
+        $targetSide = [Math]::Max(1, $side - ($margin * 2))
+        $destRect = [System.Drawing.Rectangle]::new($margin, $margin, $targetSide, $targetSide)
+        $graphics.DrawImage($Bitmap, $destRect)
+    } finally {
+        $graphics.Dispose()
+    }
+
+    return $padded
+}
+
 function New-ScaledPngBytes {
     param(
         [System.Drawing.Bitmap]$Bitmap,
@@ -286,24 +318,29 @@ function Convert-TaskBoardIcon {
         $bounds = Get-AlphaBounds -Bitmap $sourceBitmap
         $squareBitmap = New-CroppedSquareBitmap -Bitmap $sourceBitmap -Bounds $bounds -Padding $Padding
         try {
-            $squareBitmap.Save($pngPath, [System.Drawing.Imaging.ImageFormat]::Png)
+            $paddedBitmap = New-TransparentMarginBitmap -Bitmap $squareBitmap -MarginRatio $TransparentMarginRatio
+            try {
+                $paddedBitmap.Save($pngPath, [System.Drawing.Imaging.ImageFormat]::Png)
 
-            $entries = @()
-            foreach ($size in @(256, 128, 64, 48, 32, 16)) {
-                $entries += @{
-                    Size = $size
-                    Bytes = (New-ScaledPngBytes -Bitmap $squareBitmap -Size $size)
+                $entries = @()
+                foreach ($size in @(256, 128, 64, 48, 32, 16)) {
+                    $entries += @{
+                        Size = $size
+                        Bytes = (New-ScaledPngBytes -Bitmap $paddedBitmap -Size $size)
+                    }
                 }
-            }
-            Write-IcoFile -Path $icoPath -Entries $entries
+                Write-IcoFile -Path $icoPath -Entries $entries
 
-            return [pscustomobject]@{
-                base_name = $BaseName
-                png = $pngPath
-                ico = $icoPath
-                source = $sourcePath
-                width = $squareBitmap.Width
-                height = $squareBitmap.Height
+                return [pscustomobject]@{
+                    base_name = $BaseName
+                    png = $pngPath
+                    ico = $icoPath
+                    source = $sourcePath
+                    width = $paddedBitmap.Width
+                    height = $paddedBitmap.Height
+                }
+            } finally {
+                $paddedBitmap.Dispose()
             }
         } finally {
             $squareBitmap.Dispose()

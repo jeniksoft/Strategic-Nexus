@@ -9,6 +9,7 @@ using System.Windows.Forms;
 internal static class TaskBoardLauncher
 {
     private const string RelativeBoardScript = @"tools\dev_attention\user_task_board.ps1";
+    private const string RelativeNativeBoardExe = @"dist\private_tools\StrategicNexusNativeTaskBoard.exe";
 
     [STAThread]
     private static int Main(string[] args)
@@ -16,12 +17,27 @@ internal static class TaskBoardLauncher
         try
         {
             var repoRoot = ResolveRepoRoot(args);
+            var nativeBoardExe = Path.Combine(repoRoot, RelativeNativeBoardExe);
+            if (File.Exists(nativeBoardExe))
+            {
+                var nativeStartInfo = new ProcessStartInfo
+                {
+                    FileName = nativeBoardExe,
+                    WorkingDirectory = repoRoot,
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Normal,
+                };
+
+                Process.Start(nativeStartInfo);
+                return 0;
+            }
+
             var boardScript = Path.Combine(repoRoot, RelativeBoardScript);
             if (!File.Exists(boardScript))
             {
                 MessageBox.Show(
-                    "Task Board script nebyl nalezen:\n" + boardScript,
-                    "Strategic Nexus Task Board",
+                    "Native Task Board ani fallback script nebyl nalezen:\n" + nativeBoardExe + "\n" + boardScript,
+                    "Codex Task Board",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return 2;
@@ -35,7 +51,7 @@ internal static class TaskBoardLauncher
             {
                 MessageBox.Show(
                     "Windows PowerShell nebyl nalezen:\n" + powershellPath,
-                    "Strategic Nexus Task Board",
+                    "Codex Task Board",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return 3;
@@ -58,7 +74,7 @@ internal static class TaskBoardLauncher
         {
             MessageBox.Show(
                 ex.Message,
-                "Strategic Nexus Task Board",
+                "Codex Task Board",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
             return 1;
