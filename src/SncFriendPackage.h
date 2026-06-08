@@ -49,12 +49,31 @@ struct SncFriendTrustStore {
     std::vector<SncTrustedFriend> friends;
 };
 
+struct SncFriendMpSyncEnvelopePackage {
+    bool ok = false;
+    std::string reason;
+    SncFriendPackageIdentity sender;
+    SncFriendPackageIdentity recipient;
+    std::string campaignId;
+    std::string overlayVersion;
+    std::string packageManifestHash;
+    std::string packageZipHash;
+    std::string encryptedPayloadHash;
+    std::string signingAlgorithm;
+    std::string encryptionAlgorithm;
+    std::string signature;
+    std::string createdAt;
+    std::size_t encryptedPayloadBytes = 0;
+};
+
 SncFriendRequestPackage parseSncFriendRequestPackageJson(const std::string& json);
 SncFriendAcceptancePackage parseSncFriendAcceptancePackageJson(const std::string& json);
 SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json);
+SncFriendMpSyncEnvelopePackage parseSncFriendMpSyncEnvelopePackageJson(const std::string& json);
 std::string serializeSncFriendRequestPackage(const SncFriendRequestPackage& package);
 std::string serializeSncFriendAcceptancePackage(const SncFriendAcceptancePackage& package);
 std::string serializeSncFriendTrustStore(const SncFriendTrustStore& store);
+std::string serializeSncFriendMpSyncEnvelopePackage(const SncFriendMpSyncEnvelopePackage& package);
 bool sncFriendAcceptanceMatchesRequest(
     const SncFriendRequestPackage& request,
     const SncFriendAcceptancePackage& acceptance);

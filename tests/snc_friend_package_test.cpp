@@ -153,6 +153,76 @@ int main()
         strategic_nexus::serializeSncFriendTrustStore(blockedAutoSyncStore));
     requireCondition(!blockedAutoSyncRead.ok, "blocked friend with auto-sync enabled should fail closed");
 
+    strategic_nexus::SncFriendMpSyncEnvelopePackage syncEnvelope;
+    syncEnvelope.ok = true;
+    syncEnvelope.sender = parsedRequest.sender;
+    syncEnvelope.recipient = parsedAcceptance.accepter;
+    syncEnvelope.campaignId = "campaign-mp-001";
+    syncEnvelope.overlayVersion = "overlay-v0-001";
+    syncEnvelope.packageManifestHash = "sha256:manifest-001";
+    syncEnvelope.packageZipHash = "sha256:zip-001";
+    syncEnvelope.encryptedPayloadHash = "sha256:encrypted-payload-001";
+    syncEnvelope.encryptedPayloadBytes = 4096;
+    syncEnvelope.signingAlgorithm = "ed25519";
+    syncEnvelope.encryptionAlgorithm = "x25519-xsalsa20-poly1305";
+    syncEnvelope.signature = "ed25519:signature-001";
+    syncEnvelope.createdAt = "2026-06-08T18:10:00Z";
+
+    const auto syncEnvelopeJson = strategic_nexus::serializeSncFriendMpSyncEnvelopePackage(syncEnvelope);
+    const auto parsedSyncEnvelope = strategic_nexus::parseSncFriendMpSyncEnvelopePackageJson(syncEnvelopeJson);
+    requireCondition(parsedSyncEnvelope.ok, "valid friend mp sync envelope should parse");
+    requireCondition(
+        parsedSyncEnvelope.sender.nodeId == parsedRequest.sender.nodeId &&
+            parsedSyncEnvelope.recipient.nodeId == parsedAcceptance.accepter.nodeId,
+        "friend mp sync envelope should preserve sender and recipient identities");
+    requireCondition(
+        parsedSyncEnvelope.encryptedPayloadBytes == 4096,
+        "friend mp sync envelope should preserve encrypted payload byte count");
+
+    auto futureSyncEnvelopeJson = syncEnvelopeJson;
+    const auto syncSchemaMarker = futureSyncEnvelopeJson.find("\"schema_version\": 1");
+    requireCondition(syncSchemaMarker != std::string::npos, "sync envelope JSON should expose schema version");
+    futureSyncEnvelopeJson.replace(
+        syncSchemaMarker,
+        std::string("\"schema_version\": 1").size(),
+        "\"schema_version\": 2");
+    const auto futureSyncEnvelope =
+        strategic_nexus::parseSncFriendMpSyncEnvelopePackageJson(futureSyncEnvelopeJson);
+    requireCondition(!futureSyncEnvelope.ok, "future sync envelope schema should fail closed");
+
+    auto unsupportedEncryptionEnvelopeJson = syncEnvelopeJson;
+    const auto encryptionMarker = unsupportedEncryptionEnvelopeJson.find("x25519-xsalsa20-poly1305");
+    requireCondition(encryptionMarker != std::string::npos, "sync envelope JSON should include encryption algorithm");
+    unsupportedEncryptionEnvelopeJson.replace(
+        encryptionMarker,
+        std::string("x25519-xsalsa20-poly1305").size(),
+        "plaintext");
+    const auto unsupportedEncryptionEnvelope =
+        strategic_nexus::parseSncFriendMpSyncEnvelopePackageJson(unsupportedEncryptionEnvelopeJson);
+    requireCondition(
+        !unsupportedEncryptionEnvelope.ok,
+        "unsupported sync envelope encryption algorithm should fail closed");
+
+    auto selfRecipientEnvelope = syncEnvelope;
+    selfRecipientEnvelope.recipient = syncEnvelope.sender;
+    const auto selfRecipientRead = strategic_nexus::parseSncFriendMpSyncEnvelopePackageJson(
+        strategic_nexus::serializeSncFriendMpSyncEnvelopePackage(selfRecipientEnvelope));
+    requireCondition(!selfRecipientRead.ok, "sync envelope self-recipient should fail closed");
+
+    auto missingCapabilityEnvelope = syncEnvelope;
+    missingCapabilityEnvelope.recipient.capabilities = { "handoff_sync" };
+    const auto missingCapabilityRead = strategic_nexus::parseSncFriendMpSyncEnvelopePackageJson(
+        strategic_nexus::serializeSncFriendMpSyncEnvelopePackage(missingCapabilityEnvelope));
+    requireCondition(
+        !missingCapabilityRead.ok,
+        "sync envelope without recipient mp_package_sync capability should fail closed");
+
+    auto missingSignatureEnvelope = syncEnvelope;
+    missingSignatureEnvelope.signature.clear();
+    const auto missingSignatureRead = strategic_nexus::parseSncFriendMpSyncEnvelopePackageJson(
+        strategic_nexus::serializeSncFriendMpSyncEnvelopePackage(missingSignatureEnvelope));
+    requireCondition(!missingSignatureRead.ok, "sync envelope without signature should fail closed");
+
     std::cout << "SNC friend package tests passed.\n";
     return 0;
 }

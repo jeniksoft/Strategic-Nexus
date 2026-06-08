@@ -18,6 +18,9 @@ constexpr std::size_t kMaxNodeIdLength = 80;
 constexpr std::size_t kMaxDisplayNameLength = 80;
 constexpr std::size_t kMaxPublicKeyLength = 180;
 constexpr std::size_t kMaxFingerprintLength = 96;
+constexpr std::size_t kMaxPackageIdLength = 96;
+constexpr std::size_t kMaxHashLength = 128;
+constexpr std::size_t kMaxSignatureLength = 256;
 
 std::string jsonEscape(const std::string& value)
 {
@@ -106,6 +109,47 @@ std::optional<std::string> extractArrayBody(const std::string& json, const char*
     return std::nullopt;
 }
 
+std::optional<std::string> extractObjectBody(const std::string& json, const char* key)
+{
+    const std::regex objectStartPattern("\"" + std::string(key) + "\"\\s*:\\s*\\{");
+    std::smatch match;
+    if (!std::regex_search(json, match, objectStartPattern)) {
+        return std::nullopt;
+    }
+
+    const std::size_t objectStart = static_cast<std::size_t>(match.position()) + match.length() - 1;
+    int depth = 0;
+    bool inString = false;
+    bool escaped = false;
+
+    for (std::size_t index = objectStart; index < json.size(); ++index) {
+        const char ch = json[index];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                inString = false;
+            }
+            continue;
+        }
+
+        if (ch == '"') {
+            inString = true;
+        } else if (ch == '{') {
+            ++depth;
+        } else if (ch == '}') {
+            --depth;
+            if (depth == 0) {
+                return json.substr(objectStart, index - objectStart + 1);
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
 std::vector<std::string> extractObjectBodies(const std::string& arrayBody)
 {
     std::vector<std::string> objects;
@@ -182,6 +226,12 @@ bool isAllowedCapability(const std::string& capability)
     return capability == "mp_package_sync" || capability == "handoff_sync";
 }
 
+bool hasCapability(const SncFriendPackageIdentity& identity, const std::string& capability)
+{
+    return std::find(identity.capabilities.begin(), identity.capabilities.end(), capability)
+        != identity.capabilities.end();
+}
+
 bool validateCapabilities(const std::vector<std::string>& capabilities)
 {
     if (capabilities.empty() || capabilities.size() > 4) {
@@ -250,6 +300,50 @@ std::string validateTrustedFriend(const SncTrustedFriend& friendEntry)
     return {};
 }
 
+std::string validateMpSyncEnvelope(const SncFriendMpSyncEnvelopePackage& package)
+{
+    const auto senderReason = validateIdentity(package.sender);
+    if (!senderReason.empty()) {
+        return senderReason;
+    }
+    const auto recipientReason = validateIdentity(package.recipient);
+    if (!recipientReason.empty()) {
+        return recipientReason;
+    }
+    if (package.sender.nodeId == package.recipient.nodeId) {
+        return "friend mp sync envelope sender and recipient must differ";
+    }
+    if (!hasCapability(package.sender, "mp_package_sync") ||
+        !hasCapability(package.recipient, "mp_package_sync")) {
+        return "friend mp sync envelope requires mp_package_sync capability";
+    }
+    if (!isSafeToken(package.campaignId, kMaxPackageIdLength) ||
+        !isSafeToken(package.overlayVersion, kMaxPackageIdLength)) {
+        return "friend mp sync envelope campaign or overlay identity is missing or unsafe";
+    }
+    if (!isSafeToken(package.packageManifestHash, kMaxHashLength) ||
+        !isSafeToken(package.packageZipHash, kMaxHashLength) ||
+        !isSafeToken(package.encryptedPayloadHash, kMaxHashLength)) {
+        return "friend mp sync envelope package hashes are missing or unsafe";
+    }
+    if (package.signingAlgorithm != "ed25519") {
+        return "friend mp sync envelope signing algorithm is unsupported";
+    }
+    if (package.encryptionAlgorithm != "x25519-xsalsa20-poly1305") {
+        return "friend mp sync envelope encryption algorithm is unsupported";
+    }
+    if (!isSafeToken(package.signature, kMaxSignatureLength)) {
+        return "friend mp sync envelope signature is missing or unsafe";
+    }
+    if (package.createdAt.empty()) {
+        return "friend mp sync envelope created_at is missing";
+    }
+    if (package.encryptedPayloadBytes == 0) {
+        return "friend mp sync envelope encrypted payload byte count is missing";
+    }
+    return {};
+}
+
 SncFriendPackageIdentity parseIdentity(const std::string& json)
 {
     SncFriendPackageIdentity identity;
@@ -312,6 +406,21 @@ void writeTrustedFriend(std::ostringstream& output, const SncTrustedFriend& frie
     output << "      \"accepted_at\": \"" << jsonEscape(friendEntry.acceptedAt) << "\",\n";
     output << "      \"updated_at\": \"" << jsonEscape(friendEntry.updatedAt) << "\"\n";
     output << "    }";
+}
+
+void writeIndentedIdentity(
+    std::ostringstream& output,
+    const SncFriendPackageIdentity& identity,
+    const char* indent)
+{
+    output << indent << "\"node_id\": \"" << jsonEscape(identity.nodeId) << "\",\n";
+    output << indent << "\"display_name\": \"" << jsonEscape(identity.displayName) << "\",\n";
+    output << indent << "\"signing_public_key\": \"" << jsonEscape(identity.signingPublicKey) << "\",\n";
+    output << indent << "\"encryption_public_key\": \"" << jsonEscape(identity.encryptionPublicKey) << "\",\n";
+    output << indent << "\"fingerprint\": \"" << jsonEscape(identity.fingerprint) << "\",\n";
+    output << indent << "\"capabilities\": ";
+    writeStringArray(output, identity.capabilities);
+    output << "\n";
 }
 
 } // namespace
@@ -437,6 +546,49 @@ SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json)
     return store;
 }
 
+SncFriendMpSyncEnvelopePackage parseSncFriendMpSyncEnvelopePackageJson(const std::string& json)
+{
+    SncFriendMpSyncEnvelopePackage package;
+    if (json.empty()) {
+        package.reason = "friend mp sync envelope json is empty";
+        return package;
+    }
+
+    const auto schemaVersion = extractJsonSize(json, "schema_version");
+    if (!schemaVersion.has_value() || *schemaVersion != 1) {
+        package.reason = "unsupported friend mp sync envelope schema";
+        return package;
+    }
+    if (stringOrEmpty(json, "package_type") != "snc_friend_mp_package_sync") {
+        package.reason = "friend mp sync envelope package type is unsupported";
+        return package;
+    }
+
+    const auto senderBody = extractObjectBody(json, "sender");
+    const auto recipientBody = extractObjectBody(json, "recipient");
+    package.sender = parseIdentity(senderBody.value_or(""));
+    package.recipient = parseIdentity(recipientBody.value_or(""));
+    package.campaignId = stringOrEmpty(json, "campaign_id");
+    package.overlayVersion = stringOrEmpty(json, "overlay_version");
+    package.packageManifestHash = stringOrEmpty(json, "package_manifest_hash");
+    package.packageZipHash = stringOrEmpty(json, "package_zip_hash");
+    package.encryptedPayloadHash = stringOrEmpty(json, "encrypted_payload_hash");
+    package.signingAlgorithm = stringOrEmpty(json, "signing_algorithm");
+    package.encryptionAlgorithm = stringOrEmpty(json, "encryption_algorithm");
+    package.signature = stringOrEmpty(json, "signature");
+    package.createdAt = stringOrEmpty(json, "created_at");
+    package.encryptedPayloadBytes = extractJsonSize(json, "encrypted_payload_bytes").value_or(0);
+
+    package.reason = validateMpSyncEnvelope(package);
+    if (!package.reason.empty()) {
+        return package;
+    }
+
+    package.ok = true;
+    package.reason = "friend mp sync envelope parsed";
+    return package;
+}
+
 std::string serializeSncFriendRequestPackage(const SncFriendRequestPackage& package)
 {
     std::ostringstream json;
@@ -477,6 +629,32 @@ std::string serializeSncFriendTrustStore(const SncFriendTrustStore& store)
         json << (index + 1 < store.friends.size() ? "," : "") << "\n";
     }
     json << "  ]\n";
+    json << "}\n";
+    return json.str();
+}
+
+std::string serializeSncFriendMpSyncEnvelopePackage(const SncFriendMpSyncEnvelopePackage& package)
+{
+    std::ostringstream json;
+    json << "{\n";
+    json << "  \"schema_version\": 1,\n";
+    json << "  \"package_type\": \"snc_friend_mp_package_sync\",\n";
+    json << "  \"sender\": {\n";
+    writeIndentedIdentity(json, package.sender, "    ");
+    json << "  },\n";
+    json << "  \"recipient\": {\n";
+    writeIndentedIdentity(json, package.recipient, "    ");
+    json << "  },\n";
+    json << "  \"campaign_id\": \"" << jsonEscape(package.campaignId) << "\",\n";
+    json << "  \"overlay_version\": \"" << jsonEscape(package.overlayVersion) << "\",\n";
+    json << "  \"package_manifest_hash\": \"" << jsonEscape(package.packageManifestHash) << "\",\n";
+    json << "  \"package_zip_hash\": \"" << jsonEscape(package.packageZipHash) << "\",\n";
+    json << "  \"encrypted_payload_hash\": \"" << jsonEscape(package.encryptedPayloadHash) << "\",\n";
+    json << "  \"encrypted_payload_bytes\": " << package.encryptedPayloadBytes << ",\n";
+    json << "  \"signing_algorithm\": \"" << jsonEscape(package.signingAlgorithm) << "\",\n";
+    json << "  \"encryption_algorithm\": \"" << jsonEscape(package.encryptionAlgorithm) << "\",\n";
+    json << "  \"signature\": \"" << jsonEscape(package.signature) << "\",\n";
+    json << "  \"created_at\": \"" << jsonEscape(package.createdAt) << "\"\n";
     json << "}\n";
     return json.str();
 }

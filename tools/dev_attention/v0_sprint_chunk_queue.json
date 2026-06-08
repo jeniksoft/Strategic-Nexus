@@ -6,7 +6,7 @@
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces, and the remaining bounded gap is deeper 15G host/client workflow polish or owner validation.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract is implemented and fail-closed, but release-grade companion UI still needs actual signed/encrypted transport and real season validation.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -1012,6 +1012,26 @@
       ],
       "dependencies": [
         "v0-sprint-135-surface-friend-pairing-ui-guidance"
+      ]
+    },
+    {
+      "id": "v0-sprint-137-add-snc-friend-mp-sync-envelope-contract",
+      "title": "Add SNC friend MP sync envelope contract",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / signed and encrypted MP package sync between accepted SNC friends",
+      "goal": "Add the first fail-closed local envelope contract for future signed/encrypted SNC friend MP package sync, without enabling transport, automatic download, or package apply.",
+      "acceptance": [
+        "SNC friend MP sync envelopes parse only schema_version 1 with package_type snc_friend_mp_package_sync and bounded sender/recipient identities.",
+        "The envelope requires explicit approved signing and encryption algorithm labels plus package hash, encrypted payload hash, signature, and byte count metadata.",
+        "Unsupported algorithms, unsafe identities, missing hashes, missing signatures, self-recipient envelopes, and friends without mp_package_sync capability fail closed without enabling automatic sync."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-136-surface-friend-pairing-guide-status-contract"
       ]
     }
   ]
