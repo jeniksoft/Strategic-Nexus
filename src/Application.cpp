@@ -19,6 +19,7 @@
 #include "SncCandidateDecisionPackageBuilder.h"
 #include "SncDecisionInputPackageBuilder.h"
 #include "SncDslDraftPackageBuilder.h"
+#include "SncFriendPackage.h"
 #include "SncGeneratedOverlayPublishGate.h"
 #include "SncGeneratedOverlayStager.h"
 #include "StellarisProcessDetector.h"
@@ -219,6 +220,18 @@ bool parseLatestArchivedSaveHeadline(
     return true;
 }
 
+SncFriendPackageIdentity makeSncFriendCliIdentity(const RunConfig& config)
+{
+    SncFriendPackageIdentity identity;
+    identity.nodeId = config.sncFriendNodeId;
+    identity.displayName = config.sncFriendDisplayName;
+    identity.signingPublicKey = config.sncFriendSigningPublicKey;
+    identity.encryptionPublicKey = config.sncFriendEncryptionPublicKey;
+    identity.fingerprint = config.sncFriendFingerprint;
+    identity.capabilities = { "mp_package_sync", "handoff_sync" };
+    return identity;
+}
+
 } // namespace
 
 RunConfig parseRunConfig(int argc, char* argv[])
@@ -396,6 +409,87 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         if (argc > 8) {
             config.mpOverlayExpectedManifestHash = argv[8];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--create-snc-friend-request") {
+        config.createSncFriendRequestMode = true;
+
+        if (argc > 2) {
+            config.sncFriendRequestOutputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncFriendNodeId = argv[3];
+        }
+        if (argc > 4) {
+            config.sncFriendDisplayName = argv[4];
+        }
+        if (argc > 5) {
+            config.sncFriendSigningPublicKey = argv[5];
+        }
+        if (argc > 6) {
+            config.sncFriendEncryptionPublicKey = argv[6];
+        }
+        if (argc > 7) {
+            config.sncFriendFingerprint = argv[7];
+        }
+        if (argc > 8) {
+            config.sncFriendCreatedAt = argv[8];
+        }
+        if (argc > 9) {
+            config.sncFriendExpiresAt = argv[9];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--create-snc-friend-acceptance") {
+        config.createSncFriendAcceptanceMode = true;
+
+        if (argc > 2) {
+            config.sncFriendRequestInputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncFriendAcceptanceOutputPath = argv[3];
+        }
+        if (argc > 4) {
+            config.sncFriendNodeId = argv[4];
+        }
+        if (argc > 5) {
+            config.sncFriendDisplayName = argv[5];
+        }
+        if (argc > 6) {
+            config.sncFriendSigningPublicKey = argv[6];
+        }
+        if (argc > 7) {
+            config.sncFriendEncryptionPublicKey = argv[7];
+        }
+        if (argc > 8) {
+            config.sncFriendFingerprint = argv[8];
+        }
+        if (argc > 9) {
+            config.sncFriendCreatedAt = argv[9];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--import-snc-friend-acceptance") {
+        config.importSncFriendAcceptanceMode = true;
+
+        if (argc > 2) {
+            config.sncFriendRequestInputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncFriendAcceptanceInputPath = argv[3];
+        }
+        if (argc > 4) {
+            config.sncFriendTrustStoreOutputPath = argv[4];
+        }
+        if (argc > 5) {
+            config.sncFriendAcceptedAt = argv[5];
+        }
+        if (argc > 6) {
+            config.sncFriendLocalAlias = argv[6];
         }
         return config;
     }
@@ -1723,6 +1817,181 @@ int Application::run(const RunConfig& config) const
                           << sanitizeCliValue(warningCode) << "\n";
             }
             return result.ok ? 0 : 1;
+        }
+
+        if (config.createSncFriendRequestMode) {
+            if (config.sncFriendRequestOutputPath.empty() ||
+                !hasNonWhitespace(config.sncFriendNodeId) ||
+                !hasNonWhitespace(config.sncFriendDisplayName) ||
+                !hasNonWhitespace(config.sncFriendSigningPublicKey) ||
+                !hasNonWhitespace(config.sncFriendEncryptionPublicKey) ||
+                !hasNonWhitespace(config.sncFriendFingerprint) ||
+                !hasNonWhitespace(config.sncFriendCreatedAt)) {
+                std::cout << "snc_friend_request_success=false\n";
+                std::cout << "snc_friend_request_reason=missing friend request output path or identity fields\n";
+                return 1;
+            }
+
+            SncFriendRequestPackage package;
+            package.sender = makeSncFriendCliIdentity(config);
+            package.createdAt = config.sncFriendCreatedAt;
+            package.expiresAt = config.sncFriendExpiresAt;
+            const auto json = serializeSncFriendRequestPackage(package);
+            const auto parsed = parseSncFriendRequestPackageJson(json);
+            const bool written = parsed.ok && common::writeTextFileAtomically(
+                config.sncFriendRequestOutputPath,
+                json);
+            const bool success = parsed.ok && written;
+
+            std::cout << "snc_friend_request_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_friend_request_reason="
+                      << sanitizeCliValue(parsed.ok ? (written ? "friend request package written" : "failed to write friend request package") : parsed.reason)
+                      << "\n";
+            std::cout << "snc_friend_request_output_written=" << (written ? "true" : "false") << "\n";
+            std::cout << "snc_friend_request_node_id=" << sanitizeCliValue(package.sender.nodeId) << "\n";
+            std::cout << "snc_friend_request_fingerprint=" << sanitizeCliValue(package.sender.fingerprint) << "\n";
+            return success ? 0 : 1;
+        }
+
+        if (config.createSncFriendAcceptanceMode) {
+            if (config.sncFriendRequestInputPath.empty() ||
+                config.sncFriendAcceptanceOutputPath.empty() ||
+                !hasNonWhitespace(config.sncFriendNodeId) ||
+                !hasNonWhitespace(config.sncFriendDisplayName) ||
+                !hasNonWhitespace(config.sncFriendSigningPublicKey) ||
+                !hasNonWhitespace(config.sncFriendEncryptionPublicKey) ||
+                !hasNonWhitespace(config.sncFriendFingerprint) ||
+                !hasNonWhitespace(config.sncFriendCreatedAt)) {
+                std::cout << "snc_friend_acceptance_success=false\n";
+                std::cout << "snc_friend_acceptance_reason=missing friend request path, acceptance output path, or identity fields\n";
+                return 1;
+            }
+
+            std::string requestJson;
+            if (!common::tryReadTextFile(config.sncFriendRequestInputPath, requestJson)) {
+                std::cout << "snc_friend_acceptance_success=false\n";
+                std::cout << "snc_friend_acceptance_reason=failed to read friend request package\n";
+                return 1;
+            }
+            const auto request = parseSncFriendRequestPackageJson(requestJson);
+            if (!request.ok) {
+                std::cout << "snc_friend_acceptance_success=false\n";
+                std::cout << "snc_friend_acceptance_reason=" << sanitizeCliValue(request.reason) << "\n";
+                return 1;
+            }
+
+            SncFriendAcceptancePackage acceptance;
+            acceptance.requestNodeId = request.sender.nodeId;
+            acceptance.requestFingerprint = request.sender.fingerprint;
+            acceptance.accepter = makeSncFriendCliIdentity(config);
+            acceptance.createdAt = config.sncFriendCreatedAt;
+            const auto json = serializeSncFriendAcceptancePackage(acceptance);
+            const auto parsed = parseSncFriendAcceptancePackageJson(json);
+            const bool matches = sncFriendAcceptanceMatchesRequest(request, parsed);
+            const bool written = parsed.ok && matches && common::writeTextFileAtomically(
+                config.sncFriendAcceptanceOutputPath,
+                json);
+            const bool success = parsed.ok && matches && written;
+
+            std::cout << "snc_friend_acceptance_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_friend_acceptance_reason="
+                      << sanitizeCliValue(!parsed.ok ? parsed.reason : (!matches ? "friend acceptance does not match request" : (written ? "friend acceptance package written" : "failed to write friend acceptance package")))
+                      << "\n";
+            std::cout << "snc_friend_acceptance_output_written=" << (written ? "true" : "false") << "\n";
+            std::cout << "snc_friend_acceptance_request_node_id=" << sanitizeCliValue(acceptance.requestNodeId) << "\n";
+            std::cout << "snc_friend_acceptance_accepter_node_id=" << sanitizeCliValue(acceptance.accepter.nodeId) << "\n";
+            return success ? 0 : 1;
+        }
+
+        if (config.importSncFriendAcceptanceMode) {
+            if (config.sncFriendRequestInputPath.empty() ||
+                config.sncFriendAcceptanceInputPath.empty() ||
+                config.sncFriendTrustStoreOutputPath.empty() ||
+                !hasNonWhitespace(config.sncFriendAcceptedAt)) {
+                std::cout << "snc_friend_acceptance_import_success=false\n";
+                std::cout << "snc_friend_acceptance_import_reason=missing request path, acceptance path, trust store output path, or accepted_at\n";
+                return 1;
+            }
+
+            std::string requestJson;
+            if (!common::tryReadTextFile(config.sncFriendRequestInputPath, requestJson)) {
+                std::cout << "snc_friend_acceptance_import_success=false\n";
+                std::cout << "snc_friend_acceptance_import_reason=failed to read friend request package\n";
+                return 1;
+            }
+            std::string acceptanceJson;
+            if (!common::tryReadTextFile(config.sncFriendAcceptanceInputPath, acceptanceJson)) {
+                std::cout << "snc_friend_acceptance_import_success=false\n";
+                std::cout << "snc_friend_acceptance_import_reason=failed to read friend acceptance package\n";
+                return 1;
+            }
+
+            const auto request = parseSncFriendRequestPackageJson(requestJson);
+            const auto acceptance = parseSncFriendAcceptancePackageJson(acceptanceJson);
+            if (!request.ok || !acceptance.ok || !sncFriendAcceptanceMatchesRequest(request, acceptance)) {
+                std::cout << "snc_friend_acceptance_import_success=false\n";
+                std::cout << "snc_friend_acceptance_import_reason="
+                          << sanitizeCliValue(!request.ok ? request.reason : (!acceptance.ok ? acceptance.reason : "friend acceptance does not match request"))
+                          << "\n";
+                return 1;
+            }
+
+            SncFriendTrustStore store;
+            store.ok = true;
+            store.reason = "new friend trust store";
+            if (std::filesystem::exists(config.sncFriendTrustStoreOutputPath)) {
+                std::string storeJson;
+                if (!common::tryReadTextFile(config.sncFriendTrustStoreOutputPath, storeJson)) {
+                    std::cout << "snc_friend_acceptance_import_success=false\n";
+                    std::cout << "snc_friend_acceptance_import_reason=failed to read existing friend trust store\n";
+                    return 1;
+                }
+                store = parseSncFriendTrustStoreJson(storeJson);
+                if (!store.ok) {
+                    std::cout << "snc_friend_acceptance_import_success=false\n";
+                    std::cout << "snc_friend_acceptance_import_reason=" << sanitizeCliValue(store.reason) << "\n";
+                    return 1;
+                }
+            }
+
+            const auto duplicate = std::find_if(
+                store.friends.begin(),
+                store.friends.end(),
+                [&acceptance](const SncTrustedFriend& friendEntry) {
+                    return friendEntry.identity.nodeId == acceptance.accepter.nodeId;
+                });
+            if (duplicate != store.friends.end()) {
+                std::cout << "snc_friend_acceptance_import_success=false\n";
+                std::cout << "snc_friend_acceptance_import_reason=friend trust store already contains accepter node_id\n";
+                return 1;
+            }
+
+            SncTrustedFriend friendEntry;
+            friendEntry.identity = acceptance.accepter;
+            friendEntry.localAlias = hasNonWhitespace(config.sncFriendLocalAlias)
+                ? config.sncFriendLocalAlias
+                : acceptance.accepter.displayName;
+            friendEntry.trustState = "trusted";
+            friendEntry.autoSyncEnabled = false;
+            friendEntry.acceptedAt = config.sncFriendAcceptedAt;
+            friendEntry.updatedAt = config.sncFriendAcceptedAt;
+            store.friends.push_back(friendEntry);
+
+            const auto updatedJson = serializeSncFriendTrustStore(store);
+            const auto parsedUpdatedStore = parseSncFriendTrustStoreJson(updatedJson);
+            const bool written = parsedUpdatedStore.ok && common::writeTextFileAtomically(
+                config.sncFriendTrustStoreOutputPath,
+                updatedJson);
+            const bool success = parsedUpdatedStore.ok && written;
+
+            std::cout << "snc_friend_acceptance_import_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_friend_acceptance_import_reason="
+                      << sanitizeCliValue(parsedUpdatedStore.ok ? (written ? "friend acceptance imported into trust store" : "failed to write friend trust store") : parsedUpdatedStore.reason)
+                      << "\n";
+            std::cout << "snc_friend_acceptance_import_output_written=" << (written ? "true" : "false") << "\n";
+            std::cout << "snc_friend_acceptance_import_friend_count=" << store.friends.size() << "\n";
+            std::cout << "snc_friend_acceptance_import_auto_sync_enabled=false\n";
+            return success ? 0 : 1;
         }
 
         if (config.sncStatusSnapshotMode) {

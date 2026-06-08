@@ -50,6 +50,9 @@ struct RunConfig {
     bool stageSncGeneratedOverlayMode = false;
     bool publishSncGeneratedOverlayMode = false;
     bool prepareLocalLlmModelMode = false;
+    bool createSncFriendRequestMode = false;
+    bool createSncFriendAcceptanceMode = false;
+    bool importSncFriendAcceptanceMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -141,6 +144,11 @@ struct RunConfig {
     std::filesystem::path sncGeneratedOverlayPublishStatusOutputPath;
     std::filesystem::path sncGeneratedOverlayPublishBackupRootDirectory;
     std::filesystem::path localLlmPrepareStateOutputPath;
+    std::filesystem::path sncFriendRequestOutputPath;
+    std::filesystem::path sncFriendRequestInputPath;
+    std::filesystem::path sncFriendAcceptanceOutputPath;
+    std::filesystem::path sncFriendAcceptanceInputPath;
+    std::filesystem::path sncFriendTrustStoreOutputPath;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;
@@ -156,6 +164,15 @@ struct RunConfig {
     std::string sncGeneratedOverlayOwnerApprovalToken;
     std::string localLlmPrepareModelId;
     std::string localLlmPrepareRuntimeUrl = "http://127.0.0.1:11434";
+    std::string sncFriendNodeId;
+    std::string sncFriendDisplayName;
+    std::string sncFriendSigningPublicKey;
+    std::string sncFriendEncryptionPublicKey;
+    std::string sncFriendFingerprint;
+    std::string sncFriendCreatedAt;
+    std::string sncFriendExpiresAt;
+    std::string sncFriendAcceptedAt;
+    std::string sncFriendLocalAlias;
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
     bool sncUseConfiguredStartWithWindowsState = false;

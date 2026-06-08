@@ -3896,6 +3896,90 @@ if ($LASTEXITCODE -ne 0) {
     throw "SNC friend package tests failed."
 }
 
+$sncFriendCliRoot = Join-Path $repoRoot "dist\test_snc_friend_cli"
+if (Test-Path -LiteralPath $sncFriendCliRoot) {
+    Remove-Item -LiteralPath $sncFriendCliRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Force -Path $sncFriendCliRoot | Out-Null
+$sncFriendRequestPath = Join-Path $sncFriendCliRoot "host.snc-friend-request.json"
+$sncFriendAcceptancePath = Join-Path $sncFriendCliRoot "client.snc-friend-acceptance.json"
+$sncFriendTrustStorePath = Join-Path $sncFriendCliRoot "snc_friend_trust_store.json"
+$sncFriendSelfAcceptancePath = Join-Path $sncFriendCliRoot "self.snc-friend-acceptance.json"
+
+$sncFriendRequestOutput = & $exePath `
+    --create-snc-friend-request `
+    $sncFriendRequestPath `
+    "snc-node-host-cli-001" `
+    "Host CLI SNC" `
+    "ed25519:host-cli-signing-key" `
+    "x25519:host-cli-encryption-key" `
+    "fp-host-cli-001" `
+    "2026-06-08T18:00:00Z" `
+    "2026-06-09T18:00:00Z"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend request CLI failed. Actual output:`n$($sncFriendRequestOutput -join "`n")"
+}
+$sncFriendRequestText = $sncFriendRequestOutput -join "`n"
+Assert-Contains -Name "snc friend request cli" -Text $sncFriendRequestText -Expected "snc_friend_request_success=true"
+if (-not (Test-Path -LiteralPath $sncFriendRequestPath)) {
+    throw "SNC friend request CLI did not write request package."
+}
+
+$sncFriendAcceptanceOutput = & $exePath `
+    --create-snc-friend-acceptance `
+    $sncFriendRequestPath `
+    $sncFriendAcceptancePath `
+    "snc-node-client-cli-001" `
+    "Client CLI SNC" `
+    "ed25519:client-cli-signing-key" `
+    "x25519:client-cli-encryption-key" `
+    "fp-client-cli-001" `
+    "2026-06-08T18:05:00Z"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend acceptance CLI failed. Actual output:`n$($sncFriendAcceptanceOutput -join "`n")"
+}
+$sncFriendAcceptanceText = $sncFriendAcceptanceOutput -join "`n"
+Assert-Contains -Name "snc friend acceptance cli" -Text $sncFriendAcceptanceText -Expected "snc_friend_acceptance_success=true"
+if (-not (Test-Path -LiteralPath $sncFriendAcceptancePath)) {
+    throw "SNC friend acceptance CLI did not write acceptance package."
+}
+
+$sncFriendImportOutput = & $exePath `
+    --import-snc-friend-acceptance `
+    $sncFriendRequestPath `
+    $sncFriendAcceptancePath `
+    $sncFriendTrustStorePath `
+    "2026-06-08T18:06:00Z" `
+    "Client CLI"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend acceptance import CLI failed. Actual output:`n$($sncFriendImportOutput -join "`n")"
+}
+$sncFriendImportText = $sncFriendImportOutput -join "`n"
+Assert-Contains -Name "snc friend acceptance import cli" -Text $sncFriendImportText -Expected "snc_friend_acceptance_import_success=true"
+Assert-Contains -Name "snc friend acceptance import cli" -Text $sncFriendImportText -Expected "snc_friend_acceptance_import_auto_sync_enabled=false"
+$sncFriendTrustStoreJson = Get-Content -LiteralPath $sncFriendTrustStorePath -Raw
+Assert-Contains -Name "snc friend trust store cli json" -Text $sncFriendTrustStoreJson -Expected '"trust_state": "trusted"'
+Assert-Contains -Name "snc friend trust store cli json" -Text $sncFriendTrustStoreJson -Expected '"auto_sync_enabled": false'
+
+$sncFriendSelfAcceptanceOutput = & $exePath `
+    --create-snc-friend-acceptance `
+    $sncFriendRequestPath `
+    $sncFriendSelfAcceptancePath `
+    "snc-node-host-cli-001" `
+    "Host CLI SNC" `
+    "ed25519:host-cli-signing-key" `
+    "x25519:host-cli-encryption-key" `
+    "fp-host-cli-001" `
+    "2026-06-08T18:07:00Z"
+if ($LASTEXITCODE -eq 0) {
+    throw "SNC friend self-acceptance CLI unexpectedly succeeded."
+}
+$sncFriendSelfAcceptanceText = $sncFriendSelfAcceptanceOutput -join "`n"
+Assert-Contains -Name "snc friend self-acceptance cli" -Text $sncFriendSelfAcceptanceText -Expected "snc_friend_acceptance_success=false"
+if (Test-Path -LiteralPath $sncFriendSelfAcceptancePath) {
+    throw "SNC friend self-acceptance CLI wrote an unsafe acceptance package."
+}
+
 & $sncTrayStartupShortcutActionExePath
 if ($LASTEXITCODE -ne 0) {
     throw "SNC tray startup shortcut action tests failed."

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T13:45:00+02:00",
+  "updated_at": "2026-06-08T20:13:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -892,6 +892,25 @@
       ],
       "dependencies": [
         "v0-sprint-129-add-snc-friend-trust-store-contract"
+      ]
+    },
+    {
+      "id": "v0-sprint-131-add-manual-snc-friend-pairing-cli",
+      "title": "Add manual SNC friend pairing CLI",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / user-approved SNC friend request and acceptance workflow",
+      "goal": "Add the first manual CLI fallback for user-approved SNC friend request, acceptance, and trust-store import so friend pairing can be exercised before UI or transport adapters exist.",
+      "acceptance": [
+        "Strategic Nexus.exe can create a bounded schema_version 1 SNC friend request package from explicit local node identity fields.",
+        "Strategic Nexus.exe can create a matching friend acceptance package from a valid request and rejects self-acceptance without writing an unsafe package.",
+        "Strategic Nexus.exe can import a matching acceptance into a local friend trust store with auto-sync disabled by default."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-130-surface-snc-friend-trust-store-status"
       ]
     }
   ]
