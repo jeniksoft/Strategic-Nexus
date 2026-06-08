@@ -9,7 +9,8 @@ param(
     [string]$Commit = '',
     [int]$LeaseMinutes = 90,
     [string]$QueuePath = 'tools/dev_attention/v0_sprint_chunk_queue.json',
-    [string]$LedgerPath = '.codex_local/v0_sprint_chunk_ledger.json'
+    [string]$LedgerPath = '.codex_local/v0_sprint_chunk_ledger.json',
+    [string]$AutomationLogPath = '.codex_local/automation_run_log.csv'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -66,9 +67,64 @@ function Convert-Array {
     return @($Value)
 }
 
+function Get-TerminalAutomationRuns {
+    param([string]$Path)
+
+    $terminalResults = @('implemented', 'blocked', 'quiet', 'no_safe_task', 'failed')
+    $records = @{}
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $records
+    }
+
+    try {
+        $rows = Import-Csv -LiteralPath $Path
+    } catch {
+        return $records
+    }
+
+    foreach ($row in $rows) {
+        $runId = [string]$row.run_id
+        $result = [string]$row.result
+        if ([string]::IsNullOrWhiteSpace($runId) -or $result -notin $terminalResults) {
+            continue
+        }
+
+        $timestamp = [DateTimeOffset]::MinValue
+        if (-not [DateTimeOffset]::TryParse([string]$row.timestamp_local, [ref]$timestamp)) {
+            $timestamp = [DateTimeOffset]::Now
+        }
+
+        $existing = $null
+        if ($records.ContainsKey($runId)) {
+            $existing = $records[$runId]
+        }
+
+        if ($null -eq $existing -or $timestamp -ge $existing.timestamp) {
+            $detailsParts = @()
+            if (-not [string]::IsNullOrWhiteSpace([string]$row.summary)) {
+                $detailsParts += [string]$row.summary
+            }
+            if (-not [string]::IsNullOrWhiteSpace([string]$row.details)) {
+                $detailsParts += [string]$row.details
+            }
+
+            $records[$runId] = [pscustomobject]@{
+                timestamp = $timestamp
+                automation_id = [string]$row.automation_id
+                result = $result
+                evidence = ($detailsParts -join '; ').Trim()
+            }
+        }
+    }
+
+    return $records
+}
+
 $repoRoot = (Resolve-Path -LiteralPath '.').Path
 $queueFullPath = Join-Path $repoRoot $QueuePath
 $ledgerFullPath = Join-Path $repoRoot $LedgerPath
+$automationLogFullPath = Join-Path $repoRoot $AutomationLogPath
 $ledgerDir = Split-Path -Parent $ledgerFullPath
 if ($ledgerDir -and -not (Test-Path -LiteralPath $ledgerDir)) {
     New-Item -ItemType Directory -Path $ledgerDir -Force | Out-Null
@@ -109,6 +165,18 @@ try {
     }
 
     $ledger = Read-JsonFile -Path $ledgerFullPath -DefaultValue $defaultLedger
+    $terminalRuns = Get-TerminalAutomationRuns -Path $automationLogFullPath
+    $completedChunkIds = @{}
+    foreach ($done in (Convert-Array $ledger.completed)) {
+        if ($done.chunk_id) {
+            $completedChunkIds[[string]$done.chunk_id] = $true
+        }
+    }
+    foreach ($chunk in (Convert-Array $queue.chunks)) {
+        if ($chunk.id -and $chunk.status -in @('done', 'verified', 'completed')) {
+            $completedChunkIds[[string]$chunk.id] = $true
+        }
+    }
 
     $now = [DateTimeOffset]::Now
     $activeClaims = New-Object System.Collections.Generic.List[object]
@@ -126,6 +194,76 @@ try {
             $ledger.history = @($history + $expired)
             continue
         }
+
+        if ($claim.chunk_id -and $completedChunkIds.ContainsKey([string]$claim.chunk_id)) {
+            $ledger.history = @(@(Convert-Array $ledger.history) + ([ordered]@{
+                event = 'released_after_superseded_completion'
+                chunk_id = $claim.chunk_id
+                run_id = $claim.run_id
+                automation_id = $claim.automation_id
+                at = Get-IsoNow
+            }))
+            continue
+        }
+
+        $terminalRecord = $null
+        if ($claim.run_id -and $terminalRuns.ContainsKey([string]$claim.run_id)) {
+            $terminalRecord = $terminalRuns[[string]$claim.run_id]
+        }
+
+        if ($null -ne $terminalRecord -and [string]$terminalRecord.automation_id -eq [string]$claim.automation_id) {
+            $claimStartedAt = [DateTimeOffset]::MinValue
+            $claimStartedParsed = [DateTimeOffset]::TryParse([string]$claim.claimed_at, [ref]$claimStartedAt)
+            if (-not $claimStartedParsed -or $terminalRecord.timestamp -ge $claimStartedAt) {
+                $evidenceText = [string]$terminalRecord.evidence
+                if ($terminalRecord.result -eq 'implemented') {
+                    $ledger.completed = @(@(Convert-Array $ledger.completed) + ([ordered]@{
+                        chunk_id = $claim.chunk_id
+                        run_id = $claim.run_id
+                        automation_id = $claim.automation_id
+                        at = Get-IsoNow
+                        evidence = $evidenceText
+                        commit = ''
+                    }))
+                    $ledger.history = @(@(Convert-Array $ledger.history) + ([ordered]@{
+                        event = 'completed_from_terminal_log'
+                        chunk_id = $claim.chunk_id
+                        run_id = $claim.run_id
+                        automation_id = $claim.automation_id
+                        at = Get-IsoNow
+                        evidence = $evidenceText
+                    }))
+                } elseif ($terminalRecord.result -eq 'blocked') {
+                    $ledger.blocked = @(@(Convert-Array $ledger.blocked) + ([ordered]@{
+                        chunk_id = $claim.chunk_id
+                        run_id = $claim.run_id
+                        automation_id = $claim.automation_id
+                        at = Get-IsoNow
+                        evidence = $evidenceText
+                        commit = ''
+                    }))
+                    $ledger.history = @(@(Convert-Array $ledger.history) + ([ordered]@{
+                        event = 'blocked_from_terminal_log'
+                        chunk_id = $claim.chunk_id
+                        run_id = $claim.run_id
+                        automation_id = $claim.automation_id
+                        at = Get-IsoNow
+                        evidence = $evidenceText
+                    }))
+                } else {
+                    $ledger.history = @(@(Convert-Array $ledger.history) + ([ordered]@{
+                        event = 'released_after_terminal_log'
+                        chunk_id = $claim.chunk_id
+                        run_id = $claim.run_id
+                        automation_id = $claim.automation_id
+                        at = Get-IsoNow
+                        evidence = "$($terminalRecord.result): $evidenceText".TrimEnd(':', ' ')
+                    }))
+                }
+                continue
+            }
+        }
+
         $activeClaims.Add($claim)
     }
     $ledger.active_claims = @($activeClaims.ToArray())

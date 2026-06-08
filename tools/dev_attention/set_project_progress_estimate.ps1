@@ -52,6 +52,13 @@ function Get-AutomaticProjectProgressEstimate {
 
     return [pscustomobject]@{
         percent = [int]$analysis.percent
+        weighted_progress_percent = [int]$analysis.weighted_progress_percent
+        implementation_complete_percent = [int]$analysis.implementation_complete_percent
+        implementation_open_percent = [int]$analysis.implementation_open_percent
+        implementation_open_complexity_points = [double]$analysis.implementation_open_complexity_points
+        in_progress_complexity_percent = [int]$analysis.in_progress_complexity_percent
+        in_progress_complexity_points = [int]$analysis.in_progress_complexity_points
+        verification_complete_percent = [int]$analysis.verification_complete_percent
         implemented_percent = [int]$analysis.implemented_percent
         verified_percent = [int]$analysis.verified_percent
         implemented_item_percent = [int]$analysis.implemented_item_percent
@@ -65,6 +72,8 @@ function Get-AutomaticProjectProgressEstimate {
         remaining_complexity_points = [double]$analysis.remaining_complexity_points
         implemented_complexity_points = [double]$analysis.implemented_complexity_points
         verified_complexity_points = [double]$analysis.verified_complexity_points
+        implementation_basis = [string]$analysis.implementation_basis
+        owner_summary = [string]$analysis.owner_summary
         implemented_item_count = [int]$analysis.implemented_item_count
         verified_item_count = [int]$analysis.verified_item_count
         status_breakdown = @($analysis.status_breakdown)
@@ -92,6 +101,13 @@ if ($Percent -ge 0) {
     }
     $estimate = [pscustomobject]@{
         percent = $Percent
+        weighted_progress_percent = $Percent
+        implementation_complete_percent = $Percent
+        implementation_open_percent = 100 - $Percent
+        implementation_open_complexity_points = $null
+        in_progress_complexity_percent = $null
+        in_progress_complexity_points = $null
+        verification_complete_percent = $null
         implemented_percent = $null
         verified_percent = $null
         implemented_item_percent = $null
@@ -105,6 +121,8 @@ if ($Percent -ge 0) {
         remaining_complexity_points = $null
         implemented_complexity_points = $null
         verified_complexity_points = $null
+        implementation_basis = "manualni odhad"
+        owner_summary = "implementace $Percent% | postup $Percent%"
         implemented_item_count = $null
         verified_item_count = $null
         status_breakdown = @()
@@ -122,6 +140,13 @@ $outputJson = [pscustomobject]@{
     schema_version = 1
     updated_at = (Get-Date).ToString("o")
     percent = $estimate.percent
+    weighted_progress_percent = $estimate.weighted_progress_percent
+    implementation_complete_percent = $estimate.implementation_complete_percent
+    implementation_open_percent = $estimate.implementation_open_percent
+    implementation_open_complexity_points = $estimate.implementation_open_complexity_points
+    in_progress_complexity_percent = $estimate.in_progress_complexity_percent
+    in_progress_complexity_points = $estimate.in_progress_complexity_points
+    verification_complete_percent = $estimate.verification_complete_percent
     implemented_percent = $estimate.implemented_percent
     verified_percent = $estimate.verified_percent
     implemented_item_percent = $estimate.implemented_item_percent
@@ -135,6 +160,8 @@ $outputJson = [pscustomobject]@{
     remaining_complexity_points = $estimate.remaining_complexity_points
     implemented_complexity_points = $estimate.implemented_complexity_points
     verified_complexity_points = $estimate.verified_complexity_points
+    implementation_basis = $estimate.implementation_basis
+    owner_summary = $estimate.owner_summary
     implemented_item_count = $estimate.implemented_item_count
     verified_item_count = $estimate.verified_item_count
     status_breakdown = @($estimate.status_breakdown)
@@ -147,6 +174,8 @@ $outputJson = [pscustomobject]@{
 
 Write-Host "project_progress_estimate_written=$progressPath"
 Write-Host "project_progress_percent=$($estimate.percent)"
+Write-Host "project_progress_weighted_percent=$($estimate.weighted_progress_percent)"
+Write-Host "project_progress_implementation_complete_percent=$($estimate.implementation_complete_percent)"
 Write-Host "project_progress_implemented_percent=$($estimate.implemented_percent)"
 Write-Host "project_progress_verified_percent=$($estimate.verified_percent)"
 Write-Host "project_progress_basis=$($estimate.basis)"

@@ -24,7 +24,7 @@ function Get-StatusProgress {
     switch ($Status) {
         "DONE" { return 100 }
         "VERIFIED" { return 100 }
-        "IMPLEMENTED" { return 70 }
+        "IMPLEMENTED" { return 100 }
         "IN_PROGRESS" { return 35 }
         "BLOCKED" { return 5 }
         "NOT_STARTED" { return 0 }
@@ -103,6 +103,7 @@ function Get-Percent {
 function New-RoadmapProgressSnapshotMarkdown {
     param(
         [int]$WeightedProgressPercent,
+        [int]$ImplementationCompletePercent,
         [int]$ImplementedComplexityPercent,
         [int]$VerifiedComplexityPercent,
         [int]$ImplementedItemPercent,
@@ -125,6 +126,7 @@ function New-RoadmapProgressSnapshotMarkdown {
     $lines.Add("| Metric | Value |")
     $lines.Add("| --- | ---: |")
     $lines.Add("| Weighted overall progress | $WeightedProgressPercent% |")
+    $lines.Add("| Strict implementation complete | $ImplementationCompletePercent% |")
     $lines.Add("| Implemented-or-better complexity | $ImplementedComplexityPercent% |")
     $lines.Add("| Verified-or-done complexity | $VerifiedComplexityPercent% |")
     $lines.Add("| Implemented-or-better items | $ImplementedItemPercent% |")
@@ -294,9 +296,15 @@ $implementedItemCount = @($items | Where-Object { $_.implemented }).Count
 $verifiedItemCount = @($items | Where-Object { $_.verified }).Count
 $implementedComplexityPercent = Get-Percent -Part ([double]$implementedPoints) -Whole $totalPoints
 $verifiedComplexityPercent = Get-Percent -Part ([double]$verifiedPoints) -Whole $totalPoints
+$implementationCompletePercent = $implementedComplexityPercent
+$implementationOpenPoints = [Math]::Max(0, $totalPoints - [double]$implementedPoints)
 $implementedItemPercent = Get-Percent -Part $implementedItemCount -Whole $items.Count
 $verifiedItemPercent = Get-Percent -Part $verifiedItemCount -Whole $items.Count
 $remainingEstimate = Get-RemainingEstimate -RemainingPoints $remainingPoints -PointsPerHour $pointsPerHour
+$inProgressRow = $statusBreakdown | Where-Object { $_.status -eq "IN_PROGRESS" } | Select-Object -First 1
+$inProgressComplexityPercent = if ($null -ne $inProgressRow) { [int]$inProgressRow.complexity_percent } else { 0 }
+$inProgressComplexityPoints = if ($null -ne $inProgressRow) { [int]$inProgressRow.complexity_points } else { 0 }
+$implementationPrecisionNote = "Strict implementation percent counts only roadmap complexity with IMPLEMENTED, VERIFIED, or DONE status. Weighted overall progress also credits IN_PROGRESS/BLOCKED partial status and is a forecast-style progress signal, not hard completion."
 
 $directory = Split-Path -Parent $outputResolvedPath
 if ($directory -and -not (Test-Path -LiteralPath $directory)) {
@@ -307,13 +315,21 @@ $outputJson = [pscustomobject]@{
     schema_version = 1
     updated_at = (Get-Date).ToString("o")
     percent = $percent
+    weighted_progress_percent = $percent
+    implementation_complete_percent = $implementationCompletePercent
+    implementation_open_percent = Get-Percent -Part $implementationOpenPoints -Whole $totalPoints
+    implementation_open_complexity_points = [Math]::Round($implementationOpenPoints, 2)
+    in_progress_complexity_percent = $inProgressComplexityPercent
+    in_progress_complexity_points = $inProgressComplexityPoints
+    verification_complete_percent = $verifiedComplexityPercent
     implemented_percent = $implementedComplexityPercent
     verified_percent = $verifiedComplexityPercent
     implemented_item_percent = $implementedItemPercent
     verified_item_percent = $verifiedItemPercent
     remaining = $remainingEstimate
     confidence = $confidence
-    basis = "automaticky vazeny odhad: $([int]$totalPoints) bodu roadmapy, $([Math]::Round($donePoints, 1)) vazene hotovo, $([Math]::Round($remainingPoints, 1)) zbyva; implementovano=$implementedComplexityPercent%, overeno=$verifiedComplexityPercent%; $statusSummary"
+    basis = "automaticky vazeny odhad: $([int]$totalPoints) bodu roadmapy, $([Math]::Round($donePoints, 1)) vazene hotovo, $([Math]::Round($remainingPoints, 1)) zbyva; striktne implementovano=$implementationCompletePercent%, overeno=$verifiedComplexityPercent%, rozpracovano=$inProgressComplexityPercent%; $statusSummary"
+    implementation_basis = $implementationPrecisionNote
     item_count = $items.Count
     total_complexity_points = [int]$totalPoints
     completed_complexity_points = [Math]::Round($donePoints, 2)
@@ -327,6 +343,7 @@ $outputJson = [pscustomobject]@{
     logged_minutes = [int][Math]::Round($loggedMinutes)
     logged_points_done = [Math]::Round($loggedPoints, 2)
     points_per_hour = [Math]::Round($pointsPerHour, 2)
+    owner_summary = "implementace $implementationCompletePercent% | postup $percent% | overeno $verifiedComplexityPercent%"
     items = @($items)
 } | ConvertTo-Json -Depth 8
 
@@ -338,6 +355,7 @@ $outputJson = [pscustomobject]@{
 if ($UpdateRoadmapSnapshot) {
     $snapshotMarkdown = New-RoadmapProgressSnapshotMarkdown `
         -WeightedProgressPercent $percent `
+        -ImplementationCompletePercent $implementationCompletePercent `
         -ImplementedComplexityPercent $implementedComplexityPercent `
         -VerifiedComplexityPercent $verifiedComplexityPercent `
         -ImplementedItemPercent $implementedItemPercent `

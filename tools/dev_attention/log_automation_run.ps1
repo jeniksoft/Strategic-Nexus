@@ -8,16 +8,22 @@ param(
     [string]$Result = "started",
     [string]$Summary = "",
     [string]$Details = "",
-    [string]$WorkLogPath = ".codex_local/automation_run_log.csv"
+    [string]$WorkLogPath = ".codex_local/automation_run_log.csv",
+    [string]$RunStateDirectory = ".codex_local"
 )
 
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$logPath = if ([System.IO.Path]::IsPathRooted($WorkLogPath)) {
-    $WorkLogPath
-} else {
-    Join-Path $repoRoot $WorkLogPath
+
+function Resolve-ProjectPath {
+    param([string]$Path)
+
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return $Path
+    }
+
+    return Join-Path $repoRoot $Path
 }
 
 function ConvertTo-CsvField {
@@ -26,6 +32,52 @@ function ConvertTo-CsvField {
     $text = if ($null -eq $Value) { "" } else { [string]$Value }
     return '"' + $text.Replace('"', '""') + '"'
 }
+
+function Get-AutomationHintFileName {
+    param([string]$Prefix, [string]$AutomationIdValue)
+
+    $safeAutomationId = ($AutomationIdValue -replace '[^A-Za-z0-9._-]', '-').Trim('-')
+    if ([string]::IsNullOrWhiteSpace($safeAutomationId)) {
+        $safeAutomationId = "unknown"
+    }
+
+    return "{0}_{1}.txt" -f $Prefix, $safeAutomationId
+}
+
+function Ensure-ParentDirectory {
+    param([string]$Path)
+
+    $parent = Split-Path -Parent $Path
+    if ($parent -and -not (Test-Path -LiteralPath $parent)) {
+        New-Item -ItemType Directory -Force -Path $parent | Out-Null
+    }
+}
+
+function Write-TextFile {
+    param([string]$Path, [string]$Content)
+
+    Ensure-ParentDirectory -Path $Path
+    Set-Content -LiteralPath $Path -Encoding UTF8 -Value $Content
+}
+
+function Remove-TextFileIfCurrent {
+    param([string]$Path, [string]$ExpectedContent)
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return
+    }
+
+    try {
+        $current = (Get-Content -LiteralPath $Path -Raw).Trim()
+        if ($current -eq $ExpectedContent) {
+            Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+        }
+    } catch {
+    }
+}
+
+$logPath = Resolve-ProjectPath -Path $WorkLogPath
+$runStateRoot = Resolve-ProjectPath -Path $RunStateDirectory
 
 if ([string]::IsNullOrWhiteSpace($RunId)) {
     $RunId = "run-" + (Get-Date).ToString("yyyyMMddHHmmss") + "-" + ([Guid]::NewGuid().ToString("N").Substring(0, 8))
@@ -80,6 +132,29 @@ $line = @(
 
 if ($shouldAppend) {
     Add-Content -LiteralPath $logPath -Encoding UTF8 -Value $line
+}
+
+$currentAutomationRunIdPath = Join-Path $runStateRoot "current_automation_run_id.txt"
+$currentRunIdByAutomationPath = Join-Path $runStateRoot (Get-AutomationHintFileName -Prefix "current_run_id" -AutomationIdValue $AutomationId)
+$lastAutomationRunIdPath = Join-Path $runStateRoot "last_automation_run_id.txt"
+$lastRunIdByAutomationPath = Join-Path $runStateRoot (Get-AutomationHintFileName -Prefix "last_run_id" -AutomationIdValue $AutomationId)
+$freeworkActiveRunIdPath = Join-Path $runStateRoot "freework_active_run_id.txt"
+$isFreeworkAutomation = $AutomationId -like "sn-bounded-free-work-execution*"
+
+if ($Result -eq "started") {
+    Write-TextFile -Path $currentAutomationRunIdPath -Content $RunId
+    Write-TextFile -Path $currentRunIdByAutomationPath -Content $RunId
+    if ($isFreeworkAutomation) {
+        Write-TextFile -Path $freeworkActiveRunIdPath -Content $RunId
+    }
+} else {
+    Write-TextFile -Path $lastAutomationRunIdPath -Content $RunId
+    Write-TextFile -Path $lastRunIdByAutomationPath -Content $RunId
+    Remove-TextFileIfCurrent -Path $currentAutomationRunIdPath -ExpectedContent $RunId
+    Remove-TextFileIfCurrent -Path $currentRunIdByAutomationPath -ExpectedContent $RunId
+    if ($isFreeworkAutomation) {
+        Remove-TextFileIfCurrent -Path $freeworkActiveRunIdPath -ExpectedContent $RunId
+    }
 }
 
 Write-Host "automation_run_logged=$logPath"
