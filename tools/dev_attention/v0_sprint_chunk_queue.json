@@ -6,7 +6,7 @@
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, and companion/tray command-template status surface are implemented and fail-closed; release-grade companion UI still needs actual signed/encrypted transport and real season validation.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, and visible dashboard copy action are implemented and fail-closed; release-grade companion UI still needs actual signed/encrypted transport and real season validation.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -1074,6 +1074,27 @@
       ],
       "dependencies": [
         "v0-sprint-138-add-manual-snc-friend-mp-sync-envelope-cli"
+      ]
+    },
+    {
+      "id": "v0-sprint-140-surface-friend-mp-sync-envelope-dashboard-action",
+      "title": "Surface friend MP sync envelope dashboard action",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / signed and encrypted MP package sync between accepted SNC friends",
+      "goal": "Expose the manual friend MP sync envelope create/verify template as a visible SNC dashboard action, while keeping transport, automatic download, and package apply disabled.",
+      "acceptance": [
+        "The visible SNC dashboard includes a friend MP sync envelope action that copies the manual create/verify command template.",
+        "The action text makes clear this is a manual metadata fallback and does not enable automatic sync, download, or staging.",
+        "The smoke test verifies the dashboard action is present when the template exists."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-139-surface-friend-mp-sync-envelope-command-template"
       ]
     }
   ]

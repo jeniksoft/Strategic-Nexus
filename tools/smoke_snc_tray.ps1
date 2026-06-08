@@ -804,6 +804,12 @@ try {
                     [string]$json.friend_mp_sync_envelope_command_template -notlike "*--verify-snc-friend-mp-sync-envelope*") {
                     throw "SNC tray friend_mp_sync_envelope_command_template did not include the manual create/verify flow."
                 }
+                $sncTraySource = Get-Content -Raw -LiteralPath (Join-Path $RepoRoot "src/SncTrayApp.cpp")
+                if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE*" -or
+                    $sncTraySource -notlike "*SNC MP sync*" -or
+                    $sncTraySource -notlike "*Manual metadata fallback only*") {
+                    throw "SNC tray source did not expose the friend MP sync envelope dashboard action."
+                }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_pairing_guide_text)) {
                     throw "SNC tray status JSON did not expose friend_pairing_guide_text."
                 }

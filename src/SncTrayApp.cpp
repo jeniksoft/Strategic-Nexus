@@ -89,6 +89,7 @@ constexpr UINT ID_STATUS_OPEN_CRASH_RECOVERY_STATE = 221;
 constexpr UINT ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT = 222;
 constexpr UINT ID_STATUS_OPEN_FRIEND_TRUST_STORE = 223;
 constexpr UINT ID_STATUS_COPY_FRIEND_PAIRING = 224;
+constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE = 225;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -145,6 +146,7 @@ struct StatusDashboardData {
     std::wstring friendTrustStoreReason;
     std::wstring friendTrustStorePath;
     std::wstring friendPairingCommandTemplate;
+    std::wstring friendMpSyncEnvelopeCommandTemplate;
     std::wstring humanControlGuardState;
     std::wstring mpPackageRefreshState;
     std::wstring mpPackageRefreshReason;
@@ -243,6 +245,7 @@ HWND g_statusOpenCrashRecoveryStateButton = nullptr;
 HWND g_statusOpenGameplayAcceptanceReportButton = nullptr;
 HWND g_statusOpenFriendTrustStoreButton = nullptr;
 HWND g_statusCopyFriendPairingButton = nullptr;
+HWND g_statusCopyFriendMpSyncEnvelopeButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -1237,6 +1240,7 @@ StatusDashboardData loadStatusDashboardData()
     data.friendTrustStoreReason = L"\u2014";
     data.friendTrustStorePath = L"\u2014";
     data.friendPairingCommandTemplate = utf8ToWide(buildFriendPairingCommandTemplateUtf8());
+    data.friendMpSyncEnvelopeCommandTemplate = utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8());
     data.humanControlGuardState = L"\u2014";
 
     std::string json;
@@ -1367,6 +1371,11 @@ StatusDashboardData loadStatusDashboardData()
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_reason").value_or(""));
     data.friendTrustStorePath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_path").value_or(""));
+    data.friendMpSyncEnvelopeCommandTemplate =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_envelope_command_template").value_or(""));
+    if (data.friendMpSyncEnvelopeCommandTemplate.empty()) {
+        data.friendMpSyncEnvelopeCommandTemplate = utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8());
+    }
     const std::string humanControlGuardState = summaryValue("human_control_guard_state");
     if (!humanControlGuardState.empty()) {
         data.humanControlGuardState = utf8ToWide(humanControlGuardState);
@@ -1428,6 +1437,9 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += buildFriendPairingGuideText(data);
     text += L"\r\nSNC pairing template: ";
     text += data.friendPairingCommandTemplate.empty() ? kStatusEmptyValue : data.friendPairingCommandTemplate;
+    text += L"\r\nSNC MP sync envelope: manual metadata fallback only; automatic sync, download, and staging stay disabled.";
+    text += L"\r\nSNC MP sync envelope template: ";
+    text += data.friendMpSyncEnvelopeCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncEnvelopeCommandTemplate;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1511,6 +1523,9 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += buildFriendPairingGuideText(data);
     text += L"\nSNC pairing template: ";
     text += data.friendPairingCommandTemplate.empty() ? kStatusEmptyValue : data.friendPairingCommandTemplate;
+    text += L"\nSNC MP sync envelope: manual metadata fallback only; automatic sync, download, and staging stay disabled.";
+    text += L"\nSNC MP sync envelope template: ";
+    text += data.friendMpSyncEnvelopeCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncEnvelopeCommandTemplate;
     text += L"\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1828,6 +1843,11 @@ void refreshStatusWindowContent()
     if (g_statusCopyFriendPairingButton != nullptr) {
         EnableWindow(g_statusCopyFriendPairingButton, data.friendPairingCommandTemplate.empty() ? FALSE : TRUE);
     }
+    if (g_statusCopyFriendMpSyncEnvelopeButton != nullptr) {
+        EnableWindow(
+            g_statusCopyFriendMpSyncEnvelopeButton,
+            data.friendMpSyncEnvelopeCommandTemplate.empty() ? FALSE : TRUE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -1990,7 +2010,7 @@ void layoutStatusWindow(HWND hwnd)
     const int buttonGap = 8;
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 21;
+    constexpr int actionButtonCount = 22;
     constexpr int preferredButtonWidth = 116;
     constexpr int minimumButtonWidth = 76;
     int buttonsPerRow = actionButtonCount;
@@ -2096,6 +2116,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenGameplayAcceptanceReportButton,
         g_statusOpenFriendTrustStoreButton,
         g_statusCopyFriendPairingButton,
+        g_statusCopyFriendMpSyncEnvelopeButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -2119,6 +2140,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Gameplay",
         L"SNC pratele",
         L"SNC pairing",
+        L"SNC MP sync",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2286,6 +2308,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             createStatusButton(hwnd, ID_STATUS_OPEN_FRIEND_TRUST_STORE, L"SNC pratele");
         g_statusCopyFriendPairingButton =
             createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_PAIRING, L"SNC pairing");
+        g_statusCopyFriendMpSyncEnvelopeButton =
+            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, L"SNC MP sync");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2339,6 +2363,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenGameplayAcceptanceReportButton, g_statusFieldFont);
         setWindowFont(g_statusOpenFriendTrustStoreButton, g_statusFieldFont);
         setWindowFont(g_statusCopyFriendPairingButton, g_statusFieldFont);
+        setWindowFont(g_statusCopyFriendMpSyncEnvelopeButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2414,6 +2439,27 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 L"SNC friend-pairing guide a CLI sablona jsou zkopirovane do schranky.\n\n"
                 L"Dopln lokalni node id, zobrazovaci jmeno, verejne klice, fingerprint a casy. "
                 L"Import stale ponecha auto-sync vypnuty, dokud nebude hotovy duveryhodny transport.",
+                L"Strategic Nexus Companion",
+                MB_OK | MB_ICONINFORMATION);
+            return 0;
+        }
+        case ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE:
+        {
+            const auto data = loadStatusDashboardData();
+            std::wstring text;
+            text += L"SNC friend MP sync envelope\r\n";
+            text += L"Manual metadata fallback only. Automatic sync, download, verify-stage, and package apply stay disabled.\r\n\r\n";
+            text += data.friendMpSyncEnvelopeCommandTemplate.empty()
+                        ? utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8())
+                        : data.friendMpSyncEnvelopeCommandTemplate;
+            if (!copyTextToClipboard(hwnd, text)) {
+                MessageBeep(MB_ICONWARNING);
+                return 0;
+            }
+            MessageBoxW(
+                hwnd,
+                L"SNC friend MP sync envelope sablona je zkopirovana do schranky.\n\n"
+                L"Je to jen manualni metadata fallback. Automaticky sync, download ani staging gameplay souboru tim nevznikaji.",
                 L"Strategic Nexus Companion",
                 MB_OK | MB_ICONINFORMATION);
             return 0;
