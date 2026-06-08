@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T02:52:09.4635218+02:00",
+  "updated_at": "2026-06-08T06:27:00.0000000+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: verify the Status Center reactive capability and bootstrap source-quality signal stays explicit across companion JSON, tray text, and CLI output.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the next bounded gap is the base on_action dispatcher wiring slice from the reactive-policy-pack roadmap path.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the next bounded gap is the release-companion MP package UX verification slice from the host/client handoff roadmap path.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -242,7 +242,7 @@
     {
       "id": "v0-sprint-097-verify-campaign-library-plan-status-contract",
       "title": "Verify campaign library plan status contract",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Generated campaign library maintenance / plan status visibility",
       "goal": "Verify that SNC status, tray, and real-session outputs keep the campaign-library plan presence, source, readiness, reason, limit state, and skipped-count signals explicit and fail closed.",
@@ -250,6 +250,23 @@
         "Companion status output keeps campaign_library_plan_present, campaign_library_plan_path, campaign_library_plan_source, campaign_library_plan_readiness, and campaign_library_plan_reason explicit.",
         "Companion status output keeps campaign_library_limit_reached and campaign_library_skipped_due_to_limit_count explicit and fail closed for missing or unsupported plan files.",
         "Real-session loop outputs continue to forward the same campaign-library plan contract fields for owner/release-companion inspection."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-098-verify-release-companion-mp-package-ux-contract",
+      "title": "Verify release-companion MP package UX contract",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Release Companion MP Package UX",
+      "goal": "Verify that the companion, tray, and real-session surfaces keep MP export/import/verify command hints, copyable share guidance, mismatch warnings, and missing-previous-host recovery cues explicit for ordinary host and client users.",
+      "acceptance": [
+        "Companion and Status Center outputs keep MP export/import/verify command hints and copyable package status text explicit.",
+        "Companion and real-session outputs keep mismatch warnings plus missing-previous-host recovery guidance explicit and fail closed.",
+        "The release-companion contract stays usable without requiring an IP-address workflow."
       ],
       "preferred_tests": [
         "tools/run_v0_pipeline_tests.ps1"
