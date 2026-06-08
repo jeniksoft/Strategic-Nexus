@@ -135,6 +135,9 @@ struct StatusDashboardData {
     std::wstring mpPackageZipReason;
     std::wstring mpPackageManifestHash;
     std::wstring mpPackageHandoffStatus;
+    std::wstring mpPackageMismatchWarningState;
+    std::wstring mpPackageMismatchWarningReason;
+    std::wstring mpPackageIdentityMismatchAlert;
     std::wstring mpPackagePreviousHostAvailable;
     std::wstring mpPackagePreviousHostAvailableKnown;
     std::wstring mpPackageHostNextStep;
@@ -1170,6 +1173,9 @@ StatusDashboardData loadStatusDashboardData()
     data.mpPackageZipReason = utf8ToWide(summaryValue("mp_package_zip_reason"));
     data.mpPackageManifestHash = utf8ToWide(summaryValue("mp_package_manifest_hash"));
     data.mpPackageHandoffStatus = utf8ToWide(summaryValue("mp_handoff_status"));
+    data.mpPackageMismatchWarningState = utf8ToWide(summaryValue("mp_mismatch_warning_state"));
+    data.mpPackageMismatchWarningReason = utf8ToWide(summaryValue("mp_mismatch_warning_reason"));
+    data.mpPackageIdentityMismatchAlert = utf8ToWide(summaryValue("mp_identity_mismatch_alert"));
     data.mpPackagePreviousHostAvailable = utf8ToWide(summaryValue("mp_previous_host_available"));
     data.mpPackagePreviousHostAvailableKnown = utf8ToWide(summaryValue("mp_previous_host_available_known"));
     data.mpPackageHostNextStep = utf8ToWide(summaryValue("mp_host_next_step"));
@@ -1225,6 +1231,18 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
         }
         if (!data.mpPackageManifestHash.empty()) {
             text += L"\r\nMP manifest hash: " + data.mpPackageManifestHash;
+        }
+        if (!data.mpPackageHandoffStatus.empty()) {
+            text += L"\r\nMP handoff: " + data.mpPackageHandoffStatus;
+        }
+        if (!data.mpPackageMismatchWarningState.empty()) {
+            text += L"\r\nMP mismatch: " + data.mpPackageMismatchWarningState;
+            if (!data.mpPackageMismatchWarningReason.empty()) {
+                text += L" (" + data.mpPackageMismatchWarningReason + L")";
+            }
+        }
+        if (!data.mpPackageIdentityMismatchAlert.empty()) {
+            text += L"\r\nMP mismatch alert: " + data.mpPackageIdentityMismatchAlert;
         }
         if (!data.mpPackageZipPath.empty() || !data.mpPackageManifestHash.empty()) {
             text += L"\r\nMP sdileni: zkopiruj MP zip a manifest hash; host/klient kroky jsou nize.";
@@ -1295,6 +1313,15 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
         }
         if (!data.mpPackageHandoffStatus.empty()) {
             text += L"\nMP handoff: " + data.mpPackageHandoffStatus;
+        }
+        if (!data.mpPackageMismatchWarningState.empty()) {
+            text += L"\nMP mismatch: " + data.mpPackageMismatchWarningState;
+            if (!data.mpPackageMismatchWarningReason.empty()) {
+                text += L" (" + data.mpPackageMismatchWarningReason + L")";
+            }
+        }
+        if (!data.mpPackageIdentityMismatchAlert.empty()) {
+            text += L"\nMP mismatch alert: " + data.mpPackageIdentityMismatchAlert;
         }
         if (!data.mpPackagePreviousHostAvailableKnown.empty()) {
             text += L"\nMP previous host known: " + data.mpPackagePreviousHostAvailableKnown;
