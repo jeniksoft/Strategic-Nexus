@@ -111,5 +111,21 @@ if ($LASTEXITCODE -ne 0) {
     throw "SNC tray build failed with exit code $LASTEXITCODE"
 }
 
+$sncTrayStagerObject = Join-Path $objectDir "SncGeneratedOverlayStager.obj"
+if (-not (Test-Path -LiteralPath $sncTrayStagerObject)) {
+    & cl.exe `
+        /nologo `
+        /std:c++20 `
+        /EHsc `
+        /DUNICODE `
+        /D_UNICODE `
+        /I (Join-Path $repoRoot "src") `
+        "/Fo$objectDir\" `
+        /c (Join-Path $repoRoot "src\SncGeneratedOverlayStager.cpp")
+    if ($LASTEXITCODE -ne 0) {
+        throw "SNC tray fallback rebuild for SncGeneratedOverlayStager.cpp failed with exit code $LASTEXITCODE"
+    }
+}
+
 Write-Host "snc_tray_build_success=true"
 Write-Host "snc_tray_exe=$outputPath"

@@ -862,6 +862,159 @@ std::string parsePostPlayPlayerCountryId(const std::string& json)
     return {};
 }
 
+struct MemoryRecoveryEntry {
+    std::string id;
+    std::string campaignKey;
+    std::string relativePath;
+    std::string saveName;
+    std::string saveDate;
+    std::string sourceKind;
+    std::string analysisState;
+    std::filesystem::path anchorPath;
+    std::size_t compatibleArchivedEvidenceCount = 0;
+    std::size_t laterArchivedEvidenceCount = 0;
+};
+
+bool isBetterMemoryRecoveryEntry(
+    const MemoryRecoveryEntry& candidate,
+    const std::optional<MemoryRecoveryEntry>& best)
+{
+    if (!best.has_value()) {
+        return true;
+    }
+
+    if (candidate.saveDate != best->saveDate) {
+        if (candidate.saveDate.empty()) {
+            return false;
+        }
+        if (best->saveDate.empty()) {
+            return true;
+        }
+        return candidate.saveDate > best->saveDate;
+    }
+
+    if (candidate.compatibleArchivedEvidenceCount != best->compatibleArchivedEvidenceCount) {
+        return candidate.compatibleArchivedEvidenceCount > best->compatibleArchivedEvidenceCount;
+    }
+
+    if (candidate.laterArchivedEvidenceCount != best->laterArchivedEvidenceCount) {
+        return candidate.laterArchivedEvidenceCount < best->laterArchivedEvidenceCount;
+    }
+
+    if (candidate.analysisState != best->analysisState) {
+        if (candidate.analysisState == "ready" && best->analysisState != "ready") {
+            return true;
+        }
+        if (candidate.analysisState != "ready" && best->analysisState == "ready") {
+            return false;
+        }
+        if (candidate.analysisState == "ready_conservative" && best->analysisState == "ambiguous") {
+            return true;
+        }
+        if (candidate.analysisState == "ambiguous" && best->analysisState == "ready_conservative") {
+            return false;
+        }
+    }
+
+    return candidate.anchorPath.generic_string() < best->anchorPath.generic_string();
+}
+
+CompanionMemoryRecoveryStatus buildMemoryRecoveryStatus(const std::string& entryPointAnalysisJson)
+{
+    CompanionMemoryRecoveryStatus recovery;
+    if (entryPointAnalysisJson.empty()) {
+        recovery.reason = "entry point analysis unavailable";
+        return recovery;
+    }
+
+    const auto readiness = common::extractJsonString(entryPointAnalysisJson, "readiness").value_or("");
+    const bool branchAmbiguityDetected = extractJsonBool(entryPointAnalysisJson, "branch_ambiguity_detected").value_or(false);
+    const auto entriesBody = extractArrayBody(entryPointAnalysisJson, "entry_points");
+    if (!entriesBody.has_value()) {
+        recovery.reason = readiness.empty() ? "entry point analysis missing entry points"
+                                            : "entry point analysis " + readiness;
+        return recovery;
+    }
+
+    std::optional<MemoryRecoveryEntry> bestEntry;
+    for (const auto& object : extractObjectBodies(*entriesBody)) {
+        MemoryRecoveryEntry entry;
+        entry.id = common::extractJsonString(object, "id").value_or("");
+        entry.campaignKey = common::extractJsonString(object, "campaign_key").value_or("");
+        entry.relativePath = common::extractJsonString(object, "relative_path").value_or("");
+        entry.saveName = common::extractJsonString(object, "save_name").value_or("");
+        entry.saveDate = common::extractJsonString(object, "save_date").value_or("");
+        entry.sourceKind = common::extractJsonString(object, "source_kind").value_or("");
+        entry.analysisState = common::extractJsonString(object, "analysis_state").value_or("");
+        const auto sourceRoot = common::extractJsonString(object, "source_root").value_or("");
+        if (!sourceRoot.empty() && !entry.relativePath.empty()) {
+            entry.anchorPath = std::filesystem::path(sourceRoot) / entry.relativePath;
+        } else if (!entry.relativePath.empty()) {
+            entry.anchorPath = entry.relativePath;
+        }
+        entry.compatibleArchivedEvidenceCount = extractJsonSize(object, "compatible_archived_evidence_count").value_or(0);
+        entry.laterArchivedEvidenceCount = extractJsonSize(object, "later_archived_evidence_count").value_or(0);
+
+        if (entry.id.empty() && entry.saveName.empty() && entry.saveDate.empty() && entry.relativePath.empty() &&
+            entry.compatibleArchivedEvidenceCount == 0 && entry.laterArchivedEvidenceCount == 0) {
+            continue;
+        }
+
+        if (!bestEntry.has_value() || isBetterMemoryRecoveryEntry(entry, bestEntry)) {
+            bestEntry = entry;
+        }
+    }
+
+    if (!bestEntry.has_value()) {
+        recovery.reason = "no loadable save entry points found";
+        return recovery;
+    }
+
+    recovery.anchorEntryPointId = bestEntry->id;
+    recovery.anchorCampaignKey = bestEntry->campaignKey;
+    recovery.anchorPath = bestEntry->anchorPath;
+    recovery.anchorSaveName = bestEntry->saveName;
+    recovery.anchorSaveDate = bestEntry->saveDate;
+    recovery.anchorSourceKind = bestEntry->sourceKind;
+    recovery.compatibleArchivedEvidenceCount = bestEntry->compatibleArchivedEvidenceCount;
+    recovery.laterArchivedEvidenceCount = bestEntry->laterArchivedEvidenceCount;
+
+    if (readiness == "blocked" || readiness == "needs_attention") {
+        recovery.state = "needs_attention";
+        recovery.reason = readiness == "blocked" ? "entry point analysis blocked"
+                                                 : "entry point analysis needs attention";
+        recovery.confidence = "low";
+        recovery.warningVisible = true;
+        return recovery;
+    }
+
+    if (bestEntry->compatibleArchivedEvidenceCount == 0) {
+        recovery.state = "needs_attention";
+        recovery.reason = "no compatible archived evidence for latest loadable save";
+        recovery.confidence = "low";
+        recovery.warningVisible = true;
+        return recovery;
+    }
+
+    const bool conservative =
+        branchAmbiguityDetected || readiness == "ambiguous" || bestEntry->laterArchivedEvidenceCount > 0 ||
+        bestEntry->analysisState == "ready_conservative" || bestEntry->analysisState == "ambiguous";
+    if (conservative) {
+        recovery.state = "degraded";
+        recovery.reason = branchAmbiguityDetected ? "branch ambiguity requires conservative recovery anchor"
+                                                  : "later archived evidence excluded from recovery anchor";
+        recovery.confidence = "reduced";
+        recovery.warningVisible = true;
+        return recovery;
+    }
+
+    recovery.state = "ready";
+    recovery.reason = "latest loadable save selected as recovery anchor";
+    recovery.confidence = "high";
+    recovery.warningVisible = false;
+    return recovery;
+}
+
 bool startsWith(const std::string& value, const std::string& prefix)
 {
     return value.rfind(prefix, 0) == 0;
@@ -1764,6 +1917,7 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
 
     std::string json;
     std::string fileError;
+    std::string entryPointAnalysisJson;
     bool candidateAvailable = false;
     bool decisionInputAvailable = false;
     bool postPlayAvailable = false;
@@ -1835,17 +1989,20 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
         return status;
     }
 
-    if (inspectJsonFile(status.entryPointAnalysisPath, json, fileError)) {
+    if (inspectJsonFile(status.entryPointAnalysisPath, entryPointAnalysisJson, fileError)) {
         entryPointAvailable = true;
-        status.entryPointReadiness = common::extractJsonString(json, "readiness").value_or("");
-        status.entryPointReason = common::extractJsonString(json, "reason").value_or("");
-        status.entryPointCount = extractJsonSize(json, "entry_point_count").value_or(0);
-        status.branchAmbiguityDetected = extractJsonBool(json, "branch_ambiguity_detected").value_or(false);
+        status.entryPointReadiness = common::extractJsonString(entryPointAnalysisJson, "readiness").value_or("");
+        status.entryPointReason = common::extractJsonString(entryPointAnalysisJson, "reason").value_or("");
+        status.entryPointCount = extractJsonSize(entryPointAnalysisJson, "entry_point_count").value_or(0);
+        status.branchAmbiguityDetected =
+            extractJsonBool(entryPointAnalysisJson, "branch_ambiguity_detected").value_or(false);
     } else if (!status.entryPointAnalysisPath.empty() && fileError != "missing") {
         status.state = "needs_attention";
         status.reason = "entry point analysis " + fileError;
         return status;
     }
+
+    status.memoryRecovery = buildMemoryRecoveryStatus(entryPointAnalysisJson);
 
     populateCampaignLibraryPlanStatus(status, config);
     if (status.campaignLibraryPlanPresent && status.campaignLibraryPlanReadiness == "needs_attention") {
@@ -1962,6 +2119,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         generatedOverlayPublishGate.state == "needs_setup" || generatedOverlayPublishGate.state == "needs_attention";
     const bool mpNeedsAttention = mpOverlayPackage.state == "needs_attention";
     const bool postPlayNeedsAttention = postPlayPipeline.state == "needs_attention";
+    const bool memoryRecoveryNeedsAttention = postPlayPipeline.memoryRecovery.warningVisible;
     const bool gameplayAcceptanceNeedsAttention = gameplayAcceptance.state == "needs_attention";
     const bool recoveryNeedsAttention = crashRecoveryNeedsAttention(crashRecovery);
     const bool localLlmNeedsAttention =
@@ -1972,7 +2130,8 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         || localLlm.state == "model_changed_revalidation_needed";
 
     if (archiveNeedsAttention || overlayNeedsAttention || publishGateNeedsAttention || mpNeedsAttention ||
-        postPlayNeedsAttention || gameplayAcceptanceNeedsAttention || recoveryNeedsAttention || localLlmNeedsAttention) {
+        postPlayNeedsAttention || memoryRecoveryNeedsAttention || gameplayAcceptanceNeedsAttention ||
+        recoveryNeedsAttention || localLlmNeedsAttention) {
         status.state = "attention_required";
         if (archiveNeedsAttention && overlayNeedsAttention && publishGateNeedsAttention && mpNeedsAttention) {
             status.reason = "archive, generated overlay, publish gate, and mp overlay package need attention";
@@ -2020,6 +2179,16 @@ CompanionSubsystemStatus buildStatusCenterStatus(
             }
             return status;
         }
+        if (postPlayNeedsAttention && memoryRecoveryNeedsAttention) {
+            status.reason = "post-play pipeline and memory recovery need attention";
+            status.path = postPlayPipeline.memoryRecovery.anchorPath.empty()
+                ? postPlayPipelineFocusPath(postPlayPipeline)
+                : postPlayPipeline.memoryRecovery.anchorPath;
+            if (status.path.empty()) {
+                status.path = postPlayPipeline.entryPointAnalysisPath;
+            }
+            return status;
+        }
         if (postPlayNeedsAttention && recoveryNeedsAttention) {
             status.reason = "post-play pipeline and crash recovery need attention";
             status.path = postPlayPipelineFocusPath(postPlayPipeline);
@@ -2031,6 +2200,13 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         if (postPlayNeedsAttention) {
             status.reason = "post-play pipeline needs attention";
             status.path = postPlayPipelineFocusPath(postPlayPipeline);
+            return status;
+        }
+        if (memoryRecoveryNeedsAttention) {
+            status.reason = "memory recovery needs attention";
+            status.path = postPlayPipeline.memoryRecovery.anchorPath.empty()
+                ? postPlayPipeline.entryPointAnalysisPath
+                : postPlayPipeline.memoryRecovery.anchorPath;
             return status;
         }
         if (gameplayAcceptanceNeedsAttention) {
@@ -2057,6 +2233,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const bool overlayStarting = generatedOverlay.state == "starting";
     const bool publishGateStarting = generatedOverlayPublishGate.state == "starting";
     const bool postPlayStarting = postPlayPipeline.state == "starting";
+    const bool memoryRecoveryStarting = postPlayPipeline.memoryRecovery.state == "needs_attention";
     const bool gameplayAcceptanceStarting = gameplayAcceptance.state == "starting";
 
     if (generatedOverlayPublishGate.state == "blocked") {
@@ -2066,7 +2243,8 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         return status;
     }
 
-    if (archiveStarting || overlayStarting || publishGateStarting || postPlayStarting || gameplayAcceptanceStarting) {
+    if (archiveStarting || overlayStarting || publishGateStarting || postPlayStarting || memoryRecoveryStarting ||
+        gameplayAcceptanceStarting) {
         status.state = "starting";
         if (archiveStarting && overlayStarting && publishGateStarting) {
             status.reason = "waiting for archive, generated overlay, and publish gate to become ready";
@@ -2102,9 +2280,23 @@ CompanionSubsystemStatus buildStatusCenterStatus(
             }
             return status;
         }
+        if (postPlayStarting && memoryRecoveryStarting) {
+            status.reason = "waiting for post-play pipeline and memory recovery";
+            status.path = postPlayPipeline.memoryRecovery.anchorPath.empty()
+                ? postPlayPipeline.entryPointAnalysisPath
+                : postPlayPipeline.memoryRecovery.anchorPath;
+            return status;
+        }
         if (postPlayStarting) {
             status.reason = "waiting for post-play pipeline";
             status.path = postPlayPipelineFocusPath(postPlayPipeline);
+            return status;
+        }
+        if (memoryRecoveryStarting) {
+            status.reason = "waiting for memory recovery";
+            status.path = postPlayPipeline.memoryRecovery.anchorPath.empty()
+                ? postPlayPipeline.entryPointAnalysisPath
+                : postPlayPipeline.memoryRecovery.anchorPath;
             return status;
         }
         if (gameplayAcceptanceStarting) {
@@ -2311,6 +2503,40 @@ std::string buildStatusCenterSummaryText(
     }
     text << "entry_point_count: " << postPlayPipeline.entryPointCount << "\n";
     text << "branch_ambiguity_detected: " << (postPlayPipeline.branchAmbiguityDetected ? "true" : "false") << "\n";
+    text << "memory_recovery: " << postPlayPipeline.memoryRecovery.state << " - "
+         << postPlayPipeline.memoryRecovery.reason << "\n";
+    text << "memory_recovery_confidence: " << postPlayPipeline.memoryRecovery.confidence << "\n";
+    text << "memory_recovery_warning_visible: "
+         << (postPlayPipeline.memoryRecovery.warningVisible ? "true" : "false") << "\n";
+    if (!postPlayPipeline.memoryRecovery.anchorEntryPointId.empty()) {
+        text << "memory_recovery_anchor_entry_point_id: "
+             << postPlayPipeline.memoryRecovery.anchorEntryPointId << "\n";
+    }
+    if (!postPlayPipeline.memoryRecovery.anchorCampaignKey.empty()) {
+        text << "memory_recovery_anchor_campaign_key: "
+             << postPlayPipeline.memoryRecovery.anchorCampaignKey << "\n";
+    }
+    if (!postPlayPipeline.memoryRecovery.anchorSaveName.empty()) {
+        text << "memory_recovery_anchor_save_name: " << postPlayPipeline.memoryRecovery.anchorSaveName << "\n";
+    }
+    if (!postPlayPipeline.memoryRecovery.anchorSaveDate.empty()) {
+        text << "memory_recovery_anchor_save_date: " << postPlayPipeline.memoryRecovery.anchorSaveDate << "\n";
+    }
+    if (!postPlayPipeline.memoryRecovery.anchorSourceKind.empty()) {
+        text << "memory_recovery_anchor_source_kind: "
+             << postPlayPipeline.memoryRecovery.anchorSourceKind << "\n";
+    }
+    if (!postPlayPipeline.memoryRecovery.anchorPath.empty()) {
+        text << "memory_recovery_anchor_path: "
+             << pathString(postPlayPipeline.memoryRecovery.anchorPath) << "\n";
+    }
+    text << "memory_recovery_compatible_archived_evidence_count: "
+         << postPlayPipeline.memoryRecovery.compatibleArchivedEvidenceCount << "\n";
+    text << "memory_recovery_later_archived_evidence_count: "
+         << postPlayPipeline.memoryRecovery.laterArchivedEvidenceCount << "\n";
+    if (postPlayPipeline.memoryRecovery.warningVisible) {
+        text << "memory_recovery_owner_note: latest loadable save anchor is degraded or needs attention\n";
+    }
     if (!postPlayPipeline.postPlayPackagePath.empty()) {
         text << "post_play_package_path: " << pathString(postPlayPipeline.postPlayPackagePath) << "\n";
     }
@@ -3002,6 +3228,26 @@ void writePostPlayPipelineJson(
     output << indent << "  \"entry_point_count\": " << status.entryPointCount << ",\n";
     output << indent << "  \"branch_ambiguity_detected\": "
            << (status.branchAmbiguityDetected ? "true" : "false") << ",\n";
+    output << indent << "  \"memory_recovery\": {\n";
+    output << indent << "    \"state\": " << jsonString(status.memoryRecovery.state) << ",\n";
+    output << indent << "    \"reason\": " << jsonString(status.memoryRecovery.reason) << ",\n";
+    output << indent << "    \"confidence\": " << jsonString(status.memoryRecovery.confidence) << ",\n";
+    output << indent << "    \"warning_visible\": "
+           << (status.memoryRecovery.warningVisible ? "true" : "false") << ",\n";
+    output << indent << "    \"anchor_entry_point_id\": "
+           << jsonString(status.memoryRecovery.anchorEntryPointId) << ",\n";
+    output << indent << "    \"anchor_campaign_key\": "
+           << jsonString(status.memoryRecovery.anchorCampaignKey) << ",\n";
+    output << indent << "    \"anchor_path\": " << jsonString(pathString(status.memoryRecovery.anchorPath)) << ",\n";
+    output << indent << "    \"anchor_save_name\": " << jsonString(status.memoryRecovery.anchorSaveName) << ",\n";
+    output << indent << "    \"anchor_save_date\": " << jsonString(status.memoryRecovery.anchorSaveDate) << ",\n";
+    output << indent << "    \"anchor_source_kind\": "
+           << jsonString(status.memoryRecovery.anchorSourceKind) << ",\n";
+    output << indent << "    \"compatible_archived_evidence_count\": "
+           << status.memoryRecovery.compatibleArchivedEvidenceCount << ",\n";
+    output << indent << "    \"later_archived_evidence_count\": "
+           << status.memoryRecovery.laterArchivedEvidenceCount << "\n";
+    output << indent << "  },\n";
     output << indent << "  \"post_play_package_path\": " << jsonString(pathString(status.postPlayPackagePath)) << ",\n";
     output << indent << "  \"post_play_package_readiness\": " << jsonString(status.postPlayPackageReadiness) << ",\n";
     output << indent << "  \"post_play_package_reason\": " << jsonString(status.postPlayPackageReason) << ",\n";

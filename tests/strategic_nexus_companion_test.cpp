@@ -195,7 +195,46 @@ int main()
         "  \"reason\": \"entry points scanned\",\n"
         "  \"readiness\": \"ready\",\n"
         "  \"entry_point_count\": 3,\n"
-        "  \"branch_ambiguity_detected\": false\n"
+        "  \"archived_evidence_count\": 5,\n"
+        "  \"branch_ambiguity_detected\": false,\n"
+        "  \"entry_points\": [\n"
+        "    {\n"
+        "      \"id\": \"alpha_autosave_2200_01_01\",\n"
+        "      \"campaign_key\": \"alpha_campaign\",\n"
+        "      \"source_root\": \"current_save_root\",\n"
+        "      \"relative_path\": \"Alpha/autosave_2200.01.01.sav\",\n"
+        "      \"source_kind\": \"autosave\",\n"
+        "      \"save_name\": \"autosave_2200.01.01.sav\",\n"
+        "      \"save_date\": \"2200.01.01\",\n"
+        "      \"analysis_state\": \"ready_conservative\",\n"
+        "      \"compatible_archived_evidence_count\": 1,\n"
+        "      \"later_archived_evidence_count\": 1\n"
+        "    },\n"
+        "    {\n"
+        "      \"id\": \"alpha_manual_2200_03_01\",\n"
+        "      \"campaign_key\": \"alpha_campaign\",\n"
+        "      \"source_root\": \"current_save_root\",\n"
+        "      \"relative_path\": \"Alpha/2200.03.01.sav\",\n"
+        "      \"source_kind\": \"date_named_save\",\n"
+        "      \"save_name\": \"2200.03.01.sav\",\n"
+        "      \"save_date\": \"2200.03.01\",\n"
+        "      \"analysis_state\": \"ready\",\n"
+        "      \"compatible_archived_evidence_count\": 2,\n"
+        "      \"later_archived_evidence_count\": 0\n"
+        "    },\n"
+        "    {\n"
+        "      \"id\": \"beta_ironman_2200_05_01\",\n"
+        "      \"campaign_key\": \"beta_campaign\",\n"
+        "      \"source_root\": \"current_save_root\",\n"
+        "      \"relative_path\": \"Beta/ironman.sav\",\n"
+        "      \"source_kind\": \"ironman\",\n"
+        "      \"save_name\": \"ironman.sav\",\n"
+        "      \"save_date\": \"2200.05.01\",\n"
+        "      \"analysis_state\": \"ready\",\n"
+        "      \"compatible_archived_evidence_count\": 2,\n"
+        "      \"later_archived_evidence_count\": 0\n"
+        "    }\n"
+        "  ]\n"
         "}\n");
     writeTextFileAtomically(
         postPlayPackagePath,
@@ -1003,6 +1042,17 @@ int main()
         readyJson.find("\"post_play_player_country_id\": \"0\"") != std::string::npos,
         "snapshot JSON should expose the post-play player-country marker");
     requireCondition(
+        readyJson.find("\"memory_recovery\": {") != std::string::npos,
+        "snapshot JSON should expose the memory recovery object");
+    requireCondition(
+        readyJson.find("\"state\": \"ready\"") != std::string::npos &&
+            readyJson.find("\"anchor_entry_point_id\": \"beta_ironman_2200_05_01\"") != std::string::npos,
+        "snapshot JSON should expose the selected memory recovery anchor");
+    requireCondition(
+        readyJson.find("\"confidence\": \"high\"") != std::string::npos &&
+            readyJson.find("\"warning_visible\": false") != std::string::npos,
+        "snapshot JSON should expose high-confidence memory recovery");
+    requireCondition(
         ready.statusCenterSummaryText.find("mp_package_zip_state: ready") != std::string::npos,
         "status center summary should include MP package zip state");
     requireCondition(
@@ -1026,6 +1076,30 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("entry_point_reason: entry points scanned") != std::string::npos,
         "status center summary should include entry point reason");
+    requireCondition(
+        ready.statusCenterSummaryText.find("memory_recovery: ready - latest loadable save selected as recovery anchor") !=
+            std::string::npos,
+        "status center summary should include memory recovery state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("memory_recovery_confidence: high") != std::string::npos,
+        "status center summary should include memory recovery confidence");
+    requireCondition(
+        ready.statusCenterSummaryText.find("memory_recovery_warning_visible: false") != std::string::npos,
+        "status center summary should include memory recovery warning visibility");
+    requireCondition(
+        ready.statusCenterSummaryText.find("memory_recovery_anchor_entry_point_id: beta_ironman_2200_05_01") !=
+            std::string::npos,
+        "status center summary should include memory recovery anchor entry point id");
+    requireCondition(
+        ready.statusCenterSummaryText.find("memory_recovery_anchor_save_name: ironman.sav") != std::string::npos,
+        "status center summary should include memory recovery anchor save name");
+    requireCondition(
+        ready.statusCenterSummaryText.find("memory_recovery_anchor_source_kind: ironman") != std::string::npos,
+        "status center summary should include memory recovery anchor source kind");
+    requireCondition(
+        ready.statusCenterSummaryText.find("memory_recovery_anchor_path: current_save_root/Beta/ironman.sav") !=
+            std::string::npos,
+        "status center summary should include memory recovery anchor path");
     requireCondition(
         ready.statusCenterSummaryText.find("post_play_campaign_count: 2") != std::string::npos,
         "status center summary should include post-play campaign count");
@@ -2197,8 +2271,10 @@ int main()
         postPlayAttention.statusCenter.state == "attention_required",
         "status center should surface post-play pipeline regressions");
     requireCondition(
-        postPlayAttention.statusCenter.reason == "post-play pipeline needs attention",
-        "status center should name post-play pipeline as the attention source");
+        postPlayAttention.statusCenter.reason == "post-play pipeline needs attention" ||
+            postPlayAttention.statusCenter.reason == "post-play pipeline and memory recovery need attention" ||
+            postPlayAttention.statusCenter.reason == "memory recovery needs attention",
+        "status center should name the post-play or memory-recovery attention source");
     requireCondition(
         postPlayAttention.statusCenterSummaryText.find(
             "dsl_draft_audit_path: " + brokenDslDraftAuditPath.generic_string()) != std::string::npos,

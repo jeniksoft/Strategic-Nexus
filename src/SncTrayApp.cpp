@@ -3189,6 +3189,7 @@ std::string buildStatusCenterSummaryText(
     const std::filesystem::path& dslDraftPath,
     const std::string& dslDraftReadiness,
     const std::size_t dslDraftRuleCount,
+    const strategic_nexus::CompanionMemoryRecoveryStatus& memoryRecovery,
     const std::filesystem::path& generatedOverlayStagingDirectory,
     const std::filesystem::path& generatedOverlayStagingStatusPath,
     const std::string& generatedOverlayStagingReadiness,
@@ -3196,6 +3197,7 @@ std::string buildStatusCenterSummaryText(
     const bool generatedOverlayManifestVerified,
     const bool generatedOverlayPublishAllowed,
     const std::string& generatedOverlayManifestHash,
+    const strategic_nexus::CompanionPostPlayPipelineStatus& postPlayPipeline,
     const strategic_nexus::CompanionSubsystemStatus& generatedOverlayStatus,
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
@@ -3227,6 +3229,41 @@ std::string buildStatusCenterSummaryText(
     }
     summary << "entry_point_count: " << entryPointCount << "\n";
     summary << "branch_ambiguity_detected: " << (branchAmbiguityDetected ? "true" : "false") << "\n";
+    summary << "memory_recovery: " << memoryRecovery.state << " - "
+            << memoryRecovery.reason << "\n";
+    summary << "memory_recovery_confidence: " << memoryRecovery.confidence << "\n";
+    summary << "memory_recovery_warning_visible: "
+            << (memoryRecovery.warningVisible ? "true" : "false") << "\n";
+    if (!memoryRecovery.anchorEntryPointId.empty()) {
+        summary << "memory_recovery_anchor_entry_point_id: "
+                << memoryRecovery.anchorEntryPointId << "\n";
+    }
+    if (!memoryRecovery.anchorCampaignKey.empty()) {
+        summary << "memory_recovery_anchor_campaign_key: "
+                << memoryRecovery.anchorCampaignKey << "\n";
+    }
+    if (!memoryRecovery.anchorSaveName.empty()) {
+        summary << "memory_recovery_anchor_save_name: "
+                << memoryRecovery.anchorSaveName << "\n";
+    }
+    if (!memoryRecovery.anchorSaveDate.empty()) {
+        summary << "memory_recovery_anchor_save_date: "
+                << memoryRecovery.anchorSaveDate << "\n";
+    }
+    if (!memoryRecovery.anchorSourceKind.empty()) {
+        summary << "memory_recovery_anchor_source_kind: "
+                << memoryRecovery.anchorSourceKind << "\n";
+    }
+    if (!memoryRecovery.anchorPath.empty()) {
+        summary << "memory_recovery_anchor_path: " << pathString(memoryRecovery.anchorPath) << "\n";
+    }
+    summary << "memory_recovery_compatible_archived_evidence_count: "
+            << memoryRecovery.compatibleArchivedEvidenceCount << "\n";
+    summary << "memory_recovery_later_archived_evidence_count: "
+            << memoryRecovery.laterArchivedEvidenceCount << "\n";
+    if (memoryRecovery.warningVisible) {
+        summary << "memory_recovery_owner_note: latest loadable save anchor is degraded or needs attention\n";
+    }
     if (!entryPointReadiness.empty()) {
         summary << "entry_point_readiness: " << entryPointReadiness << "\n";
     }
@@ -3935,6 +3972,7 @@ void writeStatus(
         effectiveDslDraftPath,
         effectiveDslDraftReadiness,
         effectiveDslDraftRuleCount,
+        companionSnapshot.postPlayPipeline.memoryRecovery,
         effectiveGeneratedOverlayStagingDirectory,
         effectiveGeneratedOverlayStagingStatusPath,
         effectiveGeneratedOverlayStagingReadiness,
@@ -3942,6 +3980,7 @@ void writeStatus(
         effectiveGeneratedOverlayManifestVerified,
         effectiveGeneratedOverlayPublishAllowed,
         effectiveGeneratedOverlayManifestHash,
+        companionSnapshot.postPlayPipeline,
         companionSnapshot.generatedOverlay,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
@@ -4077,6 +4116,29 @@ void writeStatus(
     json << "  \"entry_point_analysis_path\": \"" << jsonEscape(pathString(effectiveEntryPointAnalysisPath)) << "\",\n";
     json << "  \"entry_point_count\": " << effectiveEntryPointCount << ",\n";
     json << "  \"branch_ambiguity_detected\": " << (effectiveBranchAmbiguityDetected ? "true" : "false") << ",\n";
+    json << "  \"memory_recovery_state\": \"" << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.state) << "\",\n";
+    json << "  \"memory_recovery_reason\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.reason) << "\",\n";
+    json << "  \"memory_recovery_confidence\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.confidence) << "\",\n";
+    json << "  \"memory_recovery_warning_visible\": "
+         << (companionSnapshot.postPlayPipeline.memoryRecovery.warningVisible ? "true" : "false") << ",\n";
+    json << "  \"memory_recovery_anchor_entry_point_id\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.anchorEntryPointId) << "\",\n";
+    json << "  \"memory_recovery_anchor_campaign_key\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.anchorCampaignKey) << "\",\n";
+    json << "  \"memory_recovery_anchor_path\": \""
+         << jsonEscape(pathString(companionSnapshot.postPlayPipeline.memoryRecovery.anchorPath)) << "\",\n";
+    json << "  \"memory_recovery_anchor_save_name\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.anchorSaveName) << "\",\n";
+    json << "  \"memory_recovery_anchor_save_date\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.anchorSaveDate) << "\",\n";
+    json << "  \"memory_recovery_anchor_source_kind\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.anchorSourceKind) << "\",\n";
+    json << "  \"memory_recovery_compatible_archived_evidence_count\": "
+         << companionSnapshot.postPlayPipeline.memoryRecovery.compatibleArchivedEvidenceCount << ",\n";
+    json << "  \"memory_recovery_later_archived_evidence_count\": "
+         << companionSnapshot.postPlayPipeline.memoryRecovery.laterArchivedEvidenceCount << ",\n";
     json << "  \"entry_point_readiness\": \"" << jsonEscape(effectiveEntryPointReadiness) << "\",\n";
     json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(effectivePostPlayPackagePath)) << "\",\n";
     json << "  \"post_play_package_readiness\": \"" << jsonEscape(effectivePostPlayPackageReadiness) << "\",\n";

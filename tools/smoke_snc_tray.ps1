@@ -448,6 +448,18 @@ try {
                 $null -ne $json.generated_overlay_publish_gate_reason -and
                 $null -ne $json.generated_overlay_publish_gate_published -and
                 $null -ne $json.generated_overlay_publish_gate_can_publish -and
+                $null -ne $json.memory_recovery_state -and
+                $null -ne $json.memory_recovery_reason -and
+                $null -ne $json.memory_recovery_confidence -and
+                $null -ne $json.memory_recovery_warning_visible -and
+                $null -ne $json.memory_recovery_anchor_entry_point_id -and
+                $null -ne $json.memory_recovery_anchor_campaign_key -and
+                $null -ne $json.memory_recovery_anchor_path -and
+                $null -ne $json.memory_recovery_anchor_save_name -and
+                $null -ne $json.memory_recovery_anchor_save_date -and
+                $null -ne $json.memory_recovery_anchor_source_kind -and
+                $null -ne $json.memory_recovery_compatible_archived_evidence_count -and
+                $null -ne $json.memory_recovery_later_archived_evidence_count -and
                 $null -ne $json.mp_package_refresh_state -and
                 $null -ne $json.mp_overlay_package_directory -and
                 $null -ne $json.mp_overlay_package_state
@@ -487,6 +499,12 @@ try {
                 }
                 if ([string]$json.start_with_windows_disable_command_hint -ne [string]$expectedStartup.DisableCommandHint) {
                     throw "SNC tray status JSON did not expose the expected start_with_windows_disable_command_hint."
+                }
+                if ([string]$json.memory_recovery_state -eq "") {
+                    throw "SNC tray status JSON did not expose memory_recovery_state."
+                }
+                if ([string]$json.memory_recovery_confidence -eq "") {
+                    throw "SNC tray status JSON did not expose memory_recovery_confidence."
                 }
                 if ([string]$json.support_report_state -ne "not_prepared") {
                     throw "SNC tray status JSON did not expose support_report_state=not_prepared before preview generation."
@@ -654,6 +672,12 @@ try {
                 }
                 if ($summaryText -notlike "*support_report_raw_saves_included: false*") {
                     throw "SNC tray summary text did not expose support_report_raw_saves_included."
+                }
+                if ($summaryText -notlike "*memory_recovery:*") {
+                    throw "SNC tray summary text did not expose memory recovery state."
+                }
+                if ($summaryText -notlike "*memory_recovery_confidence:*") {
+                    throw "SNC tray summary text did not expose memory recovery confidence."
                 }
                 if ($summaryText -notlike "*human_control_guard_state:*") {
                     throw "SNC tray summary text did not expose human_control_guard_state."

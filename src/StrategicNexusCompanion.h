@@ -164,6 +164,21 @@ struct CompanionGeneratedOverlayPublishGateStatus {
     bool backupCreated = false;
 };
 
+struct CompanionMemoryRecoveryStatus {
+    std::string state = "needs_attention";
+    std::string reason = "entry point analysis unavailable";
+    std::string confidence = "low";
+    bool warningVisible = true;
+    std::string anchorEntryPointId;
+    std::string anchorCampaignKey;
+    std::filesystem::path anchorPath;
+    std::string anchorSaveName;
+    std::string anchorSaveDate;
+    std::string anchorSourceKind;
+    std::size_t compatibleArchivedEvidenceCount = 0;
+    std::size_t laterArchivedEvidenceCount = 0;
+};
+
 struct CompanionPostPlayPipelineStatus {
     std::string state;
     std::string reason;
@@ -214,6 +229,7 @@ struct CompanionPostPlayPipelineStatus {
     std::string campaignLibraryPlanSource;
     std::string campaignLibraryPlanReadiness;
     std::string campaignLibraryPlanReason;
+    CompanionMemoryRecoveryStatus memoryRecovery;
 };
 
 struct CompanionLifecycleStatus {
