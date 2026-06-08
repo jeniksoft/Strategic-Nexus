@@ -64,6 +64,41 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-08
+
+Dnesni commitova vlna zpevnila hlavne MP package workflow, status surfaces a save/overlay metadata. Jde porad o zpracovani na integration boundary a o overovani host-authoritative modelu, ne o zasah do bezici session.
+
+Co pribylo v repozitari:
+
+* `Add MP package human control guard state` doplnil do companion/MP package vrstvy stavovou ochranu pro human control guard a rozsireni verifieru.
+* `Add MP package status-window open action` zlepsil owner-facing workflow v tray/status vrstve, aby slo rychleji otevrit odpovidajici stavove okno pro MP package.
+* `Add local LLM model manager verification chunk` pripravil dalsi uzel do sprintoveho workflow, spis jako planovaci a ovladaci krok nez nova runtime schopnost.
+* `Add save parser field availability map` pridal presnejsi mapu dostupnosti poli v save parseru, coz pomaha s robustnim ctenim vstupnich dat a s dalsim offline research.
+* `Verify branch-aware memory recovery degradation` a `Add memory recovery status surfaces` zpevnily interpretaci degradovane memory recovery cesty v companion/status vrstve.
+* `Add empire ids to generated overlay manifest` doplnil do generated overlay manifestu empire id, coz je dulezite pro konzistentni identitu na export/import hranici.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt posouva presnejsi interpretaci kampanove pameti, identifikace a dostupnosti dat bez rozsireni pravomoci do bezici session.
+* Save parser field map a generated overlay manifest zlepsuji kvalitu vstupu pro scripted event/effect path a snizuji riziko, ze se na integration boundary ztrati potrebny kontext.
+* MP package guard a status surfaces dale potvrzuji host-authoritative model: companion ma stav jasne popsat a pripravit dalsi krok, ne obchazet runtime.
+
+Testy a stav overeni:
+
+* Pro aktualni head neni k dispozici zadny verejny GitHub Actions status ani workflow run.
+* Lokalni testy jsem dnes znovu nespoustel; denikovy zaznam vychazi z poslednich commitu a diffu na vetvi `master`, ktera je aktualne `ahead 3` oproti `origin/master`.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker zustava stejny: chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi ucastniky.
+* Memory recovery a status surface zlepsuji diagnostiku, ale same o sobe jeste neuzaviraji finalni export/import contract, campaign marker handshake ani cele end-to-end predani.
+* Bez verejneho CI signalu pro tento head zustava stav funkcne slibny, ale neplne overeny.
+
+Doporuceny dalsi krok:
+
+* Pushnout aktualni head s denikovym zapisem a nechat probehnout verejni CI kontrolu.
+* Potom navazat na save parser field map a empire id manifest formalnim end-to-end overenim exportu na integration boundary.
+
 ## 2026-06-07
 
 Dnesni posun byl mensi, ale vecny: repo se posunulo v testovacim harnessu offline spine a soucasne pokracovalo v trackovani MP provenance pres real-session pipeline. Nejde o zmenu bezicich pravomoci; stale jde o zpresnovani integration boundary, host-authoritative vykladu a toho, jak ma byt scripted event/effect path pripravena pro dalsi krok.
@@ -148,7 +183,7 @@ Co pribylo v repozitari:
 Co to znamena pro architekturu a runtime interoperability research:
 
 * Projekt se posouva od jednotlivych status a handoff signalu k souvislejsimu lifecycle vykladu cele companion vrstvy. To pomaha hlavne tam, kde je treba jasne odlisit nulovou historii kampane, pripraveny handoff, degradovany continuity stav a reactive overlay pripravenost bez rozsireni pravomoci do bezici session.
-* Reactive policy pack a allowlisted event metadata dale potvrzuji smer k malemu, kontrolovanemu DSL a ke konzervativni priprave generated overlay artefaktu. Prakticky jde o zpevneni vyzkumne a interoperabilni vrstvy, nikoli o runtime reverse engineering nebo nizkourovnovy zasah do hry.
+* Reactive policy pack a allowlisted event metadata dale potvrzuji smer k malemu, kontrolovanemu DSL a ke konzervativni priprave generated overlay artefaktu. Prakticky jde o zpevneni vyzkumne a interoperabilni vrstvy, nikoli o rozsireni pravomoci do bezici session nebo nizkourovnovy zasah do hry.
 * Auto-export ZIP handoff zmensuje mezeru mezi staged generated overlay artefaktem a dalsim owner-approved distribucnim krokem, ale sam o sobe jeste neuzavira finalni export/import contract ani uplne checksum-safe multiplayer predani.
 
 Testy a stav overeni:
