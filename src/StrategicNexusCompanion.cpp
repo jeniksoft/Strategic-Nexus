@@ -2939,6 +2939,14 @@ std::string buildStatusCenterSummaryText(
         text << "friend_mp_sync_outbox_plan_command_template: "
              << friendTrustStore.mpSyncOutboxPlanCommandTemplate << "\n";
     }
+    if (!friendTrustStore.mpSyncTransportState.empty()) {
+        text << "friend_mp_sync_transport_state: "
+             << friendTrustStore.mpSyncTransportState << "\n";
+    }
+    if (!friendTrustStore.mpSyncTransportReason.empty()) {
+        text << "friend_mp_sync_transport_reason: "
+             << friendTrustStore.mpSyncTransportReason << "\n";
+    }
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
@@ -3275,6 +3283,10 @@ void writeFriendTrustStoreJson(
            << jsonString(status.mpSyncInboxPlanCommandTemplate) << ",\n";
     output << indent << "  \"mp_sync_outbox_plan_command_template\": "
            << jsonString(status.mpSyncOutboxPlanCommandTemplate) << ",\n";
+    output << indent << "  \"mp_sync_transport_state\": "
+           << jsonString(status.mpSyncTransportState) << ",\n";
+    output << indent << "  \"mp_sync_transport_reason\": "
+           << jsonString(status.mpSyncTransportReason) << ",\n";
     output << indent << "  \"auto_sync_available\": "
            << (status.autoSyncAvailable ? "true" : "false") << "\n";
     output << indent << "}";

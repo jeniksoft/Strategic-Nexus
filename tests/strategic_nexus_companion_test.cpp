@@ -549,6 +549,13 @@ int main()
             ready.friendTrustStore.mpSyncOutboxPlanCommandTemplate.find("[friend_auto_sync_enabled:true|false]") != std::string::npos,
         "friend trust store status should expose the manual friend MP sync outbox-plan command template");
     requireCondition(
+        ready.friendTrustStore.mpSyncTransportState == "disabled_not_implemented",
+        "friend trust store status should expose disabled friend MP sync transport state");
+    requireCondition(
+        ready.friendTrustStore.mpSyncTransportReason.find("transport adapter is not implemented") != std::string::npos &&
+            ready.friendTrustStore.mpSyncTransportReason.find("upload/send/download/staging disabled") != std::string::npos,
+        "friend trust store status should explain disabled friend MP sync transport");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
         "status center summary should expose friend trust store auto-sync count");
     requireCondition(
@@ -563,6 +570,12 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_outbox_plan_command_template: Strategic Nexus.exe --plan-snc-friend-mp-sync-outbox ") != std::string::npos,
         "status center summary should expose the manual friend MP sync outbox-plan command template");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_transport_state: disabled_not_implemented") != std::string::npos,
+        "status center summary should expose disabled friend MP sync transport state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_transport_reason: signed/encrypted friend MP sync transport adapter is not implemented") != std::string::npos,
+        "status center summary should expose disabled friend MP sync transport reason");
     auto brokenFriendConfig = readyConfig;
     brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
     const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);
@@ -2629,6 +2642,12 @@ int main()
         requireCondition(
             content.find("\"mp_sync_outbox_plan_command_template\": \"Strategic Nexus.exe --plan-snc-friend-mp-sync-outbox ") != std::string::npos,
             "status snapshot should include friend MP sync outbox-plan command template");
+        requireCondition(
+            content.find("\"mp_sync_transport_state\": \"disabled_not_implemented\"") != std::string::npos,
+            "status snapshot should include disabled friend MP sync transport state");
+        requireCondition(
+            content.find("\"mp_sync_transport_reason\": \"signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled\"") != std::string::npos,
+            "status snapshot should include disabled friend MP sync transport reason");
         requireCondition(
             content.find("[friend_auto_sync_enabled:true|false]") != std::string::npos,
             "status snapshot should include friend MP sync plan auto-sync input");

@@ -151,6 +151,8 @@ struct StatusDashboardData {
     std::wstring friendMpSyncEnvelopeCommandTemplate;
     std::wstring friendMpSyncInboxPlanCommandTemplate;
     std::wstring friendMpSyncOutboxPlanCommandTemplate;
+    std::wstring friendMpSyncTransportState;
+    std::wstring friendMpSyncTransportReason;
     std::wstring humanControlGuardState;
     std::wstring mpPackageRefreshState;
     std::wstring mpPackageRefreshReason;
@@ -1269,6 +1271,9 @@ StatusDashboardData loadStatusDashboardData()
     data.friendMpSyncEnvelopeCommandTemplate = utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8());
     data.friendMpSyncInboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8());
     data.friendMpSyncOutboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncOutboxPlanCommandTemplateUtf8());
+    data.friendMpSyncTransportState = L"disabled_not_implemented";
+    data.friendMpSyncTransportReason =
+        L"signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
     data.humanControlGuardState = L"\u2014";
 
     std::string json;
@@ -1414,6 +1419,17 @@ StatusDashboardData loadStatusDashboardData()
     if (data.friendMpSyncOutboxPlanCommandTemplate.empty()) {
         data.friendMpSyncOutboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncOutboxPlanCommandTemplateUtf8());
     }
+    data.friendMpSyncTransportState =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_state").value_or(""));
+    if (data.friendMpSyncTransportState.empty()) {
+        data.friendMpSyncTransportState = L"disabled_not_implemented";
+    }
+    data.friendMpSyncTransportReason =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_reason").value_or(""));
+    if (data.friendMpSyncTransportReason.empty()) {
+        data.friendMpSyncTransportReason =
+            L"signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
+    }
     const std::string humanControlGuardState = summaryValue("human_control_guard_state");
     if (!humanControlGuardState.empty()) {
         data.humanControlGuardState = utf8ToWide(humanControlGuardState);
@@ -1484,6 +1500,10 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += L"\r\nSNC MP sync outbox plan: fail-closed status only; no upload, send, download, decrypt, staging, or apply.";
     text += L"\r\nSNC MP sync outbox plan template: ";
     text += data.friendMpSyncOutboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncOutboxPlanCommandTemplate;
+    text += L"\r\nSNC MP sync transport: ";
+    text += data.friendMpSyncTransportState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportState;
+    text += L"\r\nSNC MP sync transport duvod: ";
+    text += data.friendMpSyncTransportReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportReason;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1576,6 +1596,10 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"\nSNC MP sync outbox plan: fail-closed status only; no upload, send, download, decrypt, staging, or apply.";
     text += L"\nSNC MP sync outbox plan template: ";
     text += data.friendMpSyncOutboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncOutboxPlanCommandTemplate;
+    text += L"\nSNC MP sync transport: ";
+    text += data.friendMpSyncTransportState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportState;
+    text += L"\nSNC MP sync transport duvod: ";
+    text += data.friendMpSyncTransportReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportReason;
     text += L"\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -4052,6 +4076,7 @@ std::string buildStatusCenterSummaryText(
     const strategic_nexus::CompanionLifecycleStatus& lifecycle,
     const strategic_nexus::CompanionSupportReportStatus& supportReport,
     const strategic_nexus::CompanionCrashRecoveryStatus& crashRecovery,
+    const strategic_nexus::CompanionFriendTrustStoreStatus& friendTrustStore,
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason)
 {
@@ -4328,6 +4353,10 @@ std::string buildStatusCenterSummaryText(
             << (crashRecovery.warningVisible ? "true" : "false") << "\n";
     summary << "crash_recovery_support_report_recommended: "
             << (crashRecovery.supportReportRecommended ? "true" : "false") << "\n";
+    summary << "friend_mp_sync_transport_state: "
+            << friendTrustStore.mpSyncTransportState << "\n";
+    summary << "friend_mp_sync_transport_reason: "
+            << friendTrustStore.mpSyncTransportReason << "\n";
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -4877,6 +4906,7 @@ void writeStatus(
         companionSnapshot.lifecycle,
         companionSnapshot.supportReport,
         companionSnapshot.crashRecovery,
+        companionSnapshot.friendTrustStore,
         mpPackageRefreshState,
         mpPackageRefreshReason);
     writeNextStepsBrief(
@@ -5020,6 +5050,9 @@ void writeStatus(
          << jsonEscape(buildFriendMpSyncInboxPlanCommandTemplateUtf8()) << "\",\n";
     json << "  \"friend_mp_sync_outbox_plan_command_template\": \""
          << jsonEscape(buildFriendMpSyncOutboxPlanCommandTemplateUtf8()) << "\",\n";
+    json << "  \"friend_mp_sync_transport_state\": \"disabled_not_implemented\",\n";
+    json << "  \"friend_mp_sync_transport_reason\": \""
+         << jsonEscape("signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") << "\",\n";
     json << "  \"friend_pairing_guide_text\": \""
          << jsonEscape(buildFriendPairingGuideTextUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";

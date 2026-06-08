@@ -312,6 +312,9 @@ struct CompanionFriendTrustStoreStatus {
     std::string mpSyncEnvelopeCommandTemplate;
     std::string mpSyncInboxPlanCommandTemplate;
     std::string mpSyncOutboxPlanCommandTemplate;
+    std::string mpSyncTransportState = "disabled_not_implemented";
+    std::string mpSyncTransportReason =
+        "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
     bool autoSyncAvailable = false;
 };
 

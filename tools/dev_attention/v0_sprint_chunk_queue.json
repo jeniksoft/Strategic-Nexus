@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T23:48:11+02:00",
+  "updated_at": "2026-06-09T00:01:27+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -1220,6 +1220,28 @@
       ],
       "dependencies": [
         "v0-sprint-145-add-friend-mp-sync-outbox-plan-gate"
+      ]
+    },
+    {
+      "id": "v0-sprint-147-surface-friend-mp-sync-transport-disabled-status",
+      "title": "Surface friend MP sync transport disabled status",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / signed and encrypted package sync transport safety visibility",
+      "goal": "Expose a stable fail-closed SNC friend MP sync transport status through companion/tray surfaces so release-companion UI can show that signed/encrypted transport is still disabled instead of inferring readiness from friend auto-sync state.",
+      "acceptance": [
+        "Companion friend trust-store status exposes transport state and reason fields that stay disabled/not implemented until a real signed/encrypted transport adapter exists.",
+        "Tray status JSON and visible dashboard copy text expose the same disabled transport status without enabling upload, send, download, decrypt, staging, or package apply.",
+        "Companion, tray smoke, and v0 pipeline tests verify the status contract."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-146-surface-friend-mp-sync-outbox-plan-template"
       ]
     }
   ]

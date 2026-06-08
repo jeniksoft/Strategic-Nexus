@@ -821,6 +821,13 @@ try {
                     [string]$json.friend_mp_sync_outbox_plan_command_template -notlike "*[friend_auto_sync_enabled:true|false]*") {
                     throw "SNC tray friend_mp_sync_outbox_plan_command_template did not include the manual outbox-plan gate inputs."
                 }
+                if ([string]$json.friend_mp_sync_transport_state -ne "disabled_not_implemented") {
+                    throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_state."
+                }
+                if ([string]$json.friend_mp_sync_transport_reason -notlike "*transport adapter is not implemented*" -or
+                    [string]$json.friend_mp_sync_transport_reason -notlike "*upload/send/download/staging disabled*") {
+                    throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_reason."
+                }
                 $sncTraySource = Get-Content -Raw -LiteralPath (Join-Path $RepoRoot "src/SncTrayApp.cpp")
                 if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE*" -or
                     $sncTraySource -notlike "*SNC MP sync*" -or
@@ -839,6 +846,10 @@ try {
                     $sncTraySource -notlike "*No automatic upload, send, download, decrypt, staging, or package apply*" -or
                     $sncTraySource -notlike "*Neuploaduje, neposila, nestahuje ani nestageuje gameplay soubory*") {
                     throw "SNC tray source did not expose the friend MP sync outbox-plan dashboard action."
+                }
+                if ($summaryText -notlike "*friend_mp_sync_transport_state: disabled_not_implemented*" -or
+                    $summaryText -notlike "*friend_mp_sync_transport_reason: signed/encrypted friend MP sync transport adapter is not implemented*") {
+                    throw "SNC tray summary text did not expose disabled friend MP sync transport status."
                 }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_pairing_guide_text)) {
                     throw "SNC tray status JSON did not expose friend_pairing_guide_text."
