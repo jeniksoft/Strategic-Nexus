@@ -856,7 +856,7 @@ The real-session loop can auto-resolve a bounded effective campaign and empire i
 ## 3E. Per-Empire Save-Evidence Coverage Map
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Expose which parser fields are actually available for each empire before richer strategic interpretation is attempted.
