@@ -797,6 +797,13 @@ try {
                     [string]$json.friend_pairing_command_template -notlike "*--import-snc-friend-acceptance*") {
                     throw "SNC tray friend_pairing_command_template did not include the manual request/accept/import flow."
                 }
+                if ([string]::IsNullOrWhiteSpace([string]$json.friend_mp_sync_envelope_command_template)) {
+                    throw "SNC tray status JSON did not expose friend_mp_sync_envelope_command_template."
+                }
+                if ([string]$json.friend_mp_sync_envelope_command_template -notlike "*--create-snc-friend-mp-sync-envelope*" -or
+                    [string]$json.friend_mp_sync_envelope_command_template -notlike "*--verify-snc-friend-mp-sync-envelope*") {
+                    throw "SNC tray friend_mp_sync_envelope_command_template did not include the manual create/verify flow."
+                }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_pairing_guide_text)) {
                     throw "SNC tray status JSON did not expose friend_pairing_guide_text."
                 }

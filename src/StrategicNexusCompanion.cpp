@@ -2352,6 +2352,18 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         "\"<friend_acceptance_path>\" "
         "\"dist/private_reports/snc_friend_trust_store.json\" "
         "<accepted_at_utc> [local_alias]";
+    status.mpSyncEnvelopeCommandTemplate =
+        "Strategic Nexus.exe --create-snc-friend-mp-sync-envelope "
+        "\"dist/private_reports/snc_friend_mp_sync_envelope.json\" "
+        "<sender_node_id> \"<sender_display_name>\" "
+        "<sender_signing_public_key> <sender_encryption_public_key> <sender_fingerprint> "
+        "<recipient_node_id> \"<recipient_display_name>\" "
+        "<recipient_signing_public_key> <recipient_encryption_public_key> <recipient_fingerprint> "
+        "<campaign_id> <overlay_version> <package_manifest_hash> <package_zip_hash> "
+        "<encrypted_payload_hash> <encrypted_payload_bytes> ed25519 x25519-xsalsa20-poly1305 "
+        "<signature> <created_at_utc>\n"
+        "Strategic Nexus.exe --verify-snc-friend-mp-sync-envelope "
+        "\"<friend_mp_sync_envelope_path>\"";
     if (status.path.empty()) {
         status.reason = "friend trust store path not configured; automatic friend sync disabled";
         return status;
@@ -2905,6 +2917,10 @@ std::string buildStatusCenterSummaryText(
         text << "friend_pairing_command_template: "
              << friendTrustStore.pairingCommandTemplate << "\n";
     }
+    if (!friendTrustStore.mpSyncEnvelopeCommandTemplate.empty()) {
+        text << "friend_mp_sync_envelope_command_template: "
+             << friendTrustStore.mpSyncEnvelopeCommandTemplate << "\n";
+    }
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
@@ -3235,6 +3251,8 @@ void writeFriendTrustStoreJson(
     output << indent << "  \"auto_sync_enabled_count\": " << status.autoSyncEnabledCount << ",\n";
     output << indent << "  \"pairing_command_template\": "
            << jsonString(status.pairingCommandTemplate) << ",\n";
+    output << indent << "  \"mp_sync_envelope_command_template\": "
+           << jsonString(status.mpSyncEnvelopeCommandTemplate) << ",\n";
     output << indent << "  \"auto_sync_available\": "
            << (status.autoSyncAvailable ? "true" : "false") << "\n";
     output << indent << "}";

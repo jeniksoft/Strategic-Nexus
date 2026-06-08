@@ -534,11 +534,18 @@ int main()
             ready.friendTrustStore.pairingCommandTemplate.find("--import-snc-friend-acceptance") != std::string::npos,
         "friend trust store status should expose the manual friend-pairing command template");
     requireCondition(
+        ready.friendTrustStore.mpSyncEnvelopeCommandTemplate.find("--create-snc-friend-mp-sync-envelope") != std::string::npos &&
+            ready.friendTrustStore.mpSyncEnvelopeCommandTemplate.find("--verify-snc-friend-mp-sync-envelope") != std::string::npos,
+        "friend trust store status should expose the manual friend MP sync envelope command template");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
         "status center summary should expose friend trust store auto-sync count");
     requireCondition(
         ready.statusCenterSummaryText.find("friend_pairing_command_template: Strategic Nexus.exe --create-snc-friend-request ") != std::string::npos,
         "status center summary should expose the manual friend-pairing command template");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_envelope_command_template: Strategic Nexus.exe --create-snc-friend-mp-sync-envelope ") != std::string::npos,
+        "status center summary should expose the manual friend MP sync envelope command template");
     auto brokenFriendConfig = readyConfig;
     brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
     const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);
@@ -2593,6 +2600,9 @@ int main()
         requireCondition(
             content.find("\"pairing_command_template\": \"Strategic Nexus.exe --create-snc-friend-request ") != std::string::npos,
             "status snapshot should include friend pairing command template");
+        requireCondition(
+            content.find("\"mp_sync_envelope_command_template\": \"Strategic Nexus.exe --create-snc-friend-mp-sync-envelope ") != std::string::npos,
+            "status snapshot should include friend MP sync envelope command template");
     }
 
     {

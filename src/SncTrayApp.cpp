@@ -1141,6 +1141,23 @@ std::string buildFriendPairingCommandTemplateUtf8()
     return command;
 }
 
+std::string buildFriendMpSyncEnvelopeCommandTemplateUtf8()
+{
+    std::string command;
+    command += "Strategic Nexus.exe --create-snc-friend-mp-sync-envelope ";
+    command += "\"dist/private_reports/snc_friend_mp_sync_envelope.json\" ";
+    command += "<sender_node_id> \"<sender_display_name>\" ";
+    command += "<sender_signing_public_key> <sender_encryption_public_key> <sender_fingerprint> ";
+    command += "<recipient_node_id> \"<recipient_display_name>\" ";
+    command += "<recipient_signing_public_key> <recipient_encryption_public_key> <recipient_fingerprint> ";
+    command += "<campaign_id> <overlay_version> <package_manifest_hash> <package_zip_hash> ";
+    command += "<encrypted_payload_hash> <encrypted_payload_bytes> ed25519 x25519-xsalsa20-poly1305 ";
+    command += "<signature> <created_at_utc>\n";
+    command += "Strategic Nexus.exe --verify-snc-friend-mp-sync-envelope ";
+    command += "\"<friend_mp_sync_envelope_path>\"";
+    return command;
+}
+
 std::string buildFriendPairingGuideTextUtf8()
 {
     return "SNC friend pairing guide: 1) create request; 2) friend verifies fingerprint and creates acceptance; "
@@ -4836,6 +4853,8 @@ void writeStatus(
          << (companionSnapshot.friendTrustStore.autoSyncAvailable ? "true" : "false") << ",\n";
     json << "  \"friend_pairing_command_template\": \""
          << jsonEscape(buildFriendPairingCommandTemplateUtf8()) << "\",\n";
+    json << "  \"friend_mp_sync_envelope_command_template\": \""
+         << jsonEscape(buildFriendMpSyncEnvelopeCommandTemplateUtf8()) << "\",\n";
     json << "  \"friend_pairing_guide_text\": \""
          << jsonEscape(buildFriendPairingGuideTextUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
