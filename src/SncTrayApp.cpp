@@ -85,6 +85,7 @@ constexpr UINT ID_STATUS_MP_IMPORT_HANDOFF = 217;
 constexpr UINT ID_STATUS_PUBLISH_GENERATED_OVERLAY = 218;
 constexpr UINT ID_STATUS_OPEN_NEXT_ACTION_PATH = 219;
 constexpr UINT ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN = 220;
+constexpr UINT ID_STATUS_OPEN_CRASH_RECOVERY_STATE = 221;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -231,6 +232,7 @@ HWND g_statusOpenMpPackageButton = nullptr;
 HWND g_statusPublishGeneratedOverlayButton = nullptr;
 HWND g_statusOpenNextActionPathButton = nullptr;
 HWND g_statusOpenCampaignLibraryPlanButton = nullptr;
+HWND g_statusOpenCrashRecoveryStateButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -335,6 +337,7 @@ void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
 std::filesystem::path resolveDashboardPath(const std::wstring& path);
 bool dashboardPathExists(const std::wstring& path);
 void openNextActionPath(HWND hwnd);
+void openCrashRecoveryStatePath(HWND hwnd);
 void openMpOverlayPackageDirectory();
 void publishStagedGeneratedOverlay(HWND hwnd);
 bool canRefreshMpPackageExport();
@@ -1074,6 +1077,18 @@ void openCampaignLibraryPlan(HWND hwnd)
     openPathWithShell(hwnd, path);
 }
 
+void openCrashRecoveryStatePath(HWND hwnd)
+{
+    const auto data = loadStatusDashboardData();
+    const auto path = resolveDashboardPath(data.crashRecoveryPath);
+    if (path.empty()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    openPathWithShell(hwnd, path);
+}
+
 void updateStatusCaptionButtons(HWND hwnd)
 {
     if (g_statusMaximizeButton != nullptr) {
@@ -1669,6 +1684,11 @@ void refreshStatusWindowContent()
             g_statusOpenCampaignLibraryPlanButton,
             dashboardPathExists(data.campaignLibraryPlanPath) ? TRUE : FALSE);
     }
+    if (g_statusOpenCrashRecoveryStateButton != nullptr) {
+        EnableWindow(
+            g_statusOpenCrashRecoveryStateButton,
+            dashboardPathExists(data.crashRecoveryPath) ? TRUE : FALSE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -1831,7 +1851,7 @@ void layoutStatusWindow(HWND hwnd)
     const int buttonGap = 8;
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 17;
+    constexpr int actionButtonCount = 18;
     constexpr int preferredButtonWidth = 116;
     constexpr int minimumButtonWidth = 76;
     int buttonRows = 1;
@@ -1929,6 +1949,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusPublishGeneratedOverlayButton,
         g_statusOpenNextActionPathButton,
         g_statusOpenCampaignLibraryPlanButton,
+        g_statusOpenCrashRecoveryStateButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -1948,6 +1969,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Publikovat",
         L"Akce cesta",
         L"Knihovna",
+        L"Crash stav",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2107,6 +2129,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenNextActionPathButton = createStatusButton(hwnd, ID_STATUS_OPEN_NEXT_ACTION_PATH, L"Akce cesta");
         g_statusOpenCampaignLibraryPlanButton =
             createStatusButton(hwnd, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, L"Knihovna");
+        g_statusOpenCrashRecoveryStateButton =
+            createStatusButton(hwnd, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, L"Crash stav");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2156,6 +2180,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusPublishGeneratedOverlayButton, g_statusFieldFont);
         setWindowFont(g_statusOpenNextActionPathButton, g_statusFieldFont);
         setWindowFont(g_statusOpenCampaignLibraryPlanButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenCrashRecoveryStateButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2208,6 +2233,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN:
             openCampaignLibraryPlan(hwnd);
+            return 0;
+        case ID_STATUS_OPEN_CRASH_RECOVERY_STATE:
+            openCrashRecoveryStatePath(hwnd);
             return 0;
         case ID_STATUS_EXPORT_MP_PACKAGE:
             requestMpPackageExportRefresh();
@@ -2477,6 +2505,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusPublishGeneratedOverlayButton = nullptr;
         g_statusOpenNextActionPathButton = nullptr;
         g_statusOpenCampaignLibraryPlanButton = nullptr;
+        g_statusOpenCrashRecoveryStateButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
         g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
