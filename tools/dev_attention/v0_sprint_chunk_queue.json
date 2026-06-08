@@ -183,7 +183,7 @@
     {
       "id": "v0-sprint-094-verify-reactive-capability-source-quality-signal",
       "title": "Verify reactive capability/source quality signal",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Status Center/reactive capability and bootstrap source-quality signal",
       "goal": "Verify that the companion status surfaces keep the generated overlay reactive capability and bootstrap source-quality signal explicit in CLI, tray, and JSON output.",
@@ -197,6 +197,26 @@
       ],
       "dependencies": [
         "v0-sprint-093-verify-startup-shortcut-toggle-contract"
+      ]
+    },
+    {
+      "id": "v0-sprint-095-verify-support-report-approval-contract",
+      "title": "Verify support report approval contract",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Status Center / support report approval and preview contract",
+      "goal": "Verify that SNC status, tray, and CLI outputs keep the support report preview and approval gate explicit before any send action is possible.",
+      "acceptance": [
+        "Companion status output keeps support_report_state explicit across JSON, tray, and CLI surfaces.",
+        "Companion status output keeps support_report_send_requires_approval explicit and fail-closed.",
+        "Companion status output keeps support_report_prepare_command_hint explicit so the owner can preview locally before any send action."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1",
+        "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-094-verify-reactive-capability-source-quality-signal"
       ]
     }
   ]
