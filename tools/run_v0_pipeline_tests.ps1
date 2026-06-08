@@ -3034,6 +3034,14 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_owner_test_playbook_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_analysis_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_entry_point_readiness="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_state="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_reason="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_confidence="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_warning_visible="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_anchor_entry_point_id="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_anchor_save_name="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_anchor_source_kind="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_anchor_archived_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_decision_input_package_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_candidate_decision_package_path="
@@ -3080,11 +3088,28 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     if ([string]$evidenceJson.mp_export.bootstrap_campaign_count -ne "0") {
         throw "real session loop mp snapshot contract evidence expected mp_export.bootstrap_campaign_count=0, got '$($evidenceJson.mp_export.bootstrap_campaign_count)'."
     }
+    if ($null -eq $evidenceJson.memory_recovery) {
+        throw "real session loop mp snapshot contract evidence is missing memory_recovery."
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$evidenceJson.memory_recovery.state)) {
+        throw "real session loop mp snapshot contract evidence missing memory_recovery.state."
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$evidenceJson.memory_recovery.confidence)) {
+        throw "real session loop mp snapshot contract evidence missing memory_recovery.confidence."
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$evidenceJson.memory_recovery.anchor_save_name)) {
+        throw "real session loop mp snapshot contract evidence missing memory_recovery.anchor_save_name."
+    }
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"save_root":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"resolution":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"source":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"entry_point_post_play":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"memory_recovery":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_entry_point_id":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_save_name":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_source_kind":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_archived_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"entry_point_analysis_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"post_play_package_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"decision_input_package_path":'

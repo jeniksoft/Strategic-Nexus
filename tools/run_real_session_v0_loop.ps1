@@ -780,6 +780,60 @@ $candidateDecisionCount = [string]$candidateDecisionPackageJson.candidate_decisi
 $candidateDecisionBlockedSourceEntryCount = [string]$candidateDecisionPackageJson.blocked_source_entry_count
 $candidateDecisionValidatorPassed = [string]([bool]$candidateDecisionPackageJson.validator_passed).ToString().ToLowerInvariant()
 
+$memoryRecoveryCandidate = $null
+foreach ($entry in @($postPlayPackageJson.entries)) {
+    if ($null -eq $entry) {
+        continue
+    }
+
+    if ([bool]$entry.decision_input_allowed) {
+        $memoryRecoveryCandidate = $entry
+        break
+    }
+}
+if ($null -eq $memoryRecoveryCandidate) {
+    $memoryRecoveryCandidate = @($postPlayPackageJson.entries) | Select-Object -First 1
+}
+
+$memoryRecoveryState = "blocked"
+$memoryRecoveryReason = "no decision-ready loadable entry point available"
+$memoryRecoveryConfidence = "unknown"
+$memoryRecoveryWarningVisible = "true"
+$memoryRecoveryAnchorEntryPointId = ""
+$memoryRecoveryAnchorSaveName = ""
+$memoryRecoveryAnchorSourceKind = ""
+$memoryRecoveryAnchorArchivedPath = ""
+
+if ($null -ne $memoryRecoveryCandidate) {
+    $memoryRecoveryAnchorEntryPointId = [string]$memoryRecoveryCandidate.entry_point_id
+    $memoryRecoveryAnchorSaveName = [string]$memoryRecoveryCandidate.save_name
+    $memoryRecoveryAnchorSourceKind = [string]$memoryRecoveryCandidate.source_kind
+
+    $compatibleEvidenceSamples = @($memoryRecoveryCandidate.compatible_archived_evidence_samples)
+    if ($compatibleEvidenceSamples.Count -gt 0 -and $null -ne $compatibleEvidenceSamples[0]) {
+        $memoryRecoveryAnchorArchivedPath = [string]$compatibleEvidenceSamples[0].archived_path
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($memoryRecoveryAnchorEntryPointId) -and
+        -not [string]::IsNullOrWhiteSpace($memoryRecoveryAnchorSaveName)) {
+        $memoryRecoveryState = "ready"
+        $memoryRecoveryReason = "latest compatible loadable save anchor available"
+        $memoryRecoveryConfidence = "normal"
+        $memoryRecoveryWarningVisible = "false"
+
+        if ($entryPointBranchAmbiguity -eq "true" -or [string]::IsNullOrWhiteSpace($memoryRecoveryAnchorArchivedPath)) {
+            $memoryRecoveryState = "degraded"
+            $memoryRecoveryReason = "branch ambiguity or missing autosave history; use the latest compatible loadable save anchor only"
+            $memoryRecoveryConfidence = "downgraded"
+            $memoryRecoveryWarningVisible = "true"
+        }
+    }
+}
+
+if ([string]::IsNullOrWhiteSpace($memoryRecoveryAnchorArchivedPath) -and $memoryRecoveryState -ne "blocked") {
+    $memoryRecoveryAnchorArchivedPath = $archiveLastArchivedPath
+}
+
 $dslDraftReadiness = "not_attempted"
 $dslDraftReason = "not_attempted"
 $dslDraftRuleCount = "0"
@@ -1228,6 +1282,14 @@ Write-Host ("real_session_v0_loop_entry_point_readiness=" + $entryPointReadiness
 Write-Host ("real_session_v0_loop_entry_point_reason=" + $entryPointReason)
 Write-Host ("real_session_v0_loop_entry_point_count=" + $entryPointCount)
 Write-Host ("real_session_v0_loop_entry_point_branch_ambiguity=" + $entryPointBranchAmbiguity)
+Write-Host ("real_session_v0_loop_memory_recovery_state=" + $memoryRecoveryState)
+Write-Host ("real_session_v0_loop_memory_recovery_reason=" + $memoryRecoveryReason)
+Write-Host ("real_session_v0_loop_memory_recovery_confidence=" + $memoryRecoveryConfidence)
+Write-Host ("real_session_v0_loop_memory_recovery_warning_visible=" + $memoryRecoveryWarningVisible)
+Write-Host ("real_session_v0_loop_memory_recovery_anchor_entry_point_id=" + $memoryRecoveryAnchorEntryPointId)
+Write-Host ("real_session_v0_loop_memory_recovery_anchor_save_name=" + $memoryRecoveryAnchorSaveName)
+Write-Host ("real_session_v0_loop_memory_recovery_anchor_source_kind=" + $memoryRecoveryAnchorSourceKind)
+Write-Host ("real_session_v0_loop_memory_recovery_anchor_archived_path=" + $memoryRecoveryAnchorArchivedPath)
 Write-Host ("real_session_v0_loop_post_play_package_path=" + $postPlayPackagePath)
 Write-Host ("real_session_v0_loop_post_play_package_readiness=" + $postPlayPackageReadiness)
 Write-Host ("real_session_v0_loop_post_play_package_reason=" + $postPlayPackageReason)
@@ -2724,6 +2786,16 @@ $sessionEvidence = [ordered]@{
         generated_overlay_staging_rule_count = $sncGeneratedOverlayStagingRuleCount
         generated_overlay_manifest_verified = $sncGeneratedOverlayManifestVerified
         generated_overlay_publish_allowed = $sncGeneratedOverlayPublishAllowed
+    }
+    memory_recovery = [ordered]@{
+        state = $memoryRecoveryState
+        reason = $memoryRecoveryReason
+        confidence = $memoryRecoveryConfidence
+        warning_visible = $memoryRecoveryWarningVisible
+        anchor_entry_point_id = $memoryRecoveryAnchorEntryPointId
+        anchor_save_name = $memoryRecoveryAnchorSaveName
+        anchor_source_kind = $memoryRecoveryAnchorSourceKind
+        anchor_archived_path = $memoryRecoveryAnchorArchivedPath
     }
     season_delta_ledger_path = $seasonDeltaLedgerPath
     empire_brief_path = $empireBriefPath
