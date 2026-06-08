@@ -609,6 +609,27 @@
         "v0-sprint-114-surface-mp-package-export-action",
         "v0-sprint-115-surface-local-llm-prepare-copy-action"
       ]
+    },
+    {
+      "id": "v0-sprint-117-surface-mp-package-import-handoff-action",
+      "title": "Surface MP package import handoff action",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / owner-facing import action",
+      "goal": "Expose an explicit MP import handoff action in the visible status dashboard so host and client users can start from one safe UI affordance instead of reconstructing the import step from raw status text.",
+      "acceptance": [
+        "The visible status dashboard includes an explicit MP import handoff action/button.",
+        "Clicking the action copies the preferred strict import command when available, opens the MP package directory, and tells the user to replace the target overlay placeholder before running it.",
+        "The action fails closed when the MP package directory or import command hint is unavailable."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-107-surface-mp-package-verify-import-copy-actions",
+        "v0-sprint-110-surface-mp-package-strict-copy-actions"
+      ]
     }
   ]
 }

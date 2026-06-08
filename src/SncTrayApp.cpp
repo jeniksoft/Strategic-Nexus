@@ -81,6 +81,7 @@ constexpr UINT ID_STATUS_COPY_MP_STRICT_VERIFY = 213;
 constexpr UINT ID_STATUS_COPY_MP_STRICT_IMPORT = 214;
 constexpr UINT ID_STATUS_EXPORT_MP_PACKAGE = 215;
 constexpr UINT ID_STATUS_COPY_LLM_PREPARE = 216;
+constexpr UINT ID_STATUS_MP_IMPORT_HANDOFF = 217;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -223,6 +224,7 @@ HWND g_statusOpenArchiveButton = nullptr;
 HWND g_statusOpenBriefButton = nullptr;
 HWND g_statusOpenMpPackageButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
+HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
 HWND g_statusCopyMpImportButton = nullptr;
 HWND g_statusCopyMpStrictVerifyButton = nullptr;
@@ -326,6 +328,7 @@ void openMpOverlayPackageDirectory();
 bool canRefreshMpPackageExport();
 void requestMpPackageExportRefresh();
 bool copyTextToClipboard(HWND hwnd, const std::wstring& text);
+void requestMpPackageImportHandoff(HWND hwnd);
 void updateTrayTip(HWND hwnd, const std::wstring& text);
 void updateStatusCaptionButtons(HWND hwnd);
 void ensureStatusWindowResources();
@@ -1592,6 +1595,14 @@ void refreshStatusWindowContent()
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
+    if (g_statusMpImportHandoffButton != nullptr) {
+        EnableWindow(
+            g_statusMpImportHandoffButton,
+            (!g_mpOverlayPackageDirectory.empty() &&
+             (!data.mpPackageStrictImportCommand.empty() || !data.mpPackageImportCommand.empty()))
+                ? TRUE
+                : FALSE);
+    }
     if (g_statusCopyMpVerifyButton != nullptr) {
         EnableWindow(g_statusCopyMpVerifyButton, data.mpPackageVerifyCommand.empty() ? FALSE : TRUE);
     }
@@ -1670,6 +1681,32 @@ void requestMpPackageExportRefresh()
     requestStatusWindowRefresh();
 }
 
+void requestMpPackageImportHandoff(HWND hwnd)
+{
+    const auto data = loadStatusDashboardData();
+    const auto command = !data.mpPackageStrictImportCommand.empty()
+        ? data.mpPackageStrictImportCommand
+        : data.mpPackageImportCommand;
+    if (command.empty() || g_mpOverlayPackageDirectory.empty()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    if (!copyTextToClipboard(hwnd, command)) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    openMpOverlayPackageDirectory();
+    MessageBoxW(
+        hwnd,
+        L"MP import prikaz je zkopirovany do schranky.\n\n"
+        L"V prikazu nahraď <target_overlay_dir> cilovou generated-overlay slozkou klienta nebo dalsiho hosta. "
+        L"Pak spust strict verify/import pred pripojenim do MP hry.",
+        L"Strategic Nexus Companion",
+        MB_OK | MB_ICONINFORMATION);
+}
+
 void applySncAppUserModelId()
 {
     using SetCurrentProcessExplicitAppUserModelIdFn = HRESULT(WINAPI*)(PCWSTR);
@@ -1718,7 +1755,7 @@ void layoutStatusWindow(HWND hwnd)
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     int buttonWidth = 116;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 13;
+    constexpr int actionButtonCount = 14;
     const int requiredButtonWidth =
         (buttonWidth * actionButtonCount) + (buttonGap * (actionButtonCount - 1));
     if (requiredButtonWidth > availableWidth) {
@@ -1807,6 +1844,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenBriefButton,
         g_statusOpenMpPackageButton,
         g_statusExportMpPackageButton,
+        g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
         g_statusCopyMpImportButton,
         g_statusCopyMpStrictVerifyButton,
@@ -1822,6 +1860,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Souhrn",
         L"MP balicek",
         L"MP export",
+        L"MP import navod",
         L"MP verify",
         L"MP import",
         L"MP strict verify",
@@ -1967,6 +2006,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
         g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, L"MP bal\u00ED\u010Dek");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
+        g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
         g_statusCopyMpImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_IMPORT, L"MP import");
         g_statusCopyMpStrictVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_VERIFY, L"MP strict verify");
@@ -2012,6 +2052,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenBriefButton, g_statusFieldFont);
         setWindowFont(g_statusOpenMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
+        setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpImportButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpStrictVerifyButton, g_statusFieldFont);
@@ -2056,6 +2097,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_EXPORT_MP_PACKAGE:
             requestMpPackageExportRefresh();
+            return 0;
+        case ID_STATUS_MP_IMPORT_HANDOFF:
+            requestMpPackageImportHandoff(hwnd);
             return 0;
         case ID_STATUS_COPY_MP_VERIFY:
         {
@@ -2317,6 +2361,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenBriefButton = nullptr;
         g_statusOpenMpPackageButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
+        g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
         g_statusCopyMpImportButton = nullptr;
         g_statusCopyMpStrictVerifyButton = nullptr;
