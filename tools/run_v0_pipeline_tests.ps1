@@ -3905,6 +3905,8 @@ $sncFriendRequestPath = Join-Path $sncFriendCliRoot "host.snc-friend-request.jso
 $sncFriendAcceptancePath = Join-Path $sncFriendCliRoot "client.snc-friend-acceptance.json"
 $sncFriendTrustStorePath = Join-Path $sncFriendCliRoot "snc_friend_trust_store.json"
 $sncFriendSelfAcceptancePath = Join-Path $sncFriendCliRoot "self.snc-friend-acceptance.json"
+$sncFriendMpSyncEnvelopePath = Join-Path $sncFriendCliRoot "host-client.snc-friend-mp-sync.json"
+$sncFriendSelfMpSyncEnvelopePath = Join-Path $sncFriendCliRoot "self.snc-friend-mp-sync.json"
 
 $sncFriendRequestOutput = & $exePath `
     --create-snc-friend-request `
@@ -3978,6 +3980,84 @@ $sncFriendSelfAcceptanceText = $sncFriendSelfAcceptanceOutput -join "`n"
 Assert-Contains -Name "snc friend self-acceptance cli" -Text $sncFriendSelfAcceptanceText -Expected "snc_friend_acceptance_success=false"
 if (Test-Path -LiteralPath $sncFriendSelfAcceptancePath) {
     throw "SNC friend self-acceptance CLI wrote an unsafe acceptance package."
+}
+
+$sncFriendMpSyncEnvelopeOutput = & $exePath `
+    --create-snc-friend-mp-sync-envelope `
+    $sncFriendMpSyncEnvelopePath `
+    "snc-node-host-cli-001" `
+    "Host CLI SNC" `
+    "ed25519:host-cli-signing-key" `
+    "x25519:host-cli-encryption-key" `
+    "fp-host-cli-001" `
+    "snc-node-client-cli-001" `
+    "Client CLI SNC" `
+    "ed25519:client-cli-signing-key" `
+    "x25519:client-cli-encryption-key" `
+    "fp-client-cli-001" `
+    "campaign-mp-cli-001" `
+    "overlay-v0-cli-001" `
+    "sha256:manifest-cli-001" `
+    "sha256:zip-cli-001" `
+    "sha256:encrypted-payload-cli-001" `
+    "4096" `
+    "ed25519" `
+    "x25519-xsalsa20-poly1305" `
+    "ed25519:signature-cli-001" `
+    "2026-06-08T18:08:00Z"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync envelope CLI failed. Actual output:`n$($sncFriendMpSyncEnvelopeOutput -join "`n")"
+}
+$sncFriendMpSyncEnvelopeText = $sncFriendMpSyncEnvelopeOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync envelope cli" -Text $sncFriendMpSyncEnvelopeText -Expected "snc_friend_mp_sync_envelope_success=true"
+Assert-Contains -Name "snc friend mp sync envelope cli" -Text $sncFriendMpSyncEnvelopeText -Expected "snc_friend_mp_sync_envelope_package_manifest_hash=sha256:manifest-cli-001"
+if (-not (Test-Path -LiteralPath $sncFriendMpSyncEnvelopePath)) {
+    throw "SNC friend MP sync envelope CLI did not write envelope package."
+}
+$sncFriendMpSyncEnvelopeJson = Get-Content -LiteralPath $sncFriendMpSyncEnvelopePath -Raw
+Assert-Contains -Name "snc friend mp sync envelope cli json" -Text $sncFriendMpSyncEnvelopeJson -Expected '"package_type": "snc_friend_mp_package_sync"'
+Assert-Contains -Name "snc friend mp sync envelope cli json" -Text $sncFriendMpSyncEnvelopeJson -Expected '"encrypted_payload_bytes": 4096'
+
+$sncFriendMpSyncEnvelopeVerifyOutput = & $exePath `
+    --verify-snc-friend-mp-sync-envelope `
+    $sncFriendMpSyncEnvelopePath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync envelope verify CLI failed. Actual output:`n$($sncFriendMpSyncEnvelopeVerifyOutput -join "`n")"
+}
+$sncFriendMpSyncEnvelopeVerifyText = $sncFriendMpSyncEnvelopeVerifyOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync envelope verify cli" -Text $sncFriendMpSyncEnvelopeVerifyText -Expected "snc_friend_mp_sync_envelope_verify_success=true"
+Assert-Contains -Name "snc friend mp sync envelope verify cli" -Text $sncFriendMpSyncEnvelopeVerifyText -Expected "snc_friend_mp_sync_envelope_verify_encrypted_payload_bytes=4096"
+
+$sncFriendSelfMpSyncEnvelopeOutput = & $exePath `
+    --create-snc-friend-mp-sync-envelope `
+    $sncFriendSelfMpSyncEnvelopePath `
+    "snc-node-host-cli-001" `
+    "Host CLI SNC" `
+    "ed25519:host-cli-signing-key" `
+    "x25519:host-cli-encryption-key" `
+    "fp-host-cli-001" `
+    "snc-node-host-cli-001" `
+    "Host CLI SNC" `
+    "ed25519:host-cli-signing-key" `
+    "x25519:host-cli-encryption-key" `
+    "fp-host-cli-001" `
+    "campaign-mp-cli-001" `
+    "overlay-v0-cli-001" `
+    "sha256:manifest-cli-001" `
+    "sha256:zip-cli-001" `
+    "sha256:encrypted-payload-cli-001" `
+    "4096" `
+    "ed25519" `
+    "x25519-xsalsa20-poly1305" `
+    "ed25519:signature-cli-001" `
+    "2026-06-08T18:09:00Z"
+if ($LASTEXITCODE -eq 0) {
+    throw "SNC friend self-recipient MP sync envelope CLI unexpectedly succeeded."
+}
+$sncFriendSelfMpSyncEnvelopeText = $sncFriendSelfMpSyncEnvelopeOutput -join "`n"
+Assert-Contains -Name "snc friend self-recipient mp sync envelope cli" -Text $sncFriendSelfMpSyncEnvelopeText -Expected "snc_friend_mp_sync_envelope_success=false"
+if (Test-Path -LiteralPath $sncFriendSelfMpSyncEnvelopePath) {
+    throw "SNC friend self-recipient MP sync envelope CLI wrote an unsafe envelope package."
 }
 
 & $sncTrayStartupShortcutActionExePath

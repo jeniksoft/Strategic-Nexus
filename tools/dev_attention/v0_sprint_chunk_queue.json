@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T20:57:57+02:00",
+  "updated_at": "2026-06-08T22:26:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract is implemented and fail-closed, but release-grade companion UI still needs actual signed/encrypted transport and real season validation.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract and manual create/verify CLI fallback are implemented and fail-closed; release-grade companion UI still needs actual signed/encrypted transport and real season validation.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -1032,6 +1032,26 @@
       ],
       "dependencies": [
         "v0-sprint-136-surface-friend-pairing-guide-status-contract"
+      ]
+    },
+    {
+      "id": "v0-sprint-138-add-manual-snc-friend-mp-sync-envelope-cli",
+      "title": "Add manual SNC friend MP sync envelope CLI",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / signed and encrypted MP package sync between accepted SNC friends",
+      "goal": "Expose a manual CLI fallback for creating and verifying schema_version 1 SNC friend MP sync envelope metadata, while keeping cryptography, transport, automatic download, and package apply disabled.",
+      "acceptance": [
+        "Strategic Nexus.exe can write a valid snc_friend_mp_package_sync envelope from explicit sender/recipient identity and package metadata fields.",
+        "Strategic Nexus.exe can verify an existing friend MP sync envelope and print stable key=value status without writing or staging package contents.",
+        "Malformed envelopes, unsupported algorithms, self-recipient envelopes, missing hashes/signatures, or missing mp_package_sync capabilities fail closed without creating transport trust."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-137-add-snc-friend-mp-sync-envelope-contract"
       ]
     }
   ]

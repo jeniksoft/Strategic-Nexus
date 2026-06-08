@@ -53,6 +53,8 @@ struct RunConfig {
     bool createSncFriendRequestMode = false;
     bool createSncFriendAcceptanceMode = false;
     bool importSncFriendAcceptanceMode = false;
+    bool createSncFriendMpSyncEnvelopeMode = false;
+    bool verifySncFriendMpSyncEnvelopeMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
     int daemonMaxIterations = 0;
@@ -149,6 +151,8 @@ struct RunConfig {
     std::filesystem::path sncFriendAcceptanceOutputPath;
     std::filesystem::path sncFriendAcceptanceInputPath;
     std::filesystem::path sncFriendTrustStoreOutputPath;
+    std::filesystem::path sncFriendMpSyncEnvelopeOutputPath;
+    std::filesystem::path sncFriendMpSyncEnvelopeInputPath;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
     std::string mpOverlayGameVersion;
@@ -173,6 +177,20 @@ struct RunConfig {
     std::string sncFriendExpiresAt;
     std::string sncFriendAcceptedAt;
     std::string sncFriendLocalAlias;
+    std::string sncFriendRecipientNodeId;
+    std::string sncFriendRecipientDisplayName;
+    std::string sncFriendRecipientSigningPublicKey;
+    std::string sncFriendRecipientEncryptionPublicKey;
+    std::string sncFriendRecipientFingerprint;
+    std::string sncFriendMpSyncCampaignId;
+    std::string sncFriendMpSyncOverlayVersion;
+    std::string sncFriendMpSyncPackageManifestHash;
+    std::string sncFriendMpSyncPackageZipHash;
+    std::string sncFriendMpSyncEncryptedPayloadHash;
+    std::string sncFriendMpSyncSigningAlgorithm;
+    std::string sncFriendMpSyncEncryptionAlgorithm;
+    std::string sncFriendMpSyncSignature;
+    std::string sncFriendMpSyncCreatedAt;
     bool mpOverlayPreviousHostAvailable = true;
     bool sncStartWithWindowsEnabled = false;
     bool sncUseConfiguredStartWithWindowsState = false;
@@ -197,6 +215,7 @@ struct RunConfig {
     std::int64_t sncLiveAutosavePollIntervalMs = 1000;
     std::int64_t sncLiveAutosaveStabilityDelayMs = 250;
     std::int64_t sncLiveAutosaveMaxIterations = 1;
+    std::int64_t sncFriendMpSyncEncryptedPayloadBytes = 0;
     StrategicRequest request;
 };
 

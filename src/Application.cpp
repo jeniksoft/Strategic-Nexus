@@ -232,6 +232,18 @@ SncFriendPackageIdentity makeSncFriendCliIdentity(const RunConfig& config)
     return identity;
 }
 
+SncFriendPackageIdentity makeSncFriendCliRecipientIdentity(const RunConfig& config)
+{
+    SncFriendPackageIdentity identity;
+    identity.nodeId = config.sncFriendRecipientNodeId;
+    identity.displayName = config.sncFriendRecipientDisplayName;
+    identity.signingPublicKey = config.sncFriendRecipientSigningPublicKey;
+    identity.encryptionPublicKey = config.sncFriendRecipientEncryptionPublicKey;
+    identity.fingerprint = config.sncFriendRecipientFingerprint;
+    identity.capabilities = { "mp_package_sync", "handoff_sync" };
+    return identity;
+}
+
 } // namespace
 
 RunConfig parseRunConfig(int argc, char* argv[])
@@ -490,6 +502,82 @@ RunConfig parseRunConfig(int argc, char* argv[])
         }
         if (argc > 6) {
             config.sncFriendLocalAlias = argv[6];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--create-snc-friend-mp-sync-envelope") {
+        config.createSncFriendMpSyncEnvelopeMode = true;
+
+        if (argc > 2) {
+            config.sncFriendMpSyncEnvelopeOutputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncFriendNodeId = argv[3];
+        }
+        if (argc > 4) {
+            config.sncFriendDisplayName = argv[4];
+        }
+        if (argc > 5) {
+            config.sncFriendSigningPublicKey = argv[5];
+        }
+        if (argc > 6) {
+            config.sncFriendEncryptionPublicKey = argv[6];
+        }
+        if (argc > 7) {
+            config.sncFriendFingerprint = argv[7];
+        }
+        if (argc > 8) {
+            config.sncFriendRecipientNodeId = argv[8];
+        }
+        if (argc > 9) {
+            config.sncFriendRecipientDisplayName = argv[9];
+        }
+        if (argc > 10) {
+            config.sncFriendRecipientSigningPublicKey = argv[10];
+        }
+        if (argc > 11) {
+            config.sncFriendRecipientEncryptionPublicKey = argv[11];
+        }
+        if (argc > 12) {
+            config.sncFriendRecipientFingerprint = argv[12];
+        }
+        if (argc > 13) {
+            config.sncFriendMpSyncCampaignId = argv[13];
+        }
+        if (argc > 14) {
+            config.sncFriendMpSyncOverlayVersion = argv[14];
+        }
+        if (argc > 15) {
+            config.sncFriendMpSyncPackageManifestHash = argv[15];
+        }
+        if (argc > 16) {
+            config.sncFriendMpSyncPackageZipHash = argv[16];
+        }
+        if (argc > 17) {
+            config.sncFriendMpSyncEncryptedPayloadHash = argv[17];
+        }
+        config.sncFriendMpSyncEncryptedPayloadBytes = argc > 18 ? parseInt64Arg(argv[18], 0) : 0;
+        if (argc > 19) {
+            config.sncFriendMpSyncSigningAlgorithm = argv[19];
+        }
+        if (argc > 20) {
+            config.sncFriendMpSyncEncryptionAlgorithm = argv[20];
+        }
+        if (argc > 21) {
+            config.sncFriendMpSyncSignature = argv[21];
+        }
+        if (argc > 22) {
+            config.sncFriendMpSyncCreatedAt = argv[22];
+        }
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--verify-snc-friend-mp-sync-envelope") {
+        config.verifySncFriendMpSyncEnvelopeMode = true;
+
+        if (argc > 2) {
+            config.sncFriendMpSyncEnvelopeInputPath = argv[2];
         }
         return config;
     }
@@ -1992,6 +2080,112 @@ int Application::run(const RunConfig& config) const
             std::cout << "snc_friend_acceptance_import_friend_count=" << store.friends.size() << "\n";
             std::cout << "snc_friend_acceptance_import_auto_sync_enabled=false\n";
             return success ? 0 : 1;
+        }
+
+        if (config.createSncFriendMpSyncEnvelopeMode) {
+            if (config.sncFriendMpSyncEnvelopeOutputPath.empty() ||
+                !hasNonWhitespace(config.sncFriendNodeId) ||
+                !hasNonWhitespace(config.sncFriendDisplayName) ||
+                !hasNonWhitespace(config.sncFriendSigningPublicKey) ||
+                !hasNonWhitespace(config.sncFriendEncryptionPublicKey) ||
+                !hasNonWhitespace(config.sncFriendFingerprint) ||
+                !hasNonWhitespace(config.sncFriendRecipientNodeId) ||
+                !hasNonWhitespace(config.sncFriendRecipientDisplayName) ||
+                !hasNonWhitespace(config.sncFriendRecipientSigningPublicKey) ||
+                !hasNonWhitespace(config.sncFriendRecipientEncryptionPublicKey) ||
+                !hasNonWhitespace(config.sncFriendRecipientFingerprint) ||
+                !hasNonWhitespace(config.sncFriendMpSyncCampaignId) ||
+                !hasNonWhitespace(config.sncFriendMpSyncOverlayVersion) ||
+                !hasNonWhitespace(config.sncFriendMpSyncPackageManifestHash) ||
+                !hasNonWhitespace(config.sncFriendMpSyncPackageZipHash) ||
+                !hasNonWhitespace(config.sncFriendMpSyncEncryptedPayloadHash) ||
+                config.sncFriendMpSyncEncryptedPayloadBytes <= 0 ||
+                !hasNonWhitespace(config.sncFriendMpSyncSigningAlgorithm) ||
+                !hasNonWhitespace(config.sncFriendMpSyncEncryptionAlgorithm) ||
+                !hasNonWhitespace(config.sncFriendMpSyncSignature) ||
+                !hasNonWhitespace(config.sncFriendMpSyncCreatedAt)) {
+                std::cout << "snc_friend_mp_sync_envelope_success=false\n";
+                std::cout << "snc_friend_mp_sync_envelope_reason=missing envelope output path, identity fields, package metadata, approved algorithm labels, signature, created_at, or positive encrypted payload byte count\n";
+                return 1;
+            }
+
+            SncFriendMpSyncEnvelopePackage envelope;
+            envelope.sender = makeSncFriendCliIdentity(config);
+            envelope.recipient = makeSncFriendCliRecipientIdentity(config);
+            envelope.campaignId = config.sncFriendMpSyncCampaignId;
+            envelope.overlayVersion = config.sncFriendMpSyncOverlayVersion;
+            envelope.packageManifestHash = config.sncFriendMpSyncPackageManifestHash;
+            envelope.packageZipHash = config.sncFriendMpSyncPackageZipHash;
+            envelope.encryptedPayloadHash = config.sncFriendMpSyncEncryptedPayloadHash;
+            envelope.encryptedPayloadBytes =
+                static_cast<std::size_t>(config.sncFriendMpSyncEncryptedPayloadBytes);
+            envelope.signingAlgorithm = config.sncFriendMpSyncSigningAlgorithm;
+            envelope.encryptionAlgorithm = config.sncFriendMpSyncEncryptionAlgorithm;
+            envelope.signature = config.sncFriendMpSyncSignature;
+            envelope.createdAt = config.sncFriendMpSyncCreatedAt;
+
+            const auto json = serializeSncFriendMpSyncEnvelopePackage(envelope);
+            const auto parsed = parseSncFriendMpSyncEnvelopePackageJson(json);
+            const bool written = parsed.ok && common::writeTextFileAtomically(
+                config.sncFriendMpSyncEnvelopeOutputPath,
+                json);
+            const bool success = parsed.ok && written;
+
+            std::cout << "snc_friend_mp_sync_envelope_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_reason="
+                      << sanitizeCliValue(parsed.ok ? (written ? "friend mp sync envelope written" : "failed to write friend mp sync envelope") : parsed.reason)
+                      << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_output_written=" << (written ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_sender_node_id="
+                      << sanitizeCliValue(envelope.sender.nodeId) << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_recipient_node_id="
+                      << sanitizeCliValue(envelope.recipient.nodeId) << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_campaign_id="
+                      << sanitizeCliValue(envelope.campaignId) << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_package_manifest_hash="
+                      << sanitizeCliValue(envelope.packageManifestHash) << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_package_zip_hash="
+                      << sanitizeCliValue(envelope.packageZipHash) << "\n";
+            return success ? 0 : 1;
+        }
+
+        if (config.verifySncFriendMpSyncEnvelopeMode) {
+            if (config.sncFriendMpSyncEnvelopeInputPath.empty()) {
+                std::cout << "snc_friend_mp_sync_envelope_verify_success=false\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_reason=missing envelope input path\n";
+                return 1;
+            }
+
+            std::string envelopeJson;
+            if (!common::tryReadTextFile(config.sncFriendMpSyncEnvelopeInputPath, envelopeJson)) {
+                std::cout << "snc_friend_mp_sync_envelope_verify_success=false\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_reason=failed to read friend mp sync envelope\n";
+                return 1;
+            }
+
+            const auto envelope = parseSncFriendMpSyncEnvelopePackageJson(envelopeJson);
+            std::cout << "snc_friend_mp_sync_envelope_verify_success=" << (envelope.ok ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_verify_reason="
+                      << sanitizeCliValue(envelope.reason) << "\n";
+            if (envelope.ok) {
+                std::cout << "snc_friend_mp_sync_envelope_verify_sender_node_id="
+                          << sanitizeCliValue(envelope.sender.nodeId) << "\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_recipient_node_id="
+                          << sanitizeCliValue(envelope.recipient.nodeId) << "\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_campaign_id="
+                          << sanitizeCliValue(envelope.campaignId) << "\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_overlay_version="
+                          << sanitizeCliValue(envelope.overlayVersion) << "\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_package_manifest_hash="
+                          << sanitizeCliValue(envelope.packageManifestHash) << "\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_package_zip_hash="
+                          << sanitizeCliValue(envelope.packageZipHash) << "\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_encrypted_payload_hash="
+                          << sanitizeCliValue(envelope.encryptedPayloadHash) << "\n";
+                std::cout << "snc_friend_mp_sync_envelope_verify_encrypted_payload_bytes="
+                          << envelope.encryptedPayloadBytes << "\n";
+            }
+            return envelope.ok ? 0 : 1;
         }
 
         if (config.sncStatusSnapshotMode) {
