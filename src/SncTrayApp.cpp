@@ -1157,7 +1157,7 @@ std::string buildFriendMpSyncEnvelopeCommandTemplateUtf8()
     command += "<encrypted_payload_hash> <encrypted_payload_bytes> ed25519 x25519-xsalsa20-poly1305 ";
     command += "<signature> <created_at_utc>\n";
     command += "Strategic Nexus.exe --verify-snc-friend-mp-sync-envelope ";
-    command += "\"<friend_mp_sync_envelope_path>\"";
+    command += "\"<friend_mp_sync_envelope_path>\" [stellaris_running:true|false]";
     return command;
 }
 
@@ -2449,6 +2449,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             std::wstring text;
             text += L"SNC friend MP sync envelope\r\n";
             text += L"Manual metadata fallback only. Automatic sync, download, verify-stage, and package apply stay disabled.\r\n\r\n";
+            text += L"Set stellaris_running:true when the game is active so the apply gate reports blocked_stellaris_running.\r\n\r\n";
             text += data.friendMpSyncEnvelopeCommandTemplate.empty()
                         ? utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8())
                         : data.friendMpSyncEnvelopeCommandTemplate;
@@ -2459,7 +2460,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             MessageBoxW(
                 hwnd,
                 L"SNC friend MP sync envelope sablona je zkopirovana do schranky.\n\n"
-                L"Je to jen manualni metadata fallback. Automaticky sync, download ani staging gameplay souboru tim nevznikaji.",
+                L"Je to jen manualni metadata fallback. Parametr stellaris_running nechava verify cestu fail-closed behem hry.",
                 L"Strategic Nexus Companion",
                 MB_OK | MB_ICONINFORMATION);
             return 0;

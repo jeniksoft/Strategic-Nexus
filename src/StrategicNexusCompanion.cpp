@@ -2363,7 +2363,7 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         "<encrypted_payload_hash> <encrypted_payload_bytes> ed25519 x25519-xsalsa20-poly1305 "
         "<signature> <created_at_utc>\n"
         "Strategic Nexus.exe --verify-snc-friend-mp-sync-envelope "
-        "\"<friend_mp_sync_envelope_path>\"";
+        "\"<friend_mp_sync_envelope_path>\" [stellaris_running:true|false]";
     if (status.path.empty()) {
         status.reason = "friend trust store path not configured; automatic friend sync disabled";
         return status;
