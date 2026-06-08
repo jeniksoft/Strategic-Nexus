@@ -1,6 +1,7 @@
 param(
     [switch]$ReadyOwnerTestFixture,
-    [switch]$PostPlayBackfillFixture
+    [switch]$PostPlayBackfillFixture,
+    [switch]$MemoryRecoveryFixture
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,6 +16,7 @@ $supportReportPreviewPath = Join-Path $privateReportsRoot "snc_support_report_pr
 $dslDraftPath = Join-Path $privateReportsRoot "snc_validated_dsl_draft.dsl"
 $dslDraftAuditPath = Join-Path $privateReportsRoot "snc_dsl_draft_package.json"
 $candidateDecisionPackagePath = Join-Path $privateReportsRoot "snc_candidate_decision_package.json"
+$entryPointAnalysisPath = Join-Path $privateReportsRoot "snc_entry_point_analysis.json"
 $activeOverlayDirectory = Join-Path $privateReportsRoot "snc_generated_overlay_active"
 $stagedOverlayDirectory = Join-Path $privateReportsRoot "snc_generated_overlay_staged"
 $stagingStatusPath = Join-Path $privateReportsRoot "snc_generated_overlay_staging_status.json"
@@ -24,7 +26,7 @@ $gameplayAcceptanceReportPath = Join-Path $privateReportsRoot "generated_overlay
 $mpOverlayPackageDirectory = Join-Path $privateReportsRoot "snc_mp_overlay_package"
 $mpOverlayPackageZipPath = Join-Path $privateReportsRoot "snc_mp_overlay_package.zip"
 
-if ($ReadyOwnerTestFixture -and $PostPlayBackfillFixture) {
+if ((@($ReadyOwnerTestFixture, $PostPlayBackfillFixture, $MemoryRecoveryFixture) | Where-Object { $_ }).Count -gt 1) {
     throw "Choose only one SNC tray smoke fixture at a time."
 }
 
@@ -285,6 +287,7 @@ function Initialize-PostPlayBackfillFixture {
         $statusPath,
         $liveStatusPath,
         $nextStepsBriefPath,
+        $entryPointAnalysisPath,
         $dslDraftPath,
         $dslDraftAuditPath,
         $candidateDecisionPackagePath,
@@ -362,6 +365,75 @@ campaign "campaign_backfill" {
     return $backedUpPaths
 }
 
+function Initialize-MemoryRecoveryFixture {
+    param([string]$BackupRoot)
+
+    $backedUpPaths = [System.Collections.ArrayList]::new()
+    foreach ($path in @(
+        $statusPath,
+        $liveStatusPath,
+        $nextStepsBriefPath,
+        $entryPointAnalysisPath,
+        $dslDraftPath,
+        $dslDraftAuditPath,
+        $candidateDecisionPackagePath,
+        $stagedOverlayDirectory,
+        $stagingStatusPath,
+        $publishStatusPath,
+        $mpOverlayPackageDirectory,
+        $mpOverlayPackageZipPath
+    )) {
+        Backup-PathState -Path $path -State $backedUpPaths -BackupRoot $BackupRoot
+    }
+
+    New-Item -ItemType Directory -Force -Path $privateReportsRoot | Out-Null
+
+    $entryPointAnalysisText = @"
+{
+  "schema_version": 1,
+  "reason": "entry points scanned; branch ambiguity requires conservative evidence selection",
+  "readiness": "ambiguous",
+  "archive_verified": true,
+  "branch_ambiguity_detected": true,
+  "entry_point_count": 1,
+  "archived_evidence_count": 1,
+  "entry_points": [
+    {
+      "id": "memory_fixture_ironman_2200_05_01",
+      "campaign_key": "memory_fixture_campaign",
+      "source_root": "current_save_root",
+      "relative_path": "MemoryFixture/ironman.sav",
+      "source_kind": "ironman",
+      "save_name": "ironman.sav",
+      "save_date": "2200.05.01",
+      "analysis_state": "ready_conservative",
+      "compatible_archived_evidence_count": 1,
+      "later_archived_evidence_count": 1
+    }
+  ]
+}
+"@
+    Set-Content -LiteralPath $entryPointAnalysisPath -Value $entryPointAnalysisText -NoNewline
+
+    $seedPackageDirectory = Join-Path $repoRoot "dist\generated_overlay_mp_package_cli"
+    if (-not (Test-Path -LiteralPath $seedPackageDirectory)) {
+        throw "Memory-recovery tray smoke fixture needs dist\\generated_overlay_mp_package_cli as a valid MP package seed."
+    }
+
+    Copy-Item -LiteralPath $seedPackageDirectory -Destination $mpOverlayPackageDirectory -Recurse -Force
+    $mpManifestPath = Join-Path $mpOverlayPackageDirectory "strategic_nexus_mp_overlay_package_manifest.json"
+    $mpManifestText = Get-Content -Raw -LiteralPath $mpManifestPath
+    $mpManifestText = $mpManifestText.Replace('"previous_host_available": false', '"previous_host_available": true')
+    $mpManifestText = $mpManifestText.Replace(
+        '"handoff_status": "degraded_previous_host_unavailable"',
+        '"handoff_status": "complete"')
+    Set-Content -LiteralPath $mpManifestPath -Value $mpManifestText -NoNewline
+
+    Set-Content -LiteralPath $mpOverlayPackageZipPath -Value "memory recovery mp package zip fixture`n" -NoNewline
+
+    return $backedUpPaths
+}
+
 & (Join-Path $PSScriptRoot "build_snc_tray.ps1")
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
@@ -384,11 +456,13 @@ Remove-Item -Force -LiteralPath $supportReportPreviewPath -ErrorAction SilentlyC
 
 $fixtureBackupRoot = $null
 $fixtureBackups = $null
-if ($ReadyOwnerTestFixture -or $PostPlayBackfillFixture) {
+if ($ReadyOwnerTestFixture -or $PostPlayBackfillFixture -or $MemoryRecoveryFixture) {
     $fixtureBackupRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("snc-tray-smoke-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Force -Path $fixtureBackupRoot | Out-Null
     if ($ReadyOwnerTestFixture) {
         $fixtureBackups = Initialize-ReadyOwnerTestFixture -BackupRoot $fixtureBackupRoot
+    } elseif ($MemoryRecoveryFixture) {
+        $fixtureBackups = Initialize-MemoryRecoveryFixture -BackupRoot $fixtureBackupRoot
     } else {
         $fixtureBackups = Initialize-PostPlayBackfillFixture -BackupRoot $fixtureBackupRoot
     }
@@ -586,6 +660,25 @@ try {
                     $normalizedExpectedAcceptancePath = $gameplayAcceptanceReportPath.Replace('\', '/')
                     if ([string]$json.next_action_path -ne $normalizedExpectedAcceptancePath) {
                         throw "SNC tray ready-state fixture did not reuse the gameplay acceptance artifact as next_action_path."
+                    }
+                } elseif ($MemoryRecoveryFixture) {
+                    if ([string]$json.memory_recovery_state -ne "degraded") {
+                        throw "SNC tray memory-recovery fixture did not expose degraded memory recovery state."
+                    }
+                    if ([string]$json.memory_recovery_reason -ne "branch ambiguity requires conservative recovery anchor") {
+                        throw "SNC tray memory-recovery fixture did not expose the branch ambiguity recovery reason."
+                    }
+                    if ([string]$json.next_action -ne "review_memory_recovery_status") {
+                        throw "SNC tray memory-recovery fixture did not preserve the companion memory recovery next_action; actual=$($json.next_action)."
+                    }
+                    if ([string]$json.next_action_reason -ne "branch ambiguity requires conservative recovery anchor") {
+                        throw "SNC tray memory-recovery fixture did not preserve the memory recovery next_action_reason."
+                    }
+                    if ([string]$json.next_action_command_hint_source -ne "none") {
+                        throw "SNC tray memory-recovery fixture should keep command-hint source fail-closed when no command exists."
+                    }
+                    if ([string]$json.next_action_path -ne $entryPointAnalysisPath.Replace('\', '/')) {
+                        throw "SNC tray memory-recovery fixture did not point next_action_path at entry-point evidence."
                     }
                 } elseif ($PostPlayBackfillFixture) {
                     if ([string]$json.generated_overlay_staging_readiness -ne "staged_verified") {
@@ -839,7 +932,7 @@ try {
         Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
         Wait-Process -Id $process.Id -Timeout 5 -ErrorAction SilentlyContinue
     }
-    if ($ReadyOwnerTestFixture -or $PostPlayBackfillFixture) {
+    if ($ReadyOwnerTestFixture -or $PostPlayBackfillFixture -or $MemoryRecoveryFixture) {
         Restore-BackedUpPaths -State $fixtureBackups
         if ($null -ne $fixtureBackupRoot -and (Test-Path -LiteralPath $fixtureBackupRoot)) {
             Remove-Item -LiteralPath $fixtureBackupRoot -Recurse -Force -ErrorAction SilentlyContinue

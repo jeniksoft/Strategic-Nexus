@@ -753,6 +753,27 @@
       "dependencies": [
         "v0-sprint-121-surface-next-action-path-open-action"
       ]
+    },
+    {
+      "id": "v0-sprint-124-propagate-memory-recovery-next-action-to-tray",
+      "title": "Propagate memory recovery next action to tray",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion Orchestrator UX / clear recovery paths for degraded states",
+      "goal": "Propagate the companion memory-recovery next-action contract into the tray-owned Status Center aggregation so the visible SNC dashboard opens entry-point recovery evidence instead of falling back to the generic tray status.",
+      "acceptance": [
+        "Tray next_action preserves review_memory_recovery_status when the companion snapshot reports degraded or attention-needed memory recovery and no higher-priority tray state applies.",
+        "Tray next_action_reason, next_action_command_hint_source, and next_action_path preserve the companion memory-recovery contract instead of generic tray fallback values.",
+        "Existing higher-priority capture, crash recovery, publish, and monthly owner-test actions keep their priority."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-123-surface-memory-recovery-next-action-path"
+      ]
     }
   ]
 }

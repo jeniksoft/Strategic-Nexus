@@ -3918,6 +3918,14 @@ if ($null -ne $existingTrayProcess) {
     Assert-Contains -Name "snc tray ready owner smoke output" -Text $sncTrayReadyOwnerSmokeText -Expected "snc_tray_smoke_success=true"
     Assert-Contains -Name "snc tray ready owner smoke output" -Text $sncTrayReadyOwnerSmokeText -Expected "snc_tray_smoke_next_action=run_monthly_reactive_owner_test"
     Assert-Contains -Name "snc tray ready owner smoke output" -Text $sncTrayReadyOwnerSmokeText -Expected "snc_tray_smoke_owner_test_playbook_path=docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md"
+
+    $sncTrayMemoryRecoverySmokeOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repoRoot "tools\smoke_snc_tray.ps1") -MemoryRecoveryFixture
+    if ($LASTEXITCODE -ne 0) {
+        throw "SNC tray memory-recovery smoke failed."
+    }
+    $sncTrayMemoryRecoverySmokeText = $sncTrayMemoryRecoverySmokeOutput -join "`n"
+    Assert-Contains -Name "snc tray memory recovery smoke output" -Text $sncTrayMemoryRecoverySmokeText -Expected "snc_tray_smoke_success=true"
+    Assert-Contains -Name "snc tray memory recovery smoke output" -Text $sncTrayMemoryRecoverySmokeText -Expected "snc_tray_smoke_next_action=review_memory_recovery_status"
 }
 
 Write-Host "V0 strategic pipeline tests passed."

@@ -3400,6 +3400,11 @@ bool isGeneratedOverlayStagingReviewable(const bool publishAllowed, const std::s
     return publishAllowed || readiness == "staged_verified" || isReadyReadiness(readiness);
 }
 
+bool isCompanionRecoveryNextAction(const std::string& action)
+{
+    return action == "review_memory_recovery_status";
+}
+
 std::string buildNextAction(
     const std::string& state,
     const std::string& postPlayState,
@@ -3425,6 +3430,9 @@ std::string buildNextAction(
     }
     if (generatedOverlayPublishGateState == "published") {
         return "review_tray_status";
+    }
+    if (isCompanionRecoveryNextAction(companionNextAction)) {
+        return companionNextAction;
     }
     if (isGeneratedOverlayStagingReviewable(generatedOverlayPublishAllowed, generatedOverlayStagingReadiness)) {
         return "review_staged_overlay_status";
@@ -3473,6 +3481,9 @@ std::string buildNextActionReason(
     }
     if (generatedOverlayPublishGateState == "published") {
         return "current_staged_overlay_already_published";
+    }
+    if (isCompanionRecoveryNextAction(companionNextAction)) {
+        return companionNextActionReason;
     }
     if (isGeneratedOverlayStagingReviewable(generatedOverlayPublishAllowed, generatedOverlayStagingReadiness)) {
         return "staged_overlay_written_but_publish_gate_not_ready";
@@ -3548,6 +3559,9 @@ std::filesystem::path buildNextActionPath(
     const std::filesystem::path& companionNextActionPath)
 {
     if (nextAction == "run_monthly_reactive_owner_test" && !companionNextActionPath.empty()) {
+        return companionNextActionPath;
+    }
+    if (isCompanionRecoveryNextAction(nextAction) && !companionNextActionPath.empty()) {
         return companionNextActionPath;
     }
     if (nextAction == "review_staged_overlay_and_publish_if_desired") {
@@ -4375,11 +4389,12 @@ void writeStatus(
             g_nextStepsBriefPath,
             companionSnapshot.ownerTestPlaybookPath,
             companionSnapshot.generatedOverlayPublishGate.publishCommand);
-    if (nextAction == "review_crash_recovery_status" && nextActionCommandHint.empty()) {
+    if ((nextAction == "review_crash_recovery_status" || isCompanionRecoveryNextAction(nextAction)) &&
+        nextActionCommandHint.empty()) {
         nextActionCommandHint = companionSnapshot.nextActionCommandHint;
     }
     auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextAction, nextActionCommandHint);
-    if (nextAction == "review_crash_recovery_status" &&
+    if ((nextAction == "review_crash_recovery_status" || isCompanionRecoveryNextAction(nextAction)) &&
         !companionSnapshot.nextActionCommandHintSource.empty() &&
         companionSnapshot.nextActionCommandHintSource != "none") {
         nextActionCommandHintSource = companionSnapshot.nextActionCommandHintSource;
@@ -4395,7 +4410,8 @@ void writeStatus(
         effectiveGeneratedOverlayStagingStatusPath,
         g_trayStatusPath,
         companionSnapshot.nextActionPath);
-    if (nextAction == "review_crash_recovery_status" && nextActionPath == g_trayStatusPath &&
+    if ((nextAction == "review_crash_recovery_status" || isCompanionRecoveryNextAction(nextAction)) &&
+        nextActionPath == g_trayStatusPath &&
         !companionSnapshot.nextActionPath.empty()) {
         nextActionPath = companionSnapshot.nextActionPath;
     }
