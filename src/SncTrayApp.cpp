@@ -79,6 +79,7 @@ constexpr UINT ID_STATUS_COPY_MP_VERIFY = 211;
 constexpr UINT ID_STATUS_COPY_MP_IMPORT = 212;
 constexpr UINT ID_STATUS_COPY_MP_STRICT_VERIFY = 213;
 constexpr UINT ID_STATUS_COPY_MP_STRICT_IMPORT = 214;
+constexpr UINT ID_STATUS_EXPORT_MP_PACKAGE = 215;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -180,6 +181,7 @@ enum class StatusScrollTargetKind {
 };
 
 std::atomic_bool g_stopRequested{false};
+std::atomic_bool g_mpPackageRefreshRequested{false};
 std::thread g_worker;
 std::mutex g_statusMutex;
 std::wstring g_statusTitle = L"Strategic Nexus Companion";
@@ -218,6 +220,7 @@ HWND g_statusCopyButton = nullptr;
 HWND g_statusOpenArchiveButton = nullptr;
 HWND g_statusOpenBriefButton = nullptr;
 HWND g_statusOpenMpPackageButton = nullptr;
+HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
 HWND g_statusCopyMpImportButton = nullptr;
 HWND g_statusCopyMpStrictVerifyButton = nullptr;
@@ -317,6 +320,8 @@ void scrollStatusTargetByPage(StatusScrollTargetKind kind, std::size_t fieldInde
 void dragStatusScrollbarThumb(HWND hwnd, POINT point);
 void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
 void openMpOverlayPackageDirectory();
+bool canRefreshMpPackageExport();
+void requestMpPackageExportRefresh();
 bool copyTextToClipboard(HWND hwnd, const std::wstring& text);
 void updateTrayTip(HWND hwnd, const std::wstring& text);
 void updateStatusCaptionButtons(HWND hwnd);
@@ -1579,6 +1584,9 @@ void refreshStatusWindowContent()
     if (g_statusOpenMpPackageButton != nullptr) {
         EnableWindow(g_statusOpenMpPackageButton, g_mpOverlayPackageDirectory.empty() ? FALSE : TRUE);
     }
+    if (g_statusExportMpPackageButton != nullptr) {
+        EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
+    }
     if (g_statusCopyMpVerifyButton != nullptr) {
         EnableWindow(g_statusCopyMpVerifyButton, data.mpPackageVerifyCommand.empty() ? FALSE : TRUE);
     }
@@ -1611,6 +1619,47 @@ void requestStatusWindowRefresh()
     if (g_statusWindow != nullptr && IsWindow(g_statusWindow)) {
         PostMessageW(g_statusWindow, WM_SNC_STATUS_REFRESH, 0, 0);
     }
+}
+
+bool canRefreshMpPackageExport()
+{
+    if (g_mpOverlayPackageDirectory.empty() ||
+        g_dslDraftPath.empty() ||
+        g_dslDraftAuditPath.empty() ||
+        g_candidateDecisionPackagePath.empty() ||
+        g_generatedOverlayStagingDirectory.empty() ||
+        g_generatedOverlayStagingStatusPath.empty()) {
+        return false;
+    }
+
+    std::error_code error;
+    if (!std::filesystem::is_regular_file(g_dslDraftPath, error) || error) {
+        return false;
+    }
+    error.clear();
+    if (!std::filesystem::is_regular_file(g_dslDraftAuditPath, error) || error) {
+        return false;
+    }
+    error.clear();
+    if (!std::filesystem::is_regular_file(g_candidateDecisionPackagePath, error) || error) {
+        return false;
+    }
+
+    // The staged overlay status may be missing; the backfiller can recreate it from
+    // the validated DSL draft. The staging directory itself must still be usable.
+    error.clear();
+    return std::filesystem::exists(g_generatedOverlayStagingDirectory, error) && !error;
+}
+
+void requestMpPackageExportRefresh()
+{
+    if (!canRefreshMpPackageExport()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    g_mpPackageRefreshRequested.store(true);
+    requestStatusWindowRefresh();
 }
 
 void applySncAppUserModelId()
@@ -1661,7 +1710,7 @@ void layoutStatusWindow(HWND hwnd)
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     int buttonWidth = 116;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 11;
+    constexpr int actionButtonCount = 12;
     const int requiredButtonWidth =
         (buttonWidth * actionButtonCount) + (buttonGap * (actionButtonCount - 1));
     if (requiredButtonWidth > availableWidth) {
@@ -1749,6 +1798,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenArchiveButton,
         g_statusOpenBriefButton,
         g_statusOpenMpPackageButton,
+        g_statusExportMpPackageButton,
         g_statusCopyMpVerifyButton,
         g_statusCopyMpImportButton,
         g_statusCopyMpStrictVerifyButton,
@@ -1762,6 +1812,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Archiv",
         L"Souhrn",
         L"MP balicek",
+        L"MP export",
         L"MP verify",
         L"MP import",
         L"MP strict verify",
@@ -1905,6 +1956,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
         g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
         g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, L"MP bal\u00ED\u010Dek");
+        g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
         g_statusCopyMpImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_IMPORT, L"MP import");
         g_statusCopyMpStrictVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_VERIFY, L"MP strict verify");
@@ -1948,6 +2000,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenArchiveButton, g_statusFieldFont);
         setWindowFont(g_statusOpenBriefButton, g_statusFieldFont);
         setWindowFont(g_statusOpenMpPackageButton, g_statusFieldFont);
+        setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpImportButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpStrictVerifyButton, g_statusFieldFont);
@@ -1988,6 +2041,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_MP_PACKAGE:
             openMpOverlayPackageDirectory();
+            return 0;
+        case ID_STATUS_EXPORT_MP_PACKAGE:
+            requestMpPackageExportRefresh();
             return 0;
         case ID_STATUS_COPY_MP_VERIFY:
         {
@@ -2240,6 +2296,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenArchiveButton = nullptr;
         g_statusOpenBriefButton = nullptr;
         g_statusOpenMpPackageButton = nullptr;
+        g_statusExportMpPackageButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
         g_statusCopyMpImportButton = nullptr;
         g_statusCopyMpStrictVerifyButton = nullptr;
@@ -3156,6 +3213,9 @@ void sleepResponsive(const std::chrono::milliseconds total)
     constexpr auto step = std::chrono::milliseconds(100);
     auto remaining = total;
     while (!g_stopRequested.load() && remaining.count() > 0) {
+        if (g_mpPackageRefreshRequested.exchange(false)) {
+            break;
+        }
         const auto chunk = remaining < step ? remaining : step;
         std::this_thread::sleep_for(chunk);
         remaining -= chunk;
