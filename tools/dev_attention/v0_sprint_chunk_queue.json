@@ -363,6 +363,24 @@
       "dependencies": [
         "v0-sprint-102-surface-daemon-loss-memory-recovery-signals"
       ]
+    },
+    {
+      "id": "v0-sprint-104-verify-local-llm-model-manager-surface-contract",
+      "title": "Verify local LLM model manager surface contract",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Local LLM Model Manager / reduced mode and model readiness visibility",
+      "goal": "Verify that SNC status and tray surfaces keep local LLM reduced mode, accepted model readiness, and explicit prepare command guidance visible and fail closed.",
+      "acceptance": [
+        "Companion status snapshot and tray summary expose local_llm_model_status and local_llm_* readiness fields.",
+        "No-model state reports reduced mode and blocks inference.",
+        "Supported ready state clears reduced mode, keeps model state path and prepare command hint visible.",
+        "Unknown selected model fails closed and surfaces attention state."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
     }
   ]
 }
