@@ -222,7 +222,7 @@
     {
       "id": "v0-sprint-096-verify-generated-overlay-publish-gate-contract",
       "title": "Verify generated overlay publish gate contract",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Status Center / generated overlay publish gate contract",
       "goal": "Verify that SNC status, tray, and CLI outputs keep the staged generated-overlay publish gate explicit, including allow/deny state, owner approval, and the active publish command hint.",
@@ -238,6 +238,23 @@
       "dependencies": [
         "v0-sprint-095-verify-support-report-approval-contract"
       ]
+    },
+    {
+      "id": "v0-sprint-097-verify-campaign-library-plan-status-contract",
+      "title": "Verify campaign library plan status contract",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Generated campaign library maintenance / plan status visibility",
+      "goal": "Verify that SNC status, tray, and real-session outputs keep the campaign-library plan presence, source, readiness, reason, limit state, and skipped-count signals explicit and fail closed.",
+      "acceptance": [
+        "Companion status output keeps campaign_library_plan_present, campaign_library_plan_path, campaign_library_plan_source, campaign_library_plan_readiness, and campaign_library_plan_reason explicit.",
+        "Companion status output keeps campaign_library_limit_reached and campaign_library_skipped_due_to_limit_count explicit and fail closed for missing or unsupported plan files.",
+        "Real-session loop outputs continue to forward the same campaign-library plan contract fields for owner/release-companion inspection."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
     }
   ]
 }
