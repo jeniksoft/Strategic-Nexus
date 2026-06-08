@@ -82,6 +82,7 @@ constexpr UINT ID_STATUS_COPY_MP_STRICT_IMPORT = 214;
 constexpr UINT ID_STATUS_EXPORT_MP_PACKAGE = 215;
 constexpr UINT ID_STATUS_COPY_LLM_PREPARE = 216;
 constexpr UINT ID_STATUS_MP_IMPORT_HANDOFF = 217;
+constexpr UINT ID_STATUS_PUBLISH_GENERATED_OVERLAY = 218;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -117,6 +118,7 @@ struct StatusDashboardData {
     std::wstring overlayGate;
     std::wstring overlayAllowed;
     std::wstring overlayActive;
+    std::wstring overlayPublishCommand;
     std::wstring modelState;
     std::wstring modelRuntime;
     std::wstring modelRecommendation;
@@ -223,6 +225,7 @@ HWND g_statusCopyButton = nullptr;
 HWND g_statusOpenArchiveButton = nullptr;
 HWND g_statusOpenBriefButton = nullptr;
 HWND g_statusOpenMpPackageButton = nullptr;
+HWND g_statusPublishGeneratedOverlayButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -325,6 +328,7 @@ void scrollStatusTargetByPage(StatusScrollTargetKind kind, std::size_t fieldInde
 void dragStatusScrollbarThumb(HWND hwnd, POINT point);
 void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
 void openMpOverlayPackageDirectory();
+void publishStagedGeneratedOverlay(HWND hwnd);
 bool canRefreshMpPackageExport();
 void requestMpPackageExportRefresh();
 bool copyTextToClipboard(HWND hwnd, const std::wstring& text);
@@ -1106,6 +1110,7 @@ StatusDashboardData loadStatusDashboardData()
         data.overlayGate = utf8ToWide(publishGateState);
     }
     data.overlayAllowed = compactBoolText(summaryValue("generated_overlay_publish_allowed"));
+    data.overlayPublishCommand = utf8ToWide(summaryValue("generated_overlay_publish_gate_publish_command"));
     const std::string activeDirectory = summaryValue("generated_overlay_active_directory");
     if (!activeDirectory.empty()) {
         data.overlayActive = utf8ToWide(activeDirectory);
@@ -1592,6 +1597,12 @@ void refreshStatusWindowContent()
     if (g_statusOpenMpPackageButton != nullptr) {
         EnableWindow(g_statusOpenMpPackageButton, g_mpOverlayPackageDirectory.empty() ? FALSE : TRUE);
     }
+    if (g_statusPublishGeneratedOverlayButton != nullptr) {
+        const bool publishReady =
+            data.nextAction == L"review_staged_overlay_and_publish_if_desired" &&
+            !data.overlayPublishCommand.empty();
+        EnableWindow(g_statusPublishGeneratedOverlayButton, publishReady ? TRUE : FALSE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -1849,6 +1860,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenArchiveButton,
         g_statusOpenBriefButton,
         g_statusOpenMpPackageButton,
+        g_statusPublishGeneratedOverlayButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -1865,6 +1877,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Archiv",
         L"Souhrn",
         L"MP balicek",
+        L"Publikovat",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2019,6 +2032,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
         g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
         g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, L"MP bal\u00ED\u010Dek");
+        g_statusPublishGeneratedOverlayButton =
+            createStatusButton(hwnd, ID_STATUS_PUBLISH_GENERATED_OVERLAY, L"Publikovat");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2065,6 +2080,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenArchiveButton, g_statusFieldFont);
         setWindowFont(g_statusOpenBriefButton, g_statusFieldFont);
         setWindowFont(g_statusOpenMpPackageButton, g_statusFieldFont);
+        setWindowFont(g_statusPublishGeneratedOverlayButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2108,6 +2124,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_MP_PACKAGE:
             openMpOverlayPackageDirectory();
+            return 0;
+        case ID_STATUS_PUBLISH_GENERATED_OVERLAY:
+            publishStagedGeneratedOverlay(hwnd);
             return 0;
         case ID_STATUS_EXPORT_MP_PACKAGE:
             requestMpPackageExportRefresh();
@@ -2374,6 +2393,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenArchiveButton = nullptr;
         g_statusOpenBriefButton = nullptr;
         g_statusOpenMpPackageButton = nullptr;
+        g_statusPublishGeneratedOverlayButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
         g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;

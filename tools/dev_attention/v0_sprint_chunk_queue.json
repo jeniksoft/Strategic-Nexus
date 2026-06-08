@@ -676,7 +676,7 @@
     {
       "id": "v0-sprint-120-surface-generated-overlay-publish-action-in-status-dashboard",
       "title": "Surface generated-overlay publish action in status dashboard",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "Release Companion Orchestrator UX / Status Center publish action",
       "goal": "Add a visible status-dashboard publish/review action for staged generated overlays so owner-approved publishing is reachable from the main companion window, not only the tray menu or copied command text.",

@@ -619,7 +619,7 @@ Required:
 * clear recovery paths for blocked or degraded states
 
 Current progress:
-Underlying status and command surfaces exist, but the full low-friction release companion workflow is not implemented yet. The first-run startup rationale is now an explicit release-companion contract: SNC snapshot JSON, tray JSON, summary text, and next-steps brief all explain that early SNC startup preserves more autosave history before Stellaris rotates older saves away, while start-with-Windows remains optional and default-disabled.
+Underlying status and command surfaces exist, but the full low-friction release companion workflow is not implemented yet. The first-run startup rationale is now an explicit release-companion contract: SNC snapshot JSON, tray JSON, summary text, and next-steps brief all explain that early SNC startup preserves more autosave history before Stellaris rotates older saves away, while start-with-Windows remains optional and default-disabled. The visible status dashboard now also exposes a generated-overlay publish action that routes through the existing owner approval confirmation and Stellaris-closed publish gate instead of bypassing validation.
 
 ---
 
@@ -1890,20 +1890,20 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Shipped worker-ready slice:
 
-Surface release-companion startup rationale contract.
+Surface generated-overlay publish action in status dashboard.
 
-  SNC snapshot JSON, tray JSON, summary text, and next-steps brief now expose `startup_rationale` / `start_with_windows_default_state` so first-run/release-companion UI can explain why early startup helps without enabling start-with-Windows by default.
+  The status dashboard now includes a `Publikovat` action for staged generated overlays and enables it only when the publish gate exposes `review_staged_overlay_and_publish_if_desired` with a concrete publish command hint. The action reuses the existing owner approval confirmation and Stellaris-closed publish gate.
 
 Next worker-ready slice:
 
-Surface generated-overlay publish action in status dashboard.
+Continue release companion orchestrator UX from the next bounded Status Center action or degraded-state recovery path.
 
   The next slice should include:
 
-* the visible status dashboard includes a generated-overlay publish/review action when the publish gate provides a concrete command hint
-* the action keeps the existing owner approval confirmation and Stellaris-closed safety gate
-* the action fails closed when the publish command is unavailable or the gate is not publish-ready
-* verification remains bounded to SNC dashboard smoke plus the v0 status/publish contract
+* choose one remaining `1J` requirement that is locally testable and does not need owner decisions
+* prefer owner-facing Status Center action/recovery paths over cosmetic wording
+* keep owner prompts limited to meaningful approvals and fail-closed degraded states
+* verification remains bounded to SNC dashboard smoke plus the relevant v0 status contract
 
   ---
 
