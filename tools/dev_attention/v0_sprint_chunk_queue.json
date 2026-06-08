@@ -774,6 +774,26 @@
       "dependencies": [
         "v0-sprint-123-surface-memory-recovery-next-action-path"
       ]
+    },
+    {
+      "id": "v0-sprint-125-surface-campaign-library-plan-open-action",
+      "title": "Surface campaign library plan open action",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion Orchestrator UX / Status Center action and recovery paths",
+      "goal": "Add a visible status-dashboard action that opens the current campaign_library_plan_path artifact so bounded campaign-library coverage can be reviewed from the main companion window.",
+      "acceptance": [
+        "The visible status dashboard includes a campaign-library plan open button.",
+        "The button opens campaign_library_plan_path only when the path is present and reachable, and stays disabled otherwise.",
+        "The action preserves existing next_action, publish, MP, and model safety gates."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-121-surface-next-action-path-open-action"
+      ]
     }
   ]
 }

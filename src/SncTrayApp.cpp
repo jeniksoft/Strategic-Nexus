@@ -84,6 +84,7 @@ constexpr UINT ID_STATUS_COPY_LLM_PREPARE = 216;
 constexpr UINT ID_STATUS_MP_IMPORT_HANDOFF = 217;
 constexpr UINT ID_STATUS_PUBLISH_GENERATED_OVERLAY = 218;
 constexpr UINT ID_STATUS_OPEN_NEXT_ACTION_PATH = 219;
+constexpr UINT ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN = 220;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -130,6 +131,7 @@ struct StatusDashboardData {
     std::wstring nextHint;
     std::wstring nextPlaybook;
     std::wstring nextActionPath;
+    std::wstring campaignLibraryPlanPath;
     std::wstring supportReportState;
     std::wstring supportReportPath;
     std::wstring crashRecoveryState;
@@ -228,6 +230,7 @@ HWND g_statusOpenBriefButton = nullptr;
 HWND g_statusOpenMpPackageButton = nullptr;
 HWND g_statusPublishGeneratedOverlayButton = nullptr;
 HWND g_statusOpenNextActionPathButton = nullptr;
+HWND g_statusOpenCampaignLibraryPlanButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -1059,6 +1062,18 @@ void openNextActionPath(HWND hwnd)
     openPathWithShell(hwnd, path);
 }
 
+void openCampaignLibraryPlan(HWND hwnd)
+{
+    const auto data = loadStatusDashboardData();
+    const auto path = resolveDashboardPath(data.campaignLibraryPlanPath);
+    if (path.empty()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    openPathWithShell(hwnd, path);
+}
+
 void updateStatusCaptionButtons(HWND hwnd)
 {
     if (g_statusMaximizeButton != nullptr) {
@@ -1216,6 +1231,8 @@ StatusDashboardData loadStatusDashboardData()
     data.nextHint = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_command_hint").value_or(""));
     data.nextPlaybook = utf8ToWide(strategic_nexus::common::extractJsonString(json, "owner_test_playbook_path").value_or(""));
     data.nextActionPath = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_path").value_or(""));
+    data.campaignLibraryPlanPath =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "campaign_library_plan_path").value_or(""));
     data.supportReportState = utf8ToWide(strategic_nexus::common::extractJsonString(json, "support_report_state").value_or(""));
     data.supportReportPath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "support_report_preview_path").value_or(""));
@@ -1647,6 +1664,11 @@ void refreshStatusWindowContent()
     if (g_statusOpenNextActionPathButton != nullptr) {
         EnableWindow(g_statusOpenNextActionPathButton, dashboardPathExists(data.nextActionPath) ? TRUE : FALSE);
     }
+    if (g_statusOpenCampaignLibraryPlanButton != nullptr) {
+        EnableWindow(
+            g_statusOpenCampaignLibraryPlanButton,
+            dashboardPathExists(data.campaignLibraryPlanPath) ? TRUE : FALSE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -1809,7 +1831,7 @@ void layoutStatusWindow(HWND hwnd)
     const int buttonGap = 8;
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 16;
+    constexpr int actionButtonCount = 17;
     constexpr int preferredButtonWidth = 116;
     constexpr int minimumButtonWidth = 76;
     int buttonRows = 1;
@@ -1906,6 +1928,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenMpPackageButton,
         g_statusPublishGeneratedOverlayButton,
         g_statusOpenNextActionPathButton,
+        g_statusOpenCampaignLibraryPlanButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -1924,6 +1947,7 @@ void layoutStatusWindow(HWND hwnd)
         L"MP balicek",
         L"Publikovat",
         L"Akce cesta",
+        L"Knihovna",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2081,6 +2105,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusPublishGeneratedOverlayButton =
             createStatusButton(hwnd, ID_STATUS_PUBLISH_GENERATED_OVERLAY, L"Publikovat");
         g_statusOpenNextActionPathButton = createStatusButton(hwnd, ID_STATUS_OPEN_NEXT_ACTION_PATH, L"Akce cesta");
+        g_statusOpenCampaignLibraryPlanButton =
+            createStatusButton(hwnd, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, L"Knihovna");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2129,6 +2155,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusPublishGeneratedOverlayButton, g_statusFieldFont);
         setWindowFont(g_statusOpenNextActionPathButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenCampaignLibraryPlanButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2178,6 +2205,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_NEXT_ACTION_PATH:
             openNextActionPath(hwnd);
+            return 0;
+        case ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN:
+            openCampaignLibraryPlan(hwnd);
             return 0;
         case ID_STATUS_EXPORT_MP_PACKAGE:
             requestMpPackageExportRefresh();
@@ -2446,6 +2476,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenMpPackageButton = nullptr;
         g_statusPublishGeneratedOverlayButton = nullptr;
         g_statusOpenNextActionPathButton = nullptr;
+        g_statusOpenCampaignLibraryPlanButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
         g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
