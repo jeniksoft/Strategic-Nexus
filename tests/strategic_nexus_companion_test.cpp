@@ -57,7 +57,9 @@ int main()
     const auto overlayEmptyRoot = root / "overlay_empty";
     const auto overlayNoManifestNonEmptyRoot = root / "overlay_no_manifest_non_empty";
     const auto mpPackageRoot = root / "mp_overlay_package";
+    const auto mpPackageCompleteRoot = root / "mp_overlay_package_complete";
     const auto entryPointAnalysisPath = root / "snc_entry_point_analysis.json";
+    const auto memoryRecoveryEntryPointAnalysisPath = root / "snc_entry_point_analysis_memory_recovery.json";
     const auto postPlayPackagePath = root / "snc_post_play_package.json";
     const auto decisionInputPackagePath = root / "snc_decision_input_package.json";
     const auto candidateDecisionPackagePath = root / "snc_candidate_decision_package.json";
@@ -170,6 +172,17 @@ int main()
             mpPackageRoot,
             false);
         requireCondition(exportResult.ok, "MP overlay package export should succeed for companion test fixture");
+        const auto completeExportResult = exporter.exportPackage(
+            overlayRoot,
+            "campaign_mp_001",
+            "overlay_v1",
+            "stellaris_4.x",
+            "strategic_nexus_v0",
+            mpPackageCompleteRoot,
+            true);
+        requireCondition(
+            completeExportResult.ok,
+            "complete MP overlay package export should succeed for memory recovery fixture");
     }
     {
         std::ofstream zipOut(mpPackageZipPath, std::ios::binary | std::ios::trunc);
@@ -233,6 +246,30 @@ int main()
         "      \"analysis_state\": \"ready\",\n"
         "      \"compatible_archived_evidence_count\": 2,\n"
         "      \"later_archived_evidence_count\": 0\n"
+        "    }\n"
+        "  ]\n"
+        "}\n");
+    writeTextFileAtomically(
+        memoryRecoveryEntryPointAnalysisPath,
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"reason\": \"entry points scanned with branch ambiguity\",\n"
+        "  \"readiness\": \"ready_partial\",\n"
+        "  \"entry_point_count\": 1,\n"
+        "  \"archived_evidence_count\": 2,\n"
+        "  \"branch_ambiguity_detected\": true,\n"
+        "  \"entry_points\": [\n"
+        "    {\n"
+        "      \"id\": \"gamma_autosave_2200_04_01\",\n"
+        "      \"campaign_key\": \"gamma_campaign\",\n"
+        "      \"source_root\": \"current_save_root\",\n"
+        "      \"relative_path\": \"Gamma/autosave_2200.04.01.sav\",\n"
+        "      \"source_kind\": \"autosave\",\n"
+        "      \"save_name\": \"autosave_2200.04.01.sav\",\n"
+        "      \"save_date\": \"2200.04.01\",\n"
+        "      \"analysis_state\": \"ready_conservative\",\n"
+        "      \"compatible_archived_evidence_count\": 1,\n"
+        "      \"later_archived_evidence_count\": 1\n"
         "    }\n"
         "  ]\n"
         "}\n");
@@ -519,6 +556,36 @@ int main()
     requireCondition(
         readyWithModel.localLlm.prepareCommandHint.find(readyLocalModelStatePath.string()) != std::string::npos,
         "local LLM prepare command hint should include the configured state path");
+
+    auto memoryRecoveryWarningConfig = readyConfig;
+    memoryRecoveryWarningConfig.entryPointAnalysisPath = memoryRecoveryEntryPointAnalysisPath;
+    memoryRecoveryWarningConfig.mpOverlayPackageDirectory = mpPackageCompleteRoot;
+    memoryRecoveryWarningConfig.stellarisRunningOverride = true;
+    const auto memoryRecoveryWarning = companion.buildStatusSnapshot(memoryRecoveryWarningConfig);
+    requireCondition(
+        memoryRecoveryWarning.mpOverlayPackage.handoffStatus == "complete",
+        "memory recovery fixture should not rely on degraded MP handoff priority");
+    requireCondition(
+        memoryRecoveryWarning.postPlayPipeline.memoryRecovery.state == "degraded",
+        "branch ambiguity should degrade memory recovery confidence");
+    requireCondition(
+        memoryRecoveryWarning.postPlayPipeline.memoryRecovery.warningVisible,
+        "degraded memory recovery should be visible as a warning");
+    requireCondition(
+        memoryRecoveryWarning.nextAction == "review_memory_recovery_status",
+        "degraded memory recovery should become the top-level next action when higher-priority gates do not apply");
+    requireCondition(
+        memoryRecoveryWarning.nextActionReason == "branch ambiguity requires conservative recovery anchor",
+        "degraded memory recovery should expose its reason as the next-action reason");
+    requireCondition(
+        memoryRecoveryWarning.nextActionCommandHint.empty(),
+        "memory recovery review should not invent a command hint");
+    requireCondition(
+        memoryRecoveryWarning.nextActionCommandHintSource == "none",
+        "memory recovery review should keep the command hint source fail-closed");
+    requireCondition(
+        memoryRecoveryWarning.nextActionPath == memoryRecoveryEntryPointAnalysisPath,
+        "degraded memory recovery should point next-action path at entry-point evidence");
 
     const auto unsupportedLocalModelStatePath = root / "snc_local_model_state_unsupported.json";
     writeTextFileAtomically(

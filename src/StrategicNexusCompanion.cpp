@@ -298,6 +298,13 @@ bool hasDegradedMpHandoffContinuity(const CompanionStatusSnapshot& snapshot)
            snapshot.mpOverlayPackage.handoffStatus == "degraded_previous_host_unavailable";
 }
 
+bool memoryRecoveryNeedsAttention(const CompanionStatusSnapshot& snapshot)
+{
+    return snapshot.postPlayPipeline.memoryRecovery.warningVisible ||
+           snapshot.postPlayPipeline.memoryRecovery.state == "degraded" ||
+           snapshot.postPlayPipeline.memoryRecovery.state == "needs_attention";
+}
+
 bool tryParseStatusTextBoolField(const std::string& statusText, const std::string& key, bool& value)
 {
     const auto rawValue = trimWhitespace(readStatusTextField(statusText, key));
@@ -2848,6 +2855,9 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     if (snapshot.generatedOverlayPublishGate.state == "published") {
         return "review_published_overlay_status";
     }
+    if (memoryRecoveryNeedsAttention(snapshot)) {
+        return "review_memory_recovery_status";
+    }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
         return "review_staged_overlay_status";
     }
@@ -2892,6 +2902,11 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
     }
     if (snapshot.generatedOverlayPublishGate.state == "published") {
         return "current_staged_overlay_already_published";
+    }
+    if (memoryRecoveryNeedsAttention(snapshot)) {
+        return snapshot.postPlayPipeline.memoryRecovery.reason.empty()
+            ? snapshot.postPlayPipeline.memoryRecovery.state
+            : snapshot.postPlayPipeline.memoryRecovery.reason;
     }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
         return "staged_overlay_written_but_publish_gate_not_ready";
@@ -3007,6 +3022,9 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
         return snapshot.generatedOverlayPublishGate.publishStatusPath.empty()
             ? snapshot.generatedOverlayPublishGate.path
             : snapshot.generatedOverlayPublishGate.publishStatusPath;
+    }
+    if (memoryRecoveryNeedsAttention(snapshot) && !snapshot.postPlayPipeline.entryPointAnalysisPath.empty()) {
+        return snapshot.postPlayPipeline.entryPointAnalysisPath;
     }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
         return snapshot.postPlayPipeline.generatedOverlayStagingStatusPath;
