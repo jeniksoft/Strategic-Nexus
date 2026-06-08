@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T00:45:53.7765430+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: wire the base on_action dispatcher for the allowlisted reactive families so the next real gameplay branch can be validated cleanly.",
+  "updated_at": "2026-06-08T02:52:09.4635218+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: verify the Status Center reactive capability and bootstrap source-quality signal stays explicit across companion JSON, tray text, and CLI output.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
@@ -178,6 +178,25 @@
       ],
       "dependencies": [
         "v0-sprint-092-wire-base-on_action-dispatcher-for-allowlisted-reactive-families"
+      ]
+    },
+    {
+      "id": "v0-sprint-094-verify-reactive-capability-source-quality-signal",
+      "title": "Verify reactive capability/source quality signal",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Status Center/reactive capability and bootstrap source-quality signal",
+      "goal": "Verify that the companion status surfaces keep the generated overlay reactive capability and bootstrap source-quality signal explicit in CLI, tray, and JSON output.",
+      "acceptance": [
+        "Companion status output keeps reactive_policy_pack_capability explicit as post_session_only or event_family_dispatch.",
+        "Companion status output keeps source_qualities explicit and fail-closed, including history_backed and zero_history_bootstrap when applicable.",
+        "Companion status output keeps bootstrap_campaign_count explicit so owner-facing status does not require opening the manifest manually."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-093-verify-startup-shortcut-toggle-contract"
       ]
     }
   ]
