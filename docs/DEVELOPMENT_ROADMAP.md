@@ -619,7 +619,7 @@ Required:
 * clear recovery paths for blocked or degraded states
 
 Current progress:
-Underlying status and command surfaces exist, but the full low-friction release companion workflow is not implemented yet. The first-run startup rationale is now an explicit release-companion contract: SNC snapshot JSON, tray JSON, summary text, and next-steps brief all explain that early SNC startup preserves more autosave history before Stellaris rotates older saves away, while start-with-Windows remains optional and default-disabled. The visible status dashboard now also exposes a generated-overlay publish action that routes through the existing owner approval confirmation and Stellaris-closed publish gate instead of bypassing validation.
+Underlying status and command surfaces exist, but the full low-friction release companion workflow is not implemented yet. The first-run startup rationale is now an explicit release-companion contract: SNC snapshot JSON, tray JSON, summary text, and next-steps brief all explain that early SNC startup preserves more autosave history before Stellaris rotates older saves away, while start-with-Windows remains optional and default-disabled. The visible status dashboard now also exposes a generated-overlay publish action that routes through the existing owner approval confirmation and Stellaris-closed publish gate instead of bypassing validation. The dashboard also exposes a fail-closed next-action path button that opens the current `next_action_path` artifact only when that file or directory exists.
 
 ---
 
@@ -1890,9 +1890,9 @@ Live autosave capture is now owned by native SNC monitor logic. The former `.cmd
 
 Shipped worker-ready slice:
 
-Surface generated-overlay publish action in status dashboard.
+Surface next-action path open action in status dashboard.
 
-  The status dashboard now includes a `Publikovat` action for staged generated overlays and enables it only when the publish gate exposes `review_staged_overlay_and_publish_if_desired` with a concrete publish command hint. The action reuses the existing owner approval confirmation and Stellaris-closed publish gate.
+  The status dashboard now includes an `Akce cesta` action that opens the current `next_action_path` artifact, such as an owner playbook, staging status file, publish status file, or recovery artifact. The button is enabled only when the resolved path exists, preserves the existing command hints, and does not bypass publish, MP, or model safety gates.
 
 Next worker-ready slice:
 

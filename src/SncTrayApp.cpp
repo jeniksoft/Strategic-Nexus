@@ -83,6 +83,7 @@ constexpr UINT ID_STATUS_EXPORT_MP_PACKAGE = 215;
 constexpr UINT ID_STATUS_COPY_LLM_PREPARE = 216;
 constexpr UINT ID_STATUS_MP_IMPORT_HANDOFF = 217;
 constexpr UINT ID_STATUS_PUBLISH_GENERATED_OVERLAY = 218;
+constexpr UINT ID_STATUS_OPEN_NEXT_ACTION_PATH = 219;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -226,6 +227,7 @@ HWND g_statusOpenArchiveButton = nullptr;
 HWND g_statusOpenBriefButton = nullptr;
 HWND g_statusOpenMpPackageButton = nullptr;
 HWND g_statusPublishGeneratedOverlayButton = nullptr;
+HWND g_statusOpenNextActionPathButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -327,6 +329,9 @@ void scrollStatusTargetByLines(StatusScrollTargetKind kind, std::size_t fieldInd
 void scrollStatusTargetByPage(StatusScrollTargetKind kind, std::size_t fieldIndex, bool forward);
 void dragStatusScrollbarThumb(HWND hwnd, POINT point);
 void openPathWithShell(HWND hwnd, const std::filesystem::path& path);
+std::filesystem::path resolveDashboardPath(const std::wstring& path);
+bool dashboardPathExists(const std::wstring& path);
+void openNextActionPath(HWND hwnd);
 void openMpOverlayPackageDirectory();
 void publishStagedGeneratedOverlay(HWND hwnd);
 bool canRefreshMpPackageExport();
@@ -1018,6 +1023,42 @@ void openPathWithShell(HWND hwnd, const std::filesystem::path& path)
     }
 }
 
+std::filesystem::path resolveDashboardPath(const std::wstring& path)
+{
+    if (path.empty()) {
+        return {};
+    }
+
+    std::filesystem::path resolved(path);
+    if (resolved.is_relative()) {
+        resolved = g_repoRoot / resolved;
+    }
+    return resolved.lexically_normal();
+}
+
+bool dashboardPathExists(const std::wstring& path)
+{
+    const auto resolved = resolveDashboardPath(path);
+    if (resolved.empty()) {
+        return false;
+    }
+
+    std::error_code error;
+    return std::filesystem::exists(resolved, error) && !error;
+}
+
+void openNextActionPath(HWND hwnd)
+{
+    const auto data = loadStatusDashboardData();
+    const auto path = resolveDashboardPath(data.nextActionPath);
+    if (path.empty()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    openPathWithShell(hwnd, path);
+}
+
 void updateStatusCaptionButtons(HWND hwnd)
 {
     if (g_statusMaximizeButton != nullptr) {
@@ -1603,6 +1644,9 @@ void refreshStatusWindowContent()
             !data.overlayPublishCommand.empty();
         EnableWindow(g_statusPublishGeneratedOverlayButton, publishReady ? TRUE : FALSE);
     }
+    if (g_statusOpenNextActionPathButton != nullptr) {
+        EnableWindow(g_statusOpenNextActionPathButton, dashboardPathExists(data.nextActionPath) ? TRUE : FALSE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -1765,7 +1809,7 @@ void layoutStatusWindow(HWND hwnd)
     const int buttonGap = 8;
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 14;
+    constexpr int actionButtonCount = 16;
     constexpr int preferredButtonWidth = 116;
     constexpr int minimumButtonWidth = 76;
     int buttonRows = 1;
@@ -1861,6 +1905,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenBriefButton,
         g_statusOpenMpPackageButton,
         g_statusPublishGeneratedOverlayButton,
+        g_statusOpenNextActionPathButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -1878,6 +1923,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Souhrn",
         L"MP balicek",
         L"Publikovat",
+        L"Akce cesta",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2034,6 +2080,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, L"MP bal\u00ED\u010Dek");
         g_statusPublishGeneratedOverlayButton =
             createStatusButton(hwnd, ID_STATUS_PUBLISH_GENERATED_OVERLAY, L"Publikovat");
+        g_statusOpenNextActionPathButton = createStatusButton(hwnd, ID_STATUS_OPEN_NEXT_ACTION_PATH, L"Akce cesta");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2081,6 +2128,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenBriefButton, g_statusFieldFont);
         setWindowFont(g_statusOpenMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusPublishGeneratedOverlayButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenNextActionPathButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2127,6 +2175,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_PUBLISH_GENERATED_OVERLAY:
             publishStagedGeneratedOverlay(hwnd);
+            return 0;
+        case ID_STATUS_OPEN_NEXT_ACTION_PATH:
+            openNextActionPath(hwnd);
             return 0;
         case ID_STATUS_EXPORT_MP_PACKAGE:
             requestMpPackageExportRefresh();
@@ -2394,6 +2445,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenBriefButton = nullptr;
         g_statusOpenMpPackageButton = nullptr;
         g_statusPublishGeneratedOverlayButton = nullptr;
+        g_statusOpenNextActionPathButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
         g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
