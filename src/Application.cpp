@@ -579,6 +579,9 @@ RunConfig parseRunConfig(int argc, char* argv[])
         if (argc > 2) {
             config.sncFriendMpSyncEnvelopeInputPath = argv[2];
         }
+        if (argc > 3) {
+            config.sncFriendMpSyncEnvelopeStellarisRunning = std::string(argv[3]) == "true";
+        }
         return config;
     }
 
@@ -2164,9 +2167,18 @@ int Application::run(const RunConfig& config) const
             }
 
             const auto envelope = parseSncFriendMpSyncEnvelopePackageJson(envelopeJson);
+            const auto applyGate = evaluateSncFriendMpSyncApplyGate(
+                envelope,
+                config.sncFriendMpSyncEnvelopeStellarisRunning);
             std::cout << "snc_friend_mp_sync_envelope_verify_success=" << (envelope.ok ? "true" : "false") << "\n";
             std::cout << "snc_friend_mp_sync_envelope_verify_reason="
                       << sanitizeCliValue(envelope.reason) << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_apply_allowed="
+                      << (applyGate.applyAllowed ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_apply_gate_state="
+                      << sanitizeCliValue(applyGate.state) << "\n";
+            std::cout << "snc_friend_mp_sync_envelope_apply_gate_reason="
+                      << sanitizeCliValue(applyGate.reason) << "\n";
             if (envelope.ok) {
                 std::cout << "snc_friend_mp_sync_envelope_verify_sender_node_id="
                           << sanitizeCliValue(envelope.sender.nodeId) << "\n";

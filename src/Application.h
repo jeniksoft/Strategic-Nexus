@@ -203,6 +203,7 @@ struct RunConfig {
     bool generatedOverlayPublishUseDetectedStellarisState = true;
     bool sncGeneratedOverlayPublishStellarisRunning = false;
     bool sncGeneratedOverlayPublishUseDetectedStellarisState = true;
+    bool sncFriendMpSyncEnvelopeStellarisRunning = false;
     bool localLlmPrepareUserLicenseAccepted = false;
     bool localLlmPrepareAllowDownload = false;
     std::vector<std::filesystem::path> v0PriorityQueueInputPaths;

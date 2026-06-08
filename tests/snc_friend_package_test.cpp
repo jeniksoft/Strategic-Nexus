@@ -178,6 +178,18 @@ int main()
     requireCondition(
         parsedSyncEnvelope.encryptedPayloadBytes == 4096,
         "friend mp sync envelope should preserve encrypted payload byte count");
+    const auto syncApplyGate = strategic_nexus::evaluateSncFriendMpSyncApplyGate(
+        parsedSyncEnvelope,
+        false);
+    requireCondition(
+        !syncApplyGate.applyAllowed && syncApplyGate.state == "manual_metadata_only",
+        "friend mp sync envelope should remain metadata-only when Stellaris is not running");
+    const auto runningSyncApplyGate = strategic_nexus::evaluateSncFriendMpSyncApplyGate(
+        parsedSyncEnvelope,
+        true);
+    requireCondition(
+        !runningSyncApplyGate.applyAllowed && runningSyncApplyGate.state == "blocked_stellaris_running",
+        "friend mp sync envelope apply gate should block while Stellaris is running");
 
     auto futureSyncEnvelopeJson = syncEnvelopeJson;
     const auto syncSchemaMarker = futureSyncEnvelopeJson.find("\"schema_version\": 1");
@@ -189,6 +201,12 @@ int main()
     const auto futureSyncEnvelope =
         strategic_nexus::parseSncFriendMpSyncEnvelopePackageJson(futureSyncEnvelopeJson);
     requireCondition(!futureSyncEnvelope.ok, "future sync envelope schema should fail closed");
+    const auto invalidSyncApplyGate = strategic_nexus::evaluateSncFriendMpSyncApplyGate(
+        futureSyncEnvelope,
+        false);
+    requireCondition(
+        !invalidSyncApplyGate.applyAllowed && invalidSyncApplyGate.state == "invalid_envelope",
+        "invalid friend mp sync envelope should not pass the apply gate");
 
     auto unsupportedEncryptionEnvelopeJson = syncEnvelopeJson;
     const auto encryptionMarker = unsupportedEncryptionEnvelopeJson.find("x25519-xsalsa20-poly1305");

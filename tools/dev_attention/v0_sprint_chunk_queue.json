@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T22:41:00+02:00",
+  "updated_at": "2026-06-08T22:55:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, and visible dashboard copy action are implemented and fail-closed; release-grade companion UI still needs actual signed/encrypted transport and real season validation.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, and verify-time apply gate are implemented and fail-closed; release-grade companion UI still needs actual signed/encrypted transport and real season validation.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -1095,6 +1095,25 @@
       ],
       "dependencies": [
         "v0-sprint-139-surface-friend-mp-sync-envelope-command-template"
+      ]
+    },
+    {
+      "id": "v0-sprint-141-add-friend-mp-sync-envelope-apply-gate",
+      "title": "Add friend MP sync envelope apply gate",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / fail-closed package apply gate",
+      "goal": "Expose a stable fail-closed apply-gate status for verified SNC friend MP sync envelopes before any automatic download, staging, transport, or package apply exists.",
+      "acceptance": [
+        "Verified friend MP sync envelopes expose apply_allowed=false and manual_metadata_only while transport/staging remains disabled.",
+        "The same verify path reports blocked_stellaris_running when Stellaris is active.",
+        "Invalid envelopes fail closed through invalid_envelope and the v0 pipeline covers all three gate states."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-140-surface-friend-mp-sync-envelope-dashboard-action"
       ]
     }
   ]

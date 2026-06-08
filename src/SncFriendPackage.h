@@ -66,10 +66,19 @@ struct SncFriendMpSyncEnvelopePackage {
     std::size_t encryptedPayloadBytes = 0;
 };
 
+struct SncFriendMpSyncApplyGateResult {
+    bool applyAllowed = false;
+    std::string state;
+    std::string reason;
+};
+
 SncFriendRequestPackage parseSncFriendRequestPackageJson(const std::string& json);
 SncFriendAcceptancePackage parseSncFriendAcceptancePackageJson(const std::string& json);
 SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json);
 SncFriendMpSyncEnvelopePackage parseSncFriendMpSyncEnvelopePackageJson(const std::string& json);
+SncFriendMpSyncApplyGateResult evaluateSncFriendMpSyncApplyGate(
+    const SncFriendMpSyncEnvelopePackage& package,
+    bool stellarisRunning);
 std::string serializeSncFriendRequestPackage(const SncFriendRequestPackage& package);
 std::string serializeSncFriendAcceptancePackage(const SncFriendAcceptancePackage& package);
 std::string serializeSncFriendTrustStore(const SncFriendTrustStore& store);

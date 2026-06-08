@@ -4027,6 +4027,20 @@ if ($LASTEXITCODE -ne 0) {
 $sncFriendMpSyncEnvelopeVerifyText = $sncFriendMpSyncEnvelopeVerifyOutput -join "`n"
 Assert-Contains -Name "snc friend mp sync envelope verify cli" -Text $sncFriendMpSyncEnvelopeVerifyText -Expected "snc_friend_mp_sync_envelope_verify_success=true"
 Assert-Contains -Name "snc friend mp sync envelope verify cli" -Text $sncFriendMpSyncEnvelopeVerifyText -Expected "snc_friend_mp_sync_envelope_verify_encrypted_payload_bytes=4096"
+Assert-Contains -Name "snc friend mp sync envelope verify cli" -Text $sncFriendMpSyncEnvelopeVerifyText -Expected "snc_friend_mp_sync_envelope_apply_allowed=false"
+Assert-Contains -Name "snc friend mp sync envelope verify cli" -Text $sncFriendMpSyncEnvelopeVerifyText -Expected "snc_friend_mp_sync_envelope_apply_gate_state=manual_metadata_only"
+
+$sncFriendMpSyncEnvelopeRunningVerifyOutput = & $exePath `
+    --verify-snc-friend-mp-sync-envelope `
+    $sncFriendMpSyncEnvelopePath `
+    "true"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync envelope running-game verify CLI failed. Actual output:`n$($sncFriendMpSyncEnvelopeRunningVerifyOutput -join "`n")"
+}
+$sncFriendMpSyncEnvelopeRunningVerifyText = $sncFriendMpSyncEnvelopeRunningVerifyOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync envelope running verify cli" -Text $sncFriendMpSyncEnvelopeRunningVerifyText -Expected "snc_friend_mp_sync_envelope_verify_success=true"
+Assert-Contains -Name "snc friend mp sync envelope running verify cli" -Text $sncFriendMpSyncEnvelopeRunningVerifyText -Expected "snc_friend_mp_sync_envelope_apply_allowed=false"
+Assert-Contains -Name "snc friend mp sync envelope running verify cli" -Text $sncFriendMpSyncEnvelopeRunningVerifyText -Expected "snc_friend_mp_sync_envelope_apply_gate_state=blocked_stellaris_running"
 
 $sncFriendSelfMpSyncEnvelopeOutput = & $exePath `
     --create-snc-friend-mp-sync-envelope `

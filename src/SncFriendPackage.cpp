@@ -589,6 +589,29 @@ SncFriendMpSyncEnvelopePackage parseSncFriendMpSyncEnvelopePackageJson(const std
     return package;
 }
 
+SncFriendMpSyncApplyGateResult evaluateSncFriendMpSyncApplyGate(
+    const SncFriendMpSyncEnvelopePackage& package,
+    const bool stellarisRunning)
+{
+    SncFriendMpSyncApplyGateResult result;
+    if (!package.ok) {
+        result.state = "invalid_envelope";
+        result.reason = package.reason.empty()
+            ? "friend mp sync envelope is invalid"
+            : package.reason;
+        return result;
+    }
+    if (stellarisRunning) {
+        result.state = "blocked_stellaris_running";
+        result.reason = "Stellaris is running; friend MP package apply is deferred";
+        return result;
+    }
+
+    result.state = "manual_metadata_only";
+    result.reason = "friend MP sync envelope verified; automatic download, staging, and package apply remain disabled";
+    return result;
+}
+
 std::string serializeSncFriendRequestPackage(const SncFriendRequestPackage& package)
 {
     std::ostringstream json;
