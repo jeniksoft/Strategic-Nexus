@@ -1220,7 +1220,7 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
-        text += L"\r\nMP package: ";
+        text += L"\r\nMP bal\u00ED\u010Dek: ";
         text += data.mpPackageRefreshState.empty() ? kStatusEmptyValue : data.mpPackageRefreshState;
         if (!data.mpPackageRefreshReason.empty()) {
             text += L" (" + data.mpPackageRefreshReason + L")";
@@ -1299,7 +1299,7 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
-        text += L"\nMP package: ";
+        text += L"\nMP bal\u00ED\u010Dek: ";
         text += data.mpPackageRefreshState.empty() ? kStatusEmptyValue : data.mpPackageRefreshState;
         if (!data.mpPackageRefreshReason.empty()) {
             text += L" (" + data.mpPackageRefreshReason + L")";
@@ -1904,7 +1904,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kop\u00EDrovat");
         g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
         g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
-        g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, L"MP balicek");
+        g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, L"MP bal\u00ED\u010Dek");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
         g_statusCopyMpImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_IMPORT, L"MP import");
         g_statusCopyMpStrictVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_VERIFY, L"MP strict verify");
@@ -5291,7 +5291,7 @@ void showTrayMenu(HWND hwnd)
         startupLabel.c_str());
     AppendMenuW(menu, MF_STRING, ID_TRAY_SUPPORT_REPORT, buildSupportReportMenuLabel().c_str());
     AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_ARCHIVE, L"Otevrit archiv");
-    AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_MP_PACKAGE, L"Otevrit MP package");
+    AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_MP_PACKAGE, L"Otev\u0159\u00EDt MP bal\u00ED\u010Dek");
     AppendMenuW(menu, MF_STRING, ID_TRAY_PUBLISH_GENERATED_OVERLAY, L"Publikovat staged overlay");
     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(menu, MF_STRING, ID_TRAY_EXIT, L"Konec");

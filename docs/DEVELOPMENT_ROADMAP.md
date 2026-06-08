@@ -596,7 +596,7 @@ Required:
 * documented SNC UI style contract
 
 Current progress:
-The native SNC window exists, uses a branded icon, and has TB-inspired styling. `SNC_UI_STYLE_GUIDE.md` exists. Remaining work is polish around custom scroll styling, layout resilience, and owner-facing wording.
+The native SNC window exists, uses a branded icon, and has TB-inspired styling. `SNC_UI_STYLE_GUIDE.md` exists. Visible MP package affordances now use Czech diacritics in the status window and tray menu. Remaining work is polish around custom scroll styling, layout resilience, and owner-facing wording.
 
 ---
 
