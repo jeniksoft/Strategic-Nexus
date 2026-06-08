@@ -90,6 +90,9 @@ int main()
             files.scriptedTriggersText.find("strategic_nexus_generated_trigger_campaign_001_empire_001_border_war_defense") != std::string::npos,
             "compiler should emit marker-guarded trigger");
         requireCondition(
+            files.scriptedTriggersText.find("    is_ai = yes") != std::string::npos,
+            "compiler should skip human-controlled empires at runtime");
+        requireCondition(
             files.scriptedTriggersText.find("has_global_flag = strategic_nexus_known_save_fingerprint_h_abcdef123456") != std::string::npos,
             "compiler should preserve known.save_fingerprint guard");
         requireCondition(

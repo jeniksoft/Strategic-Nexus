@@ -358,6 +358,7 @@ GeneratedOverlayFiles OverlayCompiler::compile(const DslProgram& program) const
         triggers << triggerName << " = {\n";
         triggers << "    has_global_flag = " << campaignFlag << "\n";
         triggers << "    has_country_flag = " << empireFlag << "\n";
+        triggers << "    is_ai = yes\n";
         for (const auto& condition : rule.conditions) {
             if (condition.source == "campaign_marker") {
                 continue;
