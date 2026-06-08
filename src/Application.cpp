@@ -1367,12 +1367,18 @@ int Application::run(const RunConfig& config) const
                         std::cout << "mp_overlay_package_export_host_next_step=" << sanitizeCliValue(hostNextStep)
                                   << "\n";
                     }
-                    const auto clientNextStep = readStatusTextField(verificationResult.statusText, "client_next_step");
-                    if (!clientNextStep.empty()) {
-                        std::cout << "mp_overlay_package_export_client_next_step="
-                                  << sanitizeCliValue(clientNextStep) << "\n";
-                    }
+                const auto clientNextStep = readStatusTextField(verificationResult.statusText, "client_next_step");
+                if (!clientNextStep.empty()) {
+                    std::cout << "mp_overlay_package_export_client_next_step="
+                              << sanitizeCliValue(clientNextStep) << "\n";
                 }
+                const auto handoffRecoveryHint =
+                    readStatusTextField(verificationResult.statusText, "handoff_recovery_hint");
+                if (!handoffRecoveryHint.empty()) {
+                    std::cout << "mp_overlay_package_export_handoff_recovery_hint="
+                              << sanitizeCliValue(handoffRecoveryHint) << "\n";
+                }
+            }
                 const auto statusWarningCodes = readStatusTextFields(verificationResult.statusText, "warning_code");
                 for (const auto& warningCode : statusWarningCodes) {
                     exportWarnings.push_back(warningCode);
@@ -1540,6 +1546,11 @@ int Application::run(const RunConfig& config) const
                 if (!clientNextStep.empty()) {
                     std::cout << "mp_overlay_package_client_next_step=" << sanitizeCliValue(clientNextStep) << "\n";
                 }
+                const auto handoffRecoveryHint = readStatusTextField(result.statusText, "handoff_recovery_hint");
+                if (!handoffRecoveryHint.empty()) {
+                    std::cout << "mp_overlay_package_handoff_recovery_hint="
+                              << sanitizeCliValue(handoffRecoveryHint) << "\n";
+                }
             }
             std::cout << "mp_overlay_package_file_count=" << result.files.size() << "\n";
             for (const auto& file : result.files) {
@@ -1683,6 +1694,11 @@ int Application::run(const RunConfig& config) const
                 const auto clientNextStep = readStatusTextField(result.statusText, "client_next_step");
                 if (!clientNextStep.empty()) {
                     std::cout << "mp_overlay_package_import_client_next_step=" << sanitizeCliValue(clientNextStep) << "\n";
+                }
+                const auto handoffRecoveryHint = readStatusTextField(result.statusText, "handoff_recovery_hint");
+                if (!handoffRecoveryHint.empty()) {
+                    std::cout << "mp_overlay_package_import_handoff_recovery_hint="
+                              << sanitizeCliValue(handoffRecoveryHint) << "\n";
                 }
             }
             std::cout << "mp_overlay_package_imported_file_count=" << result.importedFiles.size() << "\n";

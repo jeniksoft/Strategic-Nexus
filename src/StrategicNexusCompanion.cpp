@@ -1494,6 +1494,10 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.clientReadinessGate = trimWhitespace(readStatusTextField(verification.statusText, "client_readiness_gate"));
     status.hostNextStep = trimWhitespace(readStatusTextField(verification.statusText, "host_next_step"));
     status.clientNextStep = trimWhitespace(readStatusTextField(verification.statusText, "client_next_step"));
+    if (status.handoffStatus == "degraded_previous_host_unavailable") {
+        status.handoffRecoveryHint =
+            "nacti nejnovnejsi handoff balicek pokud je k dispozici; jinak pouzij starsi overeny archiv nebo klientsky save a nech confidence snizenou";
+    }
     status.packageManifestHash = verification.packageManifestHash;
     status.provenanceState = verification.provenanceState;
     status.humanControlGuardState =
@@ -2506,6 +2510,9 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.clientNextStep.empty()) {
         text << "mp_client_krok: " << mpOverlayPackage.clientNextStep << "\n";
     }
+    if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
+        text << "mp_handoff_recovery_hint: " << mpOverlayPackage.handoffRecoveryHint << "\n";
+    }
     text << "post_play_pipeline: " << postPlayPipeline.state << " - " << postPlayPipeline.reason << "\n";
     if (!postPlayPipeline.entryPointAnalysisPath.empty()) {
         text << "entry_point_analysis_path: " << pathString(postPlayPipeline.entryPointAnalysisPath) << "\n";
@@ -2702,6 +2709,9 @@ std::string buildStatusCenterSummaryText(
     }
     if (!mpOverlayPackage.clientNextStep.empty()) {
         text << "mp_client_next_step: " << mpOverlayPackage.clientNextStep << "\n";
+    }
+    if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
+        text << "mp_handoff_recovery_hint: " << mpOverlayPackage.handoffRecoveryHint << "\n";
     }
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
@@ -3179,6 +3189,7 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"client_readiness_gate\": " << jsonString(status.clientReadinessGate) << ",\n";
     output << indent << "  \"host_next_step\": " << jsonString(status.hostNextStep) << ",\n";
     output << indent << "  \"client_next_step\": " << jsonString(status.clientNextStep) << ",\n";
+    output << indent << "  \"handoff_recovery_hint\": " << jsonString(status.handoffRecoveryHint) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
     output << indent << "  \"provenance_state\": " << jsonString(status.provenanceState) << ",\n";
     output << indent << "  \"human_control_guard_state\": " << jsonString(status.humanControlGuardState) << ",\n";

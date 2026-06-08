@@ -539,6 +539,10 @@ try {
                 if (-not $ReadyOwnerTestFixture -and $mpPackageReady -and $null -eq $json.mp_overlay_package_previous_host_available_known) {
                     throw "SNC tray status JSON did not expose mp_overlay_package_previous_host_available_known."
                 }
+                if ($mpPackageReady -and [string]$json.mp_overlay_package_handoff_status -eq "degraded_previous_host_unavailable" -and
+                    [string]::IsNullOrWhiteSpace([string]$json.mp_overlay_package_handoff_recovery_hint)) {
+                    throw "SNC tray status JSON did not expose mp_overlay_package_handoff_recovery_hint for degraded MP handoff continuity."
+                }
                 if ($json.generated_overlay_publish_gate_can_publish -eq $true -and
                     $json.next_action -ne "review_staged_overlay_and_publish_if_desired") {
                     throw "SNC tray publish-ready status did not surface the publish/review next action."
@@ -688,6 +692,10 @@ try {
                 if ($mpPackageReady -and $summaryText -notlike "*mp_previous_host_available_known:*") {
                     throw "SNC tray summary text did not expose mp_previous_host_available_known."
                 }
+                if ($mpPackageReady -and $summaryText -like "*mp_handoff_status: degraded_previous_host_unavailable*" -and
+                    $summaryText -notlike "*mp_handoff_recovery_hint:*") {
+                    throw "SNC tray summary text did not expose mp_handoff_recovery_hint for degraded MP handoff continuity."
+                }
                 if (-not (Test-Path -LiteralPath $json.next_steps_brief_path)) {
                     throw "SNC tray did not write the next-steps brief named by status JSON."
                 }
@@ -704,6 +712,10 @@ try {
                 }
                 if ($mpPackageReady -and $briefText -notlike "*MP previous host availability known:*") {
                     throw "SNC tray next-steps brief did not expose MP previous host availability known."
+                }
+                if ($mpPackageReady -and $summaryText -like "*mp_handoff_status: degraded_previous_host_unavailable*" -and
+                    $briefText -notlike "*MP recovery:*") {
+                    throw "SNC tray next-steps brief did not expose MP recovery guidance for degraded handoff continuity."
                 }
                 if ($briefText -notlike "*Startup note:*") {
                     throw "SNC tray next-steps brief did not expose the startup rationale note."

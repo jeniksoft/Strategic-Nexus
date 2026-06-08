@@ -116,6 +116,7 @@ struct CompanionMpOverlayPackageStatus {
     std::string clientReadinessGate;
     std::string hostNextStep;
     std::string clientNextStep;
+    std::string handoffRecoveryHint;
     std::string packageManifestHash;
     std::string provenanceState;
     std::string humanControlGuardState;

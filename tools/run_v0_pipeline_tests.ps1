@@ -882,6 +882,7 @@ campaign "campaign_monthly" {
     Assert-Contains -Name "mp_overlay_package_export app readiness" -Text $mpExportText -Expected "mp_overlay_package_export_client_readiness_gate=import_and_verify_before_join"
     Assert-Contains -Name "mp_overlay_package_export app next_step" -Text $mpExportText -Expected "mp_overlay_package_export_host_next_step=share this package and package_manifest_hash with every joining player"
     Assert-Contains -Name "mp_overlay_package_export app next_step" -Text $mpExportText -Expected "mp_overlay_package_export_client_next_step=import package, verify package_manifest_hash, then join lobby"
+    Assert-Contains -Name "mp_overlay_package_export app recovery" -Text $mpExportText -Expected "mp_overlay_package_export_handoff_recovery_hint="
     Assert-Contains -Name "mp_overlay_package_export app identity warning" -Text $mpExportText -Expected "mp_overlay_package_export_identity_mismatch_warning=false"
     Assert-Contains -Name "mp_overlay_package_export app warning count" -Text $mpExportText -Expected "mp_overlay_package_export_warning_count=0"
 
@@ -904,6 +905,7 @@ campaign "campaign_monthly" {
     Assert-Contains -Name "mp_overlay_package_verify app readiness" -Text $mpVerifyText -Expected "mp_overlay_package_client_readiness_gate=import_and_verify_before_join"
     Assert-Contains -Name "mp_overlay_package_verify app next_step" -Text $mpVerifyText -Expected "mp_overlay_package_host_next_step=share this package and package_manifest_hash with every joining player"
     Assert-Contains -Name "mp_overlay_package_verify app next_step" -Text $mpVerifyText -Expected "mp_overlay_package_client_next_step=import package, verify package_manifest_hash, then join lobby"
+    Assert-Contains -Name "mp_overlay_package_verify app recovery" -Text $mpVerifyText -Expected "mp_overlay_package_handoff_recovery_hint="
     Assert-Contains -Name "mp_overlay_package_verify app identity warning" -Text $mpVerifyText -Expected "mp_overlay_package_identity_mismatch_warning=false"
     $mpManifestHash = [regex]::Match($mpVerifyText, "mp_overlay_package_manifest_hash=([^\r\n]+)").Groups[1].Value.Trim()
     if ([string]::IsNullOrWhiteSpace($mpManifestHash)) {
@@ -952,6 +954,7 @@ campaign "campaign_monthly" {
     Assert-Contains -Name "mp_overlay_package_import app readiness" -Text $mpImportText -Expected "mp_overlay_package_import_client_readiness_gate=import_and_verify_before_join"
     Assert-Contains -Name "mp_overlay_package_import app next_step" -Text $mpImportText -Expected "mp_overlay_package_import_host_next_step=share this package and package_manifest_hash with every joining player"
     Assert-Contains -Name "mp_overlay_package_import app next_step" -Text $mpImportText -Expected "mp_overlay_package_import_client_next_step=import package, verify package_manifest_hash, then join lobby"
+    Assert-Contains -Name "mp_overlay_package_import app recovery" -Text $mpImportText -Expected "mp_overlay_package_import_handoff_recovery_hint="
     Assert-Contains -Name "mp_overlay_package_import app identity warning" -Text $mpImportText -Expected "mp_overlay_package_import_identity_mismatch_warning=false"
 
     $mpImportMismatchOutput = & $exePath `

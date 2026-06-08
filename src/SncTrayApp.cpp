@@ -144,6 +144,7 @@ struct StatusDashboardData {
     std::wstring mpPackagePreviousHostAvailableKnown;
     std::wstring mpPackageHostNextStep;
     std::wstring mpPackageClientNextStep;
+    std::wstring mpPackageHandoffRecoveryHint;
     std::wstring mpPackageHostReadiness;
     std::wstring mpPackageClientReadinessGate;
     std::wstring mpPackageVerifyCommand;
@@ -1184,6 +1185,7 @@ StatusDashboardData loadStatusDashboardData()
     data.mpPackagePreviousHostAvailableKnown = utf8ToWide(summaryValue("mp_previous_host_available_known"));
     data.mpPackageHostNextStep = utf8ToWide(summaryValue("mp_host_next_step"));
     data.mpPackageClientNextStep = utf8ToWide(summaryValue("mp_client_next_step"));
+    data.mpPackageHandoffRecoveryHint = utf8ToWide(summaryValue("mp_handoff_recovery_hint"));
     data.mpPackageHostReadiness = utf8ToWide(summaryValue("mp_host_readiness"));
     data.mpPackageClientReadinessGate = utf8ToWide(summaryValue("mp_client_readiness_gate"));
     data.mpPackageVerifyCommand = utf8ToWide(summaryValue("mp_verify_command"));
@@ -1332,6 +1334,9 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
         }
         if (!data.mpPackagePreviousHostAvailable.empty()) {
             text += L"\nMP previous host available: " + data.mpPackagePreviousHostAvailable;
+        }
+        if (!data.mpPackageHandoffRecoveryHint.empty()) {
+            text += L"\nMP recovery: " + data.mpPackageHandoffRecoveryHint;
         }
         if (!data.mpPackageZipPath.empty() || !data.mpPackageManifestHash.empty()) {
             text += L"\nMP sdileni: zkopiruj MP zip a manifest hash; host/klient kroky jsou nize.";
@@ -3509,6 +3514,9 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.clientNextStep.empty()) {
         summary << "mp_client_krok: " << mpOverlayPackage.clientNextStep << "\n";
     }
+    if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
+        summary << "mp_handoff_recovery_hint: " << mpOverlayPackage.handoffRecoveryHint << "\n";
+    }
     summary << "post_play_decision_ready_entry_count: " << postPlayDecisionReadyEntryCount << "\n";
     summary << "post_play_campaign_count: " << postPlayCampaignCount << "\n";
     summary << "post_play_ready_campaign_count: " << postPlayReadyCampaignCount << "\n";
@@ -3908,6 +3916,9 @@ void writeNextStepsBrief(
     if (!mpOverlayPackage.handoffStatus.empty()) {
         brief << "- MP handoff status: " << mpOverlayPackage.handoffStatus << "\n";
     }
+    if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
+        brief << "- MP recovery: " << mpOverlayPackage.handoffRecoveryHint << "\n";
+    }
     brief << "- Human control guard: ";
     brief << (mpOverlayPackage.humanControlGuardState.empty() ? std::string("unknown") : mpOverlayPackage.humanControlGuardState)
           << "\n";
@@ -3941,6 +3952,9 @@ void writeNextStepsBrief(
     }
     if (!mpOverlayPackage.clientNextStep.empty()) {
         brief << "- MP client next step: " << mpOverlayPackage.clientNextStep << "\n";
+    }
+    if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
+        brief << "- MP recovery: " << mpOverlayPackage.handoffRecoveryHint << "\n";
     }
     if (!mpOverlayPackage.identityMismatchAlert.empty()) {
         brief << "- MP mismatch alert: " << mpOverlayPackage.identityMismatchAlert << "\n";
@@ -4503,6 +4517,8 @@ void writeStatus(
     json << "  \"mp_overlay_package_client_readiness_gate\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.clientReadinessGate) << "\",\n";
     json << "  \"mp_overlay_package_host_next_step\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.hostNextStep) << "\",\n";
     json << "  \"mp_overlay_package_client_next_step\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.clientNextStep) << "\",\n";
+    json << "  \"mp_overlay_package_handoff_recovery_hint\": \""
+         << jsonEscape(companionSnapshot.mpOverlayPackage.handoffRecoveryHint) << "\",\n";
     json << "  \"mp_overlay_package_manifest_hash\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageManifestHash) << "\",\n";
     json << "  \"mp_overlay_package_provenance_state\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.provenanceState) << "\",\n";
     json << "  \"mp_overlay_package_source_quality_count\": " << companionSnapshot.mpOverlayPackage.sourceQualities.size() << ",\n";

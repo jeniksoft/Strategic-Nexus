@@ -478,7 +478,7 @@
     {
       "id": "v0-sprint-110-surface-mp-package-strict-copy-actions",
       "title": "Surface MP package strict copy actions",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "Release Companion MP Package UX / strict verify-import command hints",
       "goal": "Expose strict MP verify/import quick-copy actions in the visible dashboard so host and client users can copy the more precise recovery commands without opening raw JSON.",
@@ -489,6 +489,24 @@
       ],
       "preferred_tests": [
         "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-111-surface-mp-handoff-recovery-guidance",
+      "title": "Surface MP handoff recovery guidance",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / recovery flow for missing previous host",
+      "goal": "Expose an explicit recovery hint when the previous MP host is unavailable so ordinary host and client users can see the safest next step without reading raw status text.",
+      "acceptance": [
+        "The MP package status surfaces expose a handoff recovery hint when handoff continuity is degraded by a missing previous host.",
+        "The visible dashboard and next-steps brief surface the same recovery guidance in readable form.",
+        "The recovery hint stays empty for normal handoff states and the rest of the MP package text remains fail closed."
+      ],
+      "preferred_tests": [
         "tools/smoke_snc_tray.ps1",
         "tools/run_v0_pipeline_tests.ps1"
       ],
