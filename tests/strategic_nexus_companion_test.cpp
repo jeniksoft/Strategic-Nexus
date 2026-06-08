@@ -869,6 +869,9 @@ int main()
         ready.mpOverlayPackage.statusText.find("human_control_guard: runtime_is_ai_yes") != std::string::npos,
         "mp overlay package status text should expose the runtime human-control guard");
     requireCondition(
+        ready.mpOverlayPackage.humanControlGuardState == "runtime_is_ai_yes",
+        "mp overlay package should expose the runtime human-control guard state");
+    requireCondition(
         ready.mpOverlayPackage.previousHostAvailableKnown,
         "mp overlay package should expose whether previous-host continuity is known");
     requireCondition(
@@ -985,6 +988,10 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_previous_host_available: false") != std::string::npos,
         "status center summary should include explicit previous-host continuity state");
+    const auto readyJson = strategic_nexus::serializeCompanionStatusSnapshot(ready);
+    requireCondition(
+        readyJson.find("\"human_control_guard_state\": \"runtime_is_ai_yes\"") != std::string::npos,
+        "snapshot JSON should expose the runtime human-control guard state");
     requireCondition(
         ready.statusCenterSummaryText.find("mp_package_zip_state: ready") != std::string::npos,
         "status center summary should include MP package zip state");

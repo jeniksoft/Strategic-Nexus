@@ -1326,6 +1326,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     status.clientNextStep = trimWhitespace(readStatusTextField(verification.statusText, "client_next_step"));
     status.packageManifestHash = verification.packageManifestHash;
     status.provenanceState = verification.provenanceState;
+    status.humanControlGuardState = "unknown";
     status.sourceQualities = verification.sourceQualities;
     status.bootstrapCampaignCount = verification.bootstrapCampaignCount;
     if (!status.campaignId.empty() && !status.overlayVersion.empty() && !status.gameVersion.empty() &&
@@ -1340,6 +1341,7 @@ CompanionMpOverlayPackageStatus buildMpOverlayPackageStatus(const std::filesyste
     if (verification.ok) {
         status.state = "ready";
         status.reason = "mp overlay package verified";
+        status.humanControlGuardState = "runtime_is_ai_yes";
         status.statusText = verification.statusText;
         status.statusText += "human_control_guard: runtime_is_ai_yes\n";
         const auto warningCodes = extractWarningCodesFromStatusText(status.statusText);
@@ -2916,6 +2918,7 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"client_next_step\": " << jsonString(status.clientNextStep) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
     output << indent << "  \"provenance_state\": " << jsonString(status.provenanceState) << ",\n";
+    output << indent << "  \"human_control_guard_state\": " << jsonString(status.humanControlGuardState) << ",\n";
     output << indent << "  \"source_qualities\": [";
     for (std::size_t index = 0; index < status.sourceQualities.size(); ++index) {
         if (index > 0) {
