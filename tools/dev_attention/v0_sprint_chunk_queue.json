@@ -511,6 +511,42 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-112-verify-human-control-guard-runtime-contract",
+      "title": "Verify human-control guard runtime contract",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Human-Control Guarded MP Rules / runtime guard verification",
+      "goal": "Confirm the human-control guard runtime contract is already enforced in the generated overlay and companion surfaces, then refresh the roadmap so the stale NOT_STARTED note does not mislead the next worker.",
+      "acceptance": [
+        "The roadmap no longer claims the human-control guarded gameplay rule activation is unimplemented.",
+        "generated_overlay_contract_test.exe, mp_overlay_package_verifier_test.exe, and strategic_nexus_companion_test.exe all pass against the current head.",
+        "The change stays bounded to verification and roadmap alignment rather than reopening MP host/client UX work."
+      ],
+      "preferred_tests": [
+        "dist/generated_overlay_contract_test.exe",
+        "dist/mp_overlay_package_verifier_test.exe",
+        "dist/strategic_nexus_companion_test.exe"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-113-document-mp-season-validation-checklist",
+      "title": "Document MP season validation checklist",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Release Companion MP Package UX / real MP season validation",
+      "goal": "Add a compact owner-facing checklist for the first real multiplayer season test so Tonda knows exactly which MP handoff artifacts to inspect after the run.",
+      "acceptance": [
+        "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md names the exact owner-facing MP season validation checklist.",
+        "docs/DEVELOPMENT_ROADMAP.md current progress points at the same validation checklist and evidence artifacts.",
+        "The checklist stays bounded to release-companion/handoff validation and does not broaden gameplay scope."
+      ],
+      "preferred_tests": [
+        "rg -n \"snc_next_steps_brief|real_session_v0_loop_evidence|real_session_v0_next_steps|MP season validation\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md docs/DEVELOPMENT_ROADMAP.md"
+      ],
+      "dependencies": []
     }
   ]
 }

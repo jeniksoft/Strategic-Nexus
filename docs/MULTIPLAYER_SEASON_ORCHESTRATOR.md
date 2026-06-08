@@ -57,13 +57,22 @@ Observed owner rule:
 * the host remains the authority for approving or rejecting joining players
 * Stellaris can support up to 32 players in one multiplayer campaign
 * when a multiplayer campaign is loaded, joining players may take control of available empires according to normal Stellaris host/lobby rules
+* the full empire roster in a campaign can be larger than the current human player count and larger than the 32-player lobby limit
+* some empires present at campaign start are not human-playable choices even in multiplayer
+* additional empires may appear or disappear during campaign history
+* a destroyed empire or a special non-playable empire must not be treated as player-joinable merely because it exists in save history or campaign memory
 
 Architecture consequences:
 
 * Strategic Nexus must distinguish `singleplayer-founded` from `multiplayer-founded` campaign capability when preparing MP status, packages, or handoff guidance.
 * Current player count is not enough. A multiplayer-founded campaign with one current player is still MP-capable.
+* Strategic Nexus must distinguish `all detected campaign empires`, `currently/player-selectable empires when known`, and `currently human-controlled empires`.
+* The 32-player ceiling is a lobby/human-slot limit, not a hard upper bound on total empire count inside a campaign.
 * A singleplayer-founded campaign must not be presented as MP-ready merely because the generated overlay package verifies.
 * If SNC cannot prove whether the campaign was multiplayer-founded from save metadata, markers, durable memory, or prior owner confirmation, MP package/export status must be `needs_confirmation` or equivalent, not silently ready.
+* If SNC cannot prove that a detected empire is currently a valid human-selectable choice, release guidance should treat it as `unknown` or `not_assumed_playable`, not silently present it as available.
+* Release UX should default to hiding destroyed, fallen, and special non-playable empires from selectable guidance unless there is explicit proof that the game currently allows a human to join them.
+* If the UI still needs to mention such empires for analysis context, it should label them as historical or non-assumed-playable rather than presenting them as normal join targets.
 * Empire memory still belongs to campaign empires, not human users. A later player may choose a different available empire, so player identity is session metadata.
 
 ---
@@ -213,6 +222,10 @@ MP player count may change between seasons.
 
 An MP-capable campaign may also have only one active human player in a given session.
 
+The set of existing campaign empires may be larger than the set of human-playable empires.
+
+The set of human-playable empires may also be larger or smaller than the current player count.
+
 The same human user may play a different empire.
 
 Different users may play the same empire across different sessions.
@@ -242,6 +255,9 @@ It belongs to campaign empires only and remains subject to the human-control act
 
 MP generated overlays should be prepared for all known campaign empires, because any AI empire may later be selected by a joining player or become AI-controlled again.
 Activation must be conditional on current human-control state.
+
+This does not mean every detected empire is a valid player-assignment target.
+Destroyed empires, fallen empires, or other special non-playable empires may still exist in campaign memory/history and may still matter for analysis, but release-companion joinability guidance must not advertise them as normal player-selectable choices.
 
 If a human temporarily controls an empire, the orchestrator may record that fact for analysis context, but it should not erase or replace the empire's personality.
 
@@ -522,6 +538,30 @@ It should ask or warn when:
 * low-confidence campaign identity would affect generated rules
 
 No routine pre-session approval should be required when all checks pass.
+
+---
+
+# Real MP Season Validation
+
+When the owner runs the first real multiplayer season test, the useful check is not "does the UI exist?" but "does the handoff guidance stay readable and point at the right artifacts?"
+
+Owner-facing minimum test:
+
+* open `dist/private_reports/snc_next_steps_brief.txt`
+* confirm the MP package lines show the current package directory, ZIP path, and strict verify/import commands
+* run one ordinary MP handoff or join flow using the current package guidance
+* keep any observed warning text or blocked state unchanged until Codex inspects the resulting evidence
+
+What Codex will inspect after the run:
+
+* `dist/real_session_v0_loop/<session_id>/real_session_v0_loop_evidence.json`
+* `dist/real_session_v0_loop/<session_id>/real_session_v0_next_steps.md`
+* `dist/private_reports/snc_next_steps_brief.txt`
+* current SNC status or tray snapshot if the run was degraded, blocked, or missing the previous host
+
+Known limitation:
+
+* this validates the release-companion and handoff contract around the real season test, not the underlying gameplay effect of the campaign
 
 ---
 
