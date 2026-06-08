@@ -79,6 +79,7 @@ Core documents:
 * [REACTIVE_POLICY_PACK_ARCHITECTURE.md](REACTIVE_POLICY_PACK_ARCHITECTURE.md) - approved legal near-realtime design using precompiled event-driven strategy branches, not live LLM injection; also covers zero-history bootstrap policy packs for unknown campaigns
 * [CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md](CAMPAIGN_ORCHESTRATOR_ARCHITECTURE.md) - target release orchestrator architecture for minimal mandatory user interaction
 * [STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md](STELLARIS_DISTRIBUTION_AND_SAVE_ROOTS.md) - verified non-Steam distribution surfaces and provider-neutral save-root contract
+* [STELLARIS_MOD_RULE_IMPLEMENTATION_GUIDE.md](STELLARIS_MOD_RULE_IMPLEMENTATION_GUIDE.md) - worker-ready implementation guide for installing validated generated rules into a normal Stellaris mod through on_actions, events, scripted effects, scripted triggers, and manifest-verified generated overlay sync
 * [SAVE_ENTRY_POINT_AND_BRANCH_RULES.md](SAVE_ENTRY_POINT_AND_BRANCH_RULES.md) - entry-point-scoped generated rules and branch/reload handling for captured autosaves
 * [LOCAL_LLM_INTEGRATION_CONTRACT.md](LOCAL_LLM_INTEGRATION_CONTRACT.md) - local model weights, runtime, companion, validation, reduced-mode, and mod boundary contract
 * [META_RULE_LANGUAGE_AND_COMPILER.md](META_RULE_LANGUAGE_AND_COMPILER.md) - bounded DSL and deterministic compiler from LLM proposals to generated mod overlay

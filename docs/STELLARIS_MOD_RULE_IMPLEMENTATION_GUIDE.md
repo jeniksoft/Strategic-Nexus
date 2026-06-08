@@ -31,7 +31,7 @@ Allowed:
 Forbidden:
 
 * patching or inspecting `stellaris.exe`
-* process memory reads/writes
+* reading or writing the running game's internal state outside ordinary mod scripting
 * binary injection or external DLL hooks
 * hidden console command transport as a production path
 * live LLM decisions entering an already running game

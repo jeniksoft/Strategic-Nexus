@@ -139,6 +139,26 @@ Do not invalidate the entire payload unless safety requires it.
 
 ---
 
+# Enum Expansion Playbook
+
+When Strategic Nexus adds a new enum value:
+
+* add the value append-only when possible
+* keep existing values accepted for older consumers
+* document which consumer owns the new value mapping
+* preserve domain-level fallback behavior for unsupported values
+* add a regression test for the new value before the roadmap slice is marked done
+
+When an enum value is deprecated or renamed:
+
+* keep the old value readable for compatibility where safe
+* map it through an explicit migration rule when a rename is unavoidable
+* fail closed for the affected domain if the old and new meanings would be ambiguous
+
+The bridge core, compiler, and generated-overlay validator should all agree on the same allowlist and fallback semantics before a new enum is considered production-ready.
+
+---
+
 # Partial Compatibility Rule
 
 A payload may still be partially valid even if some domains are unsupported.

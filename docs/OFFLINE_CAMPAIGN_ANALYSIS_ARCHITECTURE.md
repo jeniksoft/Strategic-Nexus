@@ -1089,7 +1089,9 @@ A single-player-founded campaign should not be treated as MP-ready.
 A multiplayer-founded campaign may still have only one current human player and can still be MP-capable.
 
 For MP-capable campaigns, SNC should generate validated rules for all known campaign empires, because players can later take over different empires through the normal host/lobby flow.
+This `all known campaign empires` set is broader than the current human player count and may be broader than the human-playable subset; total campaign empires can exceed the 32-player lobby limit, and some empires may be special, non-playable, or already destroyed.
 At runtime, rules for a currently human-controlled empire must not activate; rules may activate only for AI-controlled empires under the campaign/empire marker guards.
+Companion/package UX must not assume every detected empire is a valid player-selectable choice just because rules or memory exist for it.
 For single-player-founded campaigns, the player empire is expected to stay fixed after campaign creation and should remain a do-not-apply target for gameplay-affecting generated rules.
 
 Clients should receive the same generated mod package for the next session when checksum-sensitive files are involved.

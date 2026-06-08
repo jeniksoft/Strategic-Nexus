@@ -1,0 +1,10 @@
+{
+  "id": "arch-review-2026-06-08-mp-player-selectable-joinability-contract",
+  "status": "open",
+  "severity": "high",
+  "title": "Rozhodnout MP kontrakt volitelnosti empirii",
+  "task": "Uzavrit minimalni release kontrakt pro to, kdy je empire v MP guidance skutecne player-selectable a kdy ma zustat jen jako historicky/detekovany zaznam.",
+  "why": "Dokumentace uz rozlisuje detekovane, human-controlled a player-selectable empires, ale release UX stale nema pevny prah pro joinability guidance. Benefit: SNC nebude nabizet nebo sugerovat jako volitelne empires, ktere jsou jen historicke, specialni, padle nebo jinak nehratelne. Riziko: prilis prisny kontrakt muze zbytecne skryt legitimni volby; proto je vhodne rozhodnout minimalni, ale jednoznacny v0 tvar.",
+  "instructions": "Otazka pro ownera: Jaky minimalni signal nebo kombinace signalu ma v release UX urcit, ze je empire skutecne player-selectable? Maji byt destroyed/fallen/special non-playable empires vzdy skryte, nebo jen oznacene jako not_assumed_playable?",
+  "run_timestamp": "2026-06-08T09:03:58.5574005+02:00"
+}

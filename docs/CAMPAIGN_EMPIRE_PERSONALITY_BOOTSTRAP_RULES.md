@@ -155,8 +155,9 @@ Invalid seed inputs:
 * private personal notes
 * raw player names as logic
 
-The combination space for bootstrap personalities should be comfortably larger than the maximum supported empire count.
-Stellaris can host up to 32 player slots in multiplayer, so Strategic Nexus should be able to assign 32 distinct bounded bootstrap profiles without making new campaigns feel identical.
+The combination space for bootstrap personalities should be comfortably larger than ordinary campaign empire roster sizes.
+Stellaris can host up to 32 player slots in multiplayer, but total campaign empires can exceed that number and some empires may be non-playable or appear later during campaign history.
+Strategic Nexus should therefore be able to assign at least 32 distinct bounded bootstrap profiles for human-slot coverage and still have additional safe variation for larger total empire rosters without making new campaigns feel identical.
 
 Variation must remain constrained by empire facts.
 For example, two militarist-authoritarian empires may differ as cautious militarists, honor militarists, opportunistic militarists, or paranoid militarists, but they should not receive a pacifist personality that contradicts their known civic/ethic basis.
