@@ -87,6 +87,7 @@ constexpr UINT ID_STATUS_OPEN_NEXT_ACTION_PATH = 219;
 constexpr UINT ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN = 220;
 constexpr UINT ID_STATUS_OPEN_CRASH_RECOVERY_STATE = 221;
 constexpr UINT ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT = 222;
+constexpr UINT ID_STATUS_OPEN_FRIEND_TRUST_STORE = 223;
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -139,6 +140,9 @@ struct StatusDashboardData {
     std::wstring crashRecoveryState;
     std::wstring crashRecoveryReason;
     std::wstring crashRecoveryPath;
+    std::wstring friendTrustStoreState;
+    std::wstring friendTrustStoreReason;
+    std::wstring friendTrustStorePath;
     std::wstring humanControlGuardState;
     std::wstring mpPackageRefreshState;
     std::wstring mpPackageRefreshReason;
@@ -235,6 +239,7 @@ HWND g_statusOpenNextActionPathButton = nullptr;
 HWND g_statusOpenCampaignLibraryPlanButton = nullptr;
 HWND g_statusOpenCrashRecoveryStateButton = nullptr;
 HWND g_statusOpenGameplayAcceptanceReportButton = nullptr;
+HWND g_statusOpenFriendTrustStoreButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -341,6 +346,7 @@ bool dashboardPathExists(const std::wstring& path);
 void openNextActionPath(HWND hwnd);
 void openCrashRecoveryStatePath(HWND hwnd);
 void openGameplayAcceptanceReport(HWND hwnd);
+void openFriendTrustStore(HWND hwnd);
 void openMpOverlayPackageDirectory();
 void publishStagedGeneratedOverlay(HWND hwnd);
 bool canRefreshMpPackageExport();
@@ -1097,6 +1103,18 @@ void openGameplayAcceptanceReport(HWND hwnd)
     openPathWithShell(hwnd, g_gameplayAcceptanceReportPath);
 }
 
+void openFriendTrustStore(HWND hwnd)
+{
+    const auto data = loadStatusDashboardData();
+    const auto path = resolveDashboardPath(data.friendTrustStorePath);
+    if (path.empty()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    openPathWithShell(hwnd, path);
+}
+
 void updateStatusCaptionButtons(HWND hwnd)
 {
     if (g_statusMaximizeButton != nullptr) {
@@ -1141,6 +1159,9 @@ StatusDashboardData loadStatusDashboardData()
     data.crashRecoveryState = L"\u2014";
     data.crashRecoveryReason = L"\u2014";
     data.crashRecoveryPath = g_crashRecoveryStatePath.empty() ? L"\u2014" : utf8ToWide(pathString(g_crashRecoveryStatePath));
+    data.friendTrustStoreState = L"\u2014";
+    data.friendTrustStoreReason = L"\u2014";
+    data.friendTrustStorePath = L"\u2014";
     data.humanControlGuardState = L"\u2014";
 
     std::string json;
@@ -1265,6 +1286,12 @@ StatusDashboardData loadStatusDashboardData()
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_reason").value_or(""));
     data.crashRecoveryPath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_state_path").value_or(""));
+    data.friendTrustStoreState =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_state").value_or(""));
+    data.friendTrustStoreReason =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_reason").value_or(""));
+    data.friendTrustStorePath =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_path").value_or(""));
     const std::string humanControlGuardState = summaryValue("human_control_guard_state");
     if (!humanControlGuardState.empty()) {
         data.humanControlGuardState = utf8ToWide(humanControlGuardState);
@@ -1316,6 +1343,12 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.crashRecoveryReason.empty() ? kStatusEmptyValue : data.crashRecoveryReason;
     text += L"\r\nRecovery cesta: ";
     text += data.crashRecoveryPath.empty() ? kStatusEmptyValue : data.crashRecoveryPath;
+    text += L"\r\nSNC pratele: ";
+    text += data.friendTrustStoreState.empty() ? kStatusEmptyValue : data.friendTrustStoreState;
+    text += L"\r\nSNC pratele duvod: ";
+    text += data.friendTrustStoreReason.empty() ? kStatusEmptyValue : data.friendTrustStoreReason;
+    text += L"\r\nSNC pratele cesta: ";
+    text += data.friendTrustStorePath.empty() ? kStatusEmptyValue : data.friendTrustStorePath;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1704,6 +1737,11 @@ void refreshStatusWindowContent()
             !error;
         EnableWindow(g_statusOpenGameplayAcceptanceReportButton, reportReady ? TRUE : FALSE);
     }
+    if (g_statusOpenFriendTrustStoreButton != nullptr) {
+        EnableWindow(
+            g_statusOpenFriendTrustStoreButton,
+            dashboardPathExists(data.friendTrustStorePath) ? TRUE : FALSE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -1866,7 +1904,7 @@ void layoutStatusWindow(HWND hwnd)
     const int buttonGap = 8;
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 18;
+    constexpr int actionButtonCount = 20;
     constexpr int preferredButtonWidth = 116;
     constexpr int minimumButtonWidth = 76;
     int buttonRows = 1;
@@ -1966,6 +2004,7 @@ void layoutStatusWindow(HWND hwnd)
         g_statusOpenCampaignLibraryPlanButton,
         g_statusOpenCrashRecoveryStateButton,
         g_statusOpenGameplayAcceptanceReportButton,
+        g_statusOpenFriendTrustStoreButton,
         g_statusExportMpPackageButton,
         g_statusMpImportHandoffButton,
         g_statusCopyMpVerifyButton,
@@ -1987,6 +2026,7 @@ void layoutStatusWindow(HWND hwnd)
         L"Knihovna",
         L"Crash stav",
         L"Gameplay",
+        L"SNC pratele",
         L"MP export",
         L"MP import navod",
         L"MP verify",
@@ -2150,6 +2190,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             createStatusButton(hwnd, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, L"Crash stav");
         g_statusOpenGameplayAcceptanceReportButton =
             createStatusButton(hwnd, ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, L"Gameplay");
+        g_statusOpenFriendTrustStoreButton =
+            createStatusButton(hwnd, ID_STATUS_OPEN_FRIEND_TRUST_STORE, L"SNC pratele");
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
@@ -2201,6 +2243,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusOpenCampaignLibraryPlanButton, g_statusFieldFont);
         setWindowFont(g_statusOpenCrashRecoveryStateButton, g_statusFieldFont);
         setWindowFont(g_statusOpenGameplayAcceptanceReportButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenFriendTrustStoreButton, g_statusFieldFont);
         setWindowFont(g_statusExportMpPackageButton, g_statusFieldFont);
         setWindowFont(g_statusMpImportHandoffButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpVerifyButton, g_statusFieldFont);
@@ -2259,6 +2302,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         case ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT:
             openGameplayAcceptanceReport(hwnd);
+            return 0;
+        case ID_STATUS_OPEN_FRIEND_TRUST_STORE:
+            openFriendTrustStore(hwnd);
             return 0;
         case ID_STATUS_EXPORT_MP_PACKAGE:
             requestMpPackageExportRefresh();
@@ -2530,6 +2576,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenCampaignLibraryPlanButton = nullptr;
         g_statusOpenCrashRecoveryStateButton = nullptr;
         g_statusOpenGameplayAcceptanceReportButton = nullptr;
+        g_statusOpenFriendTrustStoreButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
         g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
@@ -4672,6 +4719,22 @@ void writeStatus(
          << (companionSnapshot.crashRecovery.warningVisible ? "true" : "false") << ",\n";
     json << "  \"crash_recovery_support_report_recommended\": "
          << (companionSnapshot.crashRecovery.supportReportRecommended ? "true" : "false") << ",\n";
+    json << "  \"friend_trust_store_state\": \""
+         << jsonEscape(companionSnapshot.friendTrustStore.state) << "\",\n";
+    json << "  \"friend_trust_store_reason\": \""
+         << jsonEscape(companionSnapshot.friendTrustStore.reason) << "\",\n";
+    json << "  \"friend_trust_store_path\": \""
+         << jsonEscape(pathString(companionSnapshot.friendTrustStore.path)) << "\",\n";
+    json << "  \"friend_trust_store_trusted_count\": "
+         << companionSnapshot.friendTrustStore.trustedFriendCount << ",\n";
+    json << "  \"friend_trust_store_revoked_count\": "
+         << companionSnapshot.friendTrustStore.revokedFriendCount << ",\n";
+    json << "  \"friend_trust_store_blocked_count\": "
+         << companionSnapshot.friendTrustStore.blockedFriendCount << ",\n";
+    json << "  \"friend_trust_store_auto_sync_enabled_count\": "
+         << companionSnapshot.friendTrustStore.autoSyncEnabledCount << ",\n";
+    json << "  \"friend_trust_store_auto_sync_available\": "
+         << (companionSnapshot.friendTrustStore.autoSyncAvailable ? "true" : "false") << ",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
     json << "  \"session_id\": \"" << jsonEscape(sessionId) << "\",\n";
     json << "  \"capture_session_directory\": \"" << jsonEscape(pathString(sessionDirectory)) << "\",\n";

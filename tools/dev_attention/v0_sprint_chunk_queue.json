@@ -912,6 +912,27 @@
       "dependencies": [
         "v0-sprint-130-surface-snc-friend-trust-store-status"
       ]
+    },
+    {
+      "id": "v0-sprint-132-surface-friend-trust-store-dashboard-action",
+      "title": "Surface friend trust-store dashboard action",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / user-approved SNC friend request and acceptance workflow",
+      "goal": "Expose a visible SNC status-dashboard action that opens the local friend trust-store artifact so manual friend-pairing state is reachable before UI pairing or transport adapters exist.",
+      "acceptance": [
+        "SNC tray status JSON exposes top-level friend_trust_store state, reason, path, counts, and auto-sync fields.",
+        "The visible status dashboard includes a friend trust-store open action that is enabled only when the trust-store path exists.",
+        "The smoke test verifies the top-level friend trust-store status contract."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-131-add-manual-snc-friend-pairing-cli"
+      ]
     }
   ]
 }

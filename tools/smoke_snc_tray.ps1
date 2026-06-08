@@ -13,6 +13,7 @@ $liveStatusPath = Join-Path $repoRoot "dist\private_reports\snc_live_autosave_mo
 $nextStepsBriefPath = Join-Path $repoRoot "dist\private_reports\snc_next_steps_brief.txt"
 $privateReportsRoot = Join-Path $repoRoot "dist\private_reports"
 $supportReportPreviewPath = Join-Path $privateReportsRoot "snc_support_report_preview.txt"
+$friendTrustStorePath = Join-Path $privateReportsRoot "snc_friend_trust_store.json"
 $dslDraftPath = Join-Path $privateReportsRoot "snc_validated_dsl_draft.dsl"
 $dslDraftAuditPath = Join-Path $privateReportsRoot "snc_dsl_draft_package.json"
 $candidateDecisionPackagePath = Join-Path $privateReportsRoot "snc_candidate_decision_package.json"
@@ -78,6 +79,7 @@ $expectedStartupShortcutPathText = if ([string]::IsNullOrWhiteSpace($expectedSta
     ([string]$expectedStartup.ShortcutPath).Replace('\', '/')
 }
 $expectedSupportReportPreviewPathText = $supportReportPreviewPath.Replace('\', '/')
+$expectedFriendTrustStorePathText = "dist/private_reports/snc_friend_trust_store.json"
 
 function Get-Fnv1a64Hex {
     param([string]$Text)
@@ -777,6 +779,15 @@ try {
                 }
                 if ($summaryText -notlike "*support_report_raw_saves_included: false*") {
                     throw "SNC tray summary text did not expose support_report_raw_saves_included."
+                }
+                if ([string]::IsNullOrWhiteSpace([string]$json.friend_trust_store_state)) {
+                    throw "SNC tray status JSON did not expose friend_trust_store_state."
+                }
+                if ([string]::IsNullOrWhiteSpace([string]$json.friend_trust_store_reason)) {
+                    throw "SNC tray status JSON did not expose friend_trust_store_reason."
+                }
+                if ([string]$json.friend_trust_store_path -ne $expectedFriendTrustStorePathText) {
+                    throw "SNC tray status JSON did not expose the expected friend_trust_store_path."
                 }
                 if ($summaryText -notlike "*memory_recovery:*") {
                     throw "SNC tray summary text did not expose memory recovery state."
