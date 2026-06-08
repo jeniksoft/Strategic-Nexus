@@ -497,7 +497,7 @@
     {
       "id": "v0-sprint-111-surface-mp-handoff-recovery-guidance",
       "title": "Surface MP handoff recovery guidance",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "Release Companion MP Package UX / recovery flow for missing previous host",
       "goal": "Expose an explicit recovery hint when the previous MP host is unavailable so ordinary host and client users can see the safest next step without reading raw status text.",
@@ -534,7 +534,7 @@
     {
       "id": "v0-sprint-113-document-mp-season-validation-checklist",
       "title": "Document MP season validation checklist",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Release Companion MP Package UX / real MP season validation",
       "goal": "Add a compact owner-facing checklist for the first real multiplayer season test so Tonda knows exactly which MP handoff artifacts to inspect after the run.",
@@ -545,6 +545,25 @@
       ],
       "preferred_tests": [
         "rg -n \"snc_next_steps_brief|real_session_v0_loop_evidence|real_session_v0_next_steps|MP season validation\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md docs/DEVELOPMENT_ROADMAP.md"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-114-surface-mp-package-export-action",
+      "title": "Surface MP package export action",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Release Companion MP Package UX / owner-facing export action",
+      "goal": "Expose an explicit MP export action in the visible status dashboard so host and client users can rerun the package export flow without hunting the refresh path.",
+      "acceptance": [
+        "The visible status dashboard includes an explicit MP export action/button.",
+        "Clicking the action reruns the existing safe export/refresh flow and keeps the rest of the MP handoff controls intact.",
+        "The new action fails closed when the export path is not available."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
     }
