@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-08T00:22:00+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: implement allowlisted event-family branch compiler tests in the reactive-policy-pack slice so the next real gameplay branch can be validated cleanly.",
+  "updated_at": "2026-06-08T00:45:53.7765430+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Next bounded gap: wire the base on_action dispatcher for the allowlisted reactive families so the next real gameplay branch can be validated cleanly.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the next bounded gap is the allowlisted event-family branch compiler-test slice from the reactive-policy-pack roadmap path.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the next bounded gap is the base on_action dispatcher wiring slice from the reactive-policy-pack roadmap path.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -130,7 +130,7 @@
     {
       "id": "v0-sprint-091-refresh-roadmap-reactive-family-coverage",
       "title": "Refresh reactive family roadmap note",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Development roadmap / reactive policy-pack compiler coverage note",
       "goal": "Record the newly verified allowlisted reactive event-family coverage in the roadmap and point the next worker-ready slice at the remaining base on_action dispatcher wiring.",
@@ -143,6 +143,42 @@
         "rg -n \"war_started|country_attacked|monthly_strategy_tick\" docs/DEVELOPMENT_ROADMAP.md"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-092-wire-base-on_action-dispatcher-for-allowlisted-reactive-families",
+      "title": "Wire base on_action dispatcher for reactive families",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "Reactive policy-pack architecture / base on_action dispatcher wiring",
+      "goal": "Wire the remaining base on_action dispatcher path so the allowlisted reactive families route through the generated overlay path without reopening unallowlisted event families.",
+      "acceptance": [
+        "The base on_action dispatcher routes the allowlisted reactive families through the generated overlay branch path.",
+        "Unallowlisted event-family inputs remain fail-closed and do not open new runtime branches.",
+        "The change remains bounded to the reactive-policy-pack dispatcher wiring slice and its regression coverage."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-093-verify-startup-shortcut-toggle-contract",
+      "title": "Verify startup shortcut toggle contract",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Startup shortcut toggle contract in SNC status and tray surfaces",
+      "goal": "Verify that SNC status, tray, and brief outputs keep the startup shortcut toggle surface explicit, including the shortcut state, command-hint source, and active install/remove guidance for installed, missing, and unavailable shortcut paths.",
+      "acceptance": [
+        "Status, tray, and brief outputs keep start_with_windows_shortcut_state explicit.",
+        "Status, tray, and brief outputs keep start_with_windows_command_hint_source explicit.",
+        "Status, tray, and brief outputs keep the active install/remove hint explicit and fail closed for installed, missing, and unavailable shortcut paths."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-092-wire-base-on_action-dispatcher-for-allowlisted-reactive-families"
+      ]
     }
   ]
 }
