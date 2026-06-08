@@ -64,6 +64,7 @@ constexpr UINT ID_TRAY_EXIT = 103;
 constexpr UINT ID_TRAY_PUBLISH_GENERATED_OVERLAY = 104;
 constexpr UINT ID_TRAY_TOGGLE_STARTUP = 105;
 constexpr UINT ID_TRAY_SUPPORT_REPORT = 106;
+constexpr UINT ID_TRAY_OPEN_MP_PACKAGE = 107;
 constexpr UINT ID_STATUS_REFRESH = 201;
 constexpr UINT ID_STATUS_COPY = 202;
 constexpr UINT ID_STATUS_OPEN_ARCHIVE = 203;
@@ -122,6 +123,18 @@ struct StatusDashboardData {
     std::wstring crashRecoveryState;
     std::wstring crashRecoveryReason;
     std::wstring crashRecoveryPath;
+    std::wstring humanControlGuardState;
+    std::wstring mpPackageRefreshState;
+    std::wstring mpPackageRefreshReason;
+    std::wstring mpPackageDirectory;
+    std::wstring mpPackageZipPath;
+    std::wstring mpPackageZipState;
+    std::wstring mpPackageZipReason;
+    std::wstring mpPackageManifestHash;
+    std::wstring mpPackageHostNextStep;
+    std::wstring mpPackageClientNextStep;
+    std::wstring mpPackageHostReadiness;
+    std::wstring mpPackageClientReadinessGate;
 };
 
 struct DashboardSectionSpec {
@@ -822,6 +835,41 @@ void dragStatusScrollbarThumb(HWND hwnd, const POINT point)
     }
 }
 
+void invalidateStatusScrollbarRect(HWND hwnd, const RECT& rect)
+{
+    if (hwnd == nullptr || !IsWindow(hwnd) || IsRectEmpty(&rect)) {
+        return;
+    }
+
+    RECT paddedRect = rect;
+    InflateRect(&paddedRect, 2, 2);
+    InvalidateRect(hwnd, &paddedRect, TRUE);
+}
+
+void invalidateStatusScrollbarTransition(HWND hwnd, const StatusCustomScrollbar& previous, const StatusCustomScrollbar& current)
+{
+    if (IsRectEmpty(&previous.trackRect)) {
+        invalidateStatusScrollbarRect(hwnd, current.trackRect);
+        return;
+    }
+    if (IsRectEmpty(&current.trackRect)) {
+        invalidateStatusScrollbarRect(hwnd, previous.trackRect);
+        return;
+    }
+
+    RECT invalidateRect = previous.trackRect;
+    UnionRect(&invalidateRect, &invalidateRect, &current.trackRect);
+    invalidateStatusScrollbarRect(hwnd, invalidateRect);
+}
+
+void invalidateStatusCustomScrollbarAreas(HWND hwnd)
+{
+    for (const auto& scrollbar : g_statusFieldScrollbars) {
+        invalidateStatusScrollbarRect(hwnd, scrollbar.trackRect);
+    }
+    invalidateStatusScrollbarRect(hwnd, g_statusDetailsScrollbar.trackRect);
+}
+
 void syncStatusCustomScrollbars(HWND hwnd, const bool forceInvalidate)
 {
     if (hwnd == nullptr || !IsWindow(hwnd)) {
@@ -841,9 +889,7 @@ void syncStatusCustomScrollbars(HWND hwnd, const bool forceInvalidate)
             !EqualRect(&previous.trackRect, &scrollbar.trackRect) ||
             !EqualRect(&previous.thumbRect, &scrollbar.thumbRect) ||
             previous.visible != scrollbar.visible) {
-            RECT invalidateRect = previous.trackRect;
-            UnionRect(&invalidateRect, &invalidateRect, &scrollbar.trackRect);
-            InvalidateRect(hwnd, &invalidateRect, FALSE);
+            invalidateStatusScrollbarTransition(hwnd, previous, scrollbar);
         }
     }
 
@@ -855,9 +901,7 @@ void syncStatusCustomScrollbars(HWND hwnd, const bool forceInvalidate)
             !EqualRect(&previous.trackRect, &g_statusDetailsScrollbar.trackRect) ||
             !EqualRect(&previous.thumbRect, &g_statusDetailsScrollbar.thumbRect) ||
             previous.visible != g_statusDetailsScrollbar.visible) {
-            RECT invalidateRect = previous.trackRect;
-            UnionRect(&invalidateRect, &invalidateRect, &g_statusDetailsScrollbar.trackRect);
-            InvalidateRect(hwnd, &invalidateRect, FALSE);
+            invalidateStatusScrollbarTransition(hwnd, previous, g_statusDetailsScrollbar);
         }
     }
 
@@ -968,6 +1012,7 @@ StatusDashboardData loadStatusDashboardData()
     data.crashRecoveryState = L"\u2014";
     data.crashRecoveryReason = L"\u2014";
     data.crashRecoveryPath = g_crashRecoveryStatePath.empty() ? L"\u2014" : utf8ToWide(pathString(g_crashRecoveryStatePath));
+    data.humanControlGuardState = L"\u2014";
 
     std::string json;
     if (!strategic_nexus::common::tryReadTextFile(g_trayStatusPath, json)) {
@@ -1087,6 +1132,21 @@ StatusDashboardData loadStatusDashboardData()
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_reason").value_or(""));
     data.crashRecoveryPath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_state_path").value_or(""));
+    const std::string humanControlGuardState = summaryValue("human_control_guard_state");
+    if (!humanControlGuardState.empty()) {
+        data.humanControlGuardState = utf8ToWide(humanControlGuardState);
+    }
+    data.mpPackageRefreshState = utf8ToWide(summaryValue("mp_package_refresh_state"));
+    data.mpPackageRefreshReason = utf8ToWide(summaryValue("mp_package_refresh_reason"));
+    data.mpPackageDirectory = utf8ToWide(summaryValue("mp_overlay_package_directory"));
+    data.mpPackageZipPath = utf8ToWide(summaryValue("mp_package_zip_runtime_path"));
+    data.mpPackageZipState = utf8ToWide(summaryValue("mp_package_zip_state"));
+    data.mpPackageZipReason = utf8ToWide(summaryValue("mp_package_zip_reason"));
+    data.mpPackageManifestHash = utf8ToWide(summaryValue("mp_package_manifest_hash"));
+    data.mpPackageHostNextStep = utf8ToWide(summaryValue("mp_host_next_step"));
+    data.mpPackageClientNextStep = utf8ToWide(summaryValue("mp_client_next_step"));
+    data.mpPackageHostReadiness = utf8ToWide(summaryValue("mp_host_readiness"));
+    data.mpPackageClientReadinessGate = utf8ToWide(summaryValue("mp_client_readiness_gate"));
     return data;
 }
 
@@ -1112,6 +1172,8 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.crashRecoveryReason.empty() ? kStatusEmptyValue : data.crashRecoveryReason;
     text += L"\r\nRecovery cesta: ";
     text += data.crashRecoveryPath.empty() ? kStatusEmptyValue : data.crashRecoveryPath;
+    text += L"\r\nHuman control guard: ";
+    text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     return text;
 }
 
@@ -1130,6 +1192,40 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"Hint: " + data.nextHint + L"\n";
     text += L"Support report: " + data.supportReportState + L"\n";
     text += L"Crash recovery: " + data.crashRecoveryState;
+    text += L"\nHuman control guard: ";
+    text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
+    if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
+        text += L"\nMP package: ";
+        text += data.mpPackageRefreshState.empty() ? kStatusEmptyValue : data.mpPackageRefreshState;
+        if (!data.mpPackageRefreshReason.empty()) {
+            text += L" (" + data.mpPackageRefreshReason + L")";
+        }
+        text += L"\nMP cesta: ";
+        text += data.mpPackageDirectory.empty() ? kStatusEmptyValue : data.mpPackageDirectory;
+        text += L"\nMP zip: ";
+        text += data.mpPackageZipPath.empty() ? kStatusEmptyValue : data.mpPackageZipPath;
+        if (!data.mpPackageZipState.empty()) {
+            text += L"\nMP zip stav: " + data.mpPackageZipState;
+            if (!data.mpPackageZipReason.empty()) {
+                text += L" (" + data.mpPackageZipReason + L")";
+            }
+        }
+        if (!data.mpPackageManifestHash.empty()) {
+            text += L"\nMP manifest hash: " + data.mpPackageManifestHash;
+        }
+        if (!data.mpPackageHostReadiness.empty()) {
+            text += L"\nMP host readiness: " + data.mpPackageHostReadiness;
+        }
+        if (!data.mpPackageClientReadinessGate.empty()) {
+            text += L"\nMP client gate: " + data.mpPackageClientReadinessGate;
+        }
+        if (!data.mpPackageHostNextStep.empty()) {
+            text += L"\nMP host krok: " + data.mpPackageHostNextStep;
+        }
+        if (!data.mpPackageClientNextStep.empty()) {
+            text += L"\nMP client krok: " + data.mpPackageClientNextStep;
+        }
+    }
     return text;
 }
 
@@ -1352,7 +1448,7 @@ void refreshStatusWindowContent()
     updateStatusCaptionButtons(g_statusWindow);
     syncStatusCustomScrollbars(g_statusWindow, true);
 
-    RedrawWindow(g_statusWindow, nullptr, nullptr, RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_FRAME);
+    RedrawWindow(g_statusWindow, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 }
 
 void requestStatusWindowRefresh()
@@ -1394,6 +1490,8 @@ void applyWindowIcons(HWND hwnd)
 
 void layoutStatusWindow(HWND hwnd)
 {
+    invalidateStatusCustomScrollbarAreas(hwnd);
+
     RECT client{};
     GetClientRect(hwnd, &client);
 
@@ -1601,6 +1699,7 @@ void layoutStatusWindow(HWND hwnd)
     }
 
     syncStatusCustomScrollbars(hwnd, true);
+    RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
 }
 
 void registerStatusWindowClass()
@@ -2267,6 +2366,7 @@ void appendMpPackageSummaryLines(
     if (!mpOverlayPackage.provenanceState.empty()) {
         output << "mp_provenance_state: " << mpOverlayPackage.provenanceState << "\n";
     }
+    output << "human_control_guard_state: " << mpOverlayPackage.humanControlGuardState << "\n";
     output << "mp_source_quality_count: " << mpOverlayPackage.sourceQualities.size() << "\n";
     for (const auto& sourceQuality : mpOverlayPackage.sourceQualities) {
         output << "mp_source_quality: " << sourceQuality << "\n";
@@ -3532,6 +3632,9 @@ void writeNextStepsBrief(
         brief << " (" << mpOverlayPackage.reason << ")";
     }
     brief << "\n";
+    brief << "- Human control guard: ";
+    brief << (mpOverlayPackage.humanControlGuardState.empty() ? std::string("unknown") : mpOverlayPackage.humanControlGuardState)
+          << "\n";
     brief << "- MP previous host available: "
           << (mpOverlayPackage.previousHostAvailable ? "ano" : "ne") << "\n";
     brief << "- MP previous host availability known: "
@@ -4131,6 +4234,8 @@ void writeStatus(
     json << "  \"mp_overlay_package_zip_hash\": \"" << jsonEscape(companionSnapshot.mpOverlayPackage.packageZipHash) << "\",\n";
     json << "  \"mp_overlay_package_zip_runtime_path\": \"" << jsonEscape(pathString(companionSnapshot.mpOverlayPackage.packageZipPath)) << "\",\n";
     json << "  \"mp_overlay_package_zip_bytes\": " << companionSnapshot.mpOverlayPackage.packageZipBytes << ",\n";
+    json << "  \"human_control_guard_state\": \""
+         << jsonEscape(companionSnapshot.mpOverlayPackage.humanControlGuardState) << "\",\n";
     json << "  \"status_center_state\": \"" << jsonEscape(state) << "\",\n";
     json << "  \"status_center_reason\": \"" << jsonEscape(reason) << "\",\n";
     json << "  \"status_center_summary_text\": \"" << jsonEscape(statusCenterSummaryText) << "\",\n";
@@ -4766,6 +4871,13 @@ void openArchiveDirectory()
     ShellExecuteW(nullptr, L"open", g_archiveRoot.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
+void openMpOverlayPackageDirectory()
+{
+    std::error_code error;
+    std::filesystem::create_directories(g_mpOverlayPackageDirectory, error);
+    ShellExecuteW(nullptr, L"open", g_mpOverlayPackageDirectory.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+}
+
 void publishStagedGeneratedOverlay(HWND hwnd)
 {
     if (!std::filesystem::exists(g_generatedOverlayStagingStatusPath)) {
@@ -4853,6 +4965,7 @@ void showTrayMenu(HWND hwnd)
         startupLabel.c_str());
     AppendMenuW(menu, MF_STRING, ID_TRAY_SUPPORT_REPORT, buildSupportReportMenuLabel().c_str());
     AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_ARCHIVE, L"Otevrit archiv");
+    AppendMenuW(menu, MF_STRING, ID_TRAY_OPEN_MP_PACKAGE, L"Otevrit MP package");
     AppendMenuW(menu, MF_STRING, ID_TRAY_PUBLISH_GENERATED_OVERLAY, L"Publikovat staged overlay");
     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(menu, MF_STRING, ID_TRAY_EXIT, L"Konec");
@@ -4889,6 +5002,9 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
             return 0;
         case ID_TRAY_OPEN_ARCHIVE:
             openArchiveDirectory();
+            return 0;
+        case ID_TRAY_OPEN_MP_PACKAGE:
+            openMpOverlayPackageDirectory();
             return 0;
         case ID_TRAY_PUBLISH_GENERATED_OVERLAY:
             publishStagedGeneratedOverlay(hwnd);
