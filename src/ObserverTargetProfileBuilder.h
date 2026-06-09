@@ -43,6 +43,9 @@ struct ObserverTargetProfile {
     double confidence = 0.0;
     bool summaryOnly = true;
     std::vector<std::string> evidenceReferences;
+    std::string targetMemorySummary;
+    double targetMemorySummaryConfidence = 0.0;
+    std::string targetMemorySummaryConfidenceBand;
     std::vector<std::string> allowedRuleDomains;
     std::vector<std::string> targetSpecificRuleCandidates;
     ObserverTargetRuleCandidateValidation ruleCandidateValidation;

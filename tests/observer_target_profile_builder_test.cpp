@@ -47,6 +47,10 @@ int main()
         requireCondition(profile.sourceBriefQuality == "metadata_plus_save_headline", "profile should preserve source brief quality");
         requireCondition(profile.summaryOnly, "profile should remain summary-only at contract stage");
         requireCondition(profile.evidenceReferences.size() == 3, "profile should gather evidence references from brief facts and uncertainties");
+        requireCondition(profile.targetMemorySummaryConfidence == 0.42, "profile should carry the target memory summary confidence");
+        requireCondition(profile.targetMemorySummaryConfidenceBand == "low", "profile should classify the summary confidence band");
+        requireCondition(profile.targetMemorySummary.find("target_empire_002") != std::string::npos, "profile should describe the target empire in the memory summary");
+        requireCondition(profile.targetMemorySummary.find("confidence_band=low") != std::string::npos, "profile should describe the confidence band in the memory summary");
         requireCondition(profile.allowedRuleDomains.size() == 4, "profile should advertise bounded allowed rule domains");
         requireCondition(profile.targetSpecificRuleCandidates.empty(), "profile should not emit gameplay rule candidates yet");
         requireCondition(!profile.ruleCandidateValidation.ready, "profile should keep candidate validation locked at summary-only stage");
@@ -63,6 +67,9 @@ int main()
         requireCondition(json.find("\"observer_empire_id\": \"observer_empire_001\"") != std::string::npos, "profile JSON should include observer empire id");
         requireCondition(json.find("\"target_empire_id\": \"target_empire_002\"") != std::string::npos, "profile JSON should include target empire id");
         requireCondition(json.find("\"summary_only\": true") != std::string::npos, "profile JSON should preserve summary-only contract");
+        requireCondition(json.find("\"target_memory_summary\": \"summary_only target memory for target_empire_002") != std::string::npos, "profile JSON should include target memory summary");
+        requireCondition(json.find("\"target_memory_summary_confidence\": 0.42") != std::string::npos, "profile JSON should include target memory summary confidence");
+        requireCondition(json.find("\"target_memory_summary_confidence_band\": \"low\"") != std::string::npos, "profile JSON should include target memory summary confidence band");
         requireCondition(json.find("\"field_availability\": [") != std::string::npos, "profile JSON should include field availability");
         requireCondition(json.find("\"rule_candidate_validation\": {") != std::string::npos, "profile JSON should include candidate validation scaffold");
         requireCondition(json.find("\"allowed_rule_domains\": [") != std::string::npos, "profile JSON should include allowed rule domains");

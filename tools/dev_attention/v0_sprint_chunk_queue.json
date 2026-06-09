@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-09T20:37:35+02:00",
+  "updated_at": "2026-06-09T20:55:07+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, and visible outbox-plan template action are implemented. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. Current queue refresh adds the first observer-target profile scaffold so 3A has a claimable summary-only contract follow-up after the initial contract slice.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, and visible outbox-plan template action are implemented. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract; the next worker-ready follow-up is actual target-specific interpretation before gameplay-affecting rule candidates.",
   "chunks": [
     {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
@@ -1606,7 +1606,7 @@
     {
       "id": "v0-sprint-166-observer-target-rule-candidate-validation-scaffold",
       "title": "Observer-target rule candidate scaffold",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "3A Subjective Other-Empire Profiles And Targeted Rules",
       "goal": "Add a fail-closed scaffold for target-specific observer-target rule candidates that keeps the summary-only profile contract intact while exposing explicit candidate-domain validation hooks for later gameplay-safe generation.",
@@ -1619,6 +1619,25 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-167-observer-target-interpretation-summary",
+      "title": "Observer-target interpretation summary",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "3A Subjective Other-Empire Profiles And Targeted Rules",
+      "goal": "Add a deterministic target-specific interpretation summary on the observer-target profile contract so the profile can expose a cautious, confidence-scored memory note before gameplay-affecting rule generation exists.",
+      "acceptance": [
+        "The observer-target profile contract exposes a deterministic target-specific interpretation summary and keeps it separate from gameplay-affecting rule candidates.",
+        "Missing evidence, invalid confidence, or unsupported source quality still fail closed and keep the summary-only contract intact.",
+        "The next worker can claim this chunk without reinterpreting the 3A summary-only profile contract from scratch."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-166-observer-target-rule-candidate-validation-scaffold"
+      ]
     }
   ]
 }

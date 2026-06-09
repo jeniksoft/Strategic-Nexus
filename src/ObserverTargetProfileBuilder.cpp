@@ -135,6 +135,33 @@ std::vector<ObserverTargetFieldAvailability> buildFieldAvailability(
     return availability;
 }
 
+std::string confidenceBandFor(const double confidence)
+{
+    if (confidence >= 0.75) {
+        return "high";
+    }
+
+    if (confidence >= 0.45) {
+        return "moderate";
+    }
+
+    return "low";
+}
+
+std::string buildTargetMemorySummary(
+    const ObserverTargetProfile& profile,
+    const std::size_t evidenceCount)
+{
+    std::ostringstream output;
+    output << "summary_only target memory for "
+           << (hasNonWhitespace(profile.targetEmpireId) ? profile.targetEmpireId : "unknown_target")
+           << "; evidence_count=" << evidenceCount
+           << "; source_quality=" << profile.sourceBriefQuality
+           << "; confidence_band=" << profile.targetMemorySummaryConfidenceBand
+           << "; gameplay_rule_candidates=blocked";
+    return output.str();
+}
+
 } // namespace
 
 bool ObserverTargetRuleCandidateValidation::allowsDomain(const std::string& domain) const
@@ -211,6 +238,9 @@ ObserverTargetProfile ObserverTargetProfileBuilder::build(
 
     profile.ok = true;
     profile.reason = "accepted summary-only observer-target profile";
+    profile.targetMemorySummaryConfidence = confidence;
+    profile.targetMemorySummaryConfidenceBand = confidenceBandFor(confidence);
+    profile.targetMemorySummary = buildTargetMemorySummary(profile, profile.evidenceReferences.size());
     profile.missingInformation = observerBrief.missingInformation;
     profile.missingInformation.push_back("observer_target_relationship_delta_not_generated_yet");
     profile.missingInformation.push_back("target_specific_rule_generation_not_implemented_yet");
@@ -243,6 +273,9 @@ std::string serializeObserverTargetProfile(const ObserverTargetProfile& profile)
     json << "    \"general_trust_summary\": \"" << jsonEscape(profile.relationshipDelta.generalTrustSummary) << "\",\n";
     json << "    \"predicted_future_behavior_summary\": \"" << jsonEscape(profile.relationshipDelta.predictedFutureBehaviorSummary) << "\"\n";
     json << "  },\n";
+    json << "  \"target_memory_summary\": \"" << jsonEscape(profile.targetMemorySummary) << "\",\n";
+    json << "  \"target_memory_summary_confidence\": " << profile.targetMemorySummaryConfidence << ",\n";
+    json << "  \"target_memory_summary_confidence_band\": \"" << jsonEscape(profile.targetMemorySummaryConfidenceBand) << "\",\n";
     json << "  \"rule_candidate_validation\": {\n";
     json << "    \"ready\": " << (profile.ruleCandidateValidation.ready ? "true" : "false") << ",\n";
     writeStringArray(json, "candidate_domains", profile.ruleCandidateValidation.candidateDomains, true);
