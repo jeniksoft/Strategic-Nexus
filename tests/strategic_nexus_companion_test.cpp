@@ -560,6 +560,12 @@ int main()
             ready.friendTrustStore.mpSyncTransportNextStep.find("strict verify") != std::string::npos,
         "friend trust store status should expose the manual friend MP sync transport next step");
     requireCondition(
+        ready.friendTrustStore.mpSyncPreflightChecklist.find("current MP package ZIP") != std::string::npos &&
+            ready.friendTrustStore.mpSyncPreflightChecklist.find("friend MP sync envelope metadata") != std::string::npos &&
+            ready.friendTrustStore.mpSyncPreflightChecklist.find("inbox/outbox plan checks") != std::string::npos &&
+            ready.friendTrustStore.mpSyncPreflightChecklist.find("automatic sync stays disabled") != std::string::npos,
+        "friend trust store status should expose a friend MP sync preflight checklist");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
         "status center summary should expose friend trust store auto-sync count");
     requireCondition(
@@ -583,6 +589,10 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_transport_next_step: Use manual MP package export/import and strict verify") != std::string::npos,
         "status center summary should expose disabled friend MP sync transport next step");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_preflight_checklist: Before a friend MP season") != std::string::npos &&
+            ready.statusCenterSummaryText.find("run inbox/outbox plan checks with Stellaris closed") != std::string::npos,
+        "status center summary should expose friend MP sync preflight checklist");
     auto brokenFriendConfig = readyConfig;
     brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
     const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);
@@ -2689,6 +2699,10 @@ int main()
         requireCondition(
             content.find("\"mp_sync_transport_reason\": \"signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled\"") != std::string::npos,
             "status snapshot should include disabled friend MP sync transport reason");
+        requireCondition(
+            content.find("\"mp_sync_preflight_checklist\": \"Before a friend MP season") != std::string::npos &&
+                content.find("run inbox/outbox plan checks with Stellaris closed") != std::string::npos,
+            "status snapshot should include friend MP sync preflight checklist");
         requireCondition(
             content.find("[friend_auto_sync_enabled:true|false]") != std::string::npos,
             "status snapshot should include friend MP sync plan auto-sync input");

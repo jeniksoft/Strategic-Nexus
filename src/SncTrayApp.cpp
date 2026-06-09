@@ -154,6 +154,7 @@ struct StatusDashboardData {
     std::wstring friendMpSyncTransportState;
     std::wstring friendMpSyncTransportReason;
     std::wstring friendMpSyncTransportNextStep;
+    std::wstring friendMpSyncPreflightChecklist;
     std::wstring humanControlGuardState;
     std::wstring mpPackageRefreshState;
     std::wstring mpPackageRefreshReason;
@@ -1275,6 +1276,8 @@ StatusDashboardData loadStatusDashboardData()
     data.friendMpSyncTransportState = L"disabled_not_implemented";
     data.friendMpSyncTransportReason =
         L"signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
+    data.friendMpSyncPreflightChecklist =
+        L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled.";
     data.humanControlGuardState = L"\u2014";
 
     std::string json;
@@ -1437,6 +1440,12 @@ StatusDashboardData loadStatusDashboardData()
         data.friendMpSyncTransportNextStep =
             L"Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.";
     }
+    data.friendMpSyncPreflightChecklist =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_preflight_checklist").value_or(""));
+    if (data.friendMpSyncPreflightChecklist.empty()) {
+        data.friendMpSyncPreflightChecklist =
+            L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled.";
+    }
     const std::string humanControlGuardState = summaryValue("human_control_guard_state");
     if (!humanControlGuardState.empty()) {
         data.humanControlGuardState = utf8ToWide(humanControlGuardState);
@@ -1513,6 +1522,8 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.friendMpSyncTransportReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportReason;
     text += L"\r\nSNC MP sync transport dalsi krok: ";
     text += data.friendMpSyncTransportNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportNextStep;
+    text += L"\r\nSNC MP sync preflight: ";
+    text += data.friendMpSyncPreflightChecklist.empty() ? kStatusEmptyValue : data.friendMpSyncPreflightChecklist;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -1609,6 +1620,10 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += data.friendMpSyncTransportState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportState;
     text += L"\nSNC MP sync transport duvod: ";
     text += data.friendMpSyncTransportReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportReason;
+    text += L"\nSNC MP sync transport dalsi krok: ";
+    text += data.friendMpSyncTransportNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportNextStep;
+    text += L"\nSNC MP sync preflight: ";
+    text += data.friendMpSyncPreflightChecklist.empty() ? kStatusEmptyValue : data.friendMpSyncPreflightChecklist;
     text += L"\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -4368,6 +4383,8 @@ std::string buildStatusCenterSummaryText(
             << friendTrustStore.mpSyncTransportReason << "\n";
     summary << "friend_mp_sync_transport_next_step: "
             << friendTrustStore.mpSyncTransportNextStep << "\n";
+    summary << "friend_mp_sync_preflight_checklist: "
+            << friendTrustStore.mpSyncPreflightChecklist << "\n";
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -5066,6 +5083,8 @@ void writeStatus(
          << jsonEscape("signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") << "\",\n";
     json << "  \"friend_mp_sync_transport_next_step\": \""
          << jsonEscape(companionSnapshot.friendTrustStore.mpSyncTransportNextStep) << "\",\n";
+    json << "  \"friend_mp_sync_preflight_checklist\": \""
+         << jsonEscape(companionSnapshot.friendTrustStore.mpSyncPreflightChecklist) << "\",\n";
     json << "  \"friend_pairing_guide_text\": \""
          << jsonEscape(buildFriendPairingGuideTextUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";

@@ -317,6 +317,8 @@ struct CompanionFriendTrustStoreStatus {
         "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
     std::string mpSyncTransportNextStep =
         "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.";
+    std::string mpSyncPreflightChecklist =
+        "Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled.";
     bool autoSyncAvailable = false;
 };
 

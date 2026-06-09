@@ -2963,6 +2963,10 @@ std::string buildStatusCenterSummaryText(
         text << "friend_mp_sync_transport_next_step: "
              << friendTrustStore.mpSyncTransportNextStep << "\n";
     }
+    if (!friendTrustStore.mpSyncPreflightChecklist.empty()) {
+        text << "friend_mp_sync_preflight_checklist: "
+             << friendTrustStore.mpSyncPreflightChecklist << "\n";
+    }
     if (monthlyReactiveOwnerTestReady) {
         text << "owner_test_contract_state: ready_for_monthly_reactive_session_test\n";
         text << "owner_test_scope: load_or_resume_a_real_non_ironman_session_with_the_current_published_overlay_and_wait_for_the_next_monthly_pulse\n";
@@ -3305,6 +3309,8 @@ void writeFriendTrustStoreJson(
            << jsonString(status.mpSyncTransportReason) << ",\n";
     output << indent << "  \"mp_sync_transport_next_step\": "
            << jsonString(status.mpSyncTransportNextStep) << ",\n";
+    output << indent << "  \"mp_sync_preflight_checklist\": "
+           << jsonString(status.mpSyncPreflightChecklist) << ",\n";
     output << indent << "  \"auto_sync_available\": "
            << (status.autoSyncAvailable ? "true" : "false") << "\n";
     output << indent << "}";
