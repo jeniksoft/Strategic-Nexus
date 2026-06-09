@@ -3089,6 +3089,15 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     if (memoryRecoveryNeedsAttention(snapshot)) {
         return "review_memory_recovery_status";
     }
+    if (snapshot.localLlm.state == "model_incompatible_with_hardware" ||
+        snapshot.localLlm.state == "no_model_installed" ||
+        snapshot.localLlm.state == "model_missing" ||
+        snapshot.localLlm.state == "model_license_not_supported" ||
+        snapshot.localLlm.state == "model_license_requires_user_action" ||
+        snapshot.localLlm.state == "model_runtime_failed" ||
+        snapshot.localLlm.state == "model_changed_revalidation_needed") {
+        return "review_local_llm_model_manager";
+    }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
         return "review_staged_overlay_status";
     }
@@ -3138,6 +3147,15 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
         return snapshot.postPlayPipeline.memoryRecovery.reason.empty()
             ? snapshot.postPlayPipeline.memoryRecovery.state
             : snapshot.postPlayPipeline.memoryRecovery.reason;
+    }
+    if (snapshot.localLlm.state == "model_incompatible_with_hardware" ||
+        snapshot.localLlm.state == "no_model_installed" ||
+        snapshot.localLlm.state == "model_missing" ||
+        snapshot.localLlm.state == "model_license_not_supported" ||
+        snapshot.localLlm.state == "model_license_requires_user_action" ||
+        snapshot.localLlm.state == "model_runtime_failed" ||
+        snapshot.localLlm.state == "model_changed_revalidation_needed") {
+        return snapshot.localLlm.reason.empty() ? snapshot.localLlm.state : snapshot.localLlm.reason;
     }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
         return "staged_overlay_written_but_publish_gate_not_ready";
@@ -3240,6 +3258,20 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
     }
     if (hasDegradedMpHandoffContinuity(snapshot) || snapshot.mpOverlayPackage.state == "needs_attention") {
         return snapshot.mpOverlayPackage.path;
+    }
+    if (snapshot.localLlm.state == "model_incompatible_with_hardware" ||
+        snapshot.localLlm.state == "no_model_installed" ||
+        snapshot.localLlm.state == "model_missing" ||
+        snapshot.localLlm.state == "model_license_not_supported" ||
+        snapshot.localLlm.state == "model_license_requires_user_action" ||
+        snapshot.localLlm.state == "model_runtime_failed" ||
+        snapshot.localLlm.state == "model_changed_revalidation_needed") {
+        if (!snapshot.localLlm.modelStatePath.empty()) {
+            return snapshot.localLlm.modelStatePath;
+        }
+        if (!snapshot.localLlm.localPath.empty()) {
+            return snapshot.localLlm.localPath;
+        }
     }
     if (snapshot.generatedOverlayPublishGate.canPublish) {
         return snapshot.generatedOverlayPublishGate.stagingStatusPath.empty()

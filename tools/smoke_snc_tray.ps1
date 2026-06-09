@@ -795,6 +795,20 @@ try {
                 if ($summaryText -notlike "*local_llm_install_guidance:*") {
                     throw "SNC tray summary text did not expose local_llm_install_guidance."
                 }
+                if ([string]::IsNullOrWhiteSpace([string]$json.local_llm_model_state_path)) {
+                    throw "SNC tray status JSON did not expose local_llm_model_state_path."
+                }
+                if ($summaryText -notlike "*local_llm_model_state_path:*") {
+                    throw "SNC tray summary text did not expose local_llm_model_state_path."
+                }
+                if ([string]$json.next_action -eq "review_local_llm_model_manager") {
+                    if ([string]$json.next_action_command_hint_source -ne "local_llm_model_state_path") {
+                        throw "SNC tray local LLM attention state did not expose local_llm_model_state_path as the next-action hint source."
+                    }
+                    if ([string]$json.next_action_path -ne [string]$json.local_llm_model_state_path) {
+                        throw "SNC tray local LLM attention state did not point next_action_path at local_llm_model_state_path."
+                    }
+                }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_trust_store_state)) {
                     throw "SNC tray status JSON did not expose friend_trust_store_state."
                 }

@@ -177,6 +177,7 @@ struct StatusDashboardData {
     std::wstring modelMode;
     std::wstring modelInstallGuidance;
     std::wstring modelPrepareCommand;
+    std::wstring modelStatePath;
     std::wstring nextAction;
     std::string nextActionRaw;
     std::wstring nextReason;
@@ -861,6 +862,7 @@ std::wstring formatOwnerFacingStatusValue(const std::string& value)
         {"review_staged_overlay_status", {L"Zkontrolovat stav overlaye", L"Review overlay status"}},
         {"review_dsl_draft", {L"Zkontrolovat DSL draft", L"Review DSL draft"}},
         {"review_candidate_decision_package", {L"Zkontrolovat kandid\u00E1tn\u00ED rozhodnut\u00ED", L"Review candidate decisions"}},
+        {"review_local_llm_model_manager", {L"Zkontrolovat spr\u00E1vu local LLM modelu", L"Review local LLM model manager"}},
         {"review_entry_point_ambiguity", {L"Vy\u0159e\u0161it nejednozna\u010Dn\u00FD vstupn\u00ED bod", L"Resolve ambiguous entry point"}},
         {"review_entry_point_analysis_failure", {L"Zkontrolovat anal\u00FDzu vstupn\u00EDch bod\u016F", L"Review entry point analysis"}},
         {"review_tray_status", {L"Zkontrolovat stav SNC", L"Review SNC status"}},
@@ -2181,6 +2183,7 @@ StatusDashboardData loadStatusDashboardData()
     const std::string recommendedModelId = summaryValue("local_llm_recommended_model_id");
     const std::string recommendedRuntime = summaryValue("local_llm_recommended_runtime");
     data.modelPrepareCommand = utf8ToWide(summaryValue("local_llm_prepare_command_hint"));
+    data.modelStatePath = utf8ToWide(summaryValue("local_llm_model_state_path"));
     std::vector<std::wstring> recommendationParts;
     if (!recommendedDisplayName.empty()) {
         recommendationParts.push_back(utf8ToWide(recommendedDisplayName));
@@ -2490,6 +2493,7 @@ std::wstring buildStatusPageDetailsText(const StatusPageId page, const StatusDas
         addLine(text, L"Doporuceni: ", data.modelRecommendation);
         addLine(text, L"Rezim: ", data.modelMode);
         addLine(text, L"Instalace: ", data.modelInstallGuidance);
+        addLine(text, L"Model cesta: ", data.modelStatePath);
         if (!data.modelPrepareCommand.empty()) {
             addLine(text, L"Priprava prikaz: ", data.modelPrepareCommand);
         }
@@ -5112,6 +5116,9 @@ std::string buildNextAction(
     if (companionNextAction == "run_monthly_reactive_owner_test") {
         return companionNextAction;
     }
+    if (companionNextAction == "review_local_llm_model_manager") {
+        return companionNextAction;
+    }
     if (generatedOverlayPublishGateState == "published") {
         return "review_tray_status";
     }
@@ -5163,6 +5170,9 @@ std::string buildNextActionReason(
     if (companionNextAction == "run_monthly_reactive_owner_test") {
         return companionNextActionReason;
     }
+    if (companionNextAction == "review_local_llm_model_manager") {
+        return companionNextActionReason;
+    }
     if (generatedOverlayPublishGateState == "published") {
         return "current_staged_overlay_already_published";
     }
@@ -5194,10 +5204,14 @@ std::string buildNextActionCommandHint(
     const std::string& nextAction,
     const std::filesystem::path& nextStepsBriefPath,
     const std::filesystem::path& ownerTestPlaybookPath,
-    const std::string& publishCommand)
+    const std::string& publishCommand,
+    const std::filesystem::path& localLlmModelStatePath)
 {
     if (nextAction == "run_monthly_reactive_owner_test" && !ownerTestPlaybookPath.empty()) {
         return "open " + pathString(ownerTestPlaybookPath);
+    }
+    if (nextAction == "review_local_llm_model_manager" && !localLlmModelStatePath.empty()) {
+        return "open " + pathString(localLlmModelStatePath);
     }
     if (nextAction == "review_staged_overlay_and_publish_if_desired" && !publishCommand.empty()) {
         return publishCommand;
@@ -5206,6 +5220,7 @@ std::string buildNextActionCommandHint(
         nextAction == "review_staged_overlay_status" ||
         nextAction == "review_dsl_draft" ||
         nextAction == "review_candidate_decision_package" ||
+        nextAction == "review_local_llm_model_manager" ||
         nextAction == "review_entry_point_ambiguity" ||
         nextAction == "review_entry_point_analysis_failure" ||
         nextAction == "review_tray_status") {
@@ -5225,6 +5240,9 @@ std::string buildNextActionCommandHintSource(
         if (nextAction == "review_staged_overlay_and_publish_if_desired") {
             return "generated_overlay_publish_gate_publish_command";
         }
+        if (nextAction == "review_local_llm_model_manager") {
+            return "local_llm_model_state_path";
+        }
         return "snc_next_steps_brief";
     }
     return "none";
@@ -5238,12 +5256,16 @@ std::filesystem::path buildNextActionPath(
     const std::filesystem::path& candidateDecisionPackagePath,
     const std::filesystem::path& dslDraftAuditPath,
     const std::filesystem::path& dslDraftPath,
+    const std::filesystem::path& localLlmModelStatePath,
     const std::filesystem::path& generatedOverlayStagingStatusPath,
     const std::filesystem::path& statusPath,
     const std::filesystem::path& companionNextActionPath)
 {
     if (nextAction == "run_monthly_reactive_owner_test" && !companionNextActionPath.empty()) {
         return companionNextActionPath;
+    }
+    if (nextAction == "review_local_llm_model_manager" && !localLlmModelStatePath.empty()) {
+        return localLlmModelStatePath;
     }
     if (isCompanionRecoveryNextAction(nextAction) && !companionNextActionPath.empty()) {
         return companionNextActionPath;
@@ -6098,7 +6120,8 @@ void writeStatus(
             nextAction,
             g_nextStepsBriefPath,
             companionSnapshot.ownerTestPlaybookPath,
-            companionSnapshot.generatedOverlayPublishGate.publishCommand);
+            companionSnapshot.generatedOverlayPublishGate.publishCommand,
+            companionSnapshot.localLlm.modelStatePath);
     if ((nextAction == "review_crash_recovery_status" || isCompanionRecoveryNextAction(nextAction)) &&
         nextActionCommandHint.empty()) {
         nextActionCommandHint = companionSnapshot.nextActionCommandHint;
@@ -6117,6 +6140,7 @@ void writeStatus(
         effectiveCandidateDecisionPackagePath,
         effectiveDslDraftAuditPath,
         effectiveDslDraftPath,
+        companionSnapshot.localLlm.modelStatePath,
         effectiveGeneratedOverlayStagingStatusPath,
         g_trayStatusPath,
         companionSnapshot.nextActionPath);
@@ -6275,6 +6299,8 @@ void writeStatus(
     json << ",\n";
     json << "  \"local_llm_install_guidance\": \""
          << jsonEscape(companionSnapshot.localLlm.installGuidance) << "\",\n";
+    json << "  \"local_llm_model_state_path\": \""
+         << jsonEscape(pathString(companionSnapshot.localLlm.modelStatePath)) << "\",\n";
     json << "  \"local_llm_model_manager_summary\": \""
          << jsonEscape(companionSnapshot.localLlm.summary) << "\",\n";
     json << "  \"crash_recovery_state\": \""
