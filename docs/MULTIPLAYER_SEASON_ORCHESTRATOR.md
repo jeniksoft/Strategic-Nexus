@@ -726,6 +726,7 @@ Owner-facing minimum test:
 * open `dist/private_reports/snc_next_steps_brief.txt`
 * confirm the MP package lines show the current package directory, ZIP path, and strict verify/import commands
 * run one ordinary MP handoff or join flow using the current package guidance
+* expect `friend_mp_sync_transport_state` to stay disabled for now; manual MP export/import is still the active fallback
 * keep any observed warning text or blocked state unchanged until Codex inspects the resulting evidence
 
 What Codex will inspect after the run:

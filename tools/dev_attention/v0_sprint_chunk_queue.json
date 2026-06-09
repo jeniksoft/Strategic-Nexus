@@ -1676,6 +1676,23 @@
         "rg -n \"friend_mp_sync_transport_state|friend_mp_sync_transport_reason|friend_mp_sync_transport_next_step|signed/encrypted transport\" docs/DEVELOPMENT_ROADMAP.md docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-170-verify-real-mp-season-validation-guidance",
+      "title": "Verify real MP season validation guidance",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Multiplayer Season Orchestrator / real MP season validation",
+      "goal": "Verify that the owner-facing real MP season checklist points at the right artifacts and keeps the signed/encrypted transport gap explicit on current head.",
+      "acceptance": [
+        "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md explicitly tells the owner to expect friend_mp_sync_transport_state to stay disabled and to use manual MP export/import as the active fallback.",
+        "The checklist still points at dist/private_reports/snc_next_steps_brief.txt and the real_session_v0_loop evidence files as the post-run evidence sources.",
+        "The change stays bounded to owner-facing validation guidance and does not alter runtime behavior."
+      ],
+      "preferred_tests": [
+        "rg -n \"Real MP Season Validation|friend_mp_sync_transport_state|manual MP export/import\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md"
+      ],
+      "dependencies": []
     }
   ]
 }
