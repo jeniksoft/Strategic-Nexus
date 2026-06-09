@@ -1351,7 +1351,7 @@
     {
       "id": "v0-sprint-153-verify-friend-trust-store-visibility-and-auto-sync-controls",
       "title": "Verify friend trust-store visibility",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Release Companion MP Package UX / local friend trust store visibility",
       "goal": "Verify that the existing friend trust store status surfaces keep exposing trust counts, auto-sync availability, and the manual pairing and MP sync command templates on current head.",
