@@ -1712,6 +1712,23 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-172-document-friend-mp-outbox-template-in-season-guide",
+      "title": "Document friend MP outbox template in season guide",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Multiplayer Season Orchestrator / release-companion fallback visibility",
+      "goal": "Make the friend MP outbox-plan fallback explicit in the canonical multiplayer season guide so owners can copy the no-send/no-upload path without reopening raw status JSON.",
+      "acceptance": [
+        "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md names friend_mp_sync_outbox_plan_command_template and friend_mp_sync_transport_next_step together.",
+        "docs/DEVELOPMENT_ROADMAP.md 15G current progress reflects that the canonical multiplayer guide now names the outbox fallback template.",
+        "The change stays bounded to documentation and roadmap visibility."
+      ],
+      "preferred_tests": [
+        "rg -n \"friend_mp_sync_outbox_plan_command_template|friend_mp_sync_transport_next_step\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md docs/DEVELOPMENT_ROADMAP.md"
+      ],
+      "dependencies": []
     }
   ]
 }
