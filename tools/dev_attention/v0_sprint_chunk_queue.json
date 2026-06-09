@@ -1512,6 +1512,25 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-161-verify-release-companion-mp-package-ux-current-head",
+      "title": "Verify release-companion MP package UX on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Release Companion MP Package UX / current-head usability verification",
+      "goal": "Verify on current head that the companion, tray, and dashboard still expose the release-companion MP package handoff surface, including copyable share guidance, strict verify/import hints, mismatch warnings, and the no-IP host/client workflow boundary.",
+      "acceptance": [
+        "Companion status exposes the MP package handoff details and copyable share guidance on current head.",
+        "Tray and dashboard surfaces still expose the strict verify/import hints plus mismatch warning presentation without requiring an IP-address workflow.",
+        "Targeted companion, tray, and v0 pipeline tests pass on current head without changing the release-companion write set."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
     }
   ]
 }
