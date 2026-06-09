@@ -60,6 +60,7 @@ namespace {
 constexpr UINT WM_SNC_TRAY = WM_APP + 10;
 constexpr UINT WM_SNC_TASKBAR_CREATED = WM_APP + 11;
 constexpr UINT WM_SNC_STATUS_REFRESH = WM_APP + 12;
+constexpr UINT WM_SNC_OPEN_STATUS = WM_APP + 13;
 constexpr UINT ID_TRAY_STATUS = 101;
 constexpr UINT ID_TRAY_OPEN_ARCHIVE = 102;
 constexpr UINT ID_TRAY_EXIT = 103;
@@ -483,6 +484,7 @@ constexpr COLORREF kStatusScrollThumbColor = RGB(83, 123, 116);
 constexpr COLORREF kStatusScrollThumbDragColor = RGB(115, 156, 148);
 constexpr const wchar_t* kStatusEmptyValue = L"\u2014";
 constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWindow";
+constexpr wchar_t kTrayWindowClassName[] = L"StrategicNexusCompanionTrayWindow";
 constexpr int kStatusTitleBarHeight = 34;
 constexpr int kStatusTitleButtonWidth = 42;
 constexpr int kStatusResizeBorder = 8;
@@ -7162,6 +7164,57 @@ void showStatusDialog(HWND hwnd)
     }
 }
 
+void allowForegroundActivationForWindow(HWND hwnd)
+{
+    DWORD processId = 0;
+    if (hwnd != nullptr && GetWindowThreadProcessId(hwnd, &processId) != 0 && processId != 0) {
+        AllowSetForegroundWindow(processId);
+    }
+}
+
+bool showExternalStatusWindow(HWND hwnd)
+{
+    if (hwnd == nullptr || !IsWindow(hwnd)) {
+        return false;
+    }
+
+    allowForegroundActivationForWindow(hwnd);
+    if (IsIconic(hwnd)) {
+        ShowWindow(hwnd, SW_RESTORE);
+    } else {
+        ShowWindow(hwnd, SW_SHOWNORMAL);
+    }
+    BringWindowToTop(hwnd);
+    SetForegroundWindow(hwnd);
+    return true;
+}
+
+bool requestExistingInstanceStatusWindow()
+{
+    const HWND trayWindow = FindWindowW(kTrayWindowClassName, nullptr);
+    if (trayWindow != nullptr && IsWindow(trayWindow)) {
+        allowForegroundActivationForWindow(trayWindow);
+        DWORD_PTR sendResult = 0;
+        const LRESULT delivered = SendMessageTimeoutW(
+            trayWindow,
+            WM_SNC_OPEN_STATUS,
+            0,
+            0,
+            SMTO_ABORTIFHUNG | SMTO_BLOCK,
+            2500,
+            &sendResult);
+
+        const HWND statusWindow = FindWindowW(kStatusWindowClassName, nullptr);
+        if (showExternalStatusWindow(statusWindow)) {
+            return true;
+        }
+
+        return delivered != 0;
+    }
+
+    return showExternalStatusWindow(FindWindowW(kStatusWindowClassName, nullptr));
+}
+
 void openArchiveDirectory()
 {
     std::error_code error;
@@ -7296,6 +7349,10 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
         g_worker = std::thread(workerLoop, hwnd);
         return 0;
 
+    case WM_SNC_OPEN_STATUS:
+        showStatusDialog(hwnd);
+        return 0;
+
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
         case ID_TRAY_STATUS:
@@ -7392,7 +7449,13 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
         return 1;
     }
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        MessageBoxW(nullptr, L"SNC uz bezi.", L"Strategic Nexus Companion", MB_OK | MB_ICONINFORMATION);
+        if (!requestExistingInstanceStatusWindow()) {
+            MessageBoxW(
+                nullptr,
+                L"SNC u\u017E b\u011B\u017E\u00ED, ale existuj\u00EDc\u00ED okno se nepoda\u0159ilo otev\u0159\u00EDt.",
+                L"Strategic Nexus Companion",
+                MB_OK | MB_ICONWARNING);
+        }
         CloseHandle(mutex);
         return 0;
     }
@@ -7403,7 +7466,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
     windowClass.cbSize = sizeof(windowClass);
     windowClass.lpfnWndProc = windowProc;
     windowClass.hInstance = instance;
-    windowClass.lpszClassName = L"StrategicNexusCompanionTrayWindow";
+    windowClass.lpszClassName = kTrayWindowClassName;
     windowClass.hIcon = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
     windowClass.hIconSm = g_sncTrayIcon != nullptr ? g_sncTrayIcon : LoadIconW(nullptr, IDI_APPLICATION);
 

@@ -854,6 +854,11 @@ try {
                     throw "SNC tray status JSON did not expose friend_mp_sync_preflight_checklist."
                 }
                 $sncTraySource = Get-Content -Raw -LiteralPath (Join-Path $RepoRoot "src/SncTrayApp.cpp")
+                if ($sncTraySource -notlike "*WM_SNC_OPEN_STATUS*" -or
+                    $sncTraySource -notlike "*requestExistingInstanceStatusWindow*" -or
+                    $sncTraySource -like "*SNC uz bezi*") {
+                    throw "SNC tray source did not redirect duplicate launches to the existing status window."
+                }
                 if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE*" -or
                     $sncTraySource -notlike "*SNC MP sync*" -or
                     $sncTraySource -notlike "*Manual metadata only*" -or
