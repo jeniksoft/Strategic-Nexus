@@ -260,6 +260,13 @@ struct StatusCustomScrollbar {
     bool visible = false;
 };
 
+struct StatusPersistedUiState {
+    bool hasWindowPlacement = false;
+    RECT normalWindowRect{0, 0, 960, 720};
+    bool windowMaximized = false;
+    StatusPageId activePage = StatusPageId::Overview;
+};
+
 enum class StatusScrollTargetKind {
     None = 0,
     Field,
@@ -297,6 +304,7 @@ std::filesystem::path g_gameplayAcceptanceReportPath;
 std::filesystem::path g_mpOverlayPackageDirectory;
 std::filesystem::path g_mpOverlayPackageZipPath;
 std::filesystem::path g_trayIconPath;
+std::filesystem::path g_statusUiStatePath;
 constexpr std::size_t kStatusSectionCount = 7;
 constexpr std::size_t kStatusPageCount = static_cast<std::size_t>(StatusPageId::Count);
 std::array<HWND, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldLabels{};
@@ -356,6 +364,8 @@ HBRUSH g_statusAccentBrush = nullptr;
 HBRUSH g_statusBorderBrush = nullptr;
 HBRUSH g_statusValueBrush = nullptr;
 SncUiLanguage g_uiLanguage = detectSncUiLanguage();
+StatusPersistedUiState g_statusUiState;
+bool g_statusWindowCanPersistPlacement = false;
 const std::array<DashboardSectionSpec, kStatusSectionCount> kStatusSections = {
     DashboardSectionSpec{{L"\u017Div\u00E9 hran\u00ED", L"Live Play"}, {StatusFieldId::LiveState, StatusFieldId::LiveStellaris, StatusFieldId::LiveSession, StatusFieldId::LiveStartup}},
     DashboardSectionSpec{{L"Dal\u0161\u00ED krok", L"Next Step"}, {StatusFieldId::NextAction, StatusFieldId::NextReason, StatusFieldId::NextHint, StatusFieldId::CrashRecoveryState}},
@@ -476,6 +486,10 @@ constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWind
 constexpr int kStatusTitleBarHeight = 34;
 constexpr int kStatusTitleButtonWidth = 42;
 constexpr int kStatusResizeBorder = 8;
+constexpr int kStatusDefaultWindowWidth = 960;
+constexpr int kStatusDefaultWindowHeight = 720;
+constexpr int kStatusMinWindowWidth = 900;
+constexpr int kStatusMinWindowHeight = 640;
 constexpr int kStatusScrollbarTrackWidth = 12;
 constexpr int kStatusScrollbarThumbWidth = 8;
 constexpr UINT_PTR kStatusScrollSyncTimerId = 1;
@@ -494,6 +508,7 @@ std::string buildFriendPairingCommandTemplateUtf8();
 std::wstring utf8ToWide(const std::string& value);
 std::string wideToUtf8(const std::wstring& value);
 SncUiLanguage detectSncUiLanguage();
+const char* sncUiLanguageToken(SncUiLanguage language);
 const wchar_t* localizedText(const LocalizedText& text);
 std::wstring localizedTextWide(const LocalizedText& text);
 std::string localizedTextUtf8(const LocalizedText& text);
@@ -506,6 +521,15 @@ std::wstring formatOwnerFacingStatusValue(const std::string& value);
 std::wstring formatOwnerFacingStatusReason(const std::string& value);
 std::wstring formatOwnerFacingStatusLine(const std::string& value);
 std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator = L" | ");
+const char* statusPageToken(StatusPageId page);
+StatusPageId statusPageFromToken(const std::string& value);
+bool statusWindowRectUsable(const RECT& rect);
+std::optional<int> extractJsonInt(const std::string& json, const char* key);
+std::optional<bool> extractJsonBool(const std::string& json, const char* key);
+void loadPersistedStatusUiState();
+void captureStatusUiStateFromWindow(HWND hwnd);
+void savePersistedStatusUiState();
+void applyPersistedStatusWindowPlacement(HWND hwnd);
 std::filesystem::path findRepoRoot();
 const wchar_t* statusFieldLabel(StatusFieldId id);
 const wchar_t* statusFieldTooltip(StatusFieldId id);
@@ -731,6 +755,11 @@ SncUiLanguage detectSncUiLanguage()
     }
 
     return SncUiLanguage::English;
+}
+
+const char* sncUiLanguageToken(const SncUiLanguage language)
+{
+    return language == SncUiLanguage::Czech ? "cs" : "en";
 }
 
 const wchar_t* localizedText(const LocalizedText& text)
@@ -1301,6 +1330,44 @@ const StatusPageSpec* statusPageSpecByCommand(const UINT commandId)
     return nullptr;
 }
 
+const char* statusPageToken(const StatusPageId page)
+{
+    switch (page) {
+    case StatusPageId::Overview: return "overview";
+    case StatusPageId::Gameplay: return "gameplay";
+    case StatusPageId::Archive: return "archive";
+    case StatusPageId::Overlay: return "overlay";
+    case StatusPageId::Multiplayer: return "multiplayer";
+    case StatusPageId::Llm: return "llm";
+    case StatusPageId::Maintenance: return "maintenance";
+    case StatusPageId::Count: break;
+    }
+    return "overview";
+}
+
+StatusPageId statusPageFromToken(const std::string& value)
+{
+    if (value == "gameplay") {
+        return StatusPageId::Gameplay;
+    }
+    if (value == "archive") {
+        return StatusPageId::Archive;
+    }
+    if (value == "overlay") {
+        return StatusPageId::Overlay;
+    }
+    if (value == "multiplayer") {
+        return StatusPageId::Multiplayer;
+    }
+    if (value == "llm") {
+        return StatusPageId::Llm;
+    }
+    if (value == "maintenance") {
+        return StatusPageId::Maintenance;
+    }
+    return StatusPageId::Overview;
+}
+
 const StatusActionSpec* statusActionSpec(const UINT commandId)
 {
     for (const auto& action : kStatusActionSpecs) {
@@ -1357,6 +1424,9 @@ std::wstring statusActionLabel(const UINT commandId)
 void setStatusActivePage(HWND hwnd, const StatusPageId page)
 {
     g_statusActivePage = page;
+    captureStatusUiStateFromWindow(hwnd);
+    g_statusUiState.activePage = page;
+    savePersistedStatusUiState();
     layoutStatusWindow(hwnd);
     refreshStatusWindowContent();
 }
@@ -3456,6 +3526,16 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
     case WM_SIZE:
         layoutStatusWindow(hwnd);
         updateStatusCaptionButtons(hwnd);
+        if (g_statusWindowCanPersistPlacement && wParam != SIZE_MINIMIZED) {
+            captureStatusUiStateFromWindow(hwnd);
+            savePersistedStatusUiState();
+        }
+        return 0;
+    case WM_EXITSIZEMOVE:
+        if (g_statusWindowCanPersistPlacement) {
+            captureStatusUiStateFromWindow(hwnd);
+            savePersistedStatusUiState();
+        }
         return 0;
     case WM_COMMAND:
         if (const auto* page = statusPageSpecByCommand(LOWORD(wParam)); page != nullptr) {
@@ -3736,8 +3816,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
     }
     case WM_GETMINMAXINFO: {
         auto* info = reinterpret_cast<MINMAXINFO*>(lParam);
-        info->ptMinTrackSize.x = 900;
-        info->ptMinTrackSize.y = 640;
+        info->ptMinTrackSize.x = kStatusMinWindowWidth;
+        info->ptMinTrackSize.y = kStatusMinWindowHeight;
 
         HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
         if (monitor != nullptr) {
@@ -3857,6 +3937,11 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         DestroyWindow(hwnd);
         return 0;
     case WM_DESTROY:
+        if (g_statusWindowCanPersistPlacement) {
+            captureStatusUiStateFromWindow(hwnd);
+            savePersistedStatusUiState();
+        }
+        g_statusWindowCanPersistPlacement = false;
         KillTimer(hwnd, kStatusScrollSyncTimerId);
         clearStatusScrollDrag();
         if (g_statusWindow == hwnd) {
@@ -4107,6 +4192,21 @@ std::optional<std::size_t> extractJsonSize(const std::string& json, const char* 
     }
 }
 
+std::optional<int> extractJsonInt(const std::string& json, const char* key)
+{
+    const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*(-?[0-9]+)");
+    std::smatch match;
+    if (!std::regex_search(json, match, pattern)) {
+        return std::nullopt;
+    }
+
+    try {
+        return std::stoi(match[1].str());
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
 std::optional<bool> extractJsonBool(const std::string& json, const char* key)
 {
     const std::regex pattern("\"" + std::string(key) + "\"\\s*:\\s*(true|false)");
@@ -4115,6 +4215,123 @@ std::optional<bool> extractJsonBool(const std::string& json, const char* key)
         return std::nullopt;
     }
     return match[1].str() == "true";
+}
+
+bool statusWindowRectUsable(const RECT& rect)
+{
+    const int width = rect.right - rect.left;
+    const int height = rect.bottom - rect.top;
+    if (width < kStatusMinWindowWidth || height < kStatusMinWindowHeight) {
+        return false;
+    }
+    if (width > 12000 || height > 12000) {
+        return false;
+    }
+
+    RECT monitorProbe = rect;
+    if (MonitorFromRect(&monitorProbe, MONITOR_DEFAULTTONULL) == nullptr) {
+        return false;
+    }
+    return true;
+}
+
+void loadPersistedStatusUiState()
+{
+    g_statusUiState = {};
+    g_statusUiState.normalWindowRect = {0, 0, kStatusDefaultWindowWidth, kStatusDefaultWindowHeight};
+    g_statusUiState.activePage = StatusPageId::Overview;
+
+    std::string json;
+    if (!strategic_nexus::common::tryReadTextFile(g_statusUiStatePath, json)) {
+        g_statusActivePage = g_statusUiState.activePage;
+        return;
+    }
+
+    g_statusUiState.activePage =
+        statusPageFromToken(strategic_nexus::common::extractJsonString(json, "active_page").value_or(""));
+    g_statusUiState.windowMaximized = extractJsonBool(json, "window_maximized").value_or(false);
+
+    const auto left = extractJsonInt(json, "normal_left");
+    const auto top = extractJsonInt(json, "normal_top");
+    const auto right = extractJsonInt(json, "normal_right");
+    const auto bottom = extractJsonInt(json, "normal_bottom");
+    if (left.has_value() && top.has_value() && right.has_value() && bottom.has_value()) {
+        const RECT rect{*left, *top, *right, *bottom};
+        if (statusWindowRectUsable(rect)) {
+            g_statusUiState.normalWindowRect = rect;
+            g_statusUiState.hasWindowPlacement = true;
+        }
+    }
+
+    g_statusActivePage = g_statusUiState.activePage;
+}
+
+void captureStatusUiStateFromWindow(HWND hwnd)
+{
+    g_statusUiState.activePage = g_statusActivePage;
+    if (hwnd == nullptr || !IsWindow(hwnd)) {
+        return;
+    }
+
+    WINDOWPLACEMENT placement{};
+    placement.length = sizeof(placement);
+    if (GetWindowPlacement(hwnd, &placement) == 0) {
+        return;
+    }
+
+    g_statusUiState.windowMaximized = placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(hwnd);
+    if (placement.showCmd == SW_SHOWMINIMIZED || IsIconic(hwnd)) {
+        return;
+    }
+
+    const RECT rect = placement.rcNormalPosition;
+    if (statusWindowRectUsable(rect)) {
+        g_statusUiState.normalWindowRect = rect;
+        g_statusUiState.hasWindowPlacement = true;
+    }
+}
+
+void savePersistedStatusUiState()
+{
+    if (g_statusUiStatePath.empty()) {
+        return;
+    }
+
+    std::ostringstream json;
+    json << "{\n";
+    json << "  \"schema_version\": 1,\n";
+    json << "  \"updated_at_local\": \"" << jsonEscape(formatLocalTimestamp()) << "\",\n";
+    json << "  \"ui\": {\n";
+    json << "    \"active_page\": \"" << jsonEscape(statusPageToken(g_statusUiState.activePage)) << "\",\n";
+    json << "    \"language_mode\": \"auto\",\n";
+    json << "    \"resolved_language\": \"" << sncUiLanguageToken(g_uiLanguage) << "\"\n";
+    json << "  },\n";
+    json << "  \"status_window\": {\n";
+    json << "    \"window_maximized\": " << (g_statusUiState.windowMaximized ? "true" : "false") << ",\n";
+    json << "    \"normal_left\": " << g_statusUiState.normalWindowRect.left << ",\n";
+    json << "    \"normal_top\": " << g_statusUiState.normalWindowRect.top << ",\n";
+    json << "    \"normal_right\": " << g_statusUiState.normalWindowRect.right << ",\n";
+    json << "    \"normal_bottom\": " << g_statusUiState.normalWindowRect.bottom << "\n";
+    json << "  }\n";
+    json << "}\n";
+
+    strategic_nexus::common::writeTextFileAtomically(g_statusUiStatePath, json.str());
+}
+
+void applyPersistedStatusWindowPlacement(HWND hwnd)
+{
+    if (hwnd == nullptr || !IsWindow(hwnd) || !g_statusUiState.hasWindowPlacement) {
+        return;
+    }
+    if (!statusWindowRectUsable(g_statusUiState.normalWindowRect)) {
+        return;
+    }
+
+    WINDOWPLACEMENT placement{};
+    placement.length = sizeof(placement);
+    placement.showCmd = g_statusUiState.windowMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
+    placement.rcNormalPosition = g_statusUiState.normalWindowRect;
+    SetWindowPlacement(hwnd, &placement);
 }
 
 void parsePostPlayCampaignSummaries(
@@ -6920,6 +7137,7 @@ void showStatusDialog(HWND hwnd)
         return;
     }
 
+    g_statusWindowCanPersistPlacement = false;
     const HWND statusWindow = CreateWindowExW(
         WS_EX_APPWINDOW,
         kStatusWindowClassName,
@@ -6927,8 +7145,8 @@ void showStatusDialog(HWND hwnd)
         WS_POPUP | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
-        960,
-        720,
+        kStatusDefaultWindowWidth,
+        kStatusDefaultWindowHeight,
         hwnd,
         nullptr,
         GetModuleHandleW(nullptr),
@@ -6936,7 +7154,9 @@ void showStatusDialog(HWND hwnd)
 
     if (statusWindow != nullptr) {
         applyWindowIcons(statusWindow);
-        ShowWindow(statusWindow, SW_SHOWNORMAL);
+        applyPersistedStatusWindowPlacement(statusWindow);
+        g_statusWindowCanPersistPlacement = true;
+        ShowWindow(statusWindow, g_statusUiState.windowMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL);
         UpdateWindow(statusWindow);
         SetForegroundWindow(statusWindow);
     }
@@ -7155,6 +7375,7 @@ void initializePaths()
         g_repoRoot / "dist" / "private_reports" / "generated_overlay_gameplay_acceptance_v0.json";
     g_mpOverlayPackageDirectory = g_repoRoot / "dist" / "private_reports" / "snc_mp_overlay_package";
     g_mpOverlayPackageZipPath = g_repoRoot / "dist" / "private_reports" / "snc_mp_overlay_package.zip";
+    g_statusUiStatePath = g_repoRoot / "dist" / "private_reports" / "snc_ui_state.json";
 }
 
 } // namespace
@@ -7162,6 +7383,7 @@ void initializePaths()
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
 {
     initializePaths();
+    loadPersistedStatusUiState();
     g_sncTrayIcon = loadSncTrayIcon();
     applySncAppUserModelId();
 

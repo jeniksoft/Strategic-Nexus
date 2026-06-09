@@ -55,7 +55,7 @@ In progress:
 * host-authoritative multiplayer architecture
 * offline campaign analysis architecture for autosave archiving and next-session mod refresh
 * local owner Task Board / tray helper for Codex coordination
-* production companion tray app prototype (`StrategicNexusCompanionTray.exe`)
+* production companion tray app slice (`StrategicNexusCompanionTray.exe`)
 
 Not started:
 
