@@ -832,6 +832,10 @@ try {
                     [string]$json.friend_mp_sync_transport_reason -notlike "*upload/send/download/staging disabled*") {
                     throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_reason."
                 }
+                if ([string]$json.friend_mp_sync_transport_next_step -notlike "*manual MP package export/import*" -or
+                    [string]$json.friend_mp_sync_transport_next_step -notlike "*strict verify*") {
+                    throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_next_step."
+                }
                 $sncTraySource = Get-Content -Raw -LiteralPath (Join-Path $RepoRoot "src/SncTrayApp.cpp")
                 if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE*" -or
                     $sncTraySource -notlike "*SNC MP sync*" -or
@@ -852,7 +856,8 @@ try {
                     throw "SNC tray source did not expose the friend MP sync outbox-plan dashboard action."
                 }
                 if ($summaryText -notlike "*friend_mp_sync_transport_state: disabled_not_implemented*" -or
-                    $summaryText -notlike "*friend_mp_sync_transport_reason: signed/encrypted friend MP sync transport adapter is not implemented*") {
+                    $summaryText -notlike "*friend_mp_sync_transport_reason: signed/encrypted friend MP sync transport adapter is not implemented*" -or
+                    $summaryText -notlike "*friend_mp_sync_transport_next_step: Use manual MP package export/import and strict verify*") {
                     throw "SNC tray summary text did not expose disabled friend MP sync transport status."
                 }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_pairing_guide_text)) {

@@ -556,6 +556,10 @@ int main()
             ready.friendTrustStore.mpSyncTransportReason.find("upload/send/download/staging disabled") != std::string::npos,
         "friend trust store status should explain disabled friend MP sync transport");
     requireCondition(
+        ready.friendTrustStore.mpSyncTransportNextStep.find("manual MP package export/import") != std::string::npos &&
+            ready.friendTrustStore.mpSyncTransportNextStep.find("strict verify") != std::string::npos,
+        "friend trust store status should expose the manual friend MP sync transport next step");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
         "status center summary should expose friend trust store auto-sync count");
     requireCondition(
@@ -576,6 +580,9 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_transport_reason: signed/encrypted friend MP sync transport adapter is not implemented") != std::string::npos,
         "status center summary should expose disabled friend MP sync transport reason");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_transport_next_step: Use manual MP package export/import and strict verify") != std::string::npos,
+        "status center summary should expose disabled friend MP sync transport next step");
     auto brokenFriendConfig = readyConfig;
     brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
     const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);

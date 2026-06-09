@@ -153,6 +153,7 @@ struct StatusDashboardData {
     std::wstring friendMpSyncOutboxPlanCommandTemplate;
     std::wstring friendMpSyncTransportState;
     std::wstring friendMpSyncTransportReason;
+    std::wstring friendMpSyncTransportNextStep;
     std::wstring humanControlGuardState;
     std::wstring mpPackageRefreshState;
     std::wstring mpPackageRefreshReason;
@@ -1430,6 +1431,12 @@ StatusDashboardData loadStatusDashboardData()
         data.friendMpSyncTransportReason =
             L"signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
     }
+    data.friendMpSyncTransportNextStep =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_next_step").value_or(""));
+    if (data.friendMpSyncTransportNextStep.empty()) {
+        data.friendMpSyncTransportNextStep =
+            L"Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.";
+    }
     const std::string humanControlGuardState = summaryValue("human_control_guard_state");
     if (!humanControlGuardState.empty()) {
         data.humanControlGuardState = utf8ToWide(humanControlGuardState);
@@ -1504,6 +1511,8 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.friendMpSyncTransportState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportState;
     text += L"\r\nSNC MP sync transport duvod: ";
     text += data.friendMpSyncTransportReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportReason;
+    text += L"\r\nSNC MP sync transport dalsi krok: ";
+    text += data.friendMpSyncTransportNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportNextStep;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -4357,6 +4366,8 @@ std::string buildStatusCenterSummaryText(
             << friendTrustStore.mpSyncTransportState << "\n";
     summary << "friend_mp_sync_transport_reason: "
             << friendTrustStore.mpSyncTransportReason << "\n";
+    summary << "friend_mp_sync_transport_next_step: "
+            << friendTrustStore.mpSyncTransportNextStep << "\n";
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -5053,6 +5064,8 @@ void writeStatus(
     json << "  \"friend_mp_sync_transport_state\": \"disabled_not_implemented\",\n";
     json << "  \"friend_mp_sync_transport_reason\": \""
          << jsonEscape("signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") << "\",\n";
+    json << "  \"friend_mp_sync_transport_next_step\": \""
+         << jsonEscape(companionSnapshot.friendTrustStore.mpSyncTransportNextStep) << "\",\n";
     json << "  \"friend_pairing_guide_text\": \""
          << jsonEscape(buildFriendPairingGuideTextUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
