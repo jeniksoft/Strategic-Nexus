@@ -46,6 +46,7 @@ Verified:
 * allowlisted effect batch generation
 * sequence replay protection
 * first deterministic v0 `X -> Y -> U -> payload -> effect batch` local pipeline test
+* production companion tray app (`StrategicNexusCompanionTray.exe`)
 
 In progress:
 
@@ -55,7 +56,6 @@ In progress:
 * host-authoritative multiplayer architecture
 * offline campaign analysis architecture for autosave archiving and next-session mod refresh
 * local owner Task Board / tray helper for Codex coordination
-* production companion tray app slice (`StrategicNexusCompanionTray.exe`)
 
 Not started:
 
