@@ -1548,6 +1548,25 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-163-verify-release-companion-action-surface-on-current-head",
+      "title": "Verify release-companion action surface on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Release Companion Orchestrator UX / status center actions for archive, model, publish, and MP package state",
+      "goal": "Verify that the current head keeps the release-companion archive, model manager, publish gate, and MP package handoff actions visible through the companion, tray, and next-steps surfaces with fail-closed wording.",
+      "acceptance": [
+        "Companion and tray surfaces expose archive state/actions, model-manager guidance, generated-overlay publish gate state, and MP package handoff state on current head.",
+        "Status Center and next-steps brief wording keep the archive, model, publish, and MP package follow-up paths explicit and fail closed when a path is unavailable or not ready.",
+        "Targeted companion, tray, and v0 pipeline tests pass on current head without changing the release-companion write set."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
     }
   ]
 }
