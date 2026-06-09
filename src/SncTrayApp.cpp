@@ -145,6 +145,16 @@ enum class StatusFieldId : std::size_t {
     Count
 };
 
+enum class SncUiLanguage {
+    Czech,
+    English
+};
+
+struct LocalizedText {
+    const wchar_t* cs;
+    const wchar_t* en;
+};
+
 struct StatusDashboardData {
     std::wstring subtitle;
     std::wstring liveState;
@@ -167,6 +177,7 @@ struct StatusDashboardData {
     std::wstring modelInstallGuidance;
     std::wstring modelPrepareCommand;
     std::wstring nextAction;
+    std::string nextActionRaw;
     std::wstring nextReason;
     std::wstring nextHint;
     std::wstring nextPlaybook;
@@ -214,24 +225,24 @@ struct StatusDashboardData {
 };
 
 struct DashboardSectionSpec {
-    const wchar_t* title;
+    LocalizedText title;
     std::vector<StatusFieldId> fields;
 };
 
 struct StatusPageSpec {
     StatusPageId id;
     UINT commandId;
-    const wchar_t* navLabel;
-    const wchar_t* title;
-    const wchar_t* helpText;
+    LocalizedText navLabel;
+    LocalizedText title;
+    LocalizedText helpText;
     std::vector<std::size_t> sections;
     std::vector<UINT> actions;
 };
 
 struct StatusActionSpec {
     UINT id;
-    const wchar_t* defaultLabel;
-    const wchar_t* tooltip;
+    LocalizedText defaultLabel;
+    LocalizedText tooltip;
 };
 
 struct StatusScrollMetrics {
@@ -254,6 +265,8 @@ enum class StatusScrollTargetKind {
     Field,
     Details
 };
+
+SncUiLanguage detectSncUiLanguage();
 
 std::atomic_bool g_stopRequested{false};
 std::atomic_bool g_mpPackageRefreshRequested{false};
@@ -342,98 +355,99 @@ HBRUSH g_statusPanelBrush = nullptr;
 HBRUSH g_statusAccentBrush = nullptr;
 HBRUSH g_statusBorderBrush = nullptr;
 HBRUSH g_statusValueBrush = nullptr;
+SncUiLanguage g_uiLanguage = detectSncUiLanguage();
 const std::array<DashboardSectionSpec, kStatusSectionCount> kStatusSections = {
-    DashboardSectionSpec{L"\u017Div\u00E9 hran\u00ED", {StatusFieldId::LiveState, StatusFieldId::LiveStellaris, StatusFieldId::LiveSession, StatusFieldId::LiveStartup}},
-    DashboardSectionSpec{L"Dal\u0161\u00ED krok", {StatusFieldId::NextAction, StatusFieldId::NextReason, StatusFieldId::NextHint, StatusFieldId::CrashRecoveryState}},
-    DashboardSectionSpec{L"Archiv", {StatusFieldId::ArchivePath, StatusFieldId::ArchiveVerified, StatusFieldId::ArchiveCopied, StatusFieldId::ArchiveSkipped}},
-    DashboardSectionSpec{L"Overlay", {StatusFieldId::OverlayStaging, StatusFieldId::OverlayGate, StatusFieldId::OverlayAllowed, StatusFieldId::OverlayActive}},
-    DashboardSectionSpec{L"Multiplayer", {StatusFieldId::FriendTrustStoreState, StatusFieldId::FriendMpSyncTransportState, StatusFieldId::MpPackageRefreshState, StatusFieldId::MpPackageHandoffStatus}},
-    DashboardSectionSpec{L"Lok\u00E1ln\u00ED LLM", {StatusFieldId::ModelState, StatusFieldId::ModelRuntime, StatusFieldId::ModelRecommendation, StatusFieldId::ModelMode, StatusFieldId::ModelInstallGuidance}},
-    DashboardSectionSpec{L"\u00DAdr\u017Eba", {StatusFieldId::SupportReportState, StatusFieldId::HumanControlGuardState}},
+    DashboardSectionSpec{{L"\u017Div\u00E9 hran\u00ED", L"Live Play"}, {StatusFieldId::LiveState, StatusFieldId::LiveStellaris, StatusFieldId::LiveSession, StatusFieldId::LiveStartup}},
+    DashboardSectionSpec{{L"Dal\u0161\u00ED krok", L"Next Step"}, {StatusFieldId::NextAction, StatusFieldId::NextReason, StatusFieldId::NextHint, StatusFieldId::CrashRecoveryState}},
+    DashboardSectionSpec{{L"Archiv", L"Archive"}, {StatusFieldId::ArchivePath, StatusFieldId::ArchiveVerified, StatusFieldId::ArchiveCopied, StatusFieldId::ArchiveSkipped}},
+    DashboardSectionSpec{{L"Overlay", L"Overlay"}, {StatusFieldId::OverlayStaging, StatusFieldId::OverlayGate, StatusFieldId::OverlayAllowed, StatusFieldId::OverlayActive}},
+    DashboardSectionSpec{{L"Multiplayer", L"Multiplayer"}, {StatusFieldId::FriendTrustStoreState, StatusFieldId::FriendMpSyncTransportState, StatusFieldId::MpPackageRefreshState, StatusFieldId::MpPackageHandoffStatus}},
+    DashboardSectionSpec{{L"Lok\u00E1ln\u00ED LLM", L"Local LLM"}, {StatusFieldId::ModelState, StatusFieldId::ModelRuntime, StatusFieldId::ModelRecommendation, StatusFieldId::ModelMode, StatusFieldId::ModelInstallGuidance}},
+    DashboardSectionSpec{{L"\u00DAdr\u017Eba", L"Maintenance"}, {StatusFieldId::SupportReportState, StatusFieldId::HumanControlGuardState}},
 };
 
 const std::array<StatusActionSpec, 24> kStatusActionSpecs = {
-    StatusActionSpec{ID_STATUS_REFRESH, L"Obnovit", L"Znovu nacte stav z lokalnich SNC souboru a prekresli otevrene okno."},
-    StatusActionSpec{ID_STATUS_COPY, L"Kopirovat", L"Zkopiruje kratky prehled celeho dashboardu do schranky pro poslani nebo archivaci."},
-    StatusActionSpec{ID_STATUS_OPEN_ARCHIVE, L"Archiv", L"Otevre slozku s autosave archivem a souvisejicimi vystupy."},
-    StatusActionSpec{ID_STATUS_OPEN_BRIEF, L"Souhrn", L"Otevre posledni souhrn dalsich kroku, pokud existuje."},
-    StatusActionSpec{ID_STATUS_OPEN_MP_PACKAGE, L"MP balicek", L"Otevre slozku multiplayer overlay balicku."},
-    StatusActionSpec{ID_STATUS_PUBLISH_GENERATED_OVERLAY, L"Publikovat", L"Publikuje pripraveny generated overlay jen pokud publish gate rika, ze je to bezpecne."},
-    StatusActionSpec{ID_STATUS_OPEN_NEXT_ACTION_PATH, L"Akce cesta", L"Otevre soubor nebo slozku, ktere SNC uvadi jako konkretni dalsi krok."},
-    StatusActionSpec{ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, L"Knihovna", L"Otevre plan kampanove knihovny, pokud je pripraveny."},
-    StatusActionSpec{ID_STATUS_OPEN_CRASH_RECOVERY_STATE, L"Crash stav", L"Otevre stav crash recovery, tedy proc je obnova zablokovana nebo povolena."},
-    StatusActionSpec{ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, L"Gameplay", L"Otevre gameplay acceptance report pro kontrolu, jestli vystupy davaji smysl pred pouzitim."},
-    StatusActionSpec{ID_STATUS_OPEN_FRIEND_TRUST_STORE, L"SNC pratele", L"Otevre trust store se schvalenymi SNC prately a jejich identitou."},
-    StatusActionSpec{ID_STATUS_COPY_FRIEND_PAIRING, L"SNC pairing", L"Zkopiruje navod a CLI sablonu pro spairrovani pratele bez automatickeho syncu."},
-    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, L"SNC MP sync", L"Zkopiruje manualni metadata envelope pro friend MP sync; nic automaticky nestahuje ani neaplikuje."},
-    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, L"SNC inbox", L"Zkopiruje fail-closed inbox plan pro prijem metadata balicku od pratele."},
-    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, L"SNC outbox", L"Zkopiruje fail-closed outbox plan pro pripravu metadata balicku pro pritele."},
-    StatusActionSpec{ID_STATUS_EXPORT_MP_PACKAGE, L"MP export", L"Znovu pripravi multiplayer overlay package z validovanych lokalnich artefaktu."},
-    StatusActionSpec{ID_STATUS_MP_IMPORT_HANDOFF, L"MP import navod", L"Zkopiruje import prikaz a otevre balicek, aby ho slo bezpecne predat klientovi nebo dalsimu hostovi."},
-    StatusActionSpec{ID_STATUS_COPY_MP_VERIFY, L"MP verify", L"Zkopiruje zakladni prikaz pro overeni MP balicku pred importem."},
-    StatusActionSpec{ID_STATUS_COPY_MP_IMPORT, L"MP import", L"Zkopiruje zakladni import prikaz; pouzij az po verify."},
-    StatusActionSpec{ID_STATUS_COPY_MP_STRICT_VERIFY, L"MP strict verify", L"Zkopiruje prisne overeni MP balicku s ochranou proti mismatchum."},
-    StatusActionSpec{ID_STATUS_COPY_MP_STRICT_IMPORT, L"MP strict import", L"Zkopiruje prisny import prikaz; nejbezpecnejsi cesta pro MP pouziti."},
-    StatusActionSpec{ID_STATUS_COPY_LLM_PREPARE, L"LLM priprava", L"Zkopiruje prikaz/sablonu pro pripravu doporuceneho lokalniho LLM runtime."},
-    StatusActionSpec{ID_STATUS_SUPPORT_REPORT, L"Report", L"Pripravi nebo otevre support report pro diagnostiku SNC stavu."},
-    StatusActionSpec{ID_STATUS_TOGGLE_STARTUP, L"Start", L"Zapne nebo vypne spousteni SNC Companionu pri startu Windows."},
+    StatusActionSpec{ID_STATUS_REFRESH, {L"Obnovit", L"Refresh"}, {L"Znovu na\u010Dte stav z lok\u00E1ln\u00EDch SNC soubor\u016F a p\u0159ekresl\u00ED otev\u0159en\u00E9 okno.", L"Reloads status from local SNC files and redraws the open window."}},
+    StatusActionSpec{ID_STATUS_COPY, {L"Kop\u00EDrovat", L"Copy"}, {L"Zkop\u00EDruje kr\u00E1tk\u00FD p\u0159ehled cel\u00E9ho dashboardu do schr\u00E1nky pro posl\u00E1n\u00ED nebo archivaci.", L"Copies a short dashboard overview to the clipboard for sharing or archiving."}},
+    StatusActionSpec{ID_STATUS_OPEN_ARCHIVE, {L"Archiv", L"Archive"}, {L"Otev\u0159e slo\u017Eku s autosave archivem a souvisej\u00EDc\u00EDmi v\u00FDstupy.", L"Opens the autosave archive folder and related outputs."}},
+    StatusActionSpec{ID_STATUS_OPEN_BRIEF, {L"Souhrn", L"Brief"}, {L"Otev\u0159e posledn\u00ED souhrn dal\u0161\u00EDch krok\u016F, pokud existuje.", L"Opens the latest next-steps brief when available."}},
+    StatusActionSpec{ID_STATUS_OPEN_MP_PACKAGE, {L"MP bal\u00ED\u010Dek", L"MP package"}, {L"Otev\u0159e slo\u017Eku multiplayer overlay bal\u00ED\u010Dku.", L"Opens the multiplayer overlay package folder."}},
+    StatusActionSpec{ID_STATUS_PUBLISH_GENERATED_OVERLAY, {L"Publikovat", L"Publish"}, {L"Publikuje p\u0159ipraven\u00FD generated overlay jen pokud publish gate \u0159\u00EDk\u00E1, \u017Ee je to bezpe\u010Dn\u00E9.", L"Publishes the staged generated overlay only when the publish gate says it is safe."}},
+    StatusActionSpec{ID_STATUS_OPEN_NEXT_ACTION_PATH, {L"Akce cesta", L"Action path"}, {L"Otev\u0159e soubor nebo slo\u017Eku, kter\u00E9 SNC uv\u00E1d\u00ED jako konkr\u00E9tn\u00ED dal\u0161\u00ED krok.", L"Opens the file or folder SNC lists as the concrete next action."}},
+    StatusActionSpec{ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, {L"Knihovna", L"Library"}, {L"Otev\u0159e pl\u00E1n kampa\u0148ov\u00E9 knihovny, pokud je p\u0159ipraven\u00FD.", L"Opens the campaign library plan when it is available."}},
+    StatusActionSpec{ID_STATUS_OPEN_CRASH_RECOVERY_STATE, {L"Crash stav", L"Crash status"}, {L"Otev\u0159e stav crash recovery, tedy pro\u010D je obnova zablokovan\u00E1 nebo povolen\u00E1.", L"Opens crash recovery status, including why recovery is blocked or allowed."}},
+    StatusActionSpec{ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, {L"Gameplay", L"Gameplay"}, {L"Otev\u0159e gameplay acceptance report pro kontrolu, jestli v\u00FDstupy d\u00E1vaj\u00ED smysl p\u0159ed pou\u017Eit\u00EDm.", L"Opens the gameplay acceptance report to review outputs before use."}},
+    StatusActionSpec{ID_STATUS_OPEN_FRIEND_TRUST_STORE, {L"SNC p\u0159\u00E1tel\u00E9", L"SNC friends"}, {L"Otev\u0159e trust store se schv\u00E1len\u00FDmi SNC p\u0159\u00E1teli a jejich identitou.", L"Opens the trust store for approved SNC friends and identities."}},
+    StatusActionSpec{ID_STATUS_COPY_FRIEND_PAIRING, {L"SNC pairing", L"SNC pairing"}, {L"Zkop\u00EDruje n\u00E1vod a CLI \u0161ablonu pro sp\u00E1rov\u00E1n\u00ED p\u0159\u00EDtele bez automatick\u00E9ho syncu.", L"Copies the guide and CLI template for pairing a friend without automatic sync."}},
+    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, {L"SNC MP sync", L"SNC MP sync"}, {L"Zkop\u00EDruje ru\u010Dn\u00ED metadata envelope pro friend MP sync; nic automaticky nestahuje ani neaplikuje.", L"Copies the manual metadata envelope for friend MP sync; it does not download or apply anything automatically."}},
+    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, {L"SNC inbox", L"SNC inbox"}, {L"Zkop\u00EDruje bezpe\u010Dn\u00FD inbox pl\u00E1n pro p\u0159\u00EDjem metadata bal\u00ED\u010Dku od p\u0159\u00EDtele.", L"Copies the safe inbox plan for receiving friend package metadata."}},
+    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, {L"SNC outbox", L"SNC outbox"}, {L"Zkop\u00EDruje bezpe\u010Dn\u00FD outbox pl\u00E1n pro p\u0159\u00EDpravu metadata bal\u00ED\u010Dku pro p\u0159\u00EDtele.", L"Copies the safe outbox plan for preparing package metadata for a friend."}},
+    StatusActionSpec{ID_STATUS_EXPORT_MP_PACKAGE, {L"MP export", L"MP export"}, {L"Znovu p\u0159iprav\u00ED multiplayer overlay package z validovan\u00FDch lok\u00E1ln\u00EDch artefakt\u016F.", L"Rebuilds the multiplayer overlay package from validated local artifacts."}},
+    StatusActionSpec{ID_STATUS_MP_IMPORT_HANDOFF, {L"MP import n\u00E1vod", L"MP import guide"}, {L"Zkop\u00EDruje import p\u0159\u00EDkaz a otev\u0159e bal\u00ED\u010Dek, aby ho \u0161lo bezpe\u010Dn\u011B p\u0159edat klientovi nebo dal\u0161\u00EDmu hostovi.", L"Copies the import command and opens the package for safe handoff to a client or next host."}},
+    StatusActionSpec{ID_STATUS_COPY_MP_VERIFY, {L"MP verify", L"MP verify"}, {L"Zkop\u00EDruje z\u00E1kladn\u00ED p\u0159\u00EDkaz pro ov\u011B\u0159en\u00ED MP bal\u00ED\u010Dku p\u0159ed importem.", L"Copies the basic command for verifying an MP package before import."}},
+    StatusActionSpec{ID_STATUS_COPY_MP_IMPORT, {L"MP import", L"MP import"}, {L"Zkop\u00EDruje z\u00E1kladn\u00ED import p\u0159\u00EDkaz; pou\u017Eij a\u017E po verify.", L"Copies the basic import command; use it after verify."}},
+    StatusActionSpec{ID_STATUS_COPY_MP_STRICT_VERIFY, {L"MP strict verify", L"MP strict verify"}, {L"Zkop\u00EDruje p\u0159\u00EDsn\u00E9 ov\u011B\u0159en\u00ED MP bal\u00ED\u010Dku s ochranou proti mismatch\u016Fm.", L"Copies strict MP package verification with mismatch protection."}},
+    StatusActionSpec{ID_STATUS_COPY_MP_STRICT_IMPORT, {L"MP strict import", L"MP strict import"}, {L"Zkop\u00EDruje p\u0159\u00EDsn\u00FD import p\u0159\u00EDkaz; nejbezpe\u010Dn\u011Bj\u0161\u00ED cesta pro MP pou\u017Eit\u00ED.", L"Copies the strict import command, the safest path for MP use."}},
+    StatusActionSpec{ID_STATUS_COPY_LLM_PREPARE, {L"LLM p\u0159\u00EDprava", L"LLM setup"}, {L"Zkop\u00EDruje p\u0159\u00EDkaz/\u0161ablonu pro p\u0159\u00EDpravu doporu\u010Den\u00E9ho lok\u00E1ln\u00EDho LLM runtime.", L"Copies the command/template for preparing the recommended local LLM runtime."}},
+    StatusActionSpec{ID_STATUS_SUPPORT_REPORT, {L"Report", L"Report"}, {L"P\u0159iprav\u00ED nebo otev\u0159e support report pro diagnostiku SNC stavu.", L"Prepares or opens a support report for SNC diagnostics."}},
+    StatusActionSpec{ID_STATUS_TOGGLE_STARTUP, {L"Start", L"Startup"}, {L"Zapne nebo vypne spou\u0161t\u011Bn\u00ED SNC Companionu p\u0159i startu Windows.", L"Enables or disables SNC Companion startup with Windows."}},
 };
 
 const std::array<StatusPageSpec, kStatusPageCount> kStatusPages = {
     StatusPageSpec{
         StatusPageId::Overview,
         ID_STATUS_PAGE_OVERVIEW,
-        L"P\u0159ehled",
-        L"P\u0159ehled mise",
-        L"Rychly stav: co se deje, co chce pozornost a kde je nejblizsi bezpecna akce.",
+        {L"P\u0159ehled", L"Overview"},
+        {L"P\u0159ehled mise", L"Mission Overview"},
+        {L"Rychl\u00FD stav: co se d\u011Bje, co chce pozornost a kde je nejbli\u017E\u0161\u00ED bezpe\u010Dn\u00E1 akce.", L"Fast status: what is happening, what needs attention, and the nearest safe action."},
         {0, 1},
         {ID_STATUS_REFRESH, ID_STATUS_COPY, ID_STATUS_OPEN_NEXT_ACTION_PATH, ID_STATUS_OPEN_BRIEF}},
     StatusPageSpec{
         StatusPageId::Gameplay,
         ID_STATUS_PAGE_GAMEPLAY,
-        L"Hran\u00ED",
-        L"Hran\u00ED a rozhodnut\u00ED",
-        L"Veci kolem prave spustene hry, dalsiho kroku a kontrol, ktere chrani kampan.",
+        {L"Hran\u00ED", L"Gameplay"},
+        {L"Hran\u00ED a rozhodnut\u00ED", L"Gameplay and Decisions"},
+        {L"V\u011Bci kolem pr\u00E1v\u011B spu\u0161t\u011Bn\u00E9 hry, dal\u0161\u00EDho kroku a kontrol, kter\u00E9 chr\u00E1n\u00ED kampa\u0148.", L"Current game context, next action, and safety checks that protect the campaign."},
         {0, 1},
         {ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, ID_STATUS_OPEN_NEXT_ACTION_PATH}},
     StatusPageSpec{
         StatusPageId::Archive,
         ID_STATUS_PAGE_ARCHIVE,
-        L"Archiv",
-        L"Archiv a souhrny",
-        L"Autosave archiv, overeni kopii a rychle vystupy, ktere se daji poslat nebo pouzit pri navazani.",
+        {L"Archiv", L"Archive"},
+        {L"Archiv a souhrny", L"Archive and Briefs"},
+        {L"Autosave archiv, ov\u011B\u0159en\u00ED kopi\u00ED a rychl\u00E9 v\u00FDstupy, kter\u00E9 se daj\u00ED poslat nebo pou\u017E\u00EDt p\u0159i nav\u00E1z\u00E1n\u00ED.", L"Autosave archive, copy verification, and quick outputs for sharing or follow-up."},
         {2},
         {ID_STATUS_OPEN_ARCHIVE, ID_STATUS_OPEN_BRIEF, ID_STATUS_COPY, ID_STATUS_SUPPORT_REPORT}},
     StatusPageSpec{
         StatusPageId::Overlay,
         ID_STATUS_PAGE_OVERLAY,
-        L"Overlay",
-        L"Generated overlay",
-        L"Staging, publish gate a export balicku. Tady patri akce, ktere meni nebo predavaji overlay.",
+        {L"Overlay", L"Overlay"},
+        {L"Generated overlay", L"Generated Overlay"},
+        {L"Staging, publish gate a export bal\u00ED\u010Dku. Tady pat\u0159\u00ED akce, kter\u00E9 m\u011Bn\u00ED nebo p\u0159ed\u00E1vaj\u00ED overlay.", L"Staging, publish gate, and package export. Actions that change or hand off the overlay belong here."},
         {3},
         {ID_STATUS_PUBLISH_GENERATED_OVERLAY, ID_STATUS_EXPORT_MP_PACKAGE, ID_STATUS_OPEN_MP_PACKAGE, ID_STATUS_MP_IMPORT_HANDOFF}},
     StatusPageSpec{
         StatusPageId::Multiplayer,
         ID_STATUS_PAGE_MULTIPLAYER,
-        L"MP",
-        L"Multiplayer a pratele",
-        L"Trust store, friend pairing a MP prikazy. Vse fail-closed, dokud neni jasne, kdo co posila a kdy.",
+        {L"MP", L"MP"},
+        {L"Multiplayer a p\u0159\u00E1tel\u00E9", L"Multiplayer and Friends"},
+        {L"Trust store, friend pairing a MP p\u0159\u00EDkazy. V\u0161e z\u016Fst\u00E1v\u00E1 bezpe\u010Dn\u011B zav\u0159en\u00E9, dokud nen\u00ED jasn\u00E9, kdo co pos\u00EDl\u00E1 a kdy.", L"Trust store, friend pairing, and MP commands. Everything stays safely closed until sender, payload, and timing are clear."},
         {4},
         {ID_STATUS_OPEN_FRIEND_TRUST_STORE, ID_STATUS_COPY_FRIEND_PAIRING, ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, ID_STATUS_COPY_MP_STRICT_VERIFY, ID_STATUS_COPY_MP_STRICT_IMPORT, ID_STATUS_COPY_MP_VERIFY, ID_STATUS_COPY_MP_IMPORT}},
     StatusPageSpec{
         StatusPageId::Llm,
         ID_STATUS_PAGE_LLM,
-        L"LLM",
-        L"Lok\u00E1ln\u00ED LLM",
-        L"Modely, runtime a priprava lokalni inference. Sem patri jen akce kolem modelu.",
+        {L"LLM", L"LLM"},
+        {L"Lok\u00E1ln\u00ED LLM", L"Local LLM"},
+        {L"Modely, runtime a p\u0159\u00EDprava lok\u00E1ln\u00ED inference. Sem pat\u0159\u00ED jen akce kolem modelu.", L"Models, runtime, and local inference preparation. Model actions belong here."},
         {5},
         {ID_STATUS_COPY_LLM_PREPARE}},
     StatusPageSpec{
         StatusPageId::Maintenance,
         ID_STATUS_PAGE_MAINTENANCE,
-        L"\u00DAdr\u017Eba",
-        L"\u00DAdr\u017Eba a diagnostika",
-        L"Start s Windows, support reporty a ochrany pred nechtenym zasahem do hry.",
+        {L"\u00DAdr\u017Eba", L"Maintenance"},
+        {L"\u00DAdr\u017Eba a diagnostika", L"Maintenance and Diagnostics"},
+        {L"Start s Windows, support reporty a ochrany p\u0159ed necht\u011Bn\u00FDm z\u00E1sahem do hry.", L"Windows startup, support reports, and guards against unsafe game changes."},
         {6},
         {ID_STATUS_TOGGLE_STARTUP, ID_STATUS_SUPPORT_REPORT, ID_STATUS_REFRESH, ID_STATUS_COPY}},
 };
@@ -478,11 +492,19 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data);
 std::wstring buildStatusPageDetailsText(StatusPageId page, const StatusDashboardData& data);
 std::string buildFriendPairingCommandTemplateUtf8();
 std::wstring utf8ToWide(const std::string& value);
+std::string wideToUtf8(const std::wstring& value);
+SncUiLanguage detectSncUiLanguage();
+const wchar_t* localizedText(const LocalizedText& text);
+std::wstring localizedTextWide(const LocalizedText& text);
+std::string localizedTextUtf8(const LocalizedText& text);
 StatusDashboardData loadStatusDashboardData();
 std::optional<std::string> extractSummaryLineValue(const std::string& summary, const char* key);
 std::wstring makeRelativeDisplay(const std::filesystem::path& path);
-std::wstring compactBoolText(const std::string& value, const wchar_t* yesText = L"ano", const wchar_t* noText = L"ne");
-std::wstring compactBoolText(const std::wstring& value, const wchar_t* yesText = L"ano", const wchar_t* noText = L"ne");
+std::wstring compactBoolText(const std::string& value, const wchar_t* yesText = nullptr, const wchar_t* noText = nullptr);
+std::wstring compactBoolText(const std::wstring& value, const wchar_t* yesText = nullptr, const wchar_t* noText = nullptr);
+std::wstring formatOwnerFacingStatusValue(const std::string& value);
+std::wstring formatOwnerFacingStatusReason(const std::string& value);
+std::wstring formatOwnerFacingStatusLine(const std::string& value);
 std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator = L" | ");
 std::filesystem::path findRepoRoot();
 const wchar_t* statusFieldLabel(StatusFieldId id);
@@ -639,24 +661,351 @@ std::wstring makeRelativeDisplay(const std::filesystem::path& path)
 
 std::wstring compactBoolText(const std::string& value, const wchar_t* yesText, const wchar_t* noText)
 {
+    const wchar_t* yes = yesText != nullptr ? yesText : localizedText({L"ano", L"yes"});
+    const wchar_t* no = noText != nullptr ? noText : localizedText({L"ne", L"no"});
     if (value == "true") {
-        return yesText;
+        return yes;
     }
     if (value == "false") {
-        return noText;
+        return no;
     }
     return value.empty() ? kStatusEmptyValue : utf8ToWide(value);
 }
 
 std::wstring compactBoolText(const std::wstring& value, const wchar_t* yesText, const wchar_t* noText)
 {
+    const wchar_t* yes = yesText != nullptr ? yesText : localizedText({L"ano", L"yes"});
+    const wchar_t* no = noText != nullptr ? noText : localizedText({L"ne", L"no"});
     if (value == L"true") {
-        return yesText;
+        return yes;
     }
     if (value == L"false") {
-        return noText;
+        return no;
     }
     return value.empty() ? kStatusEmptyValue : value;
+}
+
+bool startsWithLanguageCode(const wchar_t* value, const wchar_t first, const wchar_t second)
+{
+    if (value == nullptr || value[0] == L'\0' || value[1] == L'\0') {
+        return false;
+    }
+
+    const auto lowerAscii = [](const wchar_t ch) {
+        if (ch >= L'A' && ch <= L'Z') {
+            return static_cast<wchar_t>(ch - L'A' + L'a');
+        }
+        return ch;
+    };
+
+    const wchar_t third = value[2];
+    return lowerAscii(value[0]) == first &&
+        lowerAscii(value[1]) == second &&
+        (third == L'\0' || third == L'-' || third == L'_' || third == L'.');
+}
+
+SncUiLanguage detectSncUiLanguage()
+{
+    wchar_t overrideValue[16]{};
+    const DWORD overrideLength =
+        GetEnvironmentVariableW(L"SNC_UI_LANGUAGE", overrideValue, static_cast<DWORD>(std::size(overrideValue)));
+    if (overrideLength > 0 && overrideLength < std::size(overrideValue)) {
+        if (startsWithLanguageCode(overrideValue, L'c', L's') ||
+            startsWithLanguageCode(overrideValue, L'c', L'z')) {
+            return SncUiLanguage::Czech;
+        }
+        if (startsWithLanguageCode(overrideValue, L'e', L'n')) {
+            return SncUiLanguage::English;
+        }
+    }
+
+    const LANGID uiLanguage = GetUserDefaultUILanguage();
+    if (PRIMARYLANGID(uiLanguage) == LANG_CZECH) {
+        return SncUiLanguage::Czech;
+    }
+
+    wchar_t localeName[LOCALE_NAME_MAX_LENGTH]{};
+    if (GetUserDefaultLocaleName(localeName, LOCALE_NAME_MAX_LENGTH) > 0 &&
+        startsWithLanguageCode(localeName, L'c', L's')) {
+        return SncUiLanguage::Czech;
+    }
+
+    return SncUiLanguage::English;
+}
+
+const wchar_t* localizedText(const LocalizedText& text)
+{
+    if (g_uiLanguage == SncUiLanguage::Czech) {
+        return text.cs != nullptr ? text.cs : L"";
+    }
+    return text.en != nullptr ? text.en : (text.cs != nullptr ? text.cs : L"");
+}
+
+std::wstring localizedTextWide(const LocalizedText& text)
+{
+    return localizedText(text);
+}
+
+std::string localizedTextUtf8(const LocalizedText& text)
+{
+    return wideToUtf8(localizedTextWide(text));
+}
+
+std::wstring formatOwnerFacingFallbackToken(const std::string& value)
+{
+    std::string text = value;
+    for (char& ch : text) {
+        if (ch == '_' || ch == '-') {
+            ch = ' ';
+        }
+    }
+    if (!text.empty() && text[0] >= 'a' && text[0] <= 'z') {
+        text[0] = static_cast<char>(text[0] - ('a' - 'A'));
+    }
+    return utf8ToWide(text);
+}
+
+std::wstring formatOwnerFacingStatusValue(const std::string& value)
+{
+    if (value.empty()) {
+        return L"";
+    }
+
+    struct StatusTranslation {
+        const char* value;
+        LocalizedText text;
+    };
+
+    static constexpr StatusTranslation kTranslations[] = {
+        {"true", {L"ano", L"yes"}},
+        {"false", {L"ne", L"no"}},
+        {"unknown", {L"Nezn\u00E1m\u00E9", L"Unknown"}},
+        {"starting", {L"Startuje", L"Starting"}},
+        {"capturing", {L"Sleduje aktivn\u00ED hru", L"Watching active game"}},
+        {"waiting_for_stellaris", {L"\u010Cek\u00E1 na spu\u0161t\u011Bn\u00ED hry", L"Waiting for the game to start"}},
+        {"waiting_for_stellaris_session", {L"\u010Cek\u00E1 na hern\u00ED session", L"Waiting for a game session"}},
+        {"waiting_for_staged_overlay", {L"\u010Cek\u00E1 na p\u0159ipraven\u00FD overlay", L"Waiting for a staged overlay"}},
+        {"waiting_for_encrypted_payload", {L"\u010Cek\u00E1 na \u0161ifrovan\u00FD bal\u00ED\u010Dek", L"Waiting for encrypted package"}},
+        {"waiting_for_owner_approval", {L"\u010Cek\u00E1 na potvrzen\u00ED", L"Waiting for approval"}},
+        {"not_attempted", {L"Zat\u00EDm neprob\u011Bhlo", L"Not attempted yet"}},
+        {"not_prepared", {L"Zat\u00EDm nep\u0159ipraveno", L"Not prepared yet"}},
+        {"not_exported", {L"Zat\u00EDm neexportov\u00E1no", L"Not exported yet"}},
+        {"disabled", {L"Vypnuto", L"Disabled"}},
+        {"enabled", {L"Zapnuto", L"Enabled"}},
+        {"disabled_not_implemented", {L"Zat\u00EDm nen\u00ED implementov\u00E1no", L"Not implemented yet"}},
+        {"manual_metadata_only", {L"Pouze ru\u010Dn\u00ED metadata", L"Manual metadata only"}},
+        {"blocked_stellaris_running", {L"Blokov\u00E1no, proto\u017Ee b\u011B\u017E\u00ED Stellaris", L"Blocked because Stellaris is running"}},
+        {"blocked_by_archive_verification", {L"\u010Cek\u00E1 na ov\u011B\u0159en\u00ED archivu", L"Blocked pending archive verification"}},
+        {"blocked", {L"Blokov\u00E1no", L"Blocked"}},
+        {"failed", {L"Selhalo", L"Failed"}},
+        {"ready", {L"P\u0159ipraveno", L"Ready"}},
+        {"ready_conservative", {L"P\u0159ipraveno konzervativn\u011B", L"Conservatively ready"}},
+        {"ready_partial", {L"\u010C\u00E1ste\u010Dn\u011B p\u0159ipraveno", L"Partially ready"}},
+        {"ready_for_mp", {L"P\u0159ipraveno pro multiplayer", L"Ready for multiplayer"}},
+        {"ready_for_review", {L"P\u0159ipraveno ke kontrole", L"Ready for review"}},
+        {"ready_disabled", {L"P\u0159ipraveno, automatika je vypnut\u00E1", L"Ready, automation disabled"}},
+        {"needs_attention", {L"Vy\u017Eaduje pozornost", L"Needs attention"}},
+        {"needs_setup", {L"Vy\u017Eaduje nastaven\u00ED", L"Needs setup"}},
+        {"degraded", {L"Omezen\u00FD stav", L"Degraded"}},
+        {"warning", {L"Upozorn\u011Bn\u00ED", L"Warning"}},
+        {"no_mismatch", {L"Bez zji\u0161t\u011Bn\u00E9ho mismatch rizika", L"No mismatch detected"}},
+        {"complete", {L"Dokon\u010Deno", L"Complete"}},
+        {"accepted", {L"P\u0159ijato", L"Accepted"}},
+        {"accepted_degraded_previous_host_unavailable", {L"P\u0159ijato, ale p\u0159edchoz\u00ED host nen\u00ED dostupn\u00FD", L"Accepted, but previous host is unavailable"}},
+        {"degraded_previous_host_unavailable", {L"Omezeno: p\u0159edchoz\u00ED host nen\u00ED dostupn\u00FD", L"Degraded: previous host unavailable"}},
+        {"zip_created", {L"ZIP bal\u00ED\u010Dek vytvo\u0159en", L"ZIP package created"}},
+        {"post_play_ready", {L"Post-play zpracov\u00E1n\u00ED je p\u0159ipraven\u00E9", L"Post-play processing is ready"}},
+        {"post_play_attention", {L"Post-play zpracov\u00E1n\u00ED vy\u017Eaduje pozornost", L"Post-play processing needs attention"}},
+        {"post_play_package_ready", {L"Post-play bal\u00ED\u010Dek je p\u0159ipraven\u00FD", L"Post-play package is ready"}},
+        {"post_play_package_attention", {L"Post-play bal\u00ED\u010Dek vy\u017Eaduje kontrolu", L"Post-play package needs review"}},
+        {"post_play_package_write_failed", {L"Nepoda\u0159ilo se zapsat post-play bal\u00ED\u010Dek", L"Post-play package write failed"}},
+        {"entry_points_ambiguous", {L"Vstupn\u00ED body jsou nejednozna\u010Dn\u00E9", L"Entry points are ambiguous"}},
+        {"entry_point_analysis_blocked", {L"Anal\u00FDza vstupn\u00EDch bod\u016F je blokovan\u00E1", L"Entry point analysis is blocked"}},
+        {"generated_overlay_staged", {L"Overlay je p\u0159ipraven\u00FD ve stagingu", L"Overlay is staged"}},
+        {"generated_overlay_staging_failed", {L"Staging overlaye selhal", L"Overlay staging failed"}},
+        {"generated_overlay_staging_not_verified", {L"Staging overlaye nen\u00ED ov\u011B\u0159en\u00FD", L"Overlay staging is not verified"}},
+        {"staged_verified", {L"Staging je ov\u011B\u0159en\u00FD", L"Staging is verified"}},
+        {"published", {L"Publikov\u00E1no", L"Published"}},
+        {"review_staged_overlay_and_publish_if_desired", {L"Zkontrolovat p\u0159ipraven\u00FD overlay", L"Review staged overlay"}},
+        {"review_staged_overlay_status", {L"Zkontrolovat stav overlaye", L"Review overlay status"}},
+        {"review_dsl_draft", {L"Zkontrolovat DSL draft", L"Review DSL draft"}},
+        {"review_candidate_decision_package", {L"Zkontrolovat kandid\u00E1tn\u00ED rozhodnut\u00ED", L"Review candidate decisions"}},
+        {"review_entry_point_ambiguity", {L"Vy\u0159e\u0161it nejednozna\u010Dn\u00FD vstupn\u00ED bod", L"Resolve ambiguous entry point"}},
+        {"review_entry_point_analysis_failure", {L"Zkontrolovat anal\u00FDzu vstupn\u00EDch bod\u016F", L"Review entry point analysis"}},
+        {"review_tray_status", {L"Zkontrolovat stav SNC", L"Review SNC status"}},
+        {"wait_for_stellaris_launch", {L"Po\u010Dkat na spu\u0161t\u011Bn\u00ED Stellaris", L"Wait for Stellaris launch"}},
+        {"run_monthly_reactive_owner_test", {L"Spustit vlastnick\u00FD monthly reactive test", L"Run the monthly reactive owner test"}},
+        {"review_crash_recovery_status", {L"Zkontrolovat crash recovery", L"Review crash recovery"}},
+        {"review_memory_recovery_status", {L"Zkontrolovat memory recovery", L"Review memory recovery"}},
+        {"staged_overlay_ready_owner_gate_available", {L"P\u0159ipraven\u00FD overlay \u010Dek\u00E1 na ru\u010Dn\u00ED rozhodnut\u00ED", L"Staged overlay is waiting for manual decision"}},
+        {"current_staged_overlay_already_published", {L"Aktu\u00E1ln\u00ED staging u\u017E je publikovan\u00FD", L"Current staging is already published"}},
+        {"staged_overlay_written_but_publish_gate_not_ready", {L"Overlay je zapsan\u00FD, ale publish gate je\u0161t\u011B nen\u00ED p\u0159ipraven\u00FD", L"Overlay is written, but publish gate is not ready yet"}},
+        {"dsl_draft_ready_before_overlay_stage", {L"DSL draft je p\u0159ipraven\u00FD, overlay je\u0161t\u011B nen\u00ED ve stagingu", L"DSL draft is ready before overlay staging"}},
+        {"candidate_decisions_ready_before_dsl_draft", {L"Kandid\u00E1tn\u00ED rozhodnut\u00ED jsou p\u0159ipraven\u00E1, DSL draft je\u0161t\u011B ne", L"Candidate decisions are ready before DSL draft"}},
+        {"entry_point_branch_ambiguity_detected", {L"Byla zji\u0161t\u011Bna nejednozna\u010Dnost v\u011Btve vstupn\u00EDho bodu", L"Entry point branch ambiguity detected"}},
+        {"entry_point_analysis_not_ready", {L"Anal\u00FDza vstupn\u00EDch bod\u016F je\u0161t\u011B nen\u00ED p\u0159ipraven\u00E1", L"Entry point analysis is not ready yet"}},
+        {"stellaris_not_running", {L"Stellaris neb\u011B\u017E\u00ED", L"Stellaris is not running"}},
+        {"see_status_summary", {L"Podrobnosti jsou ve stavov\u00E9m souhrnu", L"See status summary for details"}},
+        {"owner_enabled_start_with_windows", {L"Spou\u0161t\u011Bt p\u0159i startu Windows", L"Start with Windows"}},
+        {"manual_start_only", {L"Ru\u010Dn\u00ED spu\u0161t\u011Bn\u00ED", L"Manual start only"}},
+        {"runtime_is_ai_yes", {L"Ru\u010Dn\u00ED kontrola vlastn\u00EDkem z\u016Fst\u00E1v\u00E1 povinn\u00E1", L"Owner manual control remains required"}},
+        {"override_enabled", {L"Rucn\u011B povoleno", L"Manually enabled"}},
+        {"override_disabled", {L"Rucn\u011B vypnuto", L"Manually disabled"}},
+        {"shortcut_installed", {L"Z\u00E1stupce je nainstalovan\u00FD", L"Shortcut installed"}},
+        {"shortcut_not_installed", {L"Z\u00E1stupce nen\u00ED nainstalovan\u00FD", L"Shortcut not installed"}},
+        {"existing_mp_package_already_current", {L"MP bal\u00ED\u010Dek je aktu\u00E1ln\u00ED", L"MP package is current"}},
+        {"mp_package_exported_from_staged_overlay", {L"MP bal\u00ED\u010Dek byl exportov\u00E1n ze stagingu", L"MP package exported from staged overlay"}},
+        {"missing_campaign_identity_for_mp_package_export", {L"Chyb\u00ED identita kampan\u011B pro MP export", L"Campaign identity is missing for MP export"}},
+        {"import_and_verify_before_join", {L"P\u0159ed p\u0159ipojen\u00EDm importovat a ov\u011B\u0159it", L"Import and verify before joining"}},
+        {"package_identity_mismatch_detected", {L"Zji\u0161t\u011Bn mismatch identity bal\u00ED\u010Dku", L"Package identity mismatch detected"}},
+        {"no_identity_mismatch_detected", {L"Nebyl zji\u0161t\u011Bn mismatch identity bal\u00ED\u010Dku", L"No package identity mismatch detected"}},
+        {"model_ready", {L"Model je p\u0159ipraven\u00FD", L"Model ready"}},
+        {"no_model_installed", {L"Nen\u00ED nainstalovan\u00FD \u017E\u00E1dn\u00FD podporovan\u00FD model", L"No supported model installed"}},
+        {"model_license_not_supported", {L"Licence modelu nen\u00ED podporovan\u00E1", L"Model license is not supported"}},
+        {"model_license_requires_user_action", {L"Licence modelu vy\u017Eaduje ru\u010Dn\u00ED potvrzen\u00ED", L"Model license requires user action"}},
+        {"model_incompatible_with_hardware", {L"Model nen\u00ED vhodn\u00FD pro tento hardware", L"Model is incompatible with this hardware"}},
+        {"model_missing", {L"Model chyb\u00ED", L"Model missing"}},
+        {"model_runtime_failed", {L"Runtime modelu selhal", L"Model runtime failed"}},
+        {"model_changed_revalidation_needed", {L"Model se zm\u011Bnil a pot\u0159ebuje znovu ov\u011B\u0159it", L"Model changed and needs revalidation"}},
+        {"state_unavailable", {L"Stav nen\u00ED dostupn\u00FD", L"Status unavailable"}},
+        {"restart_budget_exhausted", {L"Rozpo\u010Det restart\u016F je vy\u010Derpan\u00FD", L"Restart budget exhausted"}},
+        {"disabled_until_manual_start", {L"Vypnuto do ru\u010Dn\u00EDho startu", L"Disabled until manual start"}},
+    };
+
+    for (const auto& translation : kTranslations) {
+        if (value == translation.value) {
+            return localizedTextWide(translation.text);
+        }
+    }
+
+    return formatOwnerFacingFallbackToken(value);
+}
+
+std::wstring formatOwnerFacingStatusReason(const std::string& value)
+{
+    if (value.empty()) {
+        return L"";
+    }
+    if (value == "SNC tray bezi; ceka na stellaris.exe.") {
+        return localizedTextWide({
+            L"SNC b\u011B\u017E\u00ED na pozad\u00ED a \u010Dek\u00E1 na spu\u0161t\u011Bn\u00ED Stellaris.",
+            L"SNC is running in the background and waiting for Stellaris to start."});
+    }
+    if (value == "waiting for archive to become ready") {
+        return localizedTextWide({L"\u010Cek\u00E1 na p\u0159ipraven\u00FD archiv.", L"Waiting for the archive to become ready."});
+    }
+    if (value == "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") {
+        return localizedTextWide({
+            L"Podepsan\u00FD a \u0161ifrovan\u00FD transport pro p\u0159\u00E1tele zat\u00EDm nen\u00ED hotov\u00FD; automatick\u00E9 odes\u00EDl\u00E1n\u00ED, stahov\u00E1n\u00ED a staging jsou vypnut\u00E9.",
+            L"Signed and encrypted friend transport is not implemented yet; automatic upload, download, and staging are disabled."});
+    }
+    if (value == "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.") {
+        return localizedTextWide({
+            L"Do dokon\u010Den\u00ED bezpe\u010Dn\u00E9ho transportu pou\u017Eij ru\u010Dn\u00ED MP export/import a p\u0159\u00EDsn\u00E9 ov\u011B\u0159en\u00ED.",
+            L"Use manual MP export/import and strict verification until secure friend transport is implemented."});
+    }
+    if (value == "package identity mismatch detected (campaign/version/mod/hash); run strict verify/import before MP join") {
+        return localizedTextWide({
+            L"Identita bal\u00ED\u010Dku nesed\u00ED (kampa\u0148/verze/mod/hash); p\u0159ed MP p\u0159ipojen\u00EDm spus\u0165 strict verify/import.",
+            L"Package identity does not match (campaign/version/mod/hash); run strict verify/import before joining MP."});
+    }
+    if (value == "mp overlay package zip not exported by current status source") {
+        return localizedTextWide({
+            L"Aktu\u00E1ln\u00ED stavov\u00FD zdroj zat\u00EDm neexportoval MP ZIP bal\u00ED\u010Dek.",
+            L"The current status source has not exported an MP ZIP package yet."});
+    }
+    if (value == "mp overlay package zip ready for handoff") {
+        return localizedTextWide({
+            L"MP overlay ZIP bal\u00ED\u010Dek je p\u0159ipraven\u00FD k p\u0159ed\u00E1n\u00ED.",
+            L"MP overlay ZIP package is ready for handoff."});
+    }
+    if (value == "mp overlay package verified") {
+        return localizedTextWide({L"MP overlay bal\u00ED\u010Dek je ov\u011B\u0159en\u00FD.", L"MP overlay package is verified."});
+    }
+    if (value == "nacti nejnovnejsi handoff balicek pokud je k dispozici; jinak pouzij starsi overeny archiv nebo klientsky save a nech confidence snizenou") {
+        return localizedTextWide({
+            L"Na\u010Dti nejnov\u011Bj\u0161\u00ED handoff bal\u00ED\u010Dek, pokud je k dispozici; jinak pou\u017Eij star\u0161\u00ED ov\u011B\u0159en\u00FD archiv nebo klientsk\u00FD save a nech confidence sn\u00ED\u017Eenou.",
+            L"Load the newest handoff package if available; otherwise use an older verified archive or client save and keep confidence reduced."});
+    }
+    if (value == "prepare local support report preview before manual review or send") {
+        return localizedTextWide({
+            L"P\u0159ed ru\u010Dn\u00ED kontrolou nebo odesl\u00E1n\u00EDm p\u0159iprav lok\u00E1ln\u00ED n\u00E1hled support reportu.",
+            L"Prepare the local support report preview before manual review or send."});
+    }
+    if (value == "no supported local model is selected; SNC can preserve saves and validate deterministic artifacts but new LLM interpretation is disabled") {
+        return localizedTextWide({
+            L"Nen\u00ED vybran\u00FD podporovan\u00FD lok\u00E1ln\u00ED model; SNC m\u016F\u017Ee chr\u00E1nit savy a ov\u011B\u0159ovat deterministick\u00E9 artefakty, ale nov\u00E1 LLM interpretace je vypnut\u00E1.",
+            L"No supported local model is selected; SNC can preserve saves and validate deterministic artifacts, but new LLM interpretation is disabled."});
+    }
+    return formatOwnerFacingStatusValue(value);
+}
+
+std::wstring formatOwnerFacingStatusLine(const std::string& value)
+{
+    if (value.empty()) {
+        return L"";
+    }
+
+    const std::string separator = " - ";
+    const std::size_t separatorPos = value.find(separator);
+    if (separatorPos == std::string::npos) {
+        return formatOwnerFacingStatusReason(value);
+    }
+
+    const std::string state = value.substr(0, separatorPos);
+    const std::string reason = value.substr(separatorPos + separator.size());
+    const std::wstring displayState = formatOwnerFacingStatusValue(state);
+    const std::wstring displayReason = formatOwnerFacingStatusReason(reason);
+    if (displayReason.empty()) {
+        return displayState;
+    }
+    if (displayState.empty()) {
+        return displayReason;
+    }
+    return displayState + L". " + displayReason;
+}
+
+std::string ownerFacingStatusValueUtf8(const std::string& value)
+{
+    return wideToUtf8(formatOwnerFacingStatusValue(value));
+}
+
+std::string ownerFacingStatusReasonUtf8(const std::string& value)
+{
+    return wideToUtf8(formatOwnerFacingStatusReason(value));
+}
+
+void appendOwnerFacingStatusValueLine(
+    std::ostringstream& output,
+    const char* key,
+    const std::string& value)
+{
+    if (!value.empty()) {
+        output << key << ": " << ownerFacingStatusValueUtf8(value) << "\n";
+    }
+}
+
+void appendOwnerFacingStatusReasonLine(
+    std::ostringstream& output,
+    const char* key,
+    const std::string& value)
+{
+    if (!value.empty()) {
+        output << key << ": " << ownerFacingStatusReasonUtf8(value) << "\n";
+    }
+}
+
+void appendOwnerFacingStatusPairLine(
+    std::ostringstream& output,
+    const char* key,
+    const std::string& state,
+    const std::string& reason)
+{
+    output << key << ": " << ownerFacingStatusValueUtf8(state);
+    if (!reason.empty()) {
+        output << " - " << ownerFacingStatusReasonUtf8(reason);
+    }
+    output << "\n";
 }
 
 std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator)
@@ -677,34 +1026,34 @@ std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_
 const wchar_t* statusFieldLabel(const StatusFieldId id)
 {
     switch (id) {
-    case StatusFieldId::LiveState: return L"Stav";
-    case StatusFieldId::LiveStellaris: return L"Stellaris";
-    case StatusFieldId::LiveSession: return L"Session";
-    case StatusFieldId::LiveStartup: return L"Start";
-    case StatusFieldId::ArchivePath: return L"Cesta";
-    case StatusFieldId::ArchiveVerified: return L"Ov\u011B\u0159eno";
-    case StatusFieldId::ArchiveCopied: return L"Kopie";
-    case StatusFieldId::ArchiveSkipped: return L"P\u0159esko\u010Deno";
-    case StatusFieldId::OverlayStaging: return L"Staging";
-    case StatusFieldId::OverlayGate: return L"Gate";
-    case StatusFieldId::OverlayAllowed: return L"Povoleno";
-    case StatusFieldId::OverlayActive: return L"Aktivn\u00ED";
-    case StatusFieldId::ModelState: return L"Stav";
-    case StatusFieldId::ModelRuntime: return L"Runtime";
-    case StatusFieldId::ModelRecommendation: return L"Doporu\u010Den\u00ED";
-    case StatusFieldId::ModelMode: return L"Re\u017Eim";
-    case StatusFieldId::ModelInstallGuidance: return L"Instalace";
-    case StatusFieldId::NextAction: return L"Akce";
-    case StatusFieldId::NextReason: return L"Pro\u010D";
-    case StatusFieldId::NextHint: return L"Hint";
-    case StatusFieldId::SupportReportState: return L"Report";
-    case StatusFieldId::CrashRecoveryState: return L"Crash";
-    case StatusFieldId::FriendTrustStoreState: return L"Trust store";
-    case StatusFieldId::FriendMpSyncTransportState: return L"Sync transport";
-    case StatusFieldId::HumanControlGuardState: return L"Ru\u010Dn\u00ED kontrola";
-    case StatusFieldId::MpPackageRefreshState: return L"MP export";
-    case StatusFieldId::MpPackageZipState: return L"ZIP";
-    case StatusFieldId::MpPackageHandoffStatus: return L"Handoff";
+    case StatusFieldId::LiveState: return localizedText({L"Stav", L"Status"});
+    case StatusFieldId::LiveStellaris: return localizedText({L"Stellaris", L"Stellaris"});
+    case StatusFieldId::LiveSession: return localizedText({L"Session", L"Session"});
+    case StatusFieldId::LiveStartup: return localizedText({L"Start", L"Startup"});
+    case StatusFieldId::ArchivePath: return localizedText({L"Cesta", L"Path"});
+    case StatusFieldId::ArchiveVerified: return localizedText({L"Ov\u011B\u0159eno", L"Verified"});
+    case StatusFieldId::ArchiveCopied: return localizedText({L"Kopie", L"Copied"});
+    case StatusFieldId::ArchiveSkipped: return localizedText({L"P\u0159esko\u010Deno", L"Skipped"});
+    case StatusFieldId::OverlayStaging: return localizedText({L"Staging", L"Staging"});
+    case StatusFieldId::OverlayGate: return localizedText({L"Gate", L"Gate"});
+    case StatusFieldId::OverlayAllowed: return localizedText({L"Povoleno", L"Allowed"});
+    case StatusFieldId::OverlayActive: return localizedText({L"Aktivn\u00ED", L"Active"});
+    case StatusFieldId::ModelState: return localizedText({L"Stav", L"Status"});
+    case StatusFieldId::ModelRuntime: return localizedText({L"Runtime", L"Runtime"});
+    case StatusFieldId::ModelRecommendation: return localizedText({L"Doporu\u010Den\u00ED", L"Recommendation"});
+    case StatusFieldId::ModelMode: return localizedText({L"Re\u017Eim", L"Mode"});
+    case StatusFieldId::ModelInstallGuidance: return localizedText({L"Instalace", L"Install"});
+    case StatusFieldId::NextAction: return localizedText({L"Akce", L"Action"});
+    case StatusFieldId::NextReason: return localizedText({L"Pro\u010D", L"Why"});
+    case StatusFieldId::NextHint: return localizedText({L"Hint", L"Hint"});
+    case StatusFieldId::SupportReportState: return localizedText({L"Report", L"Report"});
+    case StatusFieldId::CrashRecoveryState: return localizedText({L"Crash", L"Crash"});
+    case StatusFieldId::FriendTrustStoreState: return localizedText({L"Trust store", L"Trust store"});
+    case StatusFieldId::FriendMpSyncTransportState: return localizedText({L"Sync transport", L"Sync transport"});
+    case StatusFieldId::HumanControlGuardState: return localizedText({L"Ru\u010Dn\u00ED kontrola", L"Manual guard"});
+    case StatusFieldId::MpPackageRefreshState: return localizedText({L"MP export", L"MP export"});
+    case StatusFieldId::MpPackageZipState: return localizedText({L"ZIP", L"ZIP"});
+    case StatusFieldId::MpPackageHandoffStatus: return localizedText({L"Handoff", L"Handoff"});
     case StatusFieldId::Count: break;
     }
     return L"";
@@ -714,61 +1063,61 @@ const wchar_t* statusFieldTooltip(const StatusFieldId id)
 {
     switch (id) {
     case StatusFieldId::LiveState:
-        return L"Souhrn zivosti SNC Companionu: jestli bezi worker a co naposledy hlasi.";
+        return localizedText({L"Souhrn \u017Eivosti SNC Companionu: jestli b\u011B\u017E\u00ED worker a co naposledy hl\u00E1s\u00ED.", L"SNC Companion liveness summary: whether the worker is running and what it last reported."});
     case StatusFieldId::LiveStellaris:
-        return L"Detekce Stellaris procesu. Kdyz hra bezi, rizikove akce maji byt opatrnejsi.";
+        return localizedText({L"Detekce Stellaris procesu. Kdy\u017E hra b\u011B\u017E\u00ED, rizikov\u00E9 akce maj\u00ED b\u00FDt opatrn\u011Bj\u0161\u00ED.", L"Stellaris process detection. When the game is running, risky actions should stay more careful."});
     case StatusFieldId::LiveSession:
-        return L"Identifikace aktualni session nebo posledniho znameho herniho kontextu.";
+        return localizedText({L"Identifikace aktu\u00E1ln\u00ED session nebo posledn\u00EDho zn\u00E1m\u00E9ho hern\u00EDho kontextu.", L"Current session identity or the last known game context."});
     case StatusFieldId::LiveStartup:
-        return L"Stav spousteni SNC pri startu Windows.";
+        return localizedText({L"Stav spou\u0161t\u011Bn\u00ED SNC p\u0159i startu Windows.", L"SNC startup-with-Windows status."});
     case StatusFieldId::ArchivePath:
-        return L"Cesta k lokalnimu autosave archivu.";
+        return localizedText({L"Cesta k lok\u00E1ln\u00EDmu autosave archivu.", L"Path to the local autosave archive."});
     case StatusFieldId::ArchiveVerified:
-        return L"Informace, jestli archiv posledni kopie prosla overenim.";
+        return localizedText({L"Informace, jestli archiv posledn\u00ED kopie pro\u0161la ov\u011B\u0159en\u00EDm.", L"Whether the latest archive copy passed verification."});
     case StatusFieldId::ArchiveCopied:
-        return L"Pocet autosave souboru, ktere posledni beh zkopiroval.";
+        return localizedText({L"Po\u010Det autosave soubor\u016F, kter\u00E9 posledn\u00ED b\u011Bh zkop\u00EDroval.", L"Number of autosave files copied by the last run."});
     case StatusFieldId::ArchiveSkipped:
-        return L"Pocet souboru, ktere posledni beh preskocil, typicky protoze uz existovaly.";
+        return localizedText({L"Po\u010Det soubor\u016F, kter\u00E9 posledn\u00ED b\u011Bh p\u0159esko\u010Dil, typicky proto\u017Ee u\u017E existovaly.", L"Number of files skipped by the last run, usually because they already existed."});
     case StatusFieldId::OverlayStaging:
-        return L"Stav pripraveneho generated overlay stagingu pred publikaci.";
+        return localizedText({L"Stav p\u0159ipraven\u00E9ho generated overlay stagingu p\u0159ed publikac\u00ED.", L"Staged generated overlay status before publishing."});
     case StatusFieldId::OverlayGate:
-        return L"Bezpecnostni publish gate: proc overlay muze nebo nesmi jit do aktivni slozky.";
+        return localizedText({L"Bezpe\u010Dnostn\u00ED publish gate: pro\u010D overlay m\u016F\u017Ee nebo nesm\u00ED j\u00EDt do aktivn\u00ED slo\u017Eky.", L"Safety publish gate: why the overlay may or may not go to the active folder."});
     case StatusFieldId::OverlayAllowed:
-        return L"Rychly boolean, jestli gate povoluje publikaci.";
+        return localizedText({L"Rychl\u00E1 informace, jestli gate povoluje publikaci.", L"Quick signal for whether the gate allows publishing."});
     case StatusFieldId::OverlayActive:
-        return L"Aktualni aktivni generated overlay slozka.";
+        return localizedText({L"Aktu\u00E1ln\u00ED aktivn\u00ED generated overlay slo\u017Eka.", L"Current active generated overlay folder."});
     case StatusFieldId::ModelState:
-        return L"Stav lokalniho LLM runtime a dostupnosti modelu.";
+        return localizedText({L"Stav lok\u00E1ln\u00EDho LLM runtime a dostupnosti modelu.", L"Local LLM runtime and model availability status."});
     case StatusFieldId::ModelRuntime:
-        return L"Doporuceny nebo detekovany runtime pro lokalni model.";
+        return localizedText({L"Doporu\u010Den\u00FD nebo detekovan\u00FD runtime pro lok\u00E1ln\u00ED model.", L"Recommended or detected runtime for the local model."});
     case StatusFieldId::ModelRecommendation:
-        return L"Co SNC doporucuje pro model/runtime podle aktualni konfigurace.";
+        return localizedText({L"Co SNC doporu\u010Duje pro model/runtime podle aktu\u00E1ln\u00ED konfigurace.", L"What SNC recommends for model/runtime based on current configuration."});
     case StatusFieldId::ModelMode:
-        return L"Rezim lokalni inference, napr. reduced nebo standardni chod.";
+        return localizedText({L"Re\u017Eim lok\u00E1ln\u00ED inference, nap\u0159. omezen\u00FD nebo standardn\u00ED chod.", L"Local inference mode, such as reduced or standard operation."});
     case StatusFieldId::ModelInstallGuidance:
-        return L"Konkretnejsi instrukce, co nainstalovat nebo pripravit pro LLM.";
+        return localizedText({L"Konkr\u00E9tn\u011Bj\u0161\u00ED instrukce, co nainstalovat nebo p\u0159ipravit pro LLM.", L"More specific instructions for what to install or prepare for the LLM."});
     case StatusFieldId::NextAction:
-        return L"Nejblizsi akce, kterou SNC povazuje za smysluplnou.";
+        return localizedText({L"Nejbli\u017E\u0161\u00ED akce, kterou SNC pova\u017Euje za smysluplnou.", L"The nearest action SNC considers useful."});
     case StatusFieldId::NextReason:
-        return L"Proc je prave tato akce navrzena.";
+        return localizedText({L"Pro\u010D je pr\u00E1v\u011B tato akce navr\u017Eena.", L"Why this action is suggested."});
     case StatusFieldId::NextHint:
-        return L"Prakticka napoveda pro dalsi krok bez cteni celeho reportu.";
+        return localizedText({L"Praktick\u00E1 n\u00E1pov\u011Bda pro dal\u0161\u00ED krok bez \u010Dten\u00ED cel\u00E9ho reportu.", L"Practical next-step hint without reading the full report."});
     case StatusFieldId::SupportReportState:
-        return L"Stav diagnostickeho support reportu.";
+        return localizedText({L"Stav diagnostick\u00E9ho support reportu.", L"Diagnostic support report status."});
     case StatusFieldId::CrashRecoveryState:
-        return L"Stav ochrany proti spatne obnove po crashi nebo behem hry.";
+        return localizedText({L"Stav ochrany proti \u0161patn\u00E9 obnov\u011B po crashi nebo b\u011Bhem hry.", L"Guard status against unsafe recovery after a crash or during gameplay."});
     case StatusFieldId::FriendTrustStoreState:
-        return L"Stav seznamu duveryhodnych SNC pratel a jejich identit.";
+        return localizedText({L"Stav seznamu d\u016Fv\u011Bryhodn\u00FDch SNC p\u0159\u00E1tel a jejich identit.", L"Status of trusted SNC friends and their identities."});
     case StatusFieldId::FriendMpSyncTransportState:
-        return L"Stav friend MP sync transportu. Dokud neni bezpecny, sync zustava fail-closed.";
+        return localizedText({L"Stav friend MP sync transportu. Dokud nen\u00ED bezpe\u010Dn\u00FD, sync z\u016Fst\u00E1v\u00E1 bezpe\u010Dn\u011B zav\u0159en\u00FD.", L"Friend MP sync transport status. Until it is safe, sync stays fail-closed."});
     case StatusFieldId::HumanControlGuardState:
-        return L"Ochrana, ktera vyzaduje rucni kontrolu pred rizikovou zmenou.";
+        return localizedText({L"Ochrana, kter\u00E1 vy\u017Eaduje ru\u010Dn\u00ED kontrolu p\u0159ed rizikovou zm\u011Bnou.", L"Guard that requires manual review before risky changes."});
     case StatusFieldId::MpPackageRefreshState:
-        return L"Stav obnoveni/exportu multiplayer overlay package.";
+        return localizedText({L"Stav obnoven\u00ED/exportu multiplayer overlay package.", L"Multiplayer overlay package refresh/export status."});
     case StatusFieldId::MpPackageZipState:
-        return L"Stav ZIP balicku pro MP predani.";
+        return localizedText({L"Stav ZIP bal\u00ED\u010Dku pro MP p\u0159ed\u00E1n\u00ED.", L"ZIP package status for MP handoff."});
     case StatusFieldId::MpPackageHandoffStatus:
-        return L"Stav predani MP balicku hostovi/klientovi a souvisejici upozorneni.";
+        return localizedText({L"Stav p\u0159ed\u00E1n\u00ED MP bal\u00ED\u010Dku hostovi/klientovi a souvisej\u00EDc\u00ED upozorn\u011Bn\u00ED.", L"MP package handoff status for host/client and related warnings."});
     case StatusFieldId::Count:
         break;
     }
@@ -1002,7 +1351,7 @@ std::wstring statusActionLabel(const UINT commandId)
         return strategic_nexus::buildSncTraySupportReportActionButtonLabel(loadSupportReportActionStatus());
     }
     const auto* action = statusActionSpec(commandId);
-    return action != nullptr ? action->defaultLabel : L"";
+    return action != nullptr ? localizedTextWide(action->defaultLabel) : L"";
 }
 
 void setStatusActivePage(HWND hwnd, const StatusPageId page)
@@ -1578,30 +1927,41 @@ std::string buildFriendMpSyncOutboxPlanCommandTemplateUtf8()
 
 std::string buildFriendPairingGuideTextUtf8()
 {
-    return "SNC friend pairing guide: 1) create request; 2) friend verifies fingerprint and creates acceptance; "
-           "3) import acceptance into local trust store. Auto-sync stays disabled until signed/encrypted transport is active.";
+    return localizedTextUtf8({
+        L"SNC friend pairing n\u00E1vod: 1) vytvo\u0159 request; 2) p\u0159\u00EDtel ov\u011B\u0159\u00ED fingerprint a vytvo\u0159\u00ED acceptance; "
+        L"3) importuj acceptance do lok\u00E1ln\u00EDho trust store. Auto-sync z\u016Fst\u00E1v\u00E1 vypnut\u00FD, dokud nen\u00ED aktivn\u00ED podepsan\u00FD/\u0161ifrovan\u00FD transport.",
+        L"SNC friend pairing guide: 1) create request; 2) friend verifies fingerprint and creates acceptance; "
+        L"3) import acceptance into local trust store. Auto-sync stays disabled until signed/encrypted transport is active."});
 }
 
 std::wstring buildFriendPairingGuideText(const StatusDashboardData& data)
 {
     std::wstring guide;
-    guide += L"SNC friend pairing guide:\r\n";
-    guide += L"1. Prvni hrac vytvori friend request a posle ho druhemu hraci mimo SNC.\r\n";
-    guide += L"2. Druhy hrac overi jmeno/fingerprint, vytvori friend acceptance a posle ji zpet.\r\n";
-    guide += L"3. Prvni hrac importuje acceptance do lokalniho trust store.\r\n";
-    guide += L"Stav trust store: ";
+    guide += localizedTextWide({L"SNC friend pairing n\u00E1vod:\r\n", L"SNC friend pairing guide:\r\n"});
+    guide += localizedTextWide({
+        L"1. Prvn\u00ED hr\u00E1\u010D vytvo\u0159\u00ED friend request a po\u0161le ho druh\u00E9mu hr\u00E1\u010Di mimo SNC.\r\n",
+        L"1. First player creates a friend request and sends it to the second player outside SNC.\r\n"});
+    guide += localizedTextWide({
+        L"2. Druh\u00FD hr\u00E1\u010D ov\u011B\u0159\u00ED jm\u00E9no/fingerprint, vytvo\u0159\u00ED friend acceptance a po\u0161le ji zp\u011Bt.\r\n",
+        L"2. Second player verifies name/fingerprint, creates friend acceptance, and sends it back.\r\n"});
+    guide += localizedTextWide({
+        L"3. Prvn\u00ED hr\u00E1\u010D importuje acceptance do lok\u00E1ln\u00EDho trust store.\r\n",
+        L"3. First player imports acceptance into the local trust store.\r\n"});
+    guide += localizedTextWide({L"Stav trust store: ", L"Trust store status: "});
     guide += data.friendTrustStoreState.empty() ? kStatusEmptyValue : data.friendTrustStoreState;
     if (!data.friendTrustStoreReason.empty()) {
         guide += L" - ";
         guide += data.friendTrustStoreReason;
     }
     if (!data.friendTrustStorePath.empty() && data.friendTrustStorePath != kStatusEmptyValue) {
-        guide += L"\r\nTrust store cesta: ";
+        guide += localizedTextWide({L"\r\nTrust store cesta: ", L"\r\nTrust store path: "});
         guide += data.friendTrustStorePath;
     }
-    guide += L"\r\nAuto-sync zustava vypnuty. Signed/encrypted transport jeste neni aktivni.";
+    guide += localizedTextWide({
+        L"\r\nAuto-sync z\u016Fst\u00E1v\u00E1 vypnut\u00FD. Podepsan\u00FD/\u0161ifrovan\u00FD transport je\u0161t\u011B nen\u00ED aktivn\u00ED.",
+        L"\r\nAuto-sync stays disabled. Signed/encrypted transport is not active yet."});
     if (!data.friendPairingCommandTemplate.empty()) {
-        guide += L"\r\n\r\nCLI sablona:\r\n";
+        guide += localizedTextWide({L"\r\n\r\nCLI \u0161ablona:\r\n", L"\r\n\r\nCLI template:\r\n"});
         guide += data.friendPairingCommandTemplate;
     }
     return guide;
@@ -1623,8 +1983,8 @@ void updateStatusCaptionButtons(HWND hwnd)
 StatusDashboardData loadStatusDashboardData()
 {
     StatusDashboardData data;
-    data.subtitle = L"Stav: SNC bezi.";
-    data.liveState = L"SNC bezi.";
+    data.subtitle = localizedTextWide({L"Stav: SNC b\u011B\u017E\u00ED.", L"Status: SNC is running."});
+    data.liveState = localizedTextWide({L"SNC b\u011B\u017E\u00ED.", L"SNC is running."});
     data.liveStellaris = L"\u2014";
     data.liveSession = L"\u2014";
     data.liveStartup = L"\u2014";
@@ -1659,18 +2019,22 @@ StatusDashboardData loadStatusDashboardData()
     data.friendMpSyncEnvelopeCommandTemplate = utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8());
     data.friendMpSyncInboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8());
     data.friendMpSyncOutboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncOutboxPlanCommandTemplateUtf8());
-    data.friendMpSyncTransportState = L"disabled_not_implemented";
+    data.friendMpSyncTransportState = formatOwnerFacingStatusValue("disabled_not_implemented");
     data.friendMpSyncTransportReason =
-        L"signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
+        formatOwnerFacingStatusReason(
+            "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled");
     data.friendMpSyncPreflightChecklist =
-        L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled.";
+        localizedTextWide({
+            L"P\u0159ed friend MP sezonou pou\u017Eij aktu\u00E1ln\u00ED MP ZIP, vytvo\u0159/ov\u011B\u0159 metadata friend MP sync envelope, spus\u0165 inbox/outbox pl\u00E1ny se zav\u0159en\u00FDm Stellaris a potom sd\u00EDlej/importuj ru\u010Dn\u011B; automatick\u00FD sync z\u016Fst\u00E1v\u00E1 vypnut\u00FD.",
+            L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled."});
     data.humanControlGuardState = L"\u2014";
 
     std::string json;
     if (!strategic_nexus::common::tryReadTextFile(g_trayStatusPath, json)) {
         std::lock_guard<std::mutex> lock(g_statusMutex);
-        const std::wstring fallback = g_statusText.empty() ? L"SNC bezi." : g_statusText;
-        data.subtitle = L"Stav: " + fallback;
+        const std::wstring fallback =
+            g_statusText.empty() ? localizedTextWide({L"SNC b\u011B\u017E\u00ED.", L"SNC is running."}) : g_statusText;
+        data.subtitle = localizedTextWide({L"Stav: ", L"Status: "}) + fallback;
         data.liveState = fallback;
         return data;
     }
@@ -1682,17 +2046,16 @@ StatusDashboardData loadStatusDashboardData()
 
     const std::string stateLine = summaryValue("stav");
     if (!stateLine.empty()) {
-        data.subtitle = L"Stav: " + utf8ToWide(stateLine);
-        data.liveState = utf8ToWide(stateLine);
+        data.subtitle = localizedTextWide({L"Stav: ", L"Status: "}) + formatOwnerFacingStatusLine(stateLine);
+        data.liveState = formatOwnerFacingStatusLine(stateLine);
     }
 
     data.liveStellaris = compactBoolText(summaryValue("stellaris_running"));
     data.liveSession = utf8ToWide(summaryValue("session_id"));
-    data.liveStartup = utf8ToWide(summaryValue("startup_lifecycle_state"));
-    if (data.liveStartup == L"owner_enabled_start_with_windows") {
-        data.liveStartup = L"spustit pri startu Windows";
-    } else if (data.liveStartup == L"manual_start_only") {
-        data.liveStartup = L"rucni start";
+    const std::string startupLifecycleState = summaryValue("startup_lifecycle_state");
+    data.liveStartup = formatOwnerFacingStatusValue(startupLifecycleState);
+    if (data.liveStartup.empty()) {
+        data.liveStartup = kStatusEmptyValue;
     }
 
     const std::string archiveRoot = summaryValue("archive_root");
@@ -1703,13 +2066,14 @@ StatusDashboardData loadStatusDashboardData()
     data.archiveCopied = utf8ToWide(summaryValue("copied_count_total"));
     data.archiveSkipped = utf8ToWide(summaryValue("skipped_count_total"));
 
-    data.overlayStaging = utf8ToWide(summaryValue("generated_overlay_staging_readiness"));
+    data.overlayStaging = formatOwnerFacingStatusValue(summaryValue("generated_overlay_staging_readiness"));
     const std::string publishGateState = summaryValue("generated_overlay_publish_gate_state");
     const std::string publishGateReason = summaryValue("generated_overlay_publish_gate_reason");
     if (!publishGateState.empty() && !publishGateReason.empty()) {
-        data.overlayGate = utf8ToWide(publishGateState) + L" - " + utf8ToWide(publishGateReason);
+        data.overlayGate =
+            formatOwnerFacingStatusValue(publishGateState) + L". " + formatOwnerFacingStatusReason(publishGateReason);
     } else if (!publishGateState.empty()) {
-        data.overlayGate = utf8ToWide(publishGateState);
+        data.overlayGate = formatOwnerFacingStatusValue(publishGateState);
     }
     data.overlayAllowed = compactBoolText(summaryValue("generated_overlay_publish_allowed"));
     data.overlayPublishCommand = utf8ToWide(summaryValue("generated_overlay_publish_gate_publish_command"));
@@ -1726,7 +2090,7 @@ StatusDashboardData loadStatusDashboardData()
     } else if (!selectedModelId.empty()) {
         data.modelState = utf8ToWide(selectedModelId);
     } else if (!localLlmState.empty()) {
-        data.modelState = utf8ToWide(localLlmState);
+        data.modelState = formatOwnerFacingStatusLine(localLlmState);
     }
     const std::string runtime = summaryValue("local_llm_runtime");
     const std::string canRunInference = summaryValue("local_llm_can_run_inference");
@@ -1737,7 +2101,7 @@ StatusDashboardData loadStatusDashboardData()
         runtimeParts.push_back(utf8ToWide(runtime));
     }
     if (!canRunInference.empty()) {
-        runtimeParts.push_back(L"inference " + compactBoolText(canRunInference));
+        runtimeParts.push_back(localizedTextWide({L"inference ", L"inference "}) + compactBoolText(canRunInference));
     }
     data.modelRuntime = combineValues(runtimeParts);
 
@@ -1760,39 +2124,42 @@ StatusDashboardData loadStatusDashboardData()
 
     std::vector<std::wstring> modeParts;
     if (!reducedMode.empty()) {
-        modeParts.push_back(L"reduced " + compactBoolText(reducedMode));
+        modeParts.push_back(localizedTextWide({L"omezen\u00FD re\u017Eim ", L"reduced mode "}) + compactBoolText(reducedMode));
     }
     if (!userActionRequired.empty()) {
-        modeParts.push_back(L"user action " + compactBoolText(userActionRequired));
+        modeParts.push_back(localizedTextWide({L"ru\u010Dn\u00ED akce ", L"user action "}) + compactBoolText(userActionRequired));
     }
     if (modeParts.empty()) {
         const std::string downloadAllowed = summaryValue("local_llm_download_allowed");
         if (!downloadAllowed.empty()) {
-            modeParts.push_back(L"download " + compactBoolText(downloadAllowed));
+            modeParts.push_back(localizedTextWide({L"download ", L"download "}) + compactBoolText(downloadAllowed));
         }
     }
     data.modelMode = combineValues(modeParts);
 
-    data.nextAction = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action").value_or(""));
-    data.nextReason = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_reason").value_or(""));
+    data.nextActionRaw = strategic_nexus::common::extractJsonString(json, "next_action").value_or("");
+    data.nextAction = formatOwnerFacingStatusValue(data.nextActionRaw);
+    data.nextReason =
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "next_action_reason").value_or(""));
     data.nextHint = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_command_hint").value_or(""));
     data.nextPlaybook = utf8ToWide(strategic_nexus::common::extractJsonString(json, "owner_test_playbook_path").value_or(""));
     data.nextActionPath = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_path").value_or(""));
     data.campaignLibraryPlanPath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "campaign_library_plan_path").value_or(""));
-    data.supportReportState = utf8ToWide(strategic_nexus::common::extractJsonString(json, "support_report_state").value_or(""));
+    data.supportReportState =
+        formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "support_report_state").value_or(""));
     data.supportReportPath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "support_report_preview_path").value_or(""));
     data.crashRecoveryState =
-        utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_state").value_or(""));
+        formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "crash_recovery_state").value_or(""));
     data.crashRecoveryReason =
-        utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_reason").value_or(""));
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "crash_recovery_reason").value_or(""));
     data.crashRecoveryPath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "crash_recovery_state_path").value_or(""));
     data.friendTrustStoreState =
-        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_state").value_or(""));
+        formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "friend_trust_store_state").value_or(""));
     data.friendTrustStoreReason =
-        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_reason").value_or(""));
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_trust_store_reason").value_or(""));
     data.friendTrustStorePath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_path").value_or(""));
     data.friendMpSyncEnvelopeCommandTemplate =
@@ -1811,50 +2178,54 @@ StatusDashboardData loadStatusDashboardData()
         data.friendMpSyncOutboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncOutboxPlanCommandTemplateUtf8());
     }
     data.friendMpSyncTransportState =
-        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_state").value_or(""));
+        formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_state").value_or(""));
     if (data.friendMpSyncTransportState.empty()) {
-        data.friendMpSyncTransportState = L"disabled_not_implemented";
+        data.friendMpSyncTransportState = formatOwnerFacingStatusValue("disabled_not_implemented");
     }
     data.friendMpSyncTransportReason =
-        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_reason").value_or(""));
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_reason").value_or(""));
     if (data.friendMpSyncTransportReason.empty()) {
         data.friendMpSyncTransportReason =
-            L"signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
+            formatOwnerFacingStatusReason(
+                "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled");
     }
     data.friendMpSyncTransportNextStep =
-        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_next_step").value_or(""));
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_next_step").value_or(""));
     if (data.friendMpSyncTransportNextStep.empty()) {
         data.friendMpSyncTransportNextStep =
-            L"Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.";
+            formatOwnerFacingStatusReason(
+                "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.");
     }
     data.friendMpSyncPreflightChecklist =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_preflight_checklist").value_or(""));
     if (data.friendMpSyncPreflightChecklist.empty()) {
         data.friendMpSyncPreflightChecklist =
-            L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled.";
+            localizedTextWide({
+                L"P\u0159ed friend MP sezonou pou\u017Eij aktu\u00E1ln\u00ED MP ZIP, vytvo\u0159/ov\u011B\u0159 metadata friend MP sync envelope, spus\u0165 inbox/outbox pl\u00E1ny se zav\u0159en\u00FDm Stellaris a potom sd\u00EDlej/importuj ru\u010Dn\u011B; automatick\u00FD sync z\u016Fst\u00E1v\u00E1 vypnut\u00FD.",
+                L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled."});
     }
     const std::string humanControlGuardState = summaryValue("human_control_guard_state");
     if (!humanControlGuardState.empty()) {
-        data.humanControlGuardState = utf8ToWide(humanControlGuardState);
+        data.humanControlGuardState = formatOwnerFacingStatusValue(humanControlGuardState);
     }
-    data.mpPackageRefreshState = utf8ToWide(summaryValue("mp_package_refresh_state"));
-    data.mpPackageRefreshReason = utf8ToWide(summaryValue("mp_package_refresh_reason"));
+    data.mpPackageRefreshState = formatOwnerFacingStatusValue(summaryValue("mp_package_refresh_state"));
+    data.mpPackageRefreshReason = formatOwnerFacingStatusReason(summaryValue("mp_package_refresh_reason"));
     data.mpPackageDirectory = utf8ToWide(summaryValue("mp_overlay_package_directory"));
     data.mpPackageZipPath = utf8ToWide(summaryValue("mp_package_zip_runtime_path"));
-    data.mpPackageZipState = utf8ToWide(summaryValue("mp_package_zip_state"));
-    data.mpPackageZipReason = utf8ToWide(summaryValue("mp_package_zip_reason"));
+    data.mpPackageZipState = formatOwnerFacingStatusValue(summaryValue("mp_package_zip_state"));
+    data.mpPackageZipReason = formatOwnerFacingStatusReason(summaryValue("mp_package_zip_reason"));
     data.mpPackageManifestHash = utf8ToWide(summaryValue("mp_package_manifest_hash"));
-    data.mpPackageHandoffStatus = utf8ToWide(summaryValue("mp_handoff_status"));
-    data.mpPackageMismatchWarningState = utf8ToWide(summaryValue("mp_mismatch_warning_state"));
-    data.mpPackageMismatchWarningReason = utf8ToWide(summaryValue("mp_mismatch_warning_reason"));
-    data.mpPackageIdentityMismatchAlert = utf8ToWide(summaryValue("mp_identity_mismatch_alert"));
-    data.mpPackagePreviousHostAvailable = utf8ToWide(summaryValue("mp_previous_host_available"));
-    data.mpPackagePreviousHostAvailableKnown = utf8ToWide(summaryValue("mp_previous_host_available_known"));
-    data.mpPackageHostNextStep = utf8ToWide(summaryValue("mp_host_next_step"));
-    data.mpPackageClientNextStep = utf8ToWide(summaryValue("mp_client_next_step"));
-    data.mpPackageHandoffRecoveryHint = utf8ToWide(summaryValue("mp_handoff_recovery_hint"));
-    data.mpPackageHostReadiness = utf8ToWide(summaryValue("mp_host_readiness"));
-    data.mpPackageClientReadinessGate = utf8ToWide(summaryValue("mp_client_readiness_gate"));
+    data.mpPackageHandoffStatus = formatOwnerFacingStatusValue(summaryValue("mp_handoff_status"));
+    data.mpPackageMismatchWarningState = formatOwnerFacingStatusValue(summaryValue("mp_mismatch_warning_state"));
+    data.mpPackageMismatchWarningReason = formatOwnerFacingStatusReason(summaryValue("mp_mismatch_warning_reason"));
+    data.mpPackageIdentityMismatchAlert = formatOwnerFacingStatusReason(summaryValue("mp_identity_mismatch_alert"));
+    data.mpPackagePreviousHostAvailable = compactBoolText(summaryValue("mp_previous_host_available"));
+    data.mpPackagePreviousHostAvailableKnown = compactBoolText(summaryValue("mp_previous_host_available_known"));
+    data.mpPackageHostNextStep = formatOwnerFacingStatusReason(summaryValue("mp_host_next_step"));
+    data.mpPackageClientNextStep = formatOwnerFacingStatusReason(summaryValue("mp_client_next_step"));
+    data.mpPackageHandoffRecoveryHint = formatOwnerFacingStatusReason(summaryValue("mp_handoff_recovery_hint"));
+    data.mpPackageHostReadiness = formatOwnerFacingStatusValue(summaryValue("mp_host_readiness"));
+    data.mpPackageClientReadinessGate = formatOwnerFacingStatusValue(summaryValue("mp_client_readiness_gate"));
     data.mpPackageVerifyCommand = utf8ToWide(summaryValue("mp_verify_command"));
     data.mpPackageImportCommand = utf8ToWide(summaryValue("mp_import_command"));
     data.mpPackageStrictVerifyCommand = utf8ToWide(summaryValue("mp_strict_verify_command"));
@@ -1900,13 +2271,19 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += buildFriendPairingGuideText(data);
     text += L"\r\nSNC pairing template: ";
     text += data.friendPairingCommandTemplate.empty() ? kStatusEmptyValue : data.friendPairingCommandTemplate;
-    text += L"\r\nSNC MP sync envelope: manual metadata fallback only; automatic sync, download, and staging stay disabled.";
+    text += localizedTextWide({
+        L"\r\nSNC MP sync envelope: pouze ru\u010Dn\u00ED metadata; automatick\u00FD sync, sta\u017Een\u00ED a staging z\u016Fst\u00E1vaj\u00ED vypnut\u00E9.",
+        L"\r\nSNC MP sync envelope: manual metadata only; automatic sync, download, and staging stay disabled."});
     text += L"\r\nSNC MP sync envelope template: ";
     text += data.friendMpSyncEnvelopeCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncEnvelopeCommandTemplate;
-    text += L"\r\nSNC MP sync inbox plan: fail-closed status only; no download, decrypt, staging, or apply.";
+    text += localizedTextWide({
+        L"\r\nSNC MP sync inbox plan: bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n; bez sta\u017Een\u00ED, de\u0161ifrov\u00E1n\u00ED, stagingu nebo aplikace.",
+        L"\r\nSNC MP sync inbox plan: fail-closed status plan; no download, decrypt, staging, or apply."});
     text += L"\r\nSNC MP sync inbox plan template: ";
     text += data.friendMpSyncInboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanCommandTemplate;
-    text += L"\r\nSNC MP sync outbox plan: fail-closed status only; no upload, send, download, decrypt, staging, or apply.";
+    text += localizedTextWide({
+        L"\r\nSNC MP sync outbox plan: bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n; bez uploadu, odesl\u00E1n\u00ED, sta\u017Een\u00ED, de\u0161ifrov\u00E1n\u00ED, stagingu nebo aplikace.",
+        L"\r\nSNC MP sync outbox plan: fail-closed status plan; no upload, send, download, decrypt, staging, or apply."});
     text += L"\r\nSNC MP sync outbox plan template: ";
     text += data.friendMpSyncOutboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncOutboxPlanCommandTemplate;
     text += L"\r\nSNC MP sync transport: ";
@@ -2089,13 +2466,19 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += buildFriendPairingGuideText(data);
     text += L"\nSNC pairing template: ";
     text += data.friendPairingCommandTemplate.empty() ? kStatusEmptyValue : data.friendPairingCommandTemplate;
-    text += L"\nSNC MP sync envelope: manual metadata fallback only; automatic sync, download, and staging stay disabled.";
+    text += localizedTextWide({
+        L"\nSNC MP sync envelope: pouze ru\u010Dn\u00ED metadata; automatick\u00FD sync, sta\u017Een\u00ED a staging z\u016Fst\u00E1vaj\u00ED vypnut\u00E9.",
+        L"\nSNC MP sync envelope: manual metadata only; automatic sync, download, and staging stay disabled."});
     text += L"\nSNC MP sync envelope template: ";
     text += data.friendMpSyncEnvelopeCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncEnvelopeCommandTemplate;
-    text += L"\nSNC MP sync inbox plan: fail-closed status only; no download, decrypt, staging, or apply.";
+    text += localizedTextWide({
+        L"\nSNC MP sync inbox plan: bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n; bez sta\u017Een\u00ED, de\u0161ifrov\u00E1n\u00ED, stagingu nebo aplikace.",
+        L"\nSNC MP sync inbox plan: fail-closed status plan; no download, decrypt, staging, or apply."});
     text += L"\nSNC MP sync inbox plan template: ";
     text += data.friendMpSyncInboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanCommandTemplate;
-    text += L"\nSNC MP sync outbox plan: fail-closed status only; no upload, send, download, decrypt, staging, or apply.";
+    text += localizedTextWide({
+        L"\nSNC MP sync outbox plan: bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n; bez uploadu, odesl\u00E1n\u00ED, sta\u017Een\u00ED, de\u0161ifrov\u00E1n\u00ED, stagingu nebo aplikace.",
+        L"\nSNC MP sync outbox plan: fail-closed status plan; no upload, send, download, decrypt, staging, or apply."});
     text += L"\nSNC MP sync outbox plan template: ";
     text += data.friendMpSyncOutboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncOutboxPlanCommandTemplate;
     text += L"\nSNC MP sync transport: ";
@@ -2334,10 +2717,10 @@ void refreshStatusWindowContent()
     }
     const auto& activePage = statusPageSpec(g_statusActivePage);
     if (g_statusPageTitle != nullptr) {
-        SetWindowTextW(g_statusPageTitle, activePage.title);
+        SetWindowTextW(g_statusPageTitle, localizedText(activePage.title));
     }
     if (g_statusPageHelp != nullptr) {
-        SetWindowTextW(g_statusPageHelp, activePage.helpText);
+        SetWindowTextW(g_statusPageHelp, localizedText(activePage.helpText));
     }
 
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::LiveState)], data.liveState);
@@ -2370,7 +2753,7 @@ void refreshStatusWindowContent()
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::MpPackageHandoffStatus)], data.mpPackageHandoffStatus);
 
     if (g_statusBottomTitle != nullptr) {
-        SetWindowTextW(g_statusBottomTitle, activePage.title);
+        SetWindowTextW(g_statusBottomTitle, localizedText(activePage.title));
     }
     if (g_statusDetails != nullptr) {
         const auto details = buildStatusPageDetailsText(g_statusActivePage, data);
@@ -2410,7 +2793,7 @@ void refreshStatusWindowContent()
     }
     if (g_statusPublishGeneratedOverlayButton != nullptr) {
         const bool publishReady =
-            data.nextAction == L"review_staged_overlay_and_publish_if_desired" &&
+            data.nextActionRaw == "review_staged_overlay_and_publish_if_desired" &&
             !data.overlayPublishCommand.empty();
         EnableWindow(g_statusPublishGeneratedOverlayButton, publishReady ? TRUE : FALSE);
     }
@@ -2658,7 +3041,7 @@ void layoutStatusWindow(HWND hwnd)
     for (std::size_t index = 0; index < kStatusPages.size(); ++index) {
         const auto& page = kStatusPages[index];
         if (g_statusPageButtons[index] != nullptr) {
-            SetWindowTextW(g_statusPageButtons[index], page.navLabel);
+            SetWindowTextW(g_statusPageButtons[index], localizedText(page.navLabel));
             ShowWindow(g_statusPageButtons[index], SW_SHOW);
             MoveWindow(
                 g_statusPageButtons[index],
@@ -2929,45 +3312,48 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusPageTitle = createStatusStatic(hwnd, L"", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusPageHelp = createStatusStatic(hwnd, L"", WS_CHILD | WS_VISIBLE | SS_LEFT);
         for (std::size_t index = 0; index < kStatusPages.size(); ++index) {
-            g_statusPageButtons[index] = createStatusButton(hwnd, kStatusPages[index].commandId, kStatusPages[index].navLabel);
+            g_statusPageButtons[index] =
+                createStatusButton(hwnd, kStatusPages[index].commandId, localizedText(kStatusPages[index].navLabel));
         }
-        g_statusRefreshButton = createStatusButton(hwnd, ID_STATUS_REFRESH, L"Obnovit");
-        g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kop\u00EDrovat");
-        g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
-        g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, L"Souhrn");
-        g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, L"MP bal\u00ED\u010Dek");
+        g_statusRefreshButton = createStatusButton(hwnd, ID_STATUS_REFRESH, statusActionLabel(ID_STATUS_REFRESH).c_str());
+        g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, statusActionLabel(ID_STATUS_COPY).c_str());
+        g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, statusActionLabel(ID_STATUS_OPEN_ARCHIVE).c_str());
+        g_statusOpenBriefButton = createStatusButton(hwnd, ID_STATUS_OPEN_BRIEF, statusActionLabel(ID_STATUS_OPEN_BRIEF).c_str());
+        g_statusOpenMpPackageButton = createStatusButton(hwnd, ID_STATUS_OPEN_MP_PACKAGE, statusActionLabel(ID_STATUS_OPEN_MP_PACKAGE).c_str());
         g_statusPublishGeneratedOverlayButton =
-            createStatusButton(hwnd, ID_STATUS_PUBLISH_GENERATED_OVERLAY, L"Publikovat");
-        g_statusOpenNextActionPathButton = createStatusButton(hwnd, ID_STATUS_OPEN_NEXT_ACTION_PATH, L"Akce cesta");
+            createStatusButton(hwnd, ID_STATUS_PUBLISH_GENERATED_OVERLAY, statusActionLabel(ID_STATUS_PUBLISH_GENERATED_OVERLAY).c_str());
+        g_statusOpenNextActionPathButton =
+            createStatusButton(hwnd, ID_STATUS_OPEN_NEXT_ACTION_PATH, statusActionLabel(ID_STATUS_OPEN_NEXT_ACTION_PATH).c_str());
         g_statusOpenCampaignLibraryPlanButton =
-            createStatusButton(hwnd, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, L"Knihovna");
+            createStatusButton(hwnd, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, statusActionLabel(ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN).c_str());
         g_statusOpenCrashRecoveryStateButton =
-            createStatusButton(hwnd, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, L"Crash stav");
+            createStatusButton(hwnd, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, statusActionLabel(ID_STATUS_OPEN_CRASH_RECOVERY_STATE).c_str());
         g_statusOpenGameplayAcceptanceReportButton =
-            createStatusButton(hwnd, ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, L"Gameplay");
+            createStatusButton(hwnd, ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, statusActionLabel(ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT).c_str());
         g_statusOpenFriendTrustStoreButton =
-            createStatusButton(hwnd, ID_STATUS_OPEN_FRIEND_TRUST_STORE, L"SNC pratele");
+            createStatusButton(hwnd, ID_STATUS_OPEN_FRIEND_TRUST_STORE, statusActionLabel(ID_STATUS_OPEN_FRIEND_TRUST_STORE).c_str());
         g_statusCopyFriendPairingButton =
-            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_PAIRING, L"SNC pairing");
+            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_PAIRING, statusActionLabel(ID_STATUS_COPY_FRIEND_PAIRING).c_str());
         g_statusCopyFriendMpSyncEnvelopeButton =
-            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, L"SNC MP sync");
+            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, statusActionLabel(ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE).c_str());
         g_statusCopyFriendMpSyncInboxPlanButton =
-            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, L"SNC inbox");
+            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, statusActionLabel(ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN).c_str());
         g_statusCopyFriendMpSyncOutboxPlanButton =
-            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, L"SNC outbox");
-        g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, L"MP export");
-        g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, L"MP import n\u00E1vod");
-        g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, L"MP verify");
-        g_statusCopyMpImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_IMPORT, L"MP import");
-        g_statusCopyMpStrictVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_VERIFY, L"MP strict verify");
-        g_statusCopyMpStrictImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_IMPORT, L"MP strict import");
-        g_statusCopyLlmPrepareButton = createStatusButton(hwnd, ID_STATUS_COPY_LLM_PREPARE, L"LLM p\u0159\u00EDprava");
-        g_statusSupportReportButton = createStatusButton(hwnd, ID_STATUS_SUPPORT_REPORT, L"Report");
-        g_statusToggleStartupButton = createStatusButton(hwnd, ID_STATUS_TOGGLE_STARTUP, L"Start");
+            createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, statusActionLabel(ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN).c_str());
+        g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, statusActionLabel(ID_STATUS_EXPORT_MP_PACKAGE).c_str());
+        g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, statusActionLabel(ID_STATUS_MP_IMPORT_HANDOFF).c_str());
+        g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, statusActionLabel(ID_STATUS_COPY_MP_VERIFY).c_str());
+        g_statusCopyMpImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_IMPORT, statusActionLabel(ID_STATUS_COPY_MP_IMPORT).c_str());
+        g_statusCopyMpStrictVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_VERIFY, statusActionLabel(ID_STATUS_COPY_MP_STRICT_VERIFY).c_str());
+        g_statusCopyMpStrictImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_IMPORT, statusActionLabel(ID_STATUS_COPY_MP_STRICT_IMPORT).c_str());
+        g_statusCopyLlmPrepareButton = createStatusButton(hwnd, ID_STATUS_COPY_LLM_PREPARE, statusActionLabel(ID_STATUS_COPY_LLM_PREPARE).c_str());
+        g_statusSupportReportButton = createStatusButton(hwnd, ID_STATUS_SUPPORT_REPORT, statusActionLabel(ID_STATUS_SUPPORT_REPORT).c_str());
+        g_statusToggleStartupButton = createStatusButton(hwnd, ID_STATUS_TOGGLE_STARTUP, statusActionLabel(ID_STATUS_TOGGLE_STARTUP).c_str());
         g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"X");
         g_statusMaximizeButton = createStatusButton(hwnd, ID_STATUS_MAXIMIZE, L"[ ]");
         g_statusMinimizeButton = createStatusButton(hwnd, ID_STATUS_MINIMIZE, L"-");
-        g_statusBottomTitle = createStatusStatic(hwnd, L"Dal\u0161\u00ED krok", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+        g_statusBottomTitle =
+            createStatusStatic(hwnd, localizedText({L"Dal\u0161\u00ED krok", L"Next Step"}), WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusDetails = CreateWindowExW(
             WS_EX_CLIENTEDGE,
             L"EDIT",
@@ -2983,7 +3369,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             nullptr);
 
         for (std::size_t index = 0; index < kStatusSections.size(); ++index) {
-            g_statusSectionTitles[index] = createStatusStatic(hwnd, kStatusSections[index].title, WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+            g_statusSectionTitles[index] =
+                createStatusStatic(hwnd, localizedText(kStatusSections[index].title), WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
             setWindowFont(g_statusSectionTitles[index], g_statusSectionFont);
             for (const auto field : kStatusSections[index].fields) {
                 const std::size_t slot = static_cast<std::size_t>(field);
@@ -3030,23 +3417,35 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusMinimizeButton, g_statusFieldFont);
         setWindowFont(g_statusBottomTitle, g_statusSectionFont);
         setWindowFont(g_statusDetails, g_statusDetailsFont);
-        addStatusTooltip(g_statusPageHelp, L"Kr\u00E1tk\u00E9 vysv\u011Btlen\u00ED aktivn\u00ED str\u00E1nky: co sem pat\u0159\u00ED a kdy se sem d\u00EDvat.");
+        addStatusTooltip(
+            g_statusPageHelp,
+            localizedText({
+                L"Kr\u00E1tk\u00E9 vysv\u011Btlen\u00ED aktivn\u00ED str\u00E1nky: co sem pat\u0159\u00ED a kdy se sem d\u00EDvat.",
+                L"Short explanation of the active page: what belongs here and when to check it."}));
         for (std::size_t index = 0; index < kStatusPages.size(); ++index) {
-            addStatusTooltip(g_statusPageButtons[index], kStatusPages[index].helpText);
+            addStatusTooltip(g_statusPageButtons[index], localizedText(kStatusPages[index].helpText));
         }
         for (const auto& action : kStatusActionSpecs) {
-            addStatusTooltip(statusActionButton(action.id), action.tooltip);
+            addStatusTooltip(statusActionButton(action.id), localizedText(action.tooltip));
         }
         for (std::size_t index = 0; index < kStatusSections.size(); ++index) {
-            addStatusTooltip(g_statusSectionTitles[index], kStatusSections[index].title);
+            addStatusTooltip(g_statusSectionTitles[index], localizedText(kStatusSections[index].title));
             for (const auto field : kStatusSections[index].fields) {
                 const std::size_t slot = static_cast<std::size_t>(field);
                 addStatusTooltip(g_statusFieldLabels[slot], statusFieldTooltip(field));
                 addStatusTooltip(g_statusFieldValues[slot], statusFieldTooltip(field));
             }
         }
-        addStatusTooltip(g_statusBottomTitle, L"Detailn\u011Bj\u0161\u00ED vysv\u011Btlen\u00ED aktivn\u00ED str\u00E1nky a souvisej\u00EDc\u00EDch cest/prikazu.");
-        addStatusTooltip(g_statusDetails, L"Del\u0161\u00ED kontext k aktivn\u00ED str\u00E1nce. Kdy\u017E nev\u00ED\u0161, pro\u010D tla\u010D\u00EDtko existuje, za\u010Dni tady.");
+        addStatusTooltip(
+            g_statusBottomTitle,
+            localizedText({
+                L"Detailn\u011Bj\u0161\u00ED vysv\u011Btlen\u00ED aktivn\u00ED str\u00E1nky a souvisej\u00EDc\u00EDch cest/p\u0159\u00EDkaz\u016F.",
+                L"More detailed explanation of the active page and related paths/commands."}));
+        addStatusTooltip(
+            g_statusDetails,
+            localizedText({
+                L"Del\u0161\u00ED kontext k aktivn\u00ED str\u00E1nce. Kdy\u017E nev\u00ED\u0161, pro\u010D tla\u010D\u00EDtko existuje, za\u010Dni tady.",
+                L"Longer context for the active page. If a button is unclear, start here."}));
 
         applyWindowIcons(hwnd);
         SetTimer(hwnd, kStatusScrollSyncTimerId, 120, nullptr);
@@ -3121,8 +3520,12 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             const auto data = loadStatusDashboardData();
             std::wstring text;
             text += L"SNC friend MP sync envelope\r\n";
-            text += L"Manual metadata fallback only. Automatic sync, download, verify-stage, and package apply stay disabled.\r\n\r\n";
-            text += L"Set stellaris_running:true when the game is active so the apply gate reports blocked_stellaris_running.\r\n\r\n";
+            text += localizedTextWide({
+                L"Pouze ru\u010Dn\u00ED metadata. Automatick\u00FD sync, sta\u017Een\u00ED, verify-stage ani aplikace bal\u00ED\u010Dku nejsou povolen\u00E9.\r\n\r\n",
+                L"Manual metadata only. Automatic sync, download, verify-stage, and package apply are disabled.\r\n\r\n"});
+            text += localizedTextWide({
+                L"Kdy\u017E b\u011B\u017E\u00ED Stellaris, nastav stellaris_running:true; ov\u011B\u0159ovac\u00ED cesta pak z\u016Fstane bezpe\u010Dn\u011B zablokovan\u00E1 a neaplikuje gameplay soubory.\r\n\r\n",
+                L"When Stellaris is running, set stellaris_running:true; the verification path then stays safely blocked and does not apply gameplay files.\r\n\r\n"});
             text += data.friendMpSyncEnvelopeCommandTemplate.empty()
                         ? utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8())
                         : data.friendMpSyncEnvelopeCommandTemplate;
@@ -3132,8 +3535,11 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             }
             MessageBoxW(
                 hwnd,
-                L"SNC friend MP sync envelope sablona je zkopirovana do schranky.\n\n"
-                L"Je to jen manualni metadata fallback. Parametr stellaris_running nechava verify cestu fail-closed behem hry.",
+                localizedText({
+                    L"SNC friend MP sync envelope \u0161ablona je zkop\u00EDrovan\u00E1 do schr\u00E1nky.\n\n"
+                    L"Je to jen ru\u010Dn\u00ED metadata re\u017Eim. Parametr stellaris_running dr\u017E\u00ED ov\u011B\u0159en\u00ED bezpe\u010Dn\u011B zablokovan\u00E9 b\u011Bhem hry.",
+                    L"SNC friend MP sync envelope template was copied to the clipboard.\n\n"
+                    L"This is manual metadata mode only. The stellaris_running parameter keeps verification safely blocked during gameplay."}),
                 L"Strategic Nexus Companion",
                 MB_OK | MB_ICONINFORMATION);
             return 0;
@@ -3143,8 +3549,12 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             const auto data = loadStatusDashboardData();
             std::wstring text;
             text += L"SNC friend MP sync inbox plan\r\n";
-            text += L"Fail-closed status only. No automatic download, decrypt, staging, or package apply.\r\n\r\n";
-            text += L"Set stellaris_running:true while the game is active; set friend_auto_sync_enabled from the trusted friend policy.\r\n\r\n";
+            text += localizedTextWide({
+                L"Bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n. Automatick\u00E9 sta\u017Een\u00ED, de\u0161ifrov\u00E1n\u00ED, staging ani aplikace bal\u00ED\u010Dku se nespou\u0161t\u00ED.\r\n\r\n",
+                L"Fail-closed status plan. Automatic download, decrypt, staging, and package apply do not run.\r\n\r\n"});
+            text += localizedTextWide({
+                L"Kdy\u017E je hra aktivn\u00ED, nastav stellaris_running:true; friend_auto_sync_enabled ber jen z d\u016Fv\u011Bryhodn\u00E9 friend policy.\r\n\r\n",
+                L"Set stellaris_running:true while the game is active; set friend_auto_sync_enabled only from the trusted friend policy.\r\n\r\n"});
             text += data.friendMpSyncInboxPlanCommandTemplate.empty()
                         ? utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8())
                         : data.friendMpSyncInboxPlanCommandTemplate;
@@ -3154,8 +3564,11 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             }
             MessageBoxW(
                 hwnd,
-                L"SNC friend MP sync inbox-plan sablona je zkopirovana do schranky.\n\n"
-                L"Je to jen fail-closed stavovy plan. Nestahuje, nedesifruje ani nestageuje gameplay soubory.",
+                localizedText({
+                    L"SNC friend MP sync inbox-plan \u0161ablona je zkop\u00EDrovan\u00E1 do schr\u00E1nky.\n\n"
+                    L"Je to jen bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n. Nestahuje, nede\u0161ifruje ani nestageuje gameplay soubory.",
+                    L"SNC friend MP sync inbox-plan template was copied to the clipboard.\n\n"
+                    L"This is a fail-closed status plan only. It does not download, decrypt, or stage gameplay files."}),
                 L"Strategic Nexus Companion",
                 MB_OK | MB_ICONINFORMATION);
             return 0;
@@ -3165,8 +3578,12 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             const auto data = loadStatusDashboardData();
             std::wstring text;
             text += L"SNC friend MP sync outbox plan\r\n";
-            text += L"Fail-closed status only. No automatic upload, send, download, decrypt, staging, or package apply.\r\n\r\n";
-            text += L"Set stellaris_running:true while the game is active; set friend_auto_sync_enabled from the trusted friend policy.\r\n\r\n";
+            text += localizedTextWide({
+                L"Bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n. Automatick\u00FD upload, odesl\u00E1n\u00ED, sta\u017Een\u00ED, de\u0161ifrov\u00E1n\u00ED, staging ani aplikace bal\u00ED\u010Dku se nespou\u0161t\u00ED.\r\n\r\n",
+                L"Fail-closed status plan. Automatic upload, send, download, decrypt, staging, and package apply do not run.\r\n\r\n"});
+            text += localizedTextWide({
+                L"Kdy\u017E je hra aktivn\u00ED, nastav stellaris_running:true; friend_auto_sync_enabled ber jen z d\u016Fv\u011Bryhodn\u00E9 friend policy.\r\n\r\n",
+                L"Set stellaris_running:true while the game is active; set friend_auto_sync_enabled only from the trusted friend policy.\r\n\r\n"});
             text += data.friendMpSyncOutboxPlanCommandTemplate.empty()
                         ? utf8ToWide(buildFriendMpSyncOutboxPlanCommandTemplateUtf8())
                         : data.friendMpSyncOutboxPlanCommandTemplate;
@@ -3176,8 +3593,11 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             }
             MessageBoxW(
                 hwnd,
-                L"SNC friend MP sync outbox-plan sablona je zkopirovana do schranky.\n\n"
-                L"Je to jen fail-closed stavovy plan. Neuploaduje, neposila, nestahuje ani nestageuje gameplay soubory.",
+                localizedText({
+                    L"SNC friend MP sync outbox-plan \u0161ablona je zkop\u00EDrovan\u00E1 do schr\u00E1nky.\n\n"
+                    L"Je to jen bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n. Neuploaduje, nepos\u00EDl\u00E1, nestahuje ani nestageuje gameplay soubory.",
+                    L"SNC friend MP sync outbox-plan template was copied to the clipboard.\n\n"
+                    L"This is a fail-closed status plan only. It does not upload, send, download, or stage gameplay files."}),
                 L"Strategic Nexus Companion",
                 MB_OK | MB_ICONINFORMATION);
             return 0;
@@ -3739,10 +4159,11 @@ void parsePostPlayCampaignSummaries(
 
         std::ostringstream summary;
         summary << (campaignKey.empty() ? "unknown_campaign" : campaignKey)
-                << ": " << (readiness.empty() ? "unknown" : readiness)
-                << " (" << decisionReadyEntryCount << "/" << entryPointCount << " ready";
+                << ": " << ownerFacingStatusValueUtf8(readiness.empty() ? "unknown" : readiness)
+                << " (" << decisionReadyEntryCount << "/" << entryPointCount << " "
+                << localizedTextUtf8({L"p\u0159ipraveno", L"ready"});
         if (branchAmbiguityDetected) {
-            summary << ", ambiguous";
+            summary << ", " << localizedTextUtf8({L"nejednozna\u010Dn\u00E9", L"ambiguous"});
         }
         summary << ")";
         campaignSummaries.push_back(summary.str());
@@ -3767,12 +4188,12 @@ void appendMpPackageSummaryLines(
     const std::string& mpPackageRefreshState,
     const std::string& mpPackageRefreshReason)
 {
-    output << "mp_package_refresh_state: " << mpPackageRefreshState << "\n";
-    output << "mp_package_refresh_reason: " << mpPackageRefreshReason << "\n";
+    appendOwnerFacingStatusValueLine(output, "mp_package_refresh_state", mpPackageRefreshState);
+    appendOwnerFacingStatusReasonLine(output, "mp_package_refresh_reason", mpPackageRefreshReason);
     output << "mp_overlay_package_directory: " << pathString(g_mpOverlayPackageDirectory) << "\n";
     output << "mp_overlay_package_zip_path: " << pathString(g_mpOverlayPackageZipPath) << "\n";
-    output << "mp_overlay_package_state: " << mpOverlayPackage.state << "\n";
-    output << "mp_overlay_package_reason: " << mpOverlayPackage.reason << "\n";
+    appendOwnerFacingStatusValueLine(output, "mp_overlay_package_state", mpOverlayPackage.state);
+    appendOwnerFacingStatusReasonLine(output, "mp_overlay_package_reason", mpOverlayPackage.reason);
     if (!mpOverlayPackage.path.empty()) {
         output << "mp_overlay_package_path: " << pathString(mpOverlayPackage.path) << "\n";
     }
@@ -3789,34 +4210,34 @@ void appendMpPackageSummaryLines(
         output << "mp_mod_version: " << mpOverlayPackage.strategicNexusModVersion << "\n";
     }
     if (!mpOverlayPackage.handoffStatus.empty()) {
-        output << "mp_handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
+        appendOwnerFacingStatusValueLine(output, "mp_handoff_status", mpOverlayPackage.handoffStatus);
     }
     output << "mp_previous_host_available: "
            << (mpOverlayPackage.previousHostAvailable ? "true" : "false") << "\n";
     output << "mp_previous_host_available_known: "
            << (mpOverlayPackage.previousHostAvailableKnown ? "true" : "false") << "\n";
     if (!mpOverlayPackage.readiness.empty()) {
-        output << "mp_readiness: " << mpOverlayPackage.readiness << "\n";
+        appendOwnerFacingStatusValueLine(output, "mp_readiness", mpOverlayPackage.readiness);
     }
     if (!mpOverlayPackage.hostReadiness.empty()) {
-        output << "mp_host_readiness: " << mpOverlayPackage.hostReadiness << "\n";
+        appendOwnerFacingStatusValueLine(output, "mp_host_readiness", mpOverlayPackage.hostReadiness);
     }
     if (!mpOverlayPackage.clientReadinessGate.empty()) {
-        output << "mp_client_readiness_gate: " << mpOverlayPackage.clientReadinessGate << "\n";
+        appendOwnerFacingStatusValueLine(output, "mp_client_readiness_gate", mpOverlayPackage.clientReadinessGate);
     }
     if (!mpOverlayPackage.hostNextStep.empty()) {
-        output << "mp_host_next_step: " << mpOverlayPackage.hostNextStep << "\n";
+        appendOwnerFacingStatusReasonLine(output, "mp_host_next_step", mpOverlayPackage.hostNextStep);
     }
     if (!mpOverlayPackage.clientNextStep.empty()) {
-        output << "mp_client_next_step: " << mpOverlayPackage.clientNextStep << "\n";
+        appendOwnerFacingStatusReasonLine(output, "mp_client_next_step", mpOverlayPackage.clientNextStep);
     }
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         output << "mp_package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
     if (!mpOverlayPackage.provenanceState.empty()) {
-        output << "mp_provenance_state: " << mpOverlayPackage.provenanceState << "\n";
+        appendOwnerFacingStatusValueLine(output, "mp_provenance_state", mpOverlayPackage.provenanceState);
     }
-    output << "human_control_guard_state: " << mpOverlayPackage.humanControlGuardState << "\n";
+    appendOwnerFacingStatusValueLine(output, "human_control_guard_state", mpOverlayPackage.humanControlGuardState);
     output << "mp_source_quality_count: " << mpOverlayPackage.sourceQualities.size() << "\n";
     for (const auto& sourceQuality : mpOverlayPackage.sourceQualities) {
         output << "mp_source_quality: " << sourceQuality << "\n";
@@ -3843,20 +4264,20 @@ void appendMpPackageSummaryLines(
     for (const auto& warningCode : mpOverlayPackage.identityMismatchWarningCodes) {
         output << "mp_identity_mismatch_warning_code: " << warningCode << "\n";
     }
-    output << "mp_mismatch_warning_state: " << mpOverlayPackage.mismatchWarningState << "\n";
-    output << "mp_mismatch_warning_reason: " << mpOverlayPackage.mismatchWarningReason << "\n";
+    appendOwnerFacingStatusValueLine(output, "mp_mismatch_warning_state", mpOverlayPackage.mismatchWarningState);
+    appendOwnerFacingStatusReasonLine(output, "mp_mismatch_warning_reason", mpOverlayPackage.mismatchWarningReason);
     for (const auto& warningCode : mpOverlayPackage.mismatchWarningCodes) {
         output << "mp_mismatch_warning_code: " << warningCode << "\n";
     }
     if (!mpOverlayPackage.identityMismatchAlert.empty()) {
-        output << "mp_identity_mismatch_alert: " << mpOverlayPackage.identityMismatchAlert << "\n";
+        appendOwnerFacingStatusReasonLine(output, "mp_identity_mismatch_alert", mpOverlayPackage.identityMismatchAlert);
     }
     if (!mpOverlayPackage.packageZipState.empty()) {
-        output << "mp_package_zip_state: " << mpOverlayPackage.packageZipState << "\n";
+        appendOwnerFacingStatusValueLine(output, "mp_package_zip_state", mpOverlayPackage.packageZipState);
         output << "mp_package_zip_bytes: " << mpOverlayPackage.packageZipBytes << "\n";
     }
     if (!mpOverlayPackage.packageZipReason.empty()) {
-        output << "mp_package_zip_reason: " << mpOverlayPackage.packageZipReason << "\n";
+        appendOwnerFacingStatusReasonLine(output, "mp_package_zip_reason", mpOverlayPackage.packageZipReason);
     }
     if (!mpOverlayPackage.packageZipPath.empty()) {
         output << "mp_package_zip_runtime_path: " << pathString(mpOverlayPackage.packageZipPath) << "\n";
@@ -4347,6 +4768,26 @@ std::wstring utf8ToWide(const std::string& value)
     return output;
 }
 
+std::string wideToUtf8(const std::wstring& value)
+{
+    if (value.empty()) {
+        return std::string();
+    }
+
+    const int required =
+        WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    if (required <= 1) {
+        return std::string();
+    }
+
+    std::string output(static_cast<std::size_t>(required), '\0');
+    WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, output.data(), required, nullptr, nullptr);
+    if (!output.empty() && output.back() == '\0') {
+        output.pop_back();
+    }
+    return output;
+}
+
 std::filesystem::path modulePath()
 {
     std::wstring buffer(MAX_PATH, L'\0');
@@ -4679,7 +5120,7 @@ std::string buildStatusCenterSummaryText(
     std::ostringstream summary;
     summary << "Strategic Nexus Status Center\n";
     summary << "updated_at_local: " << formatLocalTimestamp() << "\n";
-    summary << "stav: " << state << " - " << reason << "\n";
+    appendOwnerFacingStatusPairLine(summary, "stav", state, reason);
     summary << "stellaris_running: " << (stellarisRunning ? "true" : "false") << "\n";
     if (!sessionId.empty()) {
         summary << "session_id: " << sessionId << "\n";
@@ -4691,14 +5132,13 @@ std::string buildStatusCenterSummaryText(
     summary << "archive_verified: " << (archiveVerified ? "true" : "false") << "\n";
     summary << "copied_count_total: " << copiedTotal << "\n";
     summary << "skipped_count_total: " << skippedTotal << "\n";
-    summary << "post_play_state: " << postPlayState << "\n";
+    appendOwnerFacingStatusValueLine(summary, "post_play_state", postPlayState);
     if (!entryPointAnalysisPath.empty()) {
         summary << "entry_point_analysis_path: " << pathString(entryPointAnalysisPath) << "\n";
     }
     summary << "entry_point_count: " << entryPointCount << "\n";
     summary << "branch_ambiguity_detected: " << (branchAmbiguityDetected ? "true" : "false") << "\n";
-    summary << "memory_recovery: " << memoryRecovery.state << " - "
-            << memoryRecovery.reason << "\n";
+    appendOwnerFacingStatusPairLine(summary, "memory_recovery", memoryRecovery.state, memoryRecovery.reason);
     summary << "memory_recovery_confidence: " << memoryRecovery.confidence << "\n";
     summary << "memory_recovery_warning_visible: "
             << (memoryRecovery.warningVisible ? "true" : "false") << "\n";
@@ -4733,16 +5173,16 @@ std::string buildStatusCenterSummaryText(
         summary << "memory_recovery_owner_note: latest loadable save anchor is degraded or needs attention\n";
     }
     if (!entryPointReadiness.empty()) {
-        summary << "entry_point_readiness: " << entryPointReadiness << "\n";
+        appendOwnerFacingStatusValueLine(summary, "entry_point_readiness", entryPointReadiness);
     }
     if (!postPlayPackagePath.empty()) {
         summary << "post_play_package_path: " << pathString(postPlayPackagePath) << "\n";
     }
     if (!postPlayPackageReadiness.empty()) {
-        summary << "post_play_package_readiness: " << postPlayPackageReadiness << "\n";
+        appendOwnerFacingStatusValueLine(summary, "post_play_package_readiness", postPlayPackageReadiness);
     }
     if (!mpOverlayPackage.handoffStatus.empty()) {
-        summary << "mp_handoff_status: " << mpOverlayPackage.handoffStatus << "\n";
+        appendOwnerFacingStatusValueLine(summary, "mp_handoff_status", mpOverlayPackage.handoffStatus);
     }
     summary << "mp_previous_host_available_known: "
             << (mpOverlayPackage.previousHostAvailableKnown ? "true" : "false") << "\n";
@@ -4754,19 +5194,19 @@ std::string buildStatusCenterSummaryText(
         summary << "mp_sdileni_tip: zkopiruj mp_package_zip_path a mp_package_manifest_hash; host/client kroky jsou nize.\n";
     }
     if (!mpOverlayPackage.hostReadiness.empty()) {
-        summary << "mp_host_readiness: " << mpOverlayPackage.hostReadiness << "\n";
+        appendOwnerFacingStatusValueLine(summary, "mp_host_readiness", mpOverlayPackage.hostReadiness);
     }
     if (!mpOverlayPackage.clientReadinessGate.empty()) {
-        summary << "mp_client_gate: " << mpOverlayPackage.clientReadinessGate << "\n";
+        appendOwnerFacingStatusValueLine(summary, "mp_client_gate", mpOverlayPackage.clientReadinessGate);
     }
     if (!mpOverlayPackage.hostNextStep.empty()) {
-        summary << "mp_host_krok: " << mpOverlayPackage.hostNextStep << "\n";
+        appendOwnerFacingStatusReasonLine(summary, "mp_host_krok", mpOverlayPackage.hostNextStep);
     }
     if (!mpOverlayPackage.clientNextStep.empty()) {
-        summary << "mp_client_krok: " << mpOverlayPackage.clientNextStep << "\n";
+        appendOwnerFacingStatusReasonLine(summary, "mp_client_krok", mpOverlayPackage.clientNextStep);
     }
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
-        summary << "mp_handoff_recovery_hint: " << mpOverlayPackage.handoffRecoveryHint << "\n";
+        appendOwnerFacingStatusReasonLine(summary, "mp_handoff_recovery_hint", mpOverlayPackage.handoffRecoveryHint);
     }
     summary << "post_play_decision_ready_entry_count: " << postPlayDecisionReadyEntryCount << "\n";
     summary << "post_play_campaign_count: " << postPlayCampaignCount << "\n";
@@ -4776,8 +5216,8 @@ std::string buildStatusCenterSummaryText(
     if (campaignLibraryPlanPresent) {
         summary << "campaign_library_plan_path: " << pathString(campaignLibraryPlanPath) << "\n";
         summary << "campaign_library_plan_source: " << campaignLibraryPlanSource << "\n";
-        summary << "campaign_library_plan_readiness: " << campaignLibraryPlanReadiness << "\n";
-        summary << "campaign_library_plan_reason: " << campaignLibraryPlanReason << "\n";
+        appendOwnerFacingStatusValueLine(summary, "campaign_library_plan_readiness", campaignLibraryPlanReadiness);
+        appendOwnerFacingStatusReasonLine(summary, "campaign_library_plan_reason", campaignLibraryPlanReason);
         summary << "campaign_library_limit_reached: " << (campaignLibraryLimitReached ? "true" : "false") << "\n";
         summary << "campaign_library_skipped_due_to_limit_count: " << campaignLibrarySkippedDueToLimitCount << "\n";
         if (campaignLibraryPlanReadiness == "needs_attention") {
@@ -4795,21 +5235,21 @@ std::string buildStatusCenterSummaryText(
         summary << "decision_input_package_path: " << pathString(decisionInputPackagePath) << "\n";
     }
     if (!decisionInputPackageReadiness.empty()) {
-        summary << "decision_input_package_readiness: " << decisionInputPackageReadiness << "\n";
+        appendOwnerFacingStatusValueLine(summary, "decision_input_package_readiness", decisionInputPackageReadiness);
     }
     summary << "decision_input_count: " << decisionInputCount << "\n";
     if (!candidateDecisionPackagePath.empty()) {
         summary << "candidate_decision_package_path: " << pathString(candidateDecisionPackagePath) << "\n";
     }
     if (!candidateDecisionPackageReadiness.empty()) {
-        summary << "candidate_decision_package_readiness: " << candidateDecisionPackageReadiness << "\n";
+        appendOwnerFacingStatusValueLine(summary, "candidate_decision_package_readiness", candidateDecisionPackageReadiness);
     }
     summary << "candidate_decision_count: " << candidateDecisionCount << "\n";
     if (!dslDraftPath.empty()) {
         summary << "dsl_draft_path: " << pathString(dslDraftPath) << "\n";
     }
     if (!dslDraftReadiness.empty()) {
-        summary << "dsl_draft_readiness: " << dslDraftReadiness << "\n";
+        appendOwnerFacingStatusValueLine(summary, "dsl_draft_readiness", dslDraftReadiness);
     }
     summary << "dsl_draft_rule_count: " << dslDraftRuleCount << "\n";
     if (!generatedOverlayStagingDirectory.empty()) {
@@ -4819,7 +5259,7 @@ std::string buildStatusCenterSummaryText(
         summary << "generated_overlay_staging_status_path: " << pathString(generatedOverlayStagingStatusPath) << "\n";
     }
     if (!generatedOverlayStagingReadiness.empty()) {
-        summary << "generated_overlay_staging_readiness: " << generatedOverlayStagingReadiness << "\n";
+        appendOwnerFacingStatusValueLine(summary, "generated_overlay_staging_readiness", generatedOverlayStagingReadiness);
     }
     summary << "generated_overlay_staging_rule_count: " << generatedOverlayStagingRuleCount << "\n";
     summary << "generated_overlay_manifest_verified: " << (generatedOverlayManifestVerified ? "true" : "false") << "\n";
@@ -4829,8 +5269,8 @@ std::string buildStatusCenterSummaryText(
     }
     summary << "generated_overlay_reactive_capability: "
             << (generatedOverlayStatus.reactivePolicyPackCapability.empty()
-                    ? "unknown"
-                    : generatedOverlayStatus.reactivePolicyPackCapability)
+                    ? ownerFacingStatusValueUtf8("unknown")
+                    : ownerFacingStatusValueUtf8(generatedOverlayStatus.reactivePolicyPackCapability))
             << "\n";
     summary << "generated_overlay_event_family_count: "
             << generatedOverlayStatus.eventFamilies.size() << "\n";
@@ -4846,8 +5286,8 @@ std::string buildStatusCenterSummaryText(
     }
     summary << "generated_overlay_bootstrap_campaign_count: "
             << generatedOverlayStatus.bootstrapCampaignCount << "\n";
-    summary << "generated_overlay_publish_gate_state: " << generatedOverlayPublishGate.state << "\n";
-    summary << "generated_overlay_publish_gate_reason: " << generatedOverlayPublishGate.reason << "\n";
+    appendOwnerFacingStatusValueLine(summary, "generated_overlay_publish_gate_state", generatedOverlayPublishGate.state);
+    appendOwnerFacingStatusReasonLine(summary, "generated_overlay_publish_gate_reason", generatedOverlayPublishGate.reason);
     summary << "generated_overlay_publish_gate_published: "
             << (generatedOverlayPublishGate.published ? "true" : "false") << "\n";
     summary << "generated_overlay_publish_gate_can_publish: "
@@ -4869,7 +5309,7 @@ std::string buildStatusCenterSummaryText(
     summary << "generated_overlay_publish_status_path: " << pathString(g_generatedOverlayPublishStatusPath) << "\n";
     summary << "generated_overlay_publish_backup_root_directory: "
             << pathString(g_generatedOverlayPublishBackupRootDirectory) << "\n";
-    summary << "local_llm_model: " << localLlm.state << " - " << localLlm.reason << "\n";
+    appendOwnerFacingStatusPairLine(summary, "local_llm_model", localLlm.state, localLlm.reason);
     summary << "local_llm_reduced_mode: " << (localLlm.reducedMode ? "true" : "false") << "\n";
     summary << "local_llm_can_run_inference: " << (localLlm.canRunInference ? "true" : "false") << "\n";
     summary << "local_llm_user_action_required: " << (localLlm.userActionRequired ? "true" : "false") << "\n";
@@ -4901,9 +5341,12 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.prepareCommandHint.empty()) {
         summary << "local_llm_prepare_command_hint: " << localLlm.prepareCommandHint << "\n";
     }
+    if (!localLlm.installGuidance.empty()) {
+        summary << "local_llm_install_guidance: " << localLlm.installGuidance << "\n";
+    }
     appendStartupRationaleLines(summary, lifecycle);
-    summary << "support_report_state: " << supportReport.state << "\n";
-    summary << "support_report_reason: " << supportReport.reason << "\n";
+    appendOwnerFacingStatusValueLine(summary, "support_report_state", supportReport.state);
+    appendOwnerFacingStatusReasonLine(summary, "support_report_reason", supportReport.reason);
     if (!supportReport.previewPath.empty()) {
         summary << "support_report_preview_path: " << pathString(supportReport.previewPath) << "\n";
     }
@@ -4922,8 +5365,8 @@ std::string buildStatusCenterSummaryText(
     if (!supportReport.openCommandHint.empty()) {
         summary << "support_report_open_command_hint: " << supportReport.openCommandHint << "\n";
     }
-    summary << "crash_recovery_state: " << crashRecovery.state << "\n";
-    summary << "crash_recovery_reason: " << crashRecovery.reason << "\n";
+    appendOwnerFacingStatusValueLine(summary, "crash_recovery_state", crashRecovery.state);
+    appendOwnerFacingStatusReasonLine(summary, "crash_recovery_reason", crashRecovery.reason);
     if (!crashRecovery.statePath.empty()) {
         summary << "crash_recovery_state_path: " << pathString(crashRecovery.statePath) << "\n";
     }
@@ -4949,12 +5392,18 @@ std::string buildStatusCenterSummaryText(
             << (crashRecovery.warningVisible ? "true" : "false") << "\n";
     summary << "crash_recovery_support_report_recommended: "
             << (crashRecovery.supportReportRecommended ? "true" : "false") << "\n";
-    summary << "friend_mp_sync_transport_state: "
-            << friendTrustStore.mpSyncTransportState << "\n";
-    summary << "friend_mp_sync_transport_reason: "
-            << friendTrustStore.mpSyncTransportReason << "\n";
-    summary << "friend_mp_sync_transport_next_step: "
-            << friendTrustStore.mpSyncTransportNextStep << "\n";
+    appendOwnerFacingStatusValueLine(
+        summary,
+        "friend_mp_sync_transport_state",
+        friendTrustStore.mpSyncTransportState);
+    appendOwnerFacingStatusReasonLine(
+        summary,
+        "friend_mp_sync_transport_reason",
+        friendTrustStore.mpSyncTransportReason);
+    appendOwnerFacingStatusReasonLine(
+        summary,
+        "friend_mp_sync_transport_next_step",
+        friendTrustStore.mpSyncTransportNextStep);
     summary << "friend_mp_sync_preflight_checklist: "
             << friendTrustStore.mpSyncPreflightChecklist << "\n";
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
@@ -5000,10 +5449,10 @@ void writeNextStepsBrief(
     std::ostringstream brief;
     brief << "Strategic Nexus Companion - dalsi kroky\n";
     brief << "Aktualizovano: " << formatLocalTimestamp() << "\n";
-    brief << "Stav: " << state << "\n";
-    brief << "Post-play stav: " << postPlayState << "\n";
-    brief << "Dalsi akce: " << nextAction << "\n";
-    brief << "Duvod: " << nextActionReason << "\n\n";
+    brief << "Stav: " << ownerFacingStatusValueUtf8(state) << "\n";
+    brief << "Post-play stav: " << ownerFacingStatusValueUtf8(postPlayState) << "\n";
+    brief << "Dalsi akce: " << ownerFacingStatusValueUtf8(nextAction) << "\n";
+    brief << "Duvod: " << ownerFacingStatusReasonUtf8(nextActionReason) << "\n\n";
     if (!nextActionCommandHint.empty()) {
         brief << "Command hint: " << nextActionCommandHint << "\n";
         brief << "Command hint source: " << nextActionCommandHintSource << "\n\n";
@@ -5016,19 +5465,19 @@ void writeNextStepsBrief(
     }
     brief << "- Entry point analysis: " << pathString(entryPointAnalysisPath);
     if (!entryPointReadiness.empty()) {
-        brief << " (" << entryPointReadiness << ")";
+        brief << " (" << ownerFacingStatusValueUtf8(entryPointReadiness) << ")";
     }
     brief << "\n";
     brief << "- Post-play package: " << pathString(postPlayPackagePath);
     if (!postPlayPackageReadiness.empty()) {
-        brief << " (" << postPlayPackageReadiness << ")";
+        brief << " (" << ownerFacingStatusValueUtf8(postPlayPackageReadiness) << ")";
     }
     brief << "\n";
     if (campaignLibraryPlanPresent) {
         brief << "- Campaign library plan: " << pathString(campaignLibraryPlanPath) << "\n";
-        brief << "- Campaign library readiness: " << campaignLibraryPlanReadiness;
+        brief << "- Campaign library readiness: " << ownerFacingStatusValueUtf8(campaignLibraryPlanReadiness);
         if (!campaignLibraryPlanReason.empty()) {
-            brief << " (" << campaignLibraryPlanReason << ")";
+            brief << " (" << ownerFacingStatusReasonUtf8(campaignLibraryPlanReason) << ")";
         }
         brief << "\n";
         brief << "- Campaign library saturation: "
@@ -5047,27 +5496,27 @@ void writeNextStepsBrief(
     }
     brief << "- Decision input package: " << pathString(decisionInputPackagePath);
     if (!decisionInputPackageReadiness.empty()) {
-        brief << " (" << decisionInputPackageReadiness << ")";
+        brief << " (" << ownerFacingStatusValueUtf8(decisionInputPackageReadiness) << ")";
     }
     brief << "\n";
     brief << "- Candidate decision package: " << pathString(candidateDecisionPackagePath);
     if (!candidateDecisionPackageReadiness.empty()) {
-        brief << " (" << candidateDecisionPackageReadiness << ")";
+        brief << " (" << ownerFacingStatusValueUtf8(candidateDecisionPackageReadiness) << ")";
     }
     brief << "\n";
     brief << "- DSL draft: " << pathString(dslDraftPath);
     if (!dslDraftReadiness.empty()) {
-        brief << " (" << dslDraftReadiness << ")";
+        brief << " (" << ownerFacingStatusValueUtf8(dslDraftReadiness) << ")";
     }
     brief << "\n";
     brief << "- SNC staged overlay status: " << pathString(generatedOverlayStagingStatusPath);
     if (!generatedOverlayStagingReadiness.empty()) {
-        brief << " (" << generatedOverlayStagingReadiness << ")";
+        brief << " (" << ownerFacingStatusValueUtf8(generatedOverlayStagingReadiness) << ")";
     }
     brief << "\n";
-    brief << "- Publish gate state: " << generatedOverlayPublishGate.state;
+    brief << "- Publish gate state: " << ownerFacingStatusValueUtf8(generatedOverlayPublishGate.state);
     if (!generatedOverlayPublishGate.reason.empty()) {
-        brief << " (" << generatedOverlayPublishGate.reason << ")";
+        brief << " (" << ownerFacingStatusReasonUtf8(generatedOverlayPublishGate.reason) << ")";
     }
     brief << "\n";
     brief << "- Publish gate available: " << (generatedOverlayPublishGate.canPublish ? "ano" : "ne") << "\n";
@@ -5094,9 +5543,9 @@ void writeNextStepsBrief(
     if (!lifecycle.startWithWindowsDisableCommandHint.empty()) {
         brief << "- Startup disable command: " << lifecycle.startWithWindowsDisableCommandHint << "\n";
     }
-    brief << "- Support report state: " << supportReport.state;
+    brief << "- Support report state: " << ownerFacingStatusValueUtf8(supportReport.state);
     if (!supportReport.reason.empty()) {
-        brief << " (" << supportReport.reason << ")";
+        brief << " (" << ownerFacingStatusReasonUtf8(supportReport.reason) << ")";
     }
     brief << "\n";
     brief << "- Support report send approval required: "
@@ -5116,9 +5565,9 @@ void writeNextStepsBrief(
     if (!supportReport.dataCategories.empty()) {
         brief << "- Support report data categories: " << joinStrings(supportReport.dataCategories, ",") << "\n";
     }
-    brief << "- Crash recovery state: " << crashRecovery.state;
+    brief << "- Crash recovery state: " << ownerFacingStatusValueUtf8(crashRecovery.state);
     if (!crashRecovery.reason.empty()) {
-        brief << " (" << crashRecovery.reason << ")";
+        brief << " (" << ownerFacingStatusReasonUtf8(crashRecovery.reason) << ")";
     }
     brief << "\n";
     brief << "- Crash recovery restart budget exhausted: "
@@ -5152,51 +5601,53 @@ void writeNextStepsBrief(
     if (!generatedOverlayPublishGate.backupDirectory.empty()) {
         brief << "- Publish backup directory: " << pathString(generatedOverlayPublishGate.backupDirectory) << "\n";
     }
-    brief << "- MP package refresh: " << mpPackageRefreshState << " (" << mpPackageRefreshReason << ")\n";
+    brief << "- MP package refresh: " << ownerFacingStatusValueUtf8(mpPackageRefreshState)
+          << " (" << ownerFacingStatusReasonUtf8(mpPackageRefreshReason) << ")\n";
     brief << "- MP overlay package directory: " << pathString(g_mpOverlayPackageDirectory) << "\n";
     brief << "- MP package zip path: " << pathString(g_mpOverlayPackageZipPath) << "\n";
     if (!mpOverlayPackage.packageZipHash.empty()) {
         brief << "- MP package zip hash: " << mpOverlayPackage.packageZipHash << "\n";
     }
     if (!mpOverlayPackage.packageZipState.empty()) {
-        brief << "- MP package zip state: " << mpOverlayPackage.packageZipState << "\n";
+        brief << "- MP package zip state: " << ownerFacingStatusValueUtf8(mpOverlayPackage.packageZipState) << "\n";
     }
     if (!mpOverlayPackage.packageZipReason.empty()) {
-        brief << "- MP package zip reason: " << mpOverlayPackage.packageZipReason << "\n";
+        brief << "- MP package zip reason: " << ownerFacingStatusReasonUtf8(mpOverlayPackage.packageZipReason) << "\n";
     }
     if (!mpOverlayPackage.packageZipState.empty()) {
         brief << "- MP package zip bytes: " << mpOverlayPackage.packageZipBytes << "\n";
     }
-    brief << "- MP overlay package state: " << mpOverlayPackage.state;
+    brief << "- MP overlay package state: " << ownerFacingStatusValueUtf8(mpOverlayPackage.state);
     if (!mpOverlayPackage.reason.empty()) {
-        brief << " (" << mpOverlayPackage.reason << ")";
+        brief << " (" << ownerFacingStatusReasonUtf8(mpOverlayPackage.reason) << ")";
     }
     brief << "\n";
     if (!mpOverlayPackage.handoffStatus.empty()) {
-        brief << "- MP handoff status: " << mpOverlayPackage.handoffStatus << "\n";
+        brief << "- MP handoff status: " << ownerFacingStatusValueUtf8(mpOverlayPackage.handoffStatus) << "\n";
     }
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
-        brief << "- MP recovery: " << mpOverlayPackage.handoffRecoveryHint << "\n";
+        brief << "- MP recovery: " << ownerFacingStatusReasonUtf8(mpOverlayPackage.handoffRecoveryHint) << "\n";
     }
     brief << "- " << buildFriendPairingGuideTextUtf8() << "\n";
     brief << "- SNC friend pairing auto-sync: vypnuto, dokud neni hotovy signed/encrypted transport.\n";
     brief << "- SNC friend pairing command template: "
           << buildFriendPairingCommandTemplateUtf8() << "\n";
     brief << "- Human control guard: ";
-    brief << (mpOverlayPackage.humanControlGuardState.empty() ? std::string("unknown") : mpOverlayPackage.humanControlGuardState)
+    brief << ownerFacingStatusValueUtf8(
+                 mpOverlayPackage.humanControlGuardState.empty() ? std::string("unknown") : mpOverlayPackage.humanControlGuardState)
           << "\n";
     brief << "- MP previous host available: "
           << (mpOverlayPackage.previousHostAvailable ? "ano" : "ne") << "\n";
     brief << "- MP previous host availability known: "
           << (mpOverlayPackage.previousHostAvailableKnown ? "ano" : "ne") << "\n";
     if (!mpOverlayPackage.readiness.empty()) {
-        brief << "- MP readiness: " << mpOverlayPackage.readiness << "\n";
+        brief << "- MP readiness: " << ownerFacingStatusValueUtf8(mpOverlayPackage.readiness) << "\n";
     }
     if (!mpOverlayPackage.hostReadiness.empty()) {
-        brief << "- MP host readiness: " << mpOverlayPackage.hostReadiness << "\n";
+        brief << "- MP host readiness: " << ownerFacingStatusValueUtf8(mpOverlayPackage.hostReadiness) << "\n";
     }
     if (!mpOverlayPackage.clientReadinessGate.empty()) {
-        brief << "- MP client readiness gate: " << mpOverlayPackage.clientReadinessGate << "\n";
+        brief << "- MP client readiness gate: " << ownerFacingStatusValueUtf8(mpOverlayPackage.clientReadinessGate) << "\n";
     }
     if (!mpOverlayPackage.verifyCommand.empty()) {
         brief << "- MP verify command: " << mpOverlayPackage.verifyCommand << "\n";
@@ -5211,16 +5662,16 @@ void writeNextStepsBrief(
         brief << "- MP strict import command: " << mpOverlayPackage.strictImportCommand << "\n";
     }
     if (!mpOverlayPackage.hostNextStep.empty()) {
-        brief << "- MP host next step: " << mpOverlayPackage.hostNextStep << "\n";
+        brief << "- MP host next step: " << ownerFacingStatusReasonUtf8(mpOverlayPackage.hostNextStep) << "\n";
     }
     if (!mpOverlayPackage.clientNextStep.empty()) {
-        brief << "- MP client next step: " << mpOverlayPackage.clientNextStep << "\n";
+        brief << "- MP client next step: " << ownerFacingStatusReasonUtf8(mpOverlayPackage.clientNextStep) << "\n";
     }
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
-        brief << "- MP recovery: " << mpOverlayPackage.handoffRecoveryHint << "\n";
+        brief << "- MP recovery: " << ownerFacingStatusReasonUtf8(mpOverlayPackage.handoffRecoveryHint) << "\n";
     }
     if (!mpOverlayPackage.identityMismatchAlert.empty()) {
-        brief << "- MP mismatch alert: " << mpOverlayPackage.identityMismatchAlert << "\n";
+        brief << "- MP mismatch alert: " << ownerFacingStatusReasonUtf8(mpOverlayPackage.identityMismatchAlert) << "\n";
     }
 
     strategic_nexus::common::writeTextFileAtomically(g_nextStepsBriefPath, brief.str());

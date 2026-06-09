@@ -497,6 +497,8 @@ if ($ReadyOwnerTestFixture -or $PostPlayBackfillFixture -or $MemoryRecoveryFixtu
     }
 }
 
+$previousSncUiLanguage = $env:SNC_UI_LANGUAGE
+$env:SNC_UI_LANGUAGE = "en"
 $process = Start-Process -FilePath $exePath -WorkingDirectory $repoRoot -PassThru
 
 try {
@@ -769,7 +771,7 @@ try {
                 if ($summaryText -notlike "*startup_start_with_windows_disable_command_hint: $($expectedStartup.DisableCommandHint)*") {
                     throw "SNC tray summary text did not expose the startup disable command hint."
                 }
-                if ($summaryText -notlike "*support_report_state: not_prepared*") {
+                if ($summaryText -notlike "*support_report_state: Not prepared yet*") {
                     throw "SNC tray summary text did not expose support_report_state."
                 }
                 if ($summaryText -notlike "*support_report_preview_path: $expectedSupportReportPreviewPathText*") {
@@ -854,25 +856,25 @@ try {
                 $sncTraySource = Get-Content -Raw -LiteralPath (Join-Path $RepoRoot "src/SncTrayApp.cpp")
                 if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE*" -or
                     $sncTraySource -notlike "*SNC MP sync*" -or
-                    $sncTraySource -notlike "*Manual metadata fallback only*" -or
-                    $sncTraySource -notlike "*blocked_stellaris_running*") {
+                    $sncTraySource -notlike "*Manual metadata only*" -or
+                    $sncTraySource -notlike "*verification path then stays safely blocked*") {
                     throw "SNC tray source did not expose the friend MP sync envelope dashboard action."
                 }
                 if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN*" -or
                     $sncTraySource -notlike "*SNC inbox*" -or
-                    $sncTraySource -notlike "*Fail-closed status only*" -or
-                    $sncTraySource -notlike "*No automatic download, decrypt, staging, or package apply*") {
+                    $sncTraySource -notlike "*Fail-closed status plan*" -or
+                    $sncTraySource -notlike "*Automatic download, decrypt, staging, and package apply do not run*") {
                     throw "SNC tray source did not expose the friend MP sync inbox-plan dashboard action."
                 }
                 if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN*" -or
                     $sncTraySource -notlike "*SNC outbox*" -or
-                    $sncTraySource -notlike "*No automatic upload, send, download, decrypt, staging, or package apply*" -or
-                    $sncTraySource -notlike "*Neuploaduje, neposila, nestahuje ani nestageuje gameplay soubory*") {
+                    $sncTraySource -notlike "*Automatic upload, send, download, decrypt, staging, and package apply do not run*" -or
+                    $sncTraySource -notlike "*does not upload, send, download, or stage gameplay files*") {
                     throw "SNC tray source did not expose the friend MP sync outbox-plan dashboard action."
                 }
-                if ($summaryText -notlike "*friend_mp_sync_transport_state: disabled_not_implemented*" -or
-                    $summaryText -notlike "*friend_mp_sync_transport_reason: signed/encrypted friend MP sync transport adapter is not implemented*" -or
-                    $summaryText -notlike "*friend_mp_sync_transport_next_step: Use manual MP package export/import and strict verify*") {
+                if ($summaryText -notlike "*friend_mp_sync_transport_state: Not implemented yet*" -or
+                    $summaryText -notlike "*friend_mp_sync_transport_reason: Signed and encrypted friend transport is not implemented yet*" -or
+                    $summaryText -notlike "*friend_mp_sync_transport_next_step: Use manual MP export/import and strict verification*") {
                     throw "SNC tray summary text did not expose disabled friend MP sync transport status."
                 }
                 if ($summaryText -notlike "*friend_mp_sync_preflight_checklist: Before a friend MP season*" -or
@@ -901,7 +903,7 @@ try {
                 if ($mpPackageReady -and $summaryText -notlike "*mp_previous_host_available_known:*") {
                     throw "SNC tray summary text did not expose mp_previous_host_available_known."
                 }
-                if ($mpPackageReady -and $summaryText -like "*mp_handoff_status: degraded_previous_host_unavailable*" -and
+                if ($mpPackageReady -and $summaryText -like "*mp_handoff_status: Degraded: previous host unavailable*" -and
                     $summaryText -notlike "*mp_handoff_recovery_hint:*") {
                     throw "SNC tray summary text did not expose mp_handoff_recovery_hint for degraded MP handoff continuity."
                 }
@@ -922,7 +924,7 @@ try {
                 if ($mpPackageReady -and $briefText -notlike "*MP previous host availability known:*") {
                     throw "SNC tray next-steps brief did not expose MP previous host availability known."
                 }
-                if ($mpPackageReady -and $summaryText -like "*mp_handoff_status: degraded_previous_host_unavailable*" -and
+                if ($mpPackageReady -and $summaryText -like "*mp_handoff_status: Degraded: previous host unavailable*" -and
                     $briefText -notlike "*MP recovery:*") {
                     throw "SNC tray next-steps brief did not expose MP recovery guidance for degraded handoff continuity."
                 }
@@ -958,7 +960,7 @@ try {
                 if ($briefText -notlike "*Startup disable command: $($expectedStartup.DisableCommandHint)*") {
                     throw "SNC tray next-steps brief did not expose the startup disable command."
                 }
-                if ($briefText -notlike "*Support report state: not_prepared*") {
+                if ($briefText -notlike "*Support report state: Not prepared yet*") {
                     throw "SNC tray next-steps brief did not expose support report state."
                 }
                 if ($briefText -notlike "*Support report send approval required: ano*") {
@@ -1055,5 +1057,10 @@ try {
     }
     if ($null -ne $supportReportBackupPath -and (Test-Path -LiteralPath $supportReportBackupPath)) {
         Move-Item -LiteralPath $supportReportBackupPath -Destination $supportReportPreviewPath -Force
+    }
+    if ($null -eq $previousSncUiLanguage) {
+        Remove-Item Env:SNC_UI_LANGUAGE -ErrorAction SilentlyContinue
+    } else {
+        $env:SNC_UI_LANGUAGE = $previousSncUiLanguage
     }
 }
