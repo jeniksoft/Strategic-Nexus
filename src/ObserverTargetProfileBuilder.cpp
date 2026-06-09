@@ -72,6 +72,39 @@ void appendEvidenceReference(
     references.insert(references.end(), values.begin(), values.end());
 }
 
+void writeObjectArray(
+    std::ostringstream& json,
+    const char* name,
+    const std::vector<ObserverTargetFieldAvailability>& values,
+    const bool trailingComma)
+{
+    json << "  \"" << name << "\": [\n";
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        const auto& value = values[index];
+        json << "    {"
+             << "\"field_group\":\"" << jsonEscape(value.fieldGroup) << "\","
+             << "\"source_quality\":\"" << jsonEscape(value.sourceQuality) << "\","
+             << "\"available\":" << (value.available ? "true" : "false") << ","
+             << "\"missing_reasons\":[";
+        for (std::size_t reasonIndex = 0; reasonIndex < value.missingReasons.size(); ++reasonIndex) {
+            if (reasonIndex > 0) {
+                json << ", ";
+            }
+            json << "\"" << jsonEscape(value.missingReasons[reasonIndex]) << "\"";
+        }
+        json << "]}";
+        if (index + 1 < values.size()) {
+            json << ",";
+        }
+        json << "\n";
+    }
+    json << "  ]";
+    if (trailingComma) {
+        json << ",";
+    }
+    json << "\n";
+}
+
 std::vector<ObserverTargetFieldAvailability> buildFieldAvailability(
     const ObserverTargetProfile& profile,
     const SeasonEmpireBrief& observerBrief)
@@ -104,6 +137,21 @@ std::vector<ObserverTargetFieldAvailability> buildFieldAvailability(
 
 } // namespace
 
+bool ObserverTargetRuleCandidateValidation::allowsDomain(const std::string& domain) const
+{
+    if (!ready) {
+        return false;
+    }
+
+    for (const auto& candidateDomain : candidateDomains) {
+        if (candidateDomain == domain) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 ObserverTargetProfile ObserverTargetProfileBuilder::build(
     const SeasonEmpireBrief& observerBrief,
     const std::string& targetEmpireId,
@@ -119,6 +167,17 @@ ObserverTargetProfile ObserverTargetProfileBuilder::build(
     profile.relationshipDelta.generalTrustSummary = "summary_only_contract_no_relationship_delta_yet";
     profile.relationshipDelta.predictedFutureBehaviorSummary = "summary_only_contract_no_predictive_profile_yet";
     profile.allowedRuleDomains = { "diplomacy", "war", "border", "intel" };
+    profile.ruleCandidateValidation.candidateDomains = profile.allowedRuleDomains;
+    profile.ruleCandidateValidation.requiredSignals = {
+        "target_scoped_relationship_delta",
+        "confidence_scored_memory_summary",
+        "gameplay_safe_generation_validation"
+    };
+    profile.ruleCandidateValidation.blockedReasons = {
+        "summary_only_contract",
+        "target_specific_rule_generation_not_implemented_yet",
+        "missing_gameplay_safe_validation_path"
+    };
 
     if (!observerBrief.ok) {
         profile.reason = observerBrief.reason.empty()
@@ -160,6 +219,7 @@ ObserverTargetProfile ObserverTargetProfileBuilder::build(
     profile.compressionNotes = observerBrief.compressionNotes;
     profile.compressionNotes.push_back("observer_target_profile_summary_only_contract");
     profile.compressionNotes.push_back("do_not_infer_target_specific_rules_from_this_contract_alone");
+    profile.ruleCandidateValidation.ready = false;
     profile.fieldAvailability = buildFieldAvailability(profile, observerBrief);
     return profile;
 }
@@ -183,29 +243,13 @@ std::string serializeObserverTargetProfile(const ObserverTargetProfile& profile)
     json << "    \"general_trust_summary\": \"" << jsonEscape(profile.relationshipDelta.generalTrustSummary) << "\",\n";
     json << "    \"predicted_future_behavior_summary\": \"" << jsonEscape(profile.relationshipDelta.predictedFutureBehaviorSummary) << "\"\n";
     json << "  },\n";
-    if (!profile.fieldAvailability.empty()) {
-        json << "  \"field_availability\": [\n";
-        for (std::size_t index = 0; index < profile.fieldAvailability.size(); ++index) {
-            const auto& value = profile.fieldAvailability[index];
-            json << "    {"
-                 << "\"field_group\":\"" << jsonEscape(value.fieldGroup) << "\","
-                 << "\"source_quality\":\"" << jsonEscape(value.sourceQuality) << "\","
-                 << "\"available\":" << (value.available ? "true" : "false") << ","
-                 << "\"missing_reasons\":[";
-            for (std::size_t reasonIndex = 0; reasonIndex < value.missingReasons.size(); ++reasonIndex) {
-                if (reasonIndex > 0) {
-                    json << ", ";
-                }
-                json << "\"" << jsonEscape(value.missingReasons[reasonIndex]) << "\"";
-            }
-            json << "]}";
-            if (index + 1 < profile.fieldAvailability.size()) {
-                json << ",";
-            }
-            json << "\n";
-        }
-        json << "  ],\n";
-    }
+    json << "  \"rule_candidate_validation\": {\n";
+    json << "    \"ready\": " << (profile.ruleCandidateValidation.ready ? "true" : "false") << ",\n";
+    writeStringArray(json, "candidate_domains", profile.ruleCandidateValidation.candidateDomains, true);
+    writeStringArray(json, "required_signals", profile.ruleCandidateValidation.requiredSignals, true);
+    writeStringArray(json, "blocked_reasons", profile.ruleCandidateValidation.blockedReasons, false);
+    json << "  },\n";
+    writeObjectArray(json, "field_availability", profile.fieldAvailability, true);
     writeStringArray(json, "evidence_references", profile.evidenceReferences, true);
     writeStringArray(json, "allowed_rule_domains", profile.allowedRuleDomains, true);
     writeStringArray(json, "target_specific_rule_candidates", profile.targetSpecificRuleCandidates, true);

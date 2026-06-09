@@ -49,6 +49,10 @@ int main()
         requireCondition(profile.evidenceReferences.size() == 3, "profile should gather evidence references from brief facts and uncertainties");
         requireCondition(profile.allowedRuleDomains.size() == 4, "profile should advertise bounded allowed rule domains");
         requireCondition(profile.targetSpecificRuleCandidates.empty(), "profile should not emit gameplay rule candidates yet");
+        requireCondition(!profile.ruleCandidateValidation.ready, "profile should keep candidate validation locked at summary-only stage");
+        requireCondition(profile.ruleCandidateValidation.candidateDomains.size() == 4, "profile should expose bounded candidate-domain hooks");
+        requireCondition(profile.ruleCandidateValidation.blockedReasons.size() == 3, "profile should explain why candidate generation is blocked");
+        requireCondition(!profile.ruleCandidateValidation.allowsDomain("diplomacy"), "profile should fail closed on candidate-domain checks");
         requireCondition(profile.fieldAvailability.size() == 8, "profile should expose a bounded field availability map");
         requireCondition(profile.missingInformation.size() == 8, "profile should carry brief missing information plus contract gaps");
         requireCondition(profile.compressionNotes.size() == 4, "profile should carry brief compression notes plus contract notes");
@@ -60,8 +64,10 @@ int main()
         requireCondition(json.find("\"target_empire_id\": \"target_empire_002\"") != std::string::npos, "profile JSON should include target empire id");
         requireCondition(json.find("\"summary_only\": true") != std::string::npos, "profile JSON should preserve summary-only contract");
         requireCondition(json.find("\"field_availability\": [") != std::string::npos, "profile JSON should include field availability");
+        requireCondition(json.find("\"rule_candidate_validation\": {") != std::string::npos, "profile JSON should include candidate validation scaffold");
         requireCondition(json.find("\"allowed_rule_domains\": [") != std::string::npos, "profile JSON should include allowed rule domains");
         requireCondition(json.find("\"target_specific_rule_candidates\": [") != std::string::npos, "profile JSON should include candidate rules field");
+        requireCondition(json.find("\"blocked_reasons\": [") != std::string::npos, "profile JSON should include blocked reasons");
         requireCondition(json.find("observer_target_profile_summary_only_contract") != std::string::npos, "profile JSON should record contract note");
     }
 

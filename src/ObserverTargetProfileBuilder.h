@@ -24,6 +24,15 @@ struct ObserverTargetFieldAvailability {
     std::vector<std::string> missingReasons;
 };
 
+struct ObserverTargetRuleCandidateValidation {
+    bool ready = false;
+    std::vector<std::string> candidateDomains;
+    std::vector<std::string> requiredSignals;
+    std::vector<std::string> blockedReasons;
+
+    bool allowsDomain(const std::string& domain) const;
+};
+
 struct ObserverTargetProfile {
     bool ok = false;
     std::string reason;
@@ -36,6 +45,7 @@ struct ObserverTargetProfile {
     std::vector<std::string> evidenceReferences;
     std::vector<std::string> allowedRuleDomains;
     std::vector<std::string> targetSpecificRuleCandidates;
+    ObserverTargetRuleCandidateValidation ruleCandidateValidation;
     ObserverTargetRelationshipDelta relationshipDelta;
     std::vector<ObserverTargetFieldAvailability> fieldAvailability;
     std::vector<std::string> missingInformation;

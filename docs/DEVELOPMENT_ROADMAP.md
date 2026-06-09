@@ -931,7 +931,7 @@ This is the main path toward galactic social intelligence: empires remember who 
 If profile confidence is low, store a concise memory summary and skip gameplay-affecting generated rules.
 
 Current progress:
-The first observer-target profile contract exists as a summary-only builder. `ObserverTargetProfileBuilder` now accepts a validated observer brief plus a target empire id and confidence, records bounded evidence references, exposes an explicit observer/target/diplomacy/war/subject/federation/border/intel field-availability map, and intentionally keeps target-specific rule candidates empty until later validation and gameplay-safe generation exist.
+The first observer-target profile contract exists as a summary-only builder. `ObserverTargetProfileBuilder` now accepts a validated observer brief plus a target empire id and confidence, records bounded evidence references, exposes an explicit observer/target/diplomacy/war/subject/federation/border/intel field-availability map, and now also exposes a fail-closed target-specific rule-candidate validation scaffold that keeps candidate domains visible without enabling gameplay output. It intentionally keeps target-specific rule candidates empty until later validation and gameplay-safe generation exist.
 
 The regression coverage confirms the profile contract rejects missing target identity, unsupported source brief quality, invalid confidence, and missing evidence references, and it preserves distinct observer-target memories for different observer empires built from the same shared evidence.
 
