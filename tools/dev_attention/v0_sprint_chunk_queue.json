@@ -1589,7 +1589,7 @@
     {
       "id": "v0-sprint-165-document-schema-migration-gap",
       "title": "Document schema migration gap",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "12C Backward Migration Rules",
       "goal": "Document the missing migration registry contract and the owner-visible degraded-state warning shape so future migration work has a bounded fail-closed target.",
