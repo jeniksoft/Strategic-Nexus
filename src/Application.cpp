@@ -3597,6 +3597,8 @@ int Application::run(const RunConfig& config) const
             std::cout << "post_play_package_success=" << (success ? "true" : "false") << "\n";
             std::cout << "post_play_package_reason=" << sanitizeCliValue(package.reason) << "\n";
             std::cout << "post_play_package_readiness=" << sanitizeCliValue(package.readiness) << "\n";
+            std::cout << "post_play_package_campaign_identity_state_summary="
+                      << sanitizeCliValue(package.campaignIdentityStateSummary) << "\n";
             std::cout << "post_play_package_entry_points=" << package.entryPointCount << "\n";
             std::cout << "post_play_package_branch_ambiguity_detected="
                       << (package.branchAmbiguityDetected ? "true" : "false") << "\n";

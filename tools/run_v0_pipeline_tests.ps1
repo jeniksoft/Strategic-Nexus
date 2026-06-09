@@ -3055,6 +3055,7 @@ function Invoke-AmbiguousPostPlayCliFailClosedCase {
     $postPlayText = $postPlayOutput -join "`n"
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_success=true"
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_readiness=ambiguous"
+    Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_campaign_identity_state_summary=folder_alias_fallback"
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_branch_ambiguity_detected=true"
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_decision_ready_entry_count=0"
 
@@ -3062,6 +3063,9 @@ function Invoke-AmbiguousPostPlayCliFailClosedCase {
     $postPlayJson = $postPlayJsonText | ConvertFrom-Json
     if ($postPlayJson.branch_ambiguity_detected -ne $true) {
         throw "Ambiguous post-play package JSON did not expose branch_ambiguity_detected=true."
+    }
+    if ($postPlayJson.campaign_identity_state_summary -ne "folder_alias_fallback") {
+        throw "Ambiguous post-play package JSON did not expose campaign_identity_state_summary=folder_alias_fallback."
     }
     if ([int]$postPlayJson.decision_ready_entry_count -ne 0) {
         throw "Ambiguous post-play package JSON exposed decision-ready entries."

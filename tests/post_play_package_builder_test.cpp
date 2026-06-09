@@ -7,6 +7,7 @@
 #include "AutosaveArchiver.h"
 #include "SaveEntryPointAnalyzer.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -101,9 +102,18 @@ int main()
     requireCondition(foundInsufficientHistoryEntry, "beta entry should be blocked without compatible history");
 
     const auto json = strategic_nexus::serializePostPlayPackage(package);
+    requireCondition(
+        package.campaignIdentityStateSummary == "folder_alias_fallback",
+        "default fixture should fall back to folder alias campaign identity");
     requireCondition(json.find("\"dry_run_only\": true") != std::string::npos, "JSON should expose dry-run mode");
     requireCondition(json.find("\"publishes_overlay\": false") != std::string::npos, "JSON should expose no overlay publishing");
     requireCondition(json.find("\"decision_ready_entry_count\": 2") != std::string::npos, "JSON should expose ready count");
+    requireCondition(
+        json.find("\"campaign_identity_state_summary\": \"folder_alias_fallback\"") != std::string::npos,
+        "JSON should expose campaign identity state summary");
+    requireCondition(
+        json.find("\"campaign_identity_state\": \"folder_alias_fallback\"") != std::string::npos,
+        "JSON should expose per-campaign identity fallback state");
     requireCondition(json.find("\"post_play_no_compatible_history\"") != std::string::npos, "JSON should expose history warning");
     requireCondition(json.find("\"compatible_history_only_future_excluded\"") != std::string::npos, "JSON should expose future evidence policy");
     requireCondition(
@@ -112,6 +122,74 @@ int main()
     requireCondition(
         json.find("\"later_archived_evidence_samples\":") != std::string::npos,
         "JSON should expose bounded later evidence samples");
+
+    auto resolvedIdentityAnalysis = analysis;
+    for (auto& entry : resolvedIdentityAnalysis.entryPoints) {
+        if (entry.campaignKey == "alpha_campaign") {
+            entry.playerCountryId = "country_alpha";
+        }
+    }
+    const auto resolvedIdentityPackage = builder.build(summary, resolvedIdentityAnalysis);
+    requireCondition(
+        resolvedIdentityPackage.campaignIdentityStateSummary == "mixed_save_identity_resolution",
+        "package should summarize mixed save-content and folder-alias identity resolution");
+    for (const auto& entry : resolvedIdentityPackage.entries) {
+        if (entry.campaignKey == "alpha_campaign") {
+            requireCondition(
+                entry.campaignIdentity == "country_alpha",
+                "alpha campaign should resolve campaign identity from save contents");
+            requireCondition(
+                entry.campaignIdentityState == "resolved_from_player_country_id",
+                "alpha campaign should expose save-content identity state");
+        } else if (entry.campaignKey == "beta_campaign") {
+            requireCondition(
+                entry.campaignIdentity == "beta_campaign",
+                "beta campaign should fall back to the folder alias");
+            requireCondition(
+                entry.campaignIdentityState == "folder_alias_fallback",
+                "beta campaign should expose folder alias fallback state");
+        }
+    }
+
+    auto ambiguousIdentityAnalysis = analysis;
+    bool assignedFirstAlphaIdentity = false;
+    for (auto& entry : ambiguousIdentityAnalysis.entryPoints) {
+        if (entry.campaignKey != "alpha_campaign") {
+            continue;
+        }
+        entry.playerCountryId = assignedFirstAlphaIdentity ? "country_beta" : "country_alpha";
+        assignedFirstAlphaIdentity = true;
+    }
+    const auto ambiguousIdentityPackage = builder.build(summary, ambiguousIdentityAnalysis);
+    requireCondition(
+        ambiguousIdentityPackage.campaignIdentityStateSummary == "ambiguous_save_identity",
+        "package should expose ambiguous campaign identity resolution");
+    requireCondition(
+        ambiguousIdentityPackage.readiness == "ambiguous",
+        "ambiguous campaign identity should block package readiness");
+    requireCondition(
+        ambiguousIdentityPackage.decisionReadyEntryCount == 0,
+        "ambiguous campaign identity should block all decision-ready entries");
+    requireCondition(
+        ambiguousIdentityPackage.reason.find("save-content identity ambiguity") != std::string::npos,
+        "package reason should explain campaign identity ambiguity");
+    bool foundBlockedIdentityCampaign = false;
+    for (const auto& campaign : ambiguousIdentityPackage.campaigns) {
+        if (campaign.campaignKey == "alpha_campaign") {
+            foundBlockedIdentityCampaign = true;
+            requireCondition(
+                campaign.readiness == "blocked_identity_ambiguity",
+                "alpha campaign should be blocked by identity ambiguity");
+        }
+    }
+    requireCondition(foundBlockedIdentityCampaign, "ambiguous package should include alpha campaign summary");
+    requireCondition(
+        std::find(
+            ambiguousIdentityPackage.warningCodes.begin(),
+            ambiguousIdentityPackage.warningCodes.end(),
+            "post_play_campaign_identity_ambiguity_blocks_decision_input") !=
+            ambiguousIdentityPackage.warningCodes.end(),
+        "package warnings should expose the identity ambiguity blocker");
 
     const auto ambiguousRoot = root / "ambiguous";
     const auto ambiguousCaptureRoot = ambiguousRoot / "capture_root";

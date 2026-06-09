@@ -16,6 +16,8 @@ struct PostPlayPackageEntry {
     std::string packageEntryId;
     std::string entryPointId;
     std::string campaignKey;
+    std::string campaignIdentity;
+    std::string campaignIdentityState;
     std::string sourceKind;
     std::string saveName;
     std::string saveDate;
@@ -40,6 +42,8 @@ struct PostPlayPackageEntry {
 
 struct PostPlayPackageCampaign {
     std::string campaignKey;
+    std::string campaignIdentity;
+    std::string campaignIdentityState;
     std::string readiness;
     bool branchAmbiguityDetected = false;
     std::size_t entryPointCount = 0;
@@ -52,6 +56,7 @@ struct PostPlayPackage {
     bool ok = false;
     std::string reason;
     std::string readiness;
+    std::string campaignIdentityStateSummary;
     bool dryRunOnly = true;
     bool publishesOverlay = false;
     std::filesystem::path sessionArchiveDirectory;

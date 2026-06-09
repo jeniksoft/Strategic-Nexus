@@ -3,8 +3,10 @@
 
 #include "PostPlayPackageBuilder.h"
 
+#include <cctype>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <sstream>
 #include <utility>
 
@@ -45,6 +47,68 @@ std::string hashPrefix(const std::string& hash)
     return hash.substr(0, std::min<std::size_t>(12, hash.size()));
 }
 
+std::string normalizedIdentityFromEmpireName(const std::string& empireName)
+{
+    std::string identity;
+    bool previousUnderscore = false;
+    for (const char ch : empireName) {
+        if (std::isalnum(static_cast<unsigned char>(ch))) {
+            identity.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
+            previousUnderscore = false;
+        } else if (!previousUnderscore) {
+            identity.push_back('_');
+            previousUnderscore = true;
+        }
+    }
+    while (!identity.empty() && identity.front() == '_') {
+        identity.erase(identity.begin());
+    }
+    while (!identity.empty() && identity.back() == '_') {
+        identity.pop_back();
+    }
+    return identity;
+}
+
+struct ResolvedCampaignIdentity {
+    std::string identity;
+    std::string state;
+    bool ambiguous = false;
+};
+
+ResolvedCampaignIdentity resolveCampaignIdentity(
+    const SaveEntryPointCampaignAnalysis& campaign,
+    const std::vector<SaveEntryPoint>& entries)
+{
+    std::set<std::string> playerCountryIds;
+    std::set<std::string> empireNames;
+    for (const auto& entry : entries) {
+        if (entry.campaignKey != campaign.campaignKey) {
+            continue;
+        }
+        if (!entry.playerCountryId.empty()) {
+            playerCountryIds.insert(entry.playerCountryId);
+        }
+        const auto normalizedEmpireName = normalizedIdentityFromEmpireName(entry.empireName);
+        if (!normalizedEmpireName.empty()) {
+            empireNames.insert(normalizedEmpireName);
+        }
+    }
+
+    if (playerCountryIds.size() > 1) {
+        return {campaign.campaignKey, "ambiguous_save_identity", true};
+    }
+    if (playerCountryIds.size() == 1) {
+        return {*playerCountryIds.begin(), "resolved_from_player_country_id", false};
+    }
+    if (empireNames.size() > 1) {
+        return {campaign.campaignKey, "ambiguous_save_identity", true};
+    }
+    if (empireNames.size() == 1) {
+        return {*empireNames.begin(), "resolved_from_empire_name", false};
+    }
+    return {campaign.campaignKey, "folder_alias_fallback", false};
+}
+
 std::string ruleScopeFor(const SaveEntryPoint& entry)
 {
     std::ostringstream scope;
@@ -63,11 +127,18 @@ std::string ruleScopeFor(const SaveEntryPoint& entry)
     return scope.str();
 }
 
-PostPlayPackageEntry buildEntry(const SaveEntryPoint& entry, const bool campaignBranchAmbiguous)
+PostPlayPackageEntry buildEntry(
+    const SaveEntryPoint& entry,
+    const bool campaignBranchAmbiguous,
+    const bool campaignIdentityAmbiguous,
+    const std::string& campaignIdentity,
+    const std::string& campaignIdentityState)
 {
     PostPlayPackageEntry packageEntry;
     packageEntry.entryPointId = entry.id;
     packageEntry.campaignKey = entry.campaignKey;
+    packageEntry.campaignIdentity = campaignIdentity;
+    packageEntry.campaignIdentityState = campaignIdentityState;
     packageEntry.sourceKind = entry.sourceKind;
     packageEntry.saveName = entry.saveName;
     packageEntry.saveDate = entry.saveDate;
@@ -85,7 +156,12 @@ PostPlayPackageEntry buildEntry(const SaveEntryPoint& entry, const bool campaign
     packageEntry.futureEvidenceExcluded = entry.laterArchivedEvidenceCount > 0;
     packageEntry.warningCodes = entry.warningCodes;
 
-    if (campaignBranchAmbiguous) {
+    if (campaignIdentityAmbiguous) {
+        packageEntry.decisionInputState = "blocked_campaign_identity_ambiguity";
+        packageEntry.evidencePolicy = "blocked";
+        packageEntry.decisionInputAllowed = false;
+        addUnique(packageEntry.warningCodes, "post_play_campaign_identity_ambiguity_blocks_decision_input");
+    } else if (campaignBranchAmbiguous) {
         packageEntry.decisionInputState = "blocked_branch_ambiguity";
         packageEntry.evidencePolicy = "blocked";
         packageEntry.decisionInputAllowed = false;
@@ -200,15 +276,43 @@ PostPlayPackage PostPlayPackageBuilder::build(
         ambiguousCampaigns[campaign.campaignKey] = campaign.branchAmbiguityDetected;
     }
 
+    std::map<std::string, ResolvedCampaignIdentity> campaignIdentities;
+    for (const auto& campaign : entryPointAnalysis.campaigns) {
+        const auto resolvedIdentity = resolveCampaignIdentity(campaign, entryPointAnalysis.entryPoints);
+        auto& packageCampaign = campaignPackages[campaign.campaignKey];
+        packageCampaign.campaignKey = campaign.campaignKey;
+        packageCampaign.campaignIdentity = resolvedIdentity.identity;
+        packageCampaign.campaignIdentityState = resolvedIdentity.state;
+        campaignIdentities[campaign.campaignKey] = resolvedIdentity;
+    }
+
     bool anyReady = false;
     bool anyBlocked = false;
     bool anyFutureExcluded = false;
+    bool anyCampaignIdentityAmbiguous = false;
+    std::size_t resolvedCampaignIdentityCount = 0;
+    std::size_t fallbackCampaignIdentityCount = 0;
     for (const auto& entry : entryPointAnalysis.entryPoints) {
         const bool campaignBranchAmbiguous = ambiguousCampaigns[entry.campaignKey];
-        auto packageEntry = buildEntry(entry, campaignBranchAmbiguous);
+        const auto campaignIdentityIt = campaignIdentities.find(entry.campaignKey);
+        const bool campaignIdentityAmbiguous =
+            campaignIdentityIt != campaignIdentities.end() && campaignIdentityIt->second.ambiguous;
+        const std::string campaignIdentity =
+            campaignIdentityIt != campaignIdentities.end() ? campaignIdentityIt->second.identity : entry.campaignKey;
+        const std::string campaignIdentityState =
+            campaignIdentityIt != campaignIdentities.end()
+                ? campaignIdentityIt->second.state
+                : "folder_alias_fallback";
+        auto packageEntry = buildEntry(
+            entry,
+            campaignBranchAmbiguous,
+            campaignIdentityAmbiguous,
+            campaignIdentity,
+            campaignIdentityState);
         anyReady = anyReady || packageEntry.decisionInputAllowed;
         anyBlocked = anyBlocked || !packageEntry.decisionInputAllowed;
         anyFutureExcluded = anyFutureExcluded || packageEntry.futureEvidenceExcluded;
+        anyCampaignIdentityAmbiguous = anyCampaignIdentityAmbiguous || campaignIdentityAmbiguous;
         if (packageEntry.decisionInputAllowed) {
             ++package.decisionReadyEntryCount;
         }
@@ -218,6 +322,14 @@ PostPlayPackage PostPlayPackageBuilder::build(
 
         auto& campaign = campaignPackages[packageEntry.campaignKey];
         campaign.campaignKey = packageEntry.campaignKey;
+        campaign.campaignIdentity = packageEntry.campaignIdentity;
+        campaign.campaignIdentityState = packageEntry.campaignIdentityState;
+        if (packageEntry.campaignIdentityState == "folder_alias_fallback") {
+            ++fallbackCampaignIdentityCount;
+        } else if (packageEntry.campaignIdentityState == "resolved_from_player_country_id" ||
+                   packageEntry.campaignIdentityState == "resolved_from_empire_name") {
+            ++resolvedCampaignIdentityCount;
+        }
         if (packageEntry.decisionInputAllowed) {
             ++campaign.decisionReadyEntryCount;
         }
@@ -225,7 +337,9 @@ PostPlayPackage PostPlayPackageBuilder::build(
     }
 
     for (auto& [campaignKey, campaign] : campaignPackages) {
-        if (campaign.branchAmbiguityDetected) {
+        if (campaign.campaignIdentityState == "ambiguous_save_identity") {
+            campaign.readiness = "blocked_identity_ambiguity";
+        } else if (campaign.branchAmbiguityDetected) {
             campaign.readiness = "blocked_ambiguous";
         } else if (campaign.entryPointCount == 0) {
             campaign.readiness = "needs_attention";
@@ -240,7 +354,19 @@ PostPlayPackage PostPlayPackageBuilder::build(
     }
 
     package.ok = true;
-    if (entryPointAnalysis.branchAmbiguityDetected) {
+    if (anyCampaignIdentityAmbiguous) {
+        package.campaignIdentityStateSummary = "ambiguous_save_identity";
+    } else if (resolvedCampaignIdentityCount > 0 && fallbackCampaignIdentityCount > 0) {
+        package.campaignIdentityStateSummary = "mixed_save_identity_resolution";
+    } else if (fallbackCampaignIdentityCount > 0) {
+        package.campaignIdentityStateSummary = "folder_alias_fallback";
+    } else {
+        package.campaignIdentityStateSummary = "resolved_from_save_contents";
+    }
+    if (anyCampaignIdentityAmbiguous) {
+        package.reason = "entry point package built but save-content identity ambiguity blocks some decision input";
+        package.readiness = anyReady ? "ready_partial_ambiguous" : "ambiguous";
+    } else if (entryPointAnalysis.branchAmbiguityDetected) {
         package.reason = "entry point package built but branch ambiguity blocks some decision input";
         package.readiness = anyReady ? "ready_partial_ambiguous" : "ambiguous";
     } else if (anyReady && anyBlocked) {
@@ -267,6 +393,7 @@ std::string serializePostPlayPackage(const PostPlayPackage& package)
     json << "  \"ok\": " << (package.ok ? "true" : "false") << ",\n";
     json << "  \"reason\": \"" << jsonEscape(package.reason) << "\",\n";
     json << "  \"readiness\": \"" << jsonEscape(package.readiness) << "\",\n";
+    json << "  \"campaign_identity_state_summary\": \"" << jsonEscape(package.campaignIdentityStateSummary) << "\",\n";
     json << "  \"dry_run_only\": " << (package.dryRunOnly ? "true" : "false") << ",\n";
     json << "  \"publishes_overlay\": " << (package.publishesOverlay ? "true" : "false") << ",\n";
     json << "  \"session_archive_directory\": \"" << jsonEscape(package.sessionArchiveDirectory.generic_string()) << "\",\n";
@@ -286,6 +413,8 @@ std::string serializePostPlayPackage(const PostPlayPackage& package)
         const auto& campaign = package.campaigns[index];
         json << "    {\n";
         json << "      \"campaign_key\": \"" << jsonEscape(campaign.campaignKey) << "\",\n";
+        json << "      \"campaign_identity\": \"" << jsonEscape(campaign.campaignIdentity) << "\",\n";
+        json << "      \"campaign_identity_state\": \"" << jsonEscape(campaign.campaignIdentityState) << "\",\n";
         json << "      \"readiness\": \"" << jsonEscape(campaign.readiness) << "\",\n";
         json << "      \"branch_ambiguity_detected\": " << (campaign.branchAmbiguityDetected ? "true" : "false") << ",\n";
         json << "      \"entry_point_count\": " << campaign.entryPointCount << ",\n";
@@ -304,6 +433,8 @@ std::string serializePostPlayPackage(const PostPlayPackage& package)
         json << "      \"package_entry_id\": \"" << jsonEscape(entry.packageEntryId) << "\",\n";
         json << "      \"entry_point_id\": \"" << jsonEscape(entry.entryPointId) << "\",\n";
         json << "      \"campaign_key\": \"" << jsonEscape(entry.campaignKey) << "\",\n";
+        json << "      \"campaign_identity\": \"" << jsonEscape(entry.campaignIdentity) << "\",\n";
+        json << "      \"campaign_identity_state\": \"" << jsonEscape(entry.campaignIdentityState) << "\",\n";
         json << "      \"source_kind\": \"" << jsonEscape(entry.sourceKind) << "\",\n";
         json << "      \"save_name\": \"" << jsonEscape(entry.saveName) << "\",\n";
         json << "      \"save_date\": \"" << jsonEscape(entry.saveDate) << "\",\n";

@@ -1310,7 +1310,7 @@ Required:
 * compatibility with renamed/restored campaign folders
 
 Current progress:
-The active library has anchor fingerprints and local continuity signals, but final campaign identity assignment is still incomplete.
+The active library has anchor fingerprints and local continuity signals, and post-play package output now surfaces campaign identity source-state plus save-content vs folder-alias fallback summaries. Final campaign identity assignment is still incomplete for broader owner-facing surfaces and renamed/restored campaign compatibility.
 
 ---
 
