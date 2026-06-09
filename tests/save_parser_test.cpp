@@ -36,6 +36,18 @@ const strategic_nexus::SaveParserFieldAvailability* findFieldAvailability(
     return nullptr;
 }
 
+bool hasReason(
+    const std::vector<std::string>& reasons,
+    const std::string& expectedReason)
+{
+    for (const auto& reason : reasons) {
+        if (reason == expectedReason) {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace
 
 int main()
@@ -143,6 +155,67 @@ war={
     requireCondition(
         countryCoreAvailability->sourceQuality == "headline_country_core",
         "country core should have headline country core source quality");
+
+    const auto incompleteRoot = root / "country_core_incomplete";
+    std::filesystem::create_directories(incompleteRoot, ec);
+    requireCondition(!ec, "incomplete fixture directory should be created");
+
+    const std::string incompleteGamestate = R"(date="2200.01.13"
+player={
+    {
+        name="Jeniksoft"
+        country=0
+    }
+}
+country={
+    0={
+        name="Aeel Corp"
+        founder_species=7
+    }
+}
+species={
+    7={
+        name="Aeel"
+    }
+}
+)";
+
+    requireCondition(
+        strategic_nexus::common::writeTextFileAtomically(incompleteRoot / "meta", meta),
+        "incomplete meta should be written");
+    requireCondition(
+        strategic_nexus::common::writeTextFileAtomically(incompleteRoot / "gamestate", incompleteGamestate),
+        "incomplete gamestate should be written");
+
+    const auto incompleteSummary = parser.parseSummary(incompleteRoot);
+    requireCondition(incompleteSummary.ok, "incomplete summary should still parse headline identity");
+    const auto* incompleteCountryCoreAvailability =
+        findFieldAvailability(incompleteSummary.fieldAvailability, "country_core");
+    requireCondition(
+        incompleteCountryCoreAvailability != nullptr,
+        "incomplete country core availability should exist");
+    requireCondition(
+        !incompleteCountryCoreAvailability->available,
+        "incomplete country core should remain unavailable");
+    requireCondition(
+        incompleteCountryCoreAvailability->sourceQuality == "headline_country_core_partial",
+        "incomplete country core should report partial headline source quality");
+    requireCondition(
+        hasReason(incompleteCountryCoreAvailability->missingReasons, "country_core_missing_government"),
+        "incomplete country core should explain missing government");
+    requireCondition(
+        hasReason(incompleteCountryCoreAvailability->missingReasons, "country_core_missing_authority"),
+        "incomplete country core should explain missing authority");
+    requireCondition(
+        hasReason(
+            incompleteCountryCoreAvailability->missingReasons,
+            "country_core_missing_capital_planet_name"),
+        "incomplete country core should explain missing capital planet");
+    requireCondition(
+        hasReason(
+            incompleteCountryCoreAvailability->missingReasons,
+            "country_core_missing_home_system_name"),
+        "incomplete country core should explain missing home system");
 
     const auto* diplomacyAvailability = findFieldAvailability(summary.fieldAvailability, "diplomacy");
     requireCondition(diplomacyAvailability != nullptr, "diplomacy availability should exist");

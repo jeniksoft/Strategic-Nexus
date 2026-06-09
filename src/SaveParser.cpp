@@ -546,6 +546,39 @@ void parseWars(SaveParserSummary& summary, const std::string& gamestate)
     summary.activeWarCount = numberedChildren(warsBlock).size();
 }
 
+std::vector<std::string> buildCountryCoreMissingReasons(const SaveParserSummary& summary)
+{
+    std::vector<std::string> reasons;
+    if (!summary.ok) {
+        reasons.push_back(summary.reason.empty()
+            ? "headline_summary_unavailable"
+            : ("headline_summary_unavailable: " + summary.reason));
+        return reasons;
+    }
+
+    if (summary.government.empty()) {
+        reasons.push_back("country_core_missing_government");
+    }
+    if (summary.authority.empty()) {
+        reasons.push_back("country_core_missing_authority");
+    }
+    if (summary.founderSpeciesName.empty()) {
+        reasons.push_back("country_core_missing_founder_species_name");
+    }
+    if (summary.capitalPlanetName.empty()) {
+        reasons.push_back("country_core_missing_capital_planet_name");
+    }
+    if (summary.homeSystemName.empty()) {
+        reasons.push_back("country_core_missing_home_system_name");
+    }
+
+    if (reasons.empty()) {
+        reasons.push_back("country_core_fields_unavailable_for_unknown_reason");
+    }
+
+    return reasons;
+}
+
 std::vector<SaveParserFieldAvailability> buildFieldAvailability(const SaveParserSummary& summary)
 {
     std::vector<SaveParserFieldAvailability> availability;
@@ -565,13 +598,16 @@ std::vector<SaveParserFieldAvailability> buildFieldAvailability(const SaveParser
     });
     availability.push_back({
         "country_core",
-        "headline_country_core",
+        summary.ok && !summary.government.empty() && !summary.authority.empty() &&
+            !summary.founderSpeciesName.empty() && !summary.capitalPlanetName.empty() && !summary.homeSystemName.empty()
+            ? "headline_country_core"
+            : "headline_country_core_partial",
         summary.ok && !summary.government.empty() && !summary.authority.empty() &&
             !summary.founderSpeciesName.empty() && !summary.capitalPlanetName.empty() && !summary.homeSystemName.empty(),
         summary.ok && !summary.government.empty() && !summary.authority.empty() &&
             !summary.founderSpeciesName.empty() && !summary.capitalPlanetName.empty() && !summary.homeSystemName.empty()
             ? std::vector<std::string>{}
-            : std::vector<std::string>{ "country core headline fields unavailable without parsed headline summary" }
+            : buildCountryCoreMissingReasons(summary)
     });
     availability.push_back({
         "owned_fleets",
