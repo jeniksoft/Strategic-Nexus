@@ -1688,6 +1688,7 @@ Required:
 
 Current progress:
 No full migration registry exists yet.
+The next bounded slice should make owner-visible degraded-state warnings explicit and add old-artifact migration tests once a minimal registry exists, so long-lived campaigns do not rely on silent compatibility assumptions.
 
 ---
 

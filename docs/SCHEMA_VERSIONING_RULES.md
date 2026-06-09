@@ -276,6 +276,22 @@ Migration should happen:
 - inside daemon
 - or inside bridge core
 
+Until a real migration registry exists, old artifacts should keep failing closed in a way that preserves safe fallback behavior and gives the owner an explicit degraded-state signal rather than pretending the payload is fully migrated.
+
+## Migration Registry Contract
+
+The project does not yet have a full migration registry.
+
+When the registry lands, it should:
+
+- live inside daemon or bridge core, not gameplay script
+- normalize old artifacts into the current internal representation
+- emit owner-visible degraded-state warnings when only partial compatibility is possible
+- keep old campaign artifacts readable with safe fallback when a migration path is unavailable
+- add regression tests for old-artifact migration and partial compatibility
+
+Until then, prefer safe fallback over silent acceptance.
+
 Not inside gameplay script layer.
 
 ---
