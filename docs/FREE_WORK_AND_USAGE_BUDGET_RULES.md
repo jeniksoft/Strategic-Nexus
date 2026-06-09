@@ -600,13 +600,22 @@ Codex may continue on the same slice only when a real bug, failed test, unsafe i
 
 Scheduled or background Free Work must protect foreground architecture work.
 
-Before selecting or claiming implementation work, Free Work must run the local concurrency gate:
+Before selecting or claiming implementation work, Free Work must run the local start helper:
+
+```text
+tools/dev_attention/start_freework_run.cmd
+```
+
+The helper runs the concurrency gate, logs `quiet` when the run should skip, and logs `started` only after the gate allows work.
+If the helper reports `freework_should_continue=false`, the run must exit without claiming work. This is a healthy concurrency skip, not a blocker or `no_safe_task`.
+
+The raw gate remains available for diagnostics:
 
 ```text
 tools/dev_attention/test_freework_concurrency_gate.ps1
 ```
 
-If the gate reports `freework_should_skip=true`, the run should log `quiet` with the gate reason and exit without claiming work. This is a healthy concurrency skip, not a blocker or `no_safe_task`.
+Free Work active-run markers are recovery hints, not permanent locks. A marker is not blocking when the matching run already has a final run-log result or when it is older than the active-run max age. The default active-run max age is intentionally short enough for 5-minute cadence recovery, so a crashed or abandoned worker should not silence Free Work for hours.
 
 Before modifying files, background Free Work should check whether the repository has uncommitted changes.
 

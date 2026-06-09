@@ -3,7 +3,8 @@ param(
     [string]$AutomationId = "sn-bounded-free-work-execution-2",
     [string]$RunId = "",
     [int]$ForegroundLockMaxAgeMinutes = 120,
-    [int]$ActiveRunMaxAgeMinutes = 240,
+    [int]$ActiveRunMaxAgeMinutes = 45,
+    [string]$RunLogPath = ".codex_local/automation_run_log.csv",
     [string]$OutputPath = "dist/private_reports/freework_concurrency_gate.json"
 )
 
@@ -105,6 +106,44 @@ function Get-FileAgeMinutes {
     }
 }
 
+function Get-LatestFinalRunResult {
+    param([string]$AutomationIdValue, [string]$RunIdValue)
+
+    if ([string]::IsNullOrWhiteSpace($RunIdValue)) {
+        return ""
+    }
+
+    $resolvedLogPath = Resolve-ProjectPath -Path $RunLogPath
+    if (-not (Test-Path -LiteralPath $resolvedLogPath)) {
+        return ""
+    }
+
+    try {
+        $header = "timestamp_local,timezone,automation_id,run_id,trigger,result,summary,details"
+        $recentLines = Get-Content -LiteralPath $resolvedLogPath -Tail 500 -ErrorAction Stop |
+            Where-Object { $_ -and -not $_.StartsWith("timestamp_local") }
+        if (-not $recentLines -or $recentLines.Count -eq 0) {
+            return ""
+        }
+
+        $records = ($header + "`n" + ($recentLines -join "`n")) | ConvertFrom-Csv
+        $match = $records |
+            Where-Object {
+                $_.automation_id -eq $AutomationIdValue -and
+                $_.run_id -eq $RunIdValue -and
+                $_.result -in @("implemented", "blocked", "quiet", "no_safe_task", "failed")
+            } |
+            Select-Object -Last 1
+        if ($null -eq $match) {
+            return ""
+        }
+
+        return [string]$match.result
+    } catch {
+        return ""
+    }
+}
+
 function New-MarkerInfo {
     param(
         [string]$Role,
@@ -117,8 +156,10 @@ function New-MarkerInfo {
     $value = if ($exists) { Read-TextFile -Path $resolved } else { "" }
     $ageMinutes = if ($exists) { Get-FileAgeMinutes -Path $resolved } else { $null }
     $sameRun = (-not [string]::IsNullOrWhiteSpace($RunId)) -and ($value -eq $RunId)
+    $finalResult = if ($exists) { Get-LatestFinalRunResult -AutomationIdValue $AutomationId -RunIdValue $value } else { "" }
+    $hasFinalResult = -not [string]::IsNullOrWhiteSpace($finalResult)
     $stale = ($null -ne $ageMinutes) -and ($ageMinutes -gt $ActiveRunMaxAgeMinutes)
-    $active = $exists -and (-not [string]::IsNullOrWhiteSpace($value)) -and (-not $sameRun) -and (-not $stale)
+    $active = $exists -and (-not [string]::IsNullOrWhiteSpace($value)) -and (-not $sameRun) -and (-not $stale) -and (-not $hasFinalResult)
 
     return [pscustomobject]@{
         role = $Role
@@ -128,6 +169,8 @@ function New-MarkerInfo {
         age_minutes = if ($null -eq $ageMinutes) { $null } else { [Math]::Round($ageMinutes, 2) }
         same_run = $sameRun
         stale = $stale
+        final_result = $finalResult
+        final_result_seen = $hasFinalResult
         blocks = ($Blocks -and $active)
     }
 }
