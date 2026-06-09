@@ -1367,6 +1367,28 @@
       "dependencies": [
         "v0-sprint-152-surface-friend-mp-sync-preflight-checklist"
       ]
+    },
+    {
+      "id": "v0-sprint-154-surface-local-llm-runtime-install-guidance",
+      "title": "Surface local LLM runtime install guidance",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "Local LLM Model Manager / runtime install guidance",
+      "goal": "Expose explicit owner-facing runtime install guidance in companion and tray status surfaces so reduced-mode local LLM states tell the owner what to install or prepare next without parsing raw status text.",
+      "acceptance": [
+        "Companion status JSON exposes local_llm_install_guidance alongside the existing local LLM readiness fields.",
+        "The status-center summary and visible dashboard copy text include the same guidance when local LLM is reduced or user action is required, and keep it empty when the selected model is already ready.",
+        "The guidance stays fail closed and only reuses existing model runtime / prepare-command information."
+      ],
+      "preferred_tests": [
+        "tools/build_snc_tray.ps1",
+        "tools/smoke_snc_tray.ps1",
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-115-surface-local-llm-prepare-copy-action"
+      ]
     }
   ]
 }
