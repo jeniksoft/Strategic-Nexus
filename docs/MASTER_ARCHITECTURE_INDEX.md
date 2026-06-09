@@ -60,7 +60,7 @@ In progress:
 Not started:
 
 * real LLM integration
-* full save parser production pipeline integration
+* full save parser production pipeline beyond the existing narrow headline parser
 * ministerial reasoning pipeline implementation
 * strategic memory library implementation
 * real gameplay balancing effects
@@ -321,7 +321,7 @@ Status:
 
 * rules exist
 * narrow player-empire save headline parser exists
-* production parser/filter integration into the archive-to-brief pipeline is not started
+* full production parser/filter integration into the archive-to-brief pipeline is not started; the narrow headline parser and bounded ledger handoff already exist
 
 ---
 

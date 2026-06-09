@@ -2113,6 +2113,7 @@ CompanionLocalLlmStatus buildLocalLlmStatus(const CompanionStatusConfig& config)
     status.prepareCommandHint = buildLocalLlmPrepareCommandHint(
         prepareModelId,
         config.localLlmModelStatePath);
+    status.installGuidance = strategic_nexus::buildLocalLlmInstallGuidance(readiness, status.prepareCommandHint);
     return status;
 }
 
@@ -2920,6 +2921,9 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.prepareCommandHint.empty()) {
         text << "local_llm_prepare_command_hint: " << localLlm.prepareCommandHint << "\n";
     }
+    if (!localLlm.installGuidance.empty()) {
+        text << "local_llm_install_guidance: " << localLlm.installGuidance << "\n";
+    }
     text << "friend_trust_store: " << friendTrustStore.state << " - "
          << friendTrustStore.reason << "\n";
     if (!friendTrustStore.path.empty()) {
@@ -3274,6 +3278,7 @@ void writeLocalLlmJson(
     output << indent << "  \"recommended_runtime\": " << jsonString(status.recommendedRuntime) << ",\n";
     output << indent << "  \"model_state_path\": " << jsonString(pathString(status.modelStatePath)) << ",\n";
     output << indent << "  \"prepare_command_hint\": " << jsonString(status.prepareCommandHint) << ",\n";
+    output << indent << "  \"install_guidance\": " << jsonString(status.installGuidance) << ",\n";
     output << indent << "  \"can_run_inference\": " << (status.canRunInference ? "true" : "false") << ",\n";
     output << indent << "  \"reduced_mode\": " << (status.reducedMode ? "true" : "false") << ",\n";
     output << indent << "  \"user_action_required\": "

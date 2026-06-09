@@ -33,10 +33,12 @@
 
 #include <windows.h>
 #include <windowsx.h>
+#include <commctrl.h>
 #include <shellapi.h>
 #include <shlobj.h>
 
 #include <atomic>
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -92,6 +94,24 @@ constexpr UINT ID_STATUS_COPY_FRIEND_PAIRING = 224;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE = 225;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN = 226;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN = 227;
+constexpr UINT ID_STATUS_PAGE_OVERVIEW = 240;
+constexpr UINT ID_STATUS_PAGE_GAMEPLAY = 241;
+constexpr UINT ID_STATUS_PAGE_ARCHIVE = 242;
+constexpr UINT ID_STATUS_PAGE_OVERLAY = 243;
+constexpr UINT ID_STATUS_PAGE_MULTIPLAYER = 244;
+constexpr UINT ID_STATUS_PAGE_LLM = 245;
+constexpr UINT ID_STATUS_PAGE_MAINTENANCE = 246;
+
+enum class StatusPageId : std::size_t {
+    Overview = 0,
+    Gameplay,
+    Archive,
+    Overlay,
+    Multiplayer,
+    Llm,
+    Maintenance,
+    Count
+};
 
 enum class StatusFieldId : std::size_t {
     LiveState = 0,
@@ -110,6 +130,18 @@ enum class StatusFieldId : std::size_t {
     ModelRuntime,
     ModelRecommendation,
     ModelMode,
+    ModelInstallGuidance,
+    NextAction,
+    NextReason,
+    NextHint,
+    SupportReportState,
+    CrashRecoveryState,
+    FriendTrustStoreState,
+    FriendMpSyncTransportState,
+    HumanControlGuardState,
+    MpPackageRefreshState,
+    MpPackageZipState,
+    MpPackageHandoffStatus,
     Count
 };
 
@@ -132,6 +164,7 @@ struct StatusDashboardData {
     std::wstring modelRuntime;
     std::wstring modelRecommendation;
     std::wstring modelMode;
+    std::wstring modelInstallGuidance;
     std::wstring modelPrepareCommand;
     std::wstring nextAction;
     std::wstring nextReason;
@@ -182,7 +215,23 @@ struct StatusDashboardData {
 
 struct DashboardSectionSpec {
     const wchar_t* title;
-    std::array<StatusFieldId, 4> fields;
+    std::vector<StatusFieldId> fields;
+};
+
+struct StatusPageSpec {
+    StatusPageId id;
+    UINT commandId;
+    const wchar_t* navLabel;
+    const wchar_t* title;
+    const wchar_t* helpText;
+    std::vector<std::size_t> sections;
+    std::vector<UINT> actions;
+};
+
+struct StatusActionSpec {
+    UINT id;
+    const wchar_t* defaultLabel;
+    const wchar_t* tooltip;
 };
 
 struct StatusScrollMetrics {
@@ -235,12 +284,17 @@ std::filesystem::path g_gameplayAcceptanceReportPath;
 std::filesystem::path g_mpOverlayPackageDirectory;
 std::filesystem::path g_mpOverlayPackageZipPath;
 std::filesystem::path g_trayIconPath;
+constexpr std::size_t kStatusSectionCount = 7;
+constexpr std::size_t kStatusPageCount = static_cast<std::size_t>(StatusPageId::Count);
 std::array<HWND, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldLabels{};
 std::array<HWND, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldValues{};
 std::array<StatusCustomScrollbar, static_cast<std::size_t>(StatusFieldId::Count)> g_statusFieldScrollbars{};
-std::array<HWND, 4> g_statusSectionTitles{};
+std::array<HWND, kStatusSectionCount> g_statusSectionTitles{};
+std::array<HWND, kStatusPageCount> g_statusPageButtons{};
 StatusCustomScrollbar g_statusDetailsScrollbar{};
 HWND g_statusBottomTitle = nullptr;
+HWND g_statusPageTitle = nullptr;
+HWND g_statusPageHelp = nullptr;
 HWND g_statusRefreshButton = nullptr;
 HWND g_statusCopyButton = nullptr;
 HWND g_statusOpenArchiveButton = nullptr;
@@ -272,6 +326,9 @@ HWND g_statusWindow = nullptr;
 HWND g_statusHeader = nullptr;
 HWND g_statusSubtitle = nullptr;
 HWND g_statusDetails = nullptr;
+HWND g_statusTooltip = nullptr;
+HMODULE g_statusCommonControlsModule = nullptr;
+StatusPageId g_statusActivePage = StatusPageId::Overview;
 StatusScrollTargetKind g_statusScrollDragTargetKind = StatusScrollTargetKind::None;
 std::size_t g_statusScrollDragFieldIndex = 0;
 int g_statusScrollDragOffsetY = 0;
@@ -285,11 +342,100 @@ HBRUSH g_statusPanelBrush = nullptr;
 HBRUSH g_statusAccentBrush = nullptr;
 HBRUSH g_statusBorderBrush = nullptr;
 HBRUSH g_statusValueBrush = nullptr;
-const std::array<DashboardSectionSpec, 4> kStatusSections = {
+const std::array<DashboardSectionSpec, kStatusSectionCount> kStatusSections = {
     DashboardSectionSpec{L"\u017Div\u00E9 hran\u00ED", {StatusFieldId::LiveState, StatusFieldId::LiveStellaris, StatusFieldId::LiveSession, StatusFieldId::LiveStartup}},
+    DashboardSectionSpec{L"Dal\u0161\u00ED krok", {StatusFieldId::NextAction, StatusFieldId::NextReason, StatusFieldId::NextHint, StatusFieldId::CrashRecoveryState}},
     DashboardSectionSpec{L"Archiv", {StatusFieldId::ArchivePath, StatusFieldId::ArchiveVerified, StatusFieldId::ArchiveCopied, StatusFieldId::ArchiveSkipped}},
     DashboardSectionSpec{L"Overlay", {StatusFieldId::OverlayStaging, StatusFieldId::OverlayGate, StatusFieldId::OverlayAllowed, StatusFieldId::OverlayActive}},
-    DashboardSectionSpec{L"Model", {StatusFieldId::ModelState, StatusFieldId::ModelRuntime, StatusFieldId::ModelRecommendation, StatusFieldId::ModelMode}},
+    DashboardSectionSpec{L"Multiplayer", {StatusFieldId::FriendTrustStoreState, StatusFieldId::FriendMpSyncTransportState, StatusFieldId::MpPackageRefreshState, StatusFieldId::MpPackageHandoffStatus}},
+    DashboardSectionSpec{L"Lok\u00E1ln\u00ED LLM", {StatusFieldId::ModelState, StatusFieldId::ModelRuntime, StatusFieldId::ModelRecommendation, StatusFieldId::ModelMode, StatusFieldId::ModelInstallGuidance}},
+    DashboardSectionSpec{L"\u00DAdr\u017Eba", {StatusFieldId::SupportReportState, StatusFieldId::HumanControlGuardState}},
+};
+
+const std::array<StatusActionSpec, 24> kStatusActionSpecs = {
+    StatusActionSpec{ID_STATUS_REFRESH, L"Obnovit", L"Znovu nacte stav z lokalnich SNC souboru a prekresli otevrene okno."},
+    StatusActionSpec{ID_STATUS_COPY, L"Kopirovat", L"Zkopiruje kratky prehled celeho dashboardu do schranky pro poslani nebo archivaci."},
+    StatusActionSpec{ID_STATUS_OPEN_ARCHIVE, L"Archiv", L"Otevre slozku s autosave archivem a souvisejicimi vystupy."},
+    StatusActionSpec{ID_STATUS_OPEN_BRIEF, L"Souhrn", L"Otevre posledni souhrn dalsich kroku, pokud existuje."},
+    StatusActionSpec{ID_STATUS_OPEN_MP_PACKAGE, L"MP balicek", L"Otevre slozku multiplayer overlay balicku."},
+    StatusActionSpec{ID_STATUS_PUBLISH_GENERATED_OVERLAY, L"Publikovat", L"Publikuje pripraveny generated overlay jen pokud publish gate rika, ze je to bezpecne."},
+    StatusActionSpec{ID_STATUS_OPEN_NEXT_ACTION_PATH, L"Akce cesta", L"Otevre soubor nebo slozku, ktere SNC uvadi jako konkretni dalsi krok."},
+    StatusActionSpec{ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, L"Knihovna", L"Otevre plan kampanove knihovny, pokud je pripraveny."},
+    StatusActionSpec{ID_STATUS_OPEN_CRASH_RECOVERY_STATE, L"Crash stav", L"Otevre stav crash recovery, tedy proc je obnova zablokovana nebo povolena."},
+    StatusActionSpec{ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, L"Gameplay", L"Otevre gameplay acceptance report pro kontrolu, jestli vystupy davaji smysl pred pouzitim."},
+    StatusActionSpec{ID_STATUS_OPEN_FRIEND_TRUST_STORE, L"SNC pratele", L"Otevre trust store se schvalenymi SNC prately a jejich identitou."},
+    StatusActionSpec{ID_STATUS_COPY_FRIEND_PAIRING, L"SNC pairing", L"Zkopiruje navod a CLI sablonu pro spairrovani pratele bez automatickeho syncu."},
+    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, L"SNC MP sync", L"Zkopiruje manualni metadata envelope pro friend MP sync; nic automaticky nestahuje ani neaplikuje."},
+    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, L"SNC inbox", L"Zkopiruje fail-closed inbox plan pro prijem metadata balicku od pratele."},
+    StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, L"SNC outbox", L"Zkopiruje fail-closed outbox plan pro pripravu metadata balicku pro pritele."},
+    StatusActionSpec{ID_STATUS_EXPORT_MP_PACKAGE, L"MP export", L"Znovu pripravi multiplayer overlay package z validovanych lokalnich artefaktu."},
+    StatusActionSpec{ID_STATUS_MP_IMPORT_HANDOFF, L"MP import navod", L"Zkopiruje import prikaz a otevre balicek, aby ho slo bezpecne predat klientovi nebo dalsimu hostovi."},
+    StatusActionSpec{ID_STATUS_COPY_MP_VERIFY, L"MP verify", L"Zkopiruje zakladni prikaz pro overeni MP balicku pred importem."},
+    StatusActionSpec{ID_STATUS_COPY_MP_IMPORT, L"MP import", L"Zkopiruje zakladni import prikaz; pouzij az po verify."},
+    StatusActionSpec{ID_STATUS_COPY_MP_STRICT_VERIFY, L"MP strict verify", L"Zkopiruje prisne overeni MP balicku s ochranou proti mismatchum."},
+    StatusActionSpec{ID_STATUS_COPY_MP_STRICT_IMPORT, L"MP strict import", L"Zkopiruje prisny import prikaz; nejbezpecnejsi cesta pro MP pouziti."},
+    StatusActionSpec{ID_STATUS_COPY_LLM_PREPARE, L"LLM priprava", L"Zkopiruje prikaz/sablonu pro pripravu doporuceneho lokalniho LLM runtime."},
+    StatusActionSpec{ID_STATUS_SUPPORT_REPORT, L"Report", L"Pripravi nebo otevre support report pro diagnostiku SNC stavu."},
+    StatusActionSpec{ID_STATUS_TOGGLE_STARTUP, L"Start", L"Zapne nebo vypne spousteni SNC Companionu pri startu Windows."},
+};
+
+const std::array<StatusPageSpec, kStatusPageCount> kStatusPages = {
+    StatusPageSpec{
+        StatusPageId::Overview,
+        ID_STATUS_PAGE_OVERVIEW,
+        L"P\u0159ehled",
+        L"P\u0159ehled mise",
+        L"Rychly stav: co se deje, co chce pozornost a kde je nejblizsi bezpecna akce.",
+        {0, 1},
+        {ID_STATUS_REFRESH, ID_STATUS_COPY, ID_STATUS_OPEN_NEXT_ACTION_PATH, ID_STATUS_OPEN_BRIEF}},
+    StatusPageSpec{
+        StatusPageId::Gameplay,
+        ID_STATUS_PAGE_GAMEPLAY,
+        L"Hran\u00ED",
+        L"Hran\u00ED a rozhodnut\u00ED",
+        L"Veci kolem prave spustene hry, dalsiho kroku a kontrol, ktere chrani kampan.",
+        {0, 1},
+        {ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, ID_STATUS_OPEN_NEXT_ACTION_PATH}},
+    StatusPageSpec{
+        StatusPageId::Archive,
+        ID_STATUS_PAGE_ARCHIVE,
+        L"Archiv",
+        L"Archiv a souhrny",
+        L"Autosave archiv, overeni kopii a rychle vystupy, ktere se daji poslat nebo pouzit pri navazani.",
+        {2},
+        {ID_STATUS_OPEN_ARCHIVE, ID_STATUS_OPEN_BRIEF, ID_STATUS_COPY, ID_STATUS_SUPPORT_REPORT}},
+    StatusPageSpec{
+        StatusPageId::Overlay,
+        ID_STATUS_PAGE_OVERLAY,
+        L"Overlay",
+        L"Generated overlay",
+        L"Staging, publish gate a export balicku. Tady patri akce, ktere meni nebo predavaji overlay.",
+        {3},
+        {ID_STATUS_PUBLISH_GENERATED_OVERLAY, ID_STATUS_EXPORT_MP_PACKAGE, ID_STATUS_OPEN_MP_PACKAGE, ID_STATUS_MP_IMPORT_HANDOFF}},
+    StatusPageSpec{
+        StatusPageId::Multiplayer,
+        ID_STATUS_PAGE_MULTIPLAYER,
+        L"MP",
+        L"Multiplayer a pratele",
+        L"Trust store, friend pairing a MP prikazy. Vse fail-closed, dokud neni jasne, kdo co posila a kdy.",
+        {4},
+        {ID_STATUS_OPEN_FRIEND_TRUST_STORE, ID_STATUS_COPY_FRIEND_PAIRING, ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, ID_STATUS_COPY_MP_STRICT_VERIFY, ID_STATUS_COPY_MP_STRICT_IMPORT, ID_STATUS_COPY_MP_VERIFY, ID_STATUS_COPY_MP_IMPORT}},
+    StatusPageSpec{
+        StatusPageId::Llm,
+        ID_STATUS_PAGE_LLM,
+        L"LLM",
+        L"Lok\u00E1ln\u00ED LLM",
+        L"Modely, runtime a priprava lokalni inference. Sem patri jen akce kolem modelu.",
+        {5},
+        {ID_STATUS_COPY_LLM_PREPARE}},
+    StatusPageSpec{
+        StatusPageId::Maintenance,
+        ID_STATUS_PAGE_MAINTENANCE,
+        L"\u00DAdr\u017Eba",
+        L"\u00DAdr\u017Eba a diagnostika",
+        L"Start s Windows, support reporty a ochrany pred nechtenym zasahem do hry.",
+        {6},
+        {ID_STATUS_TOGGLE_STARTUP, ID_STATUS_SUPPORT_REPORT, ID_STATUS_REFRESH, ID_STATUS_COPY}},
 };
 constexpr const char* kTrayMpOverlayVersion = "overlay_v0_session";
 constexpr const char* kTrayMpGameVersion = "stellaris_4.x";
@@ -329,6 +475,7 @@ std::wstring buildStatusDialogText();
 std::wstring buildStatusSubtitleText();
 std::wstring buildDashboardCopyText(const StatusDashboardData& data);
 std::wstring buildDashboardBottomText(const StatusDashboardData& data);
+std::wstring buildStatusPageDetailsText(StatusPageId page, const StatusDashboardData& data);
 std::string buildFriendPairingCommandTemplateUtf8();
 std::wstring utf8ToWide(const std::string& value);
 StatusDashboardData loadStatusDashboardData();
@@ -339,6 +486,7 @@ std::wstring compactBoolText(const std::wstring& value, const wchar_t* yesText =
 std::wstring combineValues(const std::vector<std::wstring>& values, const wchar_t* separator = L" | ");
 std::filesystem::path findRepoRoot();
 const wchar_t* statusFieldLabel(StatusFieldId id);
+const wchar_t* statusFieldTooltip(StatusFieldId id);
 bool statusFieldUsesMultiline(StatusFieldId id);
 int statusFieldLineUnits(StatusFieldId id);
 void setWindowFont(HWND hwnd, HFONT font);
@@ -346,6 +494,15 @@ HWND createStatusStatic(HWND parent, const wchar_t* text, DWORD style = WS_CHILD
 HWND createStatusValue(HWND parent, StatusFieldId fieldId, const wchar_t* text = L"");
 HWND createStatusButton(HWND parent, UINT id, const wchar_t* text);
 void drawStatusButton(const DRAWITEMSTRUCT& drawItem);
+bool statusCommandIsPage(UINT commandId);
+const StatusPageSpec& statusPageSpec(StatusPageId page);
+const StatusPageSpec* statusPageSpecByCommand(UINT commandId);
+const StatusActionSpec* statusActionSpec(UINT commandId);
+HWND statusActionButton(UINT commandId);
+std::wstring statusActionLabel(UINT commandId);
+void setStatusActivePage(HWND hwnd, StatusPageId page);
+void ensureStatusTooltip(HWND hwnd);
+void addStatusTooltip(HWND control, const wchar_t* text);
 StatusScrollMetrics measureStatusScrollMetrics(HWND control);
 StatusCustomScrollbar composeStatusScrollbar(const RECT& trackRect, const StatusScrollMetrics& metrics, bool reserveSpace);
 void syncStatusCustomScrollbars(HWND hwnd, bool forceInvalidate = false);
@@ -536,7 +693,84 @@ const wchar_t* statusFieldLabel(const StatusFieldId id)
     case StatusFieldId::ModelRuntime: return L"Runtime";
     case StatusFieldId::ModelRecommendation: return L"Doporu\u010Den\u00ED";
     case StatusFieldId::ModelMode: return L"Re\u017Eim";
+    case StatusFieldId::ModelInstallGuidance: return L"Instalace";
+    case StatusFieldId::NextAction: return L"Akce";
+    case StatusFieldId::NextReason: return L"Pro\u010D";
+    case StatusFieldId::NextHint: return L"Hint";
+    case StatusFieldId::SupportReportState: return L"Report";
+    case StatusFieldId::CrashRecoveryState: return L"Crash";
+    case StatusFieldId::FriendTrustStoreState: return L"Trust store";
+    case StatusFieldId::FriendMpSyncTransportState: return L"Sync transport";
+    case StatusFieldId::HumanControlGuardState: return L"Ru\u010Dn\u00ED kontrola";
+    case StatusFieldId::MpPackageRefreshState: return L"MP export";
+    case StatusFieldId::MpPackageZipState: return L"ZIP";
+    case StatusFieldId::MpPackageHandoffStatus: return L"Handoff";
     case StatusFieldId::Count: break;
+    }
+    return L"";
+}
+
+const wchar_t* statusFieldTooltip(const StatusFieldId id)
+{
+    switch (id) {
+    case StatusFieldId::LiveState:
+        return L"Souhrn zivosti SNC Companionu: jestli bezi worker a co naposledy hlasi.";
+    case StatusFieldId::LiveStellaris:
+        return L"Detekce Stellaris procesu. Kdyz hra bezi, rizikove akce maji byt opatrnejsi.";
+    case StatusFieldId::LiveSession:
+        return L"Identifikace aktualni session nebo posledniho znameho herniho kontextu.";
+    case StatusFieldId::LiveStartup:
+        return L"Stav spousteni SNC pri startu Windows.";
+    case StatusFieldId::ArchivePath:
+        return L"Cesta k lokalnimu autosave archivu.";
+    case StatusFieldId::ArchiveVerified:
+        return L"Informace, jestli archiv posledni kopie prosla overenim.";
+    case StatusFieldId::ArchiveCopied:
+        return L"Pocet autosave souboru, ktere posledni beh zkopiroval.";
+    case StatusFieldId::ArchiveSkipped:
+        return L"Pocet souboru, ktere posledni beh preskocil, typicky protoze uz existovaly.";
+    case StatusFieldId::OverlayStaging:
+        return L"Stav pripraveneho generated overlay stagingu pred publikaci.";
+    case StatusFieldId::OverlayGate:
+        return L"Bezpecnostni publish gate: proc overlay muze nebo nesmi jit do aktivni slozky.";
+    case StatusFieldId::OverlayAllowed:
+        return L"Rychly boolean, jestli gate povoluje publikaci.";
+    case StatusFieldId::OverlayActive:
+        return L"Aktualni aktivni generated overlay slozka.";
+    case StatusFieldId::ModelState:
+        return L"Stav lokalniho LLM runtime a dostupnosti modelu.";
+    case StatusFieldId::ModelRuntime:
+        return L"Doporuceny nebo detekovany runtime pro lokalni model.";
+    case StatusFieldId::ModelRecommendation:
+        return L"Co SNC doporucuje pro model/runtime podle aktualni konfigurace.";
+    case StatusFieldId::ModelMode:
+        return L"Rezim lokalni inference, napr. reduced nebo standardni chod.";
+    case StatusFieldId::ModelInstallGuidance:
+        return L"Konkretnejsi instrukce, co nainstalovat nebo pripravit pro LLM.";
+    case StatusFieldId::NextAction:
+        return L"Nejblizsi akce, kterou SNC povazuje za smysluplnou.";
+    case StatusFieldId::NextReason:
+        return L"Proc je prave tato akce navrzena.";
+    case StatusFieldId::NextHint:
+        return L"Prakticka napoveda pro dalsi krok bez cteni celeho reportu.";
+    case StatusFieldId::SupportReportState:
+        return L"Stav diagnostickeho support reportu.";
+    case StatusFieldId::CrashRecoveryState:
+        return L"Stav ochrany proti spatne obnove po crashi nebo behem hry.";
+    case StatusFieldId::FriendTrustStoreState:
+        return L"Stav seznamu duveryhodnych SNC pratel a jejich identit.";
+    case StatusFieldId::FriendMpSyncTransportState:
+        return L"Stav friend MP sync transportu. Dokud neni bezpecny, sync zustava fail-closed.";
+    case StatusFieldId::HumanControlGuardState:
+        return L"Ochrana, ktera vyzaduje rucni kontrolu pred rizikovou zmenou.";
+    case StatusFieldId::MpPackageRefreshState:
+        return L"Stav obnoveni/exportu multiplayer overlay package.";
+    case StatusFieldId::MpPackageZipState:
+        return L"Stav ZIP balicku pro MP predani.";
+    case StatusFieldId::MpPackageHandoffStatus:
+        return L"Stav predani MP balicku hostovi/klientovi a souvisejici upozorneni.";
+    case StatusFieldId::Count:
+        break;
     }
     return L"";
 }
@@ -550,6 +784,13 @@ bool statusFieldUsesMultiline(const StatusFieldId id)
     case StatusFieldId::OverlayActive:
     case StatusFieldId::ModelState:
     case StatusFieldId::ModelRecommendation:
+    case StatusFieldId::ModelInstallGuidance:
+    case StatusFieldId::NextAction:
+    case StatusFieldId::NextReason:
+    case StatusFieldId::NextHint:
+    case StatusFieldId::CrashRecoveryState:
+    case StatusFieldId::FriendMpSyncTransportState:
+    case StatusFieldId::MpPackageHandoffStatus:
         return true;
     case StatusFieldId::LiveStellaris:
     case StatusFieldId::LiveSession:
@@ -561,6 +802,11 @@ bool statusFieldUsesMultiline(const StatusFieldId id)
     case StatusFieldId::OverlayAllowed:
     case StatusFieldId::ModelRuntime:
     case StatusFieldId::ModelMode:
+    case StatusFieldId::SupportReportState:
+    case StatusFieldId::FriendTrustStoreState:
+    case StatusFieldId::HumanControlGuardState:
+    case StatusFieldId::MpPackageRefreshState:
+    case StatusFieldId::MpPackageZipState:
     case StatusFieldId::Count:
         break;
     }
@@ -646,11 +892,13 @@ void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
     const bool disabled = (drawItem.itemState & ODS_DISABLED) != 0;
     const bool selected = (drawItem.itemState & ODS_SELECTED) != 0;
     const bool focused = (drawItem.itemState & ODS_FOCUS) != 0;
+    const auto* pageSpec = statusPageSpecByCommand(drawItem.CtlID);
+    const bool activePageButton = pageSpec != nullptr && pageSpec->id == g_statusActivePage;
 
     RECT rc = drawItem.rcItem;
     const COLORREF fillColor = disabled
         ? kStatusButtonDisabledFillColor
-        : (selected ? kStatusButtonPressedFillColor : kStatusButtonFillColor);
+        : ((selected || activePageButton) ? kStatusButtonPressedFillColor : kStatusButtonFillColor);
 
     const HBRUSH fillBrush = CreateSolidBrush(fillColor);
     FillRect(drawItem.hDC, &rc, fillBrush);
@@ -670,7 +918,7 @@ void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
     GetWindowTextW(drawItem.hwndItem, label, static_cast<int>(std::size(label)));
 
     SetBkMode(drawItem.hDC, TRANSPARENT);
-    SetTextColor(drawItem.hDC, disabled ? kStatusButtonDisabledTextColor : kStatusButtonTextColor);
+    SetTextColor(drawItem.hDC, disabled ? kStatusButtonDisabledTextColor : (activePageButton ? kStatusAccentColor : kStatusButtonTextColor));
     const HGDIOBJ oldFont = SelectObject(drawItem.hDC, g_statusSectionFont != nullptr ? g_statusSectionFont : GetStockObject(DEFAULT_GUI_FONT));
     rc.left += 10;
     rc.right -= 10;
@@ -678,6 +926,143 @@ void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
     if (oldFont != nullptr) {
         SelectObject(drawItem.hDC, oldFont);
     }
+}
+
+bool statusCommandIsPage(const UINT commandId)
+{
+    return statusPageSpecByCommand(commandId) != nullptr;
+}
+
+const StatusPageSpec& statusPageSpec(const StatusPageId page)
+{
+    const std::size_t index = static_cast<std::size_t>(page);
+    if (index < kStatusPages.size()) {
+        return kStatusPages[index];
+    }
+    return kStatusPages[static_cast<std::size_t>(StatusPageId::Overview)];
+}
+
+const StatusPageSpec* statusPageSpecByCommand(const UINT commandId)
+{
+    for (const auto& page : kStatusPages) {
+        if (page.commandId == commandId) {
+            return &page;
+        }
+    }
+    return nullptr;
+}
+
+const StatusActionSpec* statusActionSpec(const UINT commandId)
+{
+    for (const auto& action : kStatusActionSpecs) {
+        if (action.id == commandId) {
+            return &action;
+        }
+    }
+    return nullptr;
+}
+
+HWND statusActionButton(const UINT commandId)
+{
+    switch (commandId) {
+    case ID_STATUS_REFRESH: return g_statusRefreshButton;
+    case ID_STATUS_COPY: return g_statusCopyButton;
+    case ID_STATUS_OPEN_ARCHIVE: return g_statusOpenArchiveButton;
+    case ID_STATUS_OPEN_BRIEF: return g_statusOpenBriefButton;
+    case ID_STATUS_OPEN_MP_PACKAGE: return g_statusOpenMpPackageButton;
+    case ID_STATUS_PUBLISH_GENERATED_OVERLAY: return g_statusPublishGeneratedOverlayButton;
+    case ID_STATUS_OPEN_NEXT_ACTION_PATH: return g_statusOpenNextActionPathButton;
+    case ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN: return g_statusOpenCampaignLibraryPlanButton;
+    case ID_STATUS_OPEN_CRASH_RECOVERY_STATE: return g_statusOpenCrashRecoveryStateButton;
+    case ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT: return g_statusOpenGameplayAcceptanceReportButton;
+    case ID_STATUS_OPEN_FRIEND_TRUST_STORE: return g_statusOpenFriendTrustStoreButton;
+    case ID_STATUS_COPY_FRIEND_PAIRING: return g_statusCopyFriendPairingButton;
+    case ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE: return g_statusCopyFriendMpSyncEnvelopeButton;
+    case ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN: return g_statusCopyFriendMpSyncInboxPlanButton;
+    case ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN: return g_statusCopyFriendMpSyncOutboxPlanButton;
+    case ID_STATUS_EXPORT_MP_PACKAGE: return g_statusExportMpPackageButton;
+    case ID_STATUS_MP_IMPORT_HANDOFF: return g_statusMpImportHandoffButton;
+    case ID_STATUS_COPY_MP_VERIFY: return g_statusCopyMpVerifyButton;
+    case ID_STATUS_COPY_MP_IMPORT: return g_statusCopyMpImportButton;
+    case ID_STATUS_COPY_MP_STRICT_VERIFY: return g_statusCopyMpStrictVerifyButton;
+    case ID_STATUS_COPY_MP_STRICT_IMPORT: return g_statusCopyMpStrictImportButton;
+    case ID_STATUS_COPY_LLM_PREPARE: return g_statusCopyLlmPrepareButton;
+    case ID_STATUS_SUPPORT_REPORT: return g_statusSupportReportButton;
+    case ID_STATUS_TOGGLE_STARTUP: return g_statusToggleStartupButton;
+    default: return nullptr;
+    }
+}
+
+std::wstring statusActionLabel(const UINT commandId)
+{
+    if (commandId == ID_STATUS_TOGGLE_STARTUP) {
+        return strategic_nexus::buildSncTrayStartupShortcutToggleButtonLabel(loadStartupShortcutActionStatus());
+    }
+    if (commandId == ID_STATUS_SUPPORT_REPORT) {
+        return strategic_nexus::buildSncTraySupportReportActionButtonLabel(loadSupportReportActionStatus());
+    }
+    const auto* action = statusActionSpec(commandId);
+    return action != nullptr ? action->defaultLabel : L"";
+}
+
+void setStatusActivePage(HWND hwnd, const StatusPageId page)
+{
+    g_statusActivePage = page;
+    layoutStatusWindow(hwnd);
+    refreshStatusWindowContent();
+}
+
+void ensureStatusTooltip(HWND hwnd)
+{
+    if (g_statusTooltip != nullptr || hwnd == nullptr) {
+        return;
+    }
+
+    g_statusCommonControlsModule = LoadLibraryW(L"comctl32.dll");
+    if (g_statusCommonControlsModule != nullptr) {
+        using InitCommonControlsExFn = BOOL(WINAPI*)(const INITCOMMONCONTROLSEX*);
+        const auto initCommonControlsEx = reinterpret_cast<InitCommonControlsExFn>(
+            GetProcAddress(g_statusCommonControlsModule, "InitCommonControlsEx"));
+        if (initCommonControlsEx != nullptr) {
+            INITCOMMONCONTROLSEX controls{};
+            controls.dwSize = sizeof(controls);
+            controls.dwICC = ICC_WIN95_CLASSES;
+            initCommonControlsEx(&controls);
+        }
+    }
+
+    g_statusTooltip = CreateWindowExW(
+        WS_EX_TOPMOST,
+        TOOLTIPS_CLASSW,
+        nullptr,
+        WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        hwnd,
+        nullptr,
+        GetModuleHandleW(nullptr),
+        nullptr);
+    if (g_statusTooltip != nullptr) {
+        SendMessageW(g_statusTooltip, TTM_SETMAXTIPWIDTH, 0, 360);
+        SetWindowPos(g_statusTooltip, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+}
+
+void addStatusTooltip(HWND control, const wchar_t* text)
+{
+    if (control == nullptr || g_statusTooltip == nullptr || text == nullptr || text[0] == L'\0') {
+        return;
+    }
+
+    TOOLINFOW tool{};
+    tool.cbSize = sizeof(tool);
+    tool.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+    tool.hwnd = g_statusWindow != nullptr ? g_statusWindow : GetParent(control);
+    tool.uId = reinterpret_cast<UINT_PTR>(control);
+    tool.lpszText = const_cast<LPWSTR>(text);
+    SendMessageW(g_statusTooltip, TTM_ADDTOOLW, 0, reinterpret_cast<LPARAM>(&tool));
 }
 
 StatusScrollMetrics measureStatusScrollMetrics(HWND control)
@@ -1255,6 +1640,7 @@ StatusDashboardData loadStatusDashboardData()
     data.modelRuntime = L"\u2014";
     data.modelRecommendation = L"\u2014";
     data.modelMode = L"\u2014";
+    data.modelInstallGuidance.clear();
     data.modelPrepareCommand.clear();
     data.nextAction = L"\u2014";
     data.nextReason = L"\u2014";
@@ -1370,6 +1756,7 @@ StatusDashboardData loadStatusDashboardData()
         recommendationParts.push_back(utf8ToWide(recommendedRuntime));
     }
     data.modelRecommendation = combineValues(recommendationParts);
+    data.modelInstallGuidance = utf8ToWide(summaryValue("local_llm_install_guidance"));
 
     std::vector<std::wstring> modeParts;
     if (!reducedMode.empty()) {
@@ -1497,6 +1884,12 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.crashRecoveryReason.empty() ? kStatusEmptyValue : data.crashRecoveryReason;
     text += L"\r\nRecovery cesta: ";
     text += data.crashRecoveryPath.empty() ? kStatusEmptyValue : data.crashRecoveryPath;
+    text += L"\r\nLLM: ";
+    text += data.modelState.empty() ? kStatusEmptyValue : data.modelState;
+    if (!data.modelInstallGuidance.empty()) {
+        text += L"\r\nLLM instalace: ";
+        text += data.modelInstallGuidance;
+    }
     text += L"\r\nSNC pratele: ";
     text += data.friendTrustStoreState.empty() ? kStatusEmptyValue : data.friendTrustStoreState;
     text += L"\r\nSNC pratele duvod: ";
@@ -1588,6 +1981,90 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     return text;
 }
 
+std::wstring buildStatusPageDetailsText(const StatusPageId page, const StatusDashboardData& data)
+{
+    auto addLine = [](std::wstring& text, const wchar_t* label, const std::wstring& valueText) {
+        text += label;
+        text += valueText.empty() ? kStatusEmptyValue : valueText;
+        text += L"\r\n";
+    };
+
+    std::wstring text;
+    switch (page) {
+    case StatusPageId::Overview:
+        addLine(text, L"Nejblizsi akce: ", data.nextAction);
+        addLine(text, L"Proc: ", data.nextReason);
+        addLine(text, L"Hint: ", data.nextHint);
+        addLine(text, L"Playbook: ", data.nextPlaybook);
+        addLine(text, L"Cil: ", data.nextActionPath);
+        break;
+    case StatusPageId::Gameplay:
+        addLine(text, L"Stellaris: ", data.liveStellaris);
+        addLine(text, L"Session: ", data.liveSession);
+        addLine(text, L"Crash recovery: ", data.crashRecoveryState);
+        addLine(text, L"Crash duvod: ", data.crashRecoveryReason);
+        addLine(text, L"Crash cesta: ", data.crashRecoveryPath);
+        addLine(text, L"Gameplay report: ", makeRelativeDisplay(g_gameplayAcceptanceReportPath));
+        break;
+    case StatusPageId::Archive:
+        addLine(text, L"Archiv cesta: ", data.archivePath);
+        addLine(text, L"Overeno: ", data.archiveVerified);
+        addLine(text, L"Kopie: ", data.archiveCopied);
+        addLine(text, L"Preskoceno: ", data.archiveSkipped);
+        addLine(text, L"Souhrn: ", data.nextPlaybook);
+        break;
+    case StatusPageId::Overlay:
+        addLine(text, L"Staging: ", data.overlayStaging);
+        addLine(text, L"Publish gate: ", data.overlayGate);
+        addLine(text, L"Aktivni overlay: ", data.overlayActive);
+        addLine(text, L"MP balicek: ", data.mpPackageRefreshState);
+        addLine(text, L"MP balicek duvod: ", data.mpPackageRefreshReason);
+        addLine(text, L"MP slozka: ", data.mpPackageDirectory);
+        addLine(text, L"MP zip: ", data.mpPackageZipPath);
+        addLine(text, L"MP manifest hash: ", data.mpPackageManifestHash);
+        break;
+    case StatusPageId::Multiplayer:
+        addLine(text, L"Trust store: ", data.friendTrustStoreState);
+        addLine(text, L"Trust store duvod: ", data.friendTrustStoreReason);
+        addLine(text, L"Trust store cesta: ", data.friendTrustStorePath);
+        addLine(text, L"Sync transport: ", data.friendMpSyncTransportState);
+        addLine(text, L"Sync transport duvod: ", data.friendMpSyncTransportReason);
+        addLine(text, L"Sync dalsi krok: ", data.friendMpSyncTransportNextStep);
+        addLine(text, L"Preflight: ", data.friendMpSyncPreflightChecklist);
+        addLine(text, L"MP handoff: ", data.mpPackageHandoffStatus);
+        addLine(text, L"MP host readiness: ", data.mpPackageHostReadiness);
+        addLine(text, L"MP client gate: ", data.mpPackageClientReadinessGate);
+        break;
+    case StatusPageId::Llm:
+        addLine(text, L"Model stav: ", data.modelState);
+        addLine(text, L"Runtime: ", data.modelRuntime);
+        addLine(text, L"Doporuceni: ", data.modelRecommendation);
+        addLine(text, L"Rezim: ", data.modelMode);
+        addLine(text, L"Instalace: ", data.modelInstallGuidance);
+        if (!data.modelPrepareCommand.empty()) {
+            addLine(text, L"Priprava prikaz: ", data.modelPrepareCommand);
+        }
+        break;
+    case StatusPageId::Maintenance:
+        addLine(text, L"Start s Windows: ", data.liveStartup);
+        addLine(text, L"Support report: ", data.supportReportState);
+        addLine(text, L"Report cesta: ", data.supportReportPath);
+        addLine(text, L"Human control guard: ", data.humanControlGuardState);
+        addLine(text, L"Crash recovery: ", data.crashRecoveryState);
+        addLine(text, L"MP zip stav: ", data.mpPackageZipState);
+        addLine(text, L"MP mismatch: ", data.mpPackageMismatchWarningState);
+        addLine(text, L"MP mismatch duvod: ", data.mpPackageMismatchWarningReason);
+        break;
+    case StatusPageId::Count:
+        return buildDashboardBottomText(data);
+    }
+
+    if (text.empty()) {
+        return buildDashboardBottomText(data);
+    }
+    return text;
+}
+
 std::wstring buildDashboardCopyText(const StatusDashboardData& data)
 {
     std::wstring text;
@@ -1599,6 +2076,11 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += L"Archiv: " + data.archivePath + L"\n";
     text += L"Publikace: " + data.overlayGate + L"\n";
     text += L"LLM: " + data.modelState + L"\n";
+    if (!data.modelInstallGuidance.empty()) {
+        text += L"LLM instalace: ";
+        text += data.modelInstallGuidance;
+        text += L"\n";
+    }
     text += L"Dal\u0161\u00ED krok: " + data.nextAction + L"\n";
     text += L"Hint: " + data.nextHint + L"\n";
     text += L"Support report: " + data.supportReportState + L"\n";
@@ -1850,6 +2332,13 @@ void refreshStatusWindowContent()
     if (g_statusSubtitle != nullptr) {
         SetWindowTextW(g_statusSubtitle, data.subtitle.c_str());
     }
+    const auto& activePage = statusPageSpec(g_statusActivePage);
+    if (g_statusPageTitle != nullptr) {
+        SetWindowTextW(g_statusPageTitle, activePage.title);
+    }
+    if (g_statusPageHelp != nullptr) {
+        SetWindowTextW(g_statusPageHelp, activePage.helpText);
+    }
 
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::LiveState)], data.liveState);
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::LiveStellaris)], data.liveStellaris);
@@ -1867,12 +2356,24 @@ void refreshStatusWindowContent()
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelRuntime)], data.modelRuntime);
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelRecommendation)], data.modelRecommendation);
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelMode)], data.modelMode);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::ModelInstallGuidance)], data.modelInstallGuidance);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::NextAction)], data.nextAction);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::NextReason)], data.nextReason);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::NextHint)], data.nextHint);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::SupportReportState)], data.supportReportState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::CrashRecoveryState)], data.crashRecoveryState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::FriendTrustStoreState)], data.friendTrustStoreState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::FriendMpSyncTransportState)], data.friendMpSyncTransportState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::HumanControlGuardState)], data.humanControlGuardState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::MpPackageRefreshState)], data.mpPackageRefreshState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::MpPackageZipState)], data.mpPackageZipState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::MpPackageHandoffStatus)], data.mpPackageHandoffStatus);
 
     if (g_statusBottomTitle != nullptr) {
-        SetWindowTextW(g_statusBottomTitle, L"Dal\u0161\u00ED krok");
+        SetWindowTextW(g_statusBottomTitle, activePage.title);
     }
     if (g_statusDetails != nullptr) {
-        const auto details = buildDashboardBottomText(data);
+        const auto details = buildStatusPageDetailsText(g_statusActivePage, data);
         SetWindowTextW(g_statusDetails, details.c_str());
     }
 
@@ -2118,68 +2619,9 @@ void layoutStatusWindow(HWND hwnd)
     const int buttonGap = 8;
     const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
     const int availableWidth = width - (margin * 2);
-    constexpr int actionButtonCount = 22;
-    constexpr int preferredButtonWidth = 116;
-    constexpr int minimumButtonWidth = 76;
-    int buttonsPerRow = actionButtonCount;
-    int buttonRows = 1;
-    while (buttonsPerRow > 1 &&
-           (preferredButtonWidth * buttonsPerRow) + (buttonGap * (buttonsPerRow - 1)) > availableWidth) {
-        ++buttonRows;
-        buttonsPerRow = (actionButtonCount + buttonRows - 1) / buttonRows;
-    }
-    int buttonWidth = preferredButtonWidth;
-    if (buttonsPerRow > 0) {
-        buttonWidth = (availableWidth - (buttonGap * (buttonsPerRow - 1))) / buttonsPerRow;
-        if (buttonWidth > preferredButtonWidth) {
-            buttonWidth = preferredButtonWidth;
-        }
-        if (buttonWidth < minimumButtonWidth) {
-            buttonWidth = minimumButtonWidth;
-        }
-    }
 
     const int headerWidth = availableWidth - titleButtonsWidth - 12;
     const int subtitleTop = top + kStatusTitleBarHeight + 12;
-    const int buttonTop = subtitleTop + subtitleHeight + 10;
-    const int actionRowsHeight = (buttonHeight * buttonRows) + (buttonGap * (buttonRows - 1));
-    const int gridTop = buttonTop + actionRowsHeight + 14;
-
-    int bottomHeight = (height / 4) + 96;
-    if (bottomHeight < 180) {
-        bottomHeight = 180;
-    }
-    if (bottomHeight > 240) {
-        bottomHeight = 240;
-    }
-
-    const int bottomTop = height - margin - bottomHeight;
-    int gridBottom = bottomTop - 14;
-    if (gridBottom <= gridTop) {
-        gridBottom = gridTop + 220;
-    }
-
-    const int cardGap = 14;
-    int cardWidth = (availableWidth - cardGap) / 2;
-    if (cardWidth < 300) {
-        cardWidth = 300;
-    }
-    int cardHeight = (gridBottom - gridTop - cardGap) / 2;
-    if (cardHeight < 120) {
-        cardHeight = 120;
-    }
-
-    int labelWidth = (cardWidth * 30) / 100;
-    if (labelWidth < 84) {
-        labelWidth = 84;
-    }
-    if (labelWidth > 120) {
-        labelWidth = 120;
-    }
-    int valueWidth = cardWidth - labelWidth - 12;
-    if (valueWidth < 130) {
-        valueWidth = 130;
-    }
 
     const int fieldGap = 6;
     const int scrollbarReserveWidth = kStatusScrollbarTrackWidth + 4;
@@ -2206,85 +2648,164 @@ void layoutStatusWindow(HWND hwnd)
         MoveWindow(g_statusMinimizeButton, minimizeLeft, titleButtonTop, kStatusTitleButtonWidth, 24, TRUE);
     }
 
-    const auto startupAction = loadStartupShortcutActionStatus();
-    const auto startupButtonLabel = strategic_nexus::buildSncTrayStartupShortcutToggleButtonLabel(startupAction);
-    const auto supportReportAction = loadSupportReportActionStatus();
-    const auto supportReportButtonLabel =
-        strategic_nexus::buildSncTraySupportReportActionButtonLabel(supportReportAction);
-    const HWND buttons[] = {
-        g_statusRefreshButton,
-        g_statusCopyButton,
-        g_statusOpenArchiveButton,
-        g_statusOpenBriefButton,
-        g_statusOpenMpPackageButton,
-        g_statusPublishGeneratedOverlayButton,
-        g_statusOpenNextActionPathButton,
-        g_statusOpenCampaignLibraryPlanButton,
-        g_statusOpenCrashRecoveryStateButton,
-        g_statusOpenGameplayAcceptanceReportButton,
-        g_statusOpenFriendTrustStoreButton,
-        g_statusCopyFriendPairingButton,
-        g_statusCopyFriendMpSyncEnvelopeButton,
-        g_statusCopyFriendMpSyncInboxPlanButton,
-        g_statusCopyFriendMpSyncOutboxPlanButton,
-        g_statusExportMpPackageButton,
-        g_statusMpImportHandoffButton,
-        g_statusCopyMpVerifyButton,
-        g_statusCopyMpImportButton,
-        g_statusCopyMpStrictVerifyButton,
-        g_statusCopyMpStrictImportButton,
-        g_statusCopyLlmPrepareButton,
-        g_statusSupportReportButton,
-        g_statusToggleStartupButton
-    };
-    const std::wstring buttonTexts[] = {
-        L"Obnovit",
-        L"Kop\u00EDrovat",
-        L"Archiv",
-        L"Souhrn",
-        L"MP balicek",
-        L"Publikovat",
-        L"Akce cesta",
-        L"Knihovna",
-        L"Crash stav",
-        L"Gameplay",
-        L"SNC pratele",
-        L"SNC pairing",
-        L"SNC MP sync",
-        L"SNC inbox",
-        L"SNC outbox",
-        L"MP export",
-        L"MP import navod",
-        L"MP verify",
-        L"MP import",
-        L"MP strict verify",
-        L"MP strict import",
-        L"LLM p\u0159\u00EDprava",
-        supportReportButtonLabel,
-        startupButtonLabel
-    };
-    for (std::size_t index = 0; index < std::size(buttons); ++index) {
-        if (buttons[index] != nullptr) {
-            SetWindowTextW(buttons[index], buttonTexts[index].c_str());
-            const int row = static_cast<int>(index) / buttonsPerRow;
-            const int column = static_cast<int>(index) % buttonsPerRow;
+    const int navWidth = 142;
+    const int navButtonHeight = 32;
+    const int navTop = subtitleTop + subtitleHeight + 16;
+    const int contentLeft = margin + navWidth + 18;
+    const int contentWidth = width - contentLeft - margin;
+    const auto& activePage = statusPageSpec(g_statusActivePage);
+
+    for (std::size_t index = 0; index < kStatusPages.size(); ++index) {
+        const auto& page = kStatusPages[index];
+        if (g_statusPageButtons[index] != nullptr) {
+            SetWindowTextW(g_statusPageButtons[index], page.navLabel);
+            ShowWindow(g_statusPageButtons[index], SW_SHOW);
             MoveWindow(
-                buttons[index],
-                margin + column * (buttonWidth + buttonGap),
-                buttonTop + row * (buttonHeight + buttonGap),
-                buttonWidth,
-                buttonHeight,
+                g_statusPageButtons[index],
+                margin,
+                navTop + static_cast<int>(index) * (navButtonHeight + buttonGap),
+                navWidth,
+                navButtonHeight,
                 TRUE);
         }
     }
 
+    if (g_statusPageTitle != nullptr) {
+        MoveWindow(g_statusPageTitle, contentLeft, navTop, contentWidth, 24, TRUE);
+    }
+    if (g_statusPageHelp != nullptr) {
+        MoveWindow(g_statusPageHelp, contentLeft, navTop + 28, contentWidth, 42, TRUE);
+    }
+
+    for (const auto& action : kStatusActionSpecs) {
+        HWND button = statusActionButton(action.id);
+        if (button != nullptr) {
+            ShowWindow(button, SW_HIDE);
+        }
+    }
+
+    constexpr int preferredActionButtonWidth = 132;
+    constexpr int minimumActionButtonWidth = 92;
+    int actionButtonsPerRow = static_cast<int>(activePage.actions.size());
+    if (actionButtonsPerRow < 1) {
+        actionButtonsPerRow = 1;
+    }
+    int actionRows = 1;
+    while (actionButtonsPerRow > 1 &&
+           (preferredActionButtonWidth * actionButtonsPerRow) + (buttonGap * (actionButtonsPerRow - 1)) > contentWidth) {
+        ++actionRows;
+        actionButtonsPerRow = (static_cast<int>(activePage.actions.size()) + actionRows - 1) / actionRows;
+    }
+    int actionButtonWidth = preferredActionButtonWidth;
+    if (actionButtonsPerRow > 0) {
+        actionButtonWidth =
+            (contentWidth - (buttonGap * (actionButtonsPerRow - 1))) / actionButtonsPerRow;
+        if (actionButtonWidth > preferredActionButtonWidth) {
+            actionButtonWidth = preferredActionButtonWidth;
+        }
+        if (actionButtonWidth < minimumActionButtonWidth) {
+            actionButtonWidth = minimumActionButtonWidth;
+        }
+    }
+
+    const int actionsTop = navTop + 78;
+    for (std::size_t index = 0; index < activePage.actions.size(); ++index) {
+        const UINT actionId = activePage.actions[index];
+        HWND button = statusActionButton(actionId);
+        if (button == nullptr) {
+            continue;
+        }
+        const auto label = statusActionLabel(actionId);
+        SetWindowTextW(button, label.c_str());
+        ShowWindow(button, SW_SHOW);
+        const int row = static_cast<int>(index) / actionButtonsPerRow;
+        const int column = static_cast<int>(index) % actionButtonsPerRow;
+        MoveWindow(
+            button,
+            contentLeft + column * (actionButtonWidth + buttonGap),
+            actionsTop + row * (buttonHeight + buttonGap),
+            actionButtonWidth,
+            buttonHeight,
+            TRUE);
+    }
+
+    const int actionRowsHeight = activePage.actions.empty()
+        ? 0
+        : (buttonHeight * actionRows) + (buttonGap * (actionRows - 1));
+    const int gridTop = actionsTop + actionRowsHeight + 16;
+
+    int bottomHeight = (height / 4) + 80;
+    if (bottomHeight < 170) {
+        bottomHeight = 170;
+    }
+    if (bottomHeight > 230) {
+        bottomHeight = 230;
+    }
+
+    const int bottomTop = height - margin - bottomHeight;
+    int gridBottom = bottomTop - 14;
+    if (gridBottom <= gridTop) {
+        gridBottom = gridTop + 220;
+    }
+
     for (std::size_t sectionIndex = 0; sectionIndex < kStatusSections.size(); ++sectionIndex) {
-        const int column = static_cast<int>(sectionIndex % 2);
-        const int row = static_cast<int>(sectionIndex / 2);
-        const int cardLeft = margin + column * (cardWidth + cardGap);
+        if (g_statusSectionTitles[sectionIndex] != nullptr) {
+            ShowWindow(g_statusSectionTitles[sectionIndex], SW_HIDE);
+        }
+        for (const auto field : kStatusSections[sectionIndex].fields) {
+            const std::size_t fieldSlot = static_cast<std::size_t>(field);
+            if (g_statusFieldLabels[fieldSlot] != nullptr) {
+                ShowWindow(g_statusFieldLabels[fieldSlot], SW_HIDE);
+            }
+            if (g_statusFieldValues[fieldSlot] != nullptr) {
+                ShowWindow(g_statusFieldValues[fieldSlot], SW_HIDE);
+            }
+            g_statusFieldScrollbars[fieldSlot] = {};
+        }
+    }
+
+    const int cardGap = 14;
+    const int visibleSectionCount = static_cast<int>(activePage.sections.size());
+    const int columns = visibleSectionCount <= 1 ? 1 : 2;
+    const int rows = visibleSectionCount <= 0 ? 1 : (visibleSectionCount + columns - 1) / columns;
+    int cardWidth = columns > 1
+        ? (contentWidth - (cardGap * (columns - 1))) / columns
+        : contentWidth;
+    if (cardWidth < 280) {
+        cardWidth = 280;
+    }
+    int cardHeight = rows > 0
+        ? (gridBottom - gridTop - (cardGap * (rows - 1))) / rows
+        : gridBottom - gridTop;
+    if (cardHeight < 118) {
+        cardHeight = 118;
+    }
+
+    int labelWidth = (cardWidth * 30) / 100;
+    if (labelWidth < 84) {
+        labelWidth = 84;
+    }
+    if (labelWidth > 124) {
+        labelWidth = 124;
+    }
+    int valueWidth = cardWidth - labelWidth - 12;
+    if (valueWidth < 130) {
+        valueWidth = 130;
+    }
+
+    for (std::size_t sectionIndex = 0; sectionIndex < kStatusSections.size(); ++sectionIndex) {
+        if (std::find(activePage.sections.begin(), activePage.sections.end(), sectionIndex) == activePage.sections.end()) {
+            continue;
+        }
+        const auto visibleIt = std::find(activePage.sections.begin(), activePage.sections.end(), sectionIndex);
+        const int visibleIndex = static_cast<int>(std::distance(activePage.sections.begin(), visibleIt));
+        const int column = visibleIndex % columns;
+        const int row = visibleIndex / columns;
+        const int cardLeft = contentLeft + column * (cardWidth + cardGap);
         const int cardTop = gridTop + row * (cardHeight + cardGap);
 
         if (g_statusSectionTitles[sectionIndex] != nullptr) {
+            ShowWindow(g_statusSectionTitles[sectionIndex], SW_SHOW);
             MoveWindow(g_statusSectionTitles[sectionIndex], cardLeft, cardTop, cardWidth, 20, TRUE);
         }
 
@@ -2307,6 +2828,7 @@ void layoutStatusWindow(HWND hwnd)
             const std::size_t fieldSlot = static_cast<std::size_t>(fieldId);
             const int fieldHeight = unitHeight * statusFieldLineUnits(fieldId);
             if (g_statusFieldLabels[fieldSlot] != nullptr) {
+                ShowWindow(g_statusFieldLabels[fieldSlot], SW_SHOW);
                 MoveWindow(
                     g_statusFieldLabels[fieldSlot],
                     cardLeft,
@@ -2316,6 +2838,7 @@ void layoutStatusWindow(HWND hwnd)
                     TRUE);
             }
             if (g_statusFieldValues[fieldSlot] != nullptr) {
+                ShowWindow(g_statusFieldValues[fieldSlot], SW_SHOW);
                 int controlWidth = valueWidth;
                 if (statusFieldUsesMultiline(fieldId) && valueWidth > (scrollbarReserveWidth + 60)) {
                     controlWidth -= scrollbarReserveWidth;
@@ -2345,20 +2868,20 @@ void layoutStatusWindow(HWND hwnd)
     }
 
     if (g_statusBottomTitle != nullptr) {
-        MoveWindow(g_statusBottomTitle, margin, bottomTop, availableWidth, 20, TRUE);
+        MoveWindow(g_statusBottomTitle, contentLeft, bottomTop, contentWidth, 20, TRUE);
     }
     if (g_statusDetails != nullptr) {
         const int detailsTop = bottomTop + 24;
         const int detailsHeight = height - detailsTop - margin;
-        int detailsWidth = availableWidth;
-        if (availableWidth > (scrollbarReserveWidth + 80)) {
+        int detailsWidth = contentWidth;
+        if (contentWidth > (scrollbarReserveWidth + 80)) {
             detailsWidth -= scrollbarReserveWidth;
         }
-        MoveWindow(g_statusDetails, margin, detailsTop, detailsWidth, detailsHeight, TRUE);
+        MoveWindow(g_statusDetails, contentLeft, detailsTop, detailsWidth, detailsHeight, TRUE);
         const RECT detailsTrackRect = {
-            margin + availableWidth - kStatusScrollbarTrackWidth,
+            contentLeft + contentWidth - kStatusScrollbarTrackWidth,
             detailsTop,
-            margin + availableWidth,
+            contentLeft + contentWidth,
             detailsTop + detailsHeight
         };
         g_statusDetailsScrollbar =
@@ -2399,9 +2922,15 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         ensureStatusWindowResources();
 
         g_statusWindow = hwnd;
+        ensureStatusTooltip(hwnd);
 
         g_statusHeader = createStatusStatic(hwnd, g_statusTitle.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusSubtitle = createStatusStatic(hwnd, L"", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+        g_statusPageTitle = createStatusStatic(hwnd, L"", WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
+        g_statusPageHelp = createStatusStatic(hwnd, L"", WS_CHILD | WS_VISIBLE | SS_LEFT);
+        for (std::size_t index = 0; index < kStatusPages.size(); ++index) {
+            g_statusPageButtons[index] = createStatusButton(hwnd, kStatusPages[index].commandId, kStatusPages[index].navLabel);
+        }
         g_statusRefreshButton = createStatusButton(hwnd, ID_STATUS_REFRESH, L"Obnovit");
         g_statusCopyButton = createStatusButton(hwnd, ID_STATUS_COPY, L"Kop\u00EDrovat");
         g_statusOpenArchiveButton = createStatusButton(hwnd, ID_STATUS_OPEN_ARCHIVE, L"Archiv");
@@ -2467,6 +2996,11 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         setWindowFont(g_statusHeader, g_statusHeaderFont);
         setWindowFont(g_statusSubtitle, g_statusSubtitleFont);
+        setWindowFont(g_statusPageTitle, g_statusSectionFont);
+        setWindowFont(g_statusPageHelp, g_statusSubtitleFont);
+        for (const auto button : g_statusPageButtons) {
+            setWindowFont(button, g_statusFieldFont);
+        }
         setWindowFont(g_statusRefreshButton, g_statusFieldFont);
         setWindowFont(g_statusCopyButton, g_statusFieldFont);
         setWindowFont(g_statusOpenArchiveButton, g_statusFieldFont);
@@ -2496,6 +3030,23 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusMinimizeButton, g_statusFieldFont);
         setWindowFont(g_statusBottomTitle, g_statusSectionFont);
         setWindowFont(g_statusDetails, g_statusDetailsFont);
+        addStatusTooltip(g_statusPageHelp, L"Kr\u00E1tk\u00E9 vysv\u011Btlen\u00ED aktivn\u00ED str\u00E1nky: co sem pat\u0159\u00ED a kdy se sem d\u00EDvat.");
+        for (std::size_t index = 0; index < kStatusPages.size(); ++index) {
+            addStatusTooltip(g_statusPageButtons[index], kStatusPages[index].helpText);
+        }
+        for (const auto& action : kStatusActionSpecs) {
+            addStatusTooltip(statusActionButton(action.id), action.tooltip);
+        }
+        for (std::size_t index = 0; index < kStatusSections.size(); ++index) {
+            addStatusTooltip(g_statusSectionTitles[index], kStatusSections[index].title);
+            for (const auto field : kStatusSections[index].fields) {
+                const std::size_t slot = static_cast<std::size_t>(field);
+                addStatusTooltip(g_statusFieldLabels[slot], statusFieldTooltip(field));
+                addStatusTooltip(g_statusFieldValues[slot], statusFieldTooltip(field));
+            }
+        }
+        addStatusTooltip(g_statusBottomTitle, L"Detailn\u011Bj\u0161\u00ED vysv\u011Btlen\u00ED aktivn\u00ED str\u00E1nky a souvisej\u00EDc\u00EDch cest/prikazu.");
+        addStatusTooltip(g_statusDetails, L"Del\u0161\u00ED kontext k aktivn\u00ED str\u00E1nce. Kdy\u017E nev\u00ED\u0161, pro\u010D tla\u010D\u00EDtko existuje, za\u010Dni tady.");
 
         applyWindowIcons(hwnd);
         SetTimer(hwnd, kStatusScrollSyncTimerId, 120, nullptr);
@@ -2508,6 +3059,10 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         updateStatusCaptionButtons(hwnd);
         return 0;
     case WM_COMMAND:
+        if (const auto* page = statusPageSpecByCommand(LOWORD(wParam)); page != nullptr) {
+            setStatusActivePage(hwnd, page->id);
+            return 0;
+        }
         switch (LOWORD(wParam)) {
         case ID_STATUS_REFRESH:
             refreshStatusWindowContent();
@@ -2785,6 +3340,10 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         if (control == g_statusHeader) {
             color = kStatusTextColor;
+        } else if (control == g_statusPageTitle) {
+            accent = true;
+        } else if (control == g_statusPageHelp) {
+            color = kStatusMutedColor;
         } else if (control == g_statusBottomTitle) {
             accent = true;
         } else if (control == g_statusSubtitle) {
@@ -2883,10 +3442,19 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         if (g_statusWindow == hwnd) {
             g_statusWindow = nullptr;
         }
+        if (g_statusTooltip != nullptr) {
+            DestroyWindow(g_statusTooltip);
+            g_statusTooltip = nullptr;
+        }
         g_statusHeader = nullptr;
         g_statusSubtitle = nullptr;
+        g_statusPageTitle = nullptr;
+        g_statusPageHelp = nullptr;
         g_statusDetails = nullptr;
         g_statusBottomTitle = nullptr;
+        for (auto& pageButton : g_statusPageButtons) {
+            pageButton = nullptr;
+        }
         g_statusRefreshButton = nullptr;
         g_statusCopyButton = nullptr;
         g_statusOpenArchiveButton = nullptr;
@@ -2898,6 +3466,10 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusOpenCrashRecoveryStateButton = nullptr;
         g_statusOpenGameplayAcceptanceReportButton = nullptr;
         g_statusOpenFriendTrustStoreButton = nullptr;
+        g_statusCopyFriendPairingButton = nullptr;
+        g_statusCopyFriendMpSyncEnvelopeButton = nullptr;
+        g_statusCopyFriendMpSyncInboxPlanButton = nullptr;
+        g_statusCopyFriendMpSyncOutboxPlanButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
         g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
@@ -5028,6 +5600,8 @@ void writeStatus(
     json << "  \"support_report_data_categories\": ";
     writeStringArrayJson(json, companionSnapshot.supportReport.dataCategories);
     json << ",\n";
+    json << "  \"local_llm_install_guidance\": \""
+         << jsonEscape(companionSnapshot.localLlm.installGuidance) << "\",\n";
     json << "  \"crash_recovery_state\": \""
          << jsonEscape(companionSnapshot.crashRecovery.state) << "\",\n";
     json << "  \"crash_recovery_reason\": \""

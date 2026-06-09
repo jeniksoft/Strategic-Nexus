@@ -294,6 +294,7 @@ struct CompanionLocalLlmStatus {
     std::string recommendedRuntime;
     std::filesystem::path modelStatePath;
     std::string prepareCommandHint;
+    std::string installGuidance;
     bool canRunInference = false;
     bool reducedMode = true;
     bool userActionRequired = false;

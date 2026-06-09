@@ -84,6 +84,9 @@ std::string buildLocalLlmPrepareCommandHint(
     const std::string& modelId,
     const std::filesystem::path& statePath,
     const std::string& runtimeUrl = "http://127.0.0.1:11434");
+std::string buildLocalLlmInstallGuidance(
+    const LocalLlmReadinessStatus& readiness,
+    const std::string& prepareCommandHint);
 LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     const std::vector<LocalLlmCatalogEntry>& catalog,
     const LocalLlmModelState& state,

@@ -269,6 +269,31 @@ std::string buildLocalLlmPrepareCommandHint(
     return output.str();
 }
 
+std::string buildLocalLlmInstallGuidance(
+    const LocalLlmReadinessStatus& readiness,
+    const std::string& prepareCommandHint)
+{
+    if (readiness.canRunInference) {
+        return {};
+    }
+
+    std::ostringstream output;
+    if (!readiness.recommendedDisplayName.empty()) {
+        output << "Doporuceny model: " << readiness.recommendedDisplayName << ". ";
+    } else if (!readiness.recommendedModelId.empty()) {
+        output << "Doporuceny model: " << readiness.recommendedModelId << ". ";
+    }
+    if (!readiness.recommendedRuntime.empty()) {
+        output << "Doporuceny runtime: " << readiness.recommendedRuntime << ". ";
+    }
+    if (!prepareCommandHint.empty()) {
+        output << "Priprav model pres: " << prepareCommandHint;
+    } else if (!readiness.recommendedRuntime.empty()) {
+        output << "Priprav model v podporovanem runtime a znovu over readiness.";
+    }
+    return output.str();
+}
+
 LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     const std::vector<LocalLlmCatalogEntry>& catalog,
     const LocalLlmModelState& state,

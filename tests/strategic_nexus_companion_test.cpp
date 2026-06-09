@@ -670,6 +670,13 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("local_llm_reduced_mode: true") != std::string::npos,
         "status center summary should expose local LLM reduced mode");
+    requireCondition(
+        ready.localLlm.installGuidance.find("Strategic Nexus.exe --prepare-local-llm-model") !=
+            std::string::npos,
+        "reduced local LLM state should expose install guidance based on the prepare command hint");
+    requireCondition(
+        ready.statusCenterSummaryText.find("local_llm_install_guidance: ") != std::string::npos,
+        "status center summary should expose local LLM install guidance");
 
     const auto readyLocalModelStatePath = root / "snc_local_model_state_ready.json";
     writeTextFileAtomically(
@@ -712,6 +719,12 @@ int main()
     requireCondition(
         readyWithModel.localLlm.prepareCommandHint.find(readyLocalModelStatePath.string()) != std::string::npos,
         "local LLM prepare command hint should include the configured state path");
+    requireCondition(
+        readyWithModel.localLlm.installGuidance.empty(),
+        "accepted supported local LLM state should clear install guidance");
+    requireCondition(
+        readyWithModel.statusCenterSummaryText.find("local_llm_install_guidance:") == std::string::npos,
+        "status center summary should omit local LLM install guidance when the model is ready");
 
     auto memoryRecoveryWarningConfig = readyConfig;
     memoryRecoveryWarningConfig.entryPointAnalysisPath = memoryRecoveryEntryPointAnalysisPath;
@@ -1267,6 +1280,9 @@ int main()
     requireCondition(
         readyJson.find("\"memory_recovery\": {") != std::string::npos,
         "snapshot JSON should expose the memory recovery object");
+    requireCondition(
+        readyJson.find("\"install_guidance\":") != std::string::npos,
+        "snapshot JSON should expose local LLM install guidance");
     requireCondition(
         readyJson.find("\"state\": \"ready\"") != std::string::npos &&
             readyJson.find("\"anchor_entry_point_id\": \"beta_ironman_2200_05_01\"") != std::string::npos,

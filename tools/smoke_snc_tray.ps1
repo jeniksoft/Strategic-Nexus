@@ -784,6 +784,15 @@ try {
                 if ($summaryText -notlike "*support_report_raw_saves_included: false*") {
                     throw "SNC tray summary text did not expose support_report_raw_saves_included."
                 }
+                if ([string]::IsNullOrWhiteSpace([string]$json.local_llm_install_guidance)) {
+                    throw "SNC tray status JSON did not expose local_llm_install_guidance."
+                }
+                if ([string]$json.local_llm_install_guidance -notlike "*--prepare-local-llm-model*") {
+                    throw "SNC tray local_llm_install_guidance did not reuse the prepare command hint."
+                }
+                if ($summaryText -notlike "*local_llm_install_guidance:*") {
+                    throw "SNC tray summary text did not expose local_llm_install_guidance."
+                }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_trust_store_state)) {
                     throw "SNC tray status JSON did not expose friend_trust_store_state."
                 }
