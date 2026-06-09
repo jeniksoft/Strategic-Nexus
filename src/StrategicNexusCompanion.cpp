@@ -325,6 +325,32 @@ std::string pathString(const std::filesystem::path& path)
     return path.generic_string();
 }
 
+std::string buildLocalLlmCatalogSummary(const std::vector<LocalLlmCatalogEntry>& catalog)
+{
+    std::ostringstream output;
+    output << "podporovane modely (" << catalog.size() << "): ";
+    if (catalog.empty()) {
+        output << "zadne";
+        return output.str();
+    }
+
+    for (std::size_t index = 0; index < catalog.size(); ++index) {
+        if (index > 0) {
+            output << "; ";
+        }
+        const auto& entry = catalog[index];
+        output << entry.displayName;
+        if (!entry.modelId.empty()) {
+            output << " (" << entry.modelId << ")";
+        }
+        if (!entry.status.empty()) {
+            output << " [" << entry.status << "]";
+        }
+    }
+
+    return output.str();
+}
+
 std::filesystem::path buildDefaultSncStartupShortcutPath()
 {
     const char* appData = std::getenv("APPDATA");
@@ -2096,6 +2122,8 @@ CompanionLocalLlmStatus buildLocalLlmStatus(const CompanionStatusConfig& config)
     status.selectedDisplayName = readiness.selectedDisplayName;
     status.runtime = readiness.runtime;
     status.catalogStatus = readiness.catalogStatus;
+    status.supportedModelCatalogCount = catalog.size();
+    status.supportedModelCatalogSummary = buildLocalLlmCatalogSummary(catalog);
     status.localPath = readiness.localPath;
     status.hardwareFit = readiness.hardwareFit;
     status.recommendedModelId = readiness.recommendedModelId;
@@ -2920,6 +2948,12 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.catalogStatus.empty()) {
         text << "local_llm_catalog_status: " << localLlm.catalogStatus << "\n";
     }
+    text << "local_llm_supported_model_catalog_count: "
+         << localLlm.supportedModelCatalogCount << "\n";
+    if (!localLlm.supportedModelCatalogSummary.empty()) {
+        text << "local_llm_supported_model_catalog_summary: "
+             << localLlm.supportedModelCatalogSummary << "\n";
+    }
     if (!localLlm.localPath.empty()) {
         text << "local_llm_local_path: " << pathString(localLlm.localPath) << "\n";
     }
@@ -3294,6 +3328,10 @@ void writeLocalLlmJson(
     output << indent << "  \"selected_display_name\": " << jsonString(status.selectedDisplayName) << ",\n";
     output << indent << "  \"runtime\": " << jsonString(status.runtime) << ",\n";
     output << indent << "  \"catalog_status\": " << jsonString(status.catalogStatus) << ",\n";
+    output << indent << "  \"supported_model_catalog_count\": "
+           << status.supportedModelCatalogCount << ",\n";
+    output << indent << "  \"supported_model_catalog_summary\": "
+           << jsonString(status.supportedModelCatalogSummary) << ",\n";
     output << indent << "  \"local_path\": " << jsonString(pathString(status.localPath)) << ",\n";
     output << indent << "  \"hardware_fit\": " << jsonString(status.hardwareFit) << ",\n";
     output << indent << "  \"recommended_model_id\": " << jsonString(status.recommendedModelId) << ",\n";

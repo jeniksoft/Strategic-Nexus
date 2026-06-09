@@ -547,7 +547,7 @@ Required:
 * validator-owned promotion from model output to DSL/generated overlay
 
 Current progress:
-SNC status exposes local LLM readiness fields and `--prepare-local-llm-model` can check/pull an allowlisted Ollama model after explicit license acceptance. Companion and tray surfaces now also expose `local_llm_install_guidance` on current head so reduced-mode states can tell the owner what to install or prepare next without raw JSON spelunking. Remaining work is owner-facing SNC Model Manager UI and first validated inference-to-DSL handoff.
+SNC status exposes local LLM readiness fields and `--prepare-local-llm-model` can check/pull an allowlisted Ollama model after explicit license acceptance. Companion and tray surfaces now also expose `local_llm_install_guidance` on current head so reduced-mode states can tell the owner what to install or prepare next without raw JSON spelunking. The owner-facing status surfaces now also expose the curated supported-model catalog summary so the model manager can show what is allowed before selection. Remaining work is owner-facing SNC Model Manager UI and first validated inference-to-DSL handoff.
 
 ---
 

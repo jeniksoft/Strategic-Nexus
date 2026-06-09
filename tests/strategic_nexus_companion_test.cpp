@@ -684,6 +684,21 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("local_llm_model_manager_summary: ") != std::string::npos,
         "status center summary should expose local LLM model-manager summary");
+    requireCondition(
+        ready.localLlm.supportedModelCatalogCount == 2,
+        "local LLM should expose the curated supported-model catalog size");
+    requireCondition(
+        ready.localLlm.supportedModelCatalogSummary.find("Llama 3.2 3B via Ollama") !=
+            std::string::npos,
+        "local LLM should expose the curated supported-model catalog summary");
+    requireCondition(
+        ready.statusCenterSummaryText.find("local_llm_supported_model_catalog_count: 2") !=
+            std::string::npos,
+        "status center summary should expose the supported-model catalog count");
+    requireCondition(
+        ready.statusCenterSummaryText.find("local_llm_supported_model_catalog_summary: ") !=
+            std::string::npos,
+        "status center summary should expose the supported-model catalog summary");
 
     const auto readyLocalModelStatePath = root / "snc_local_model_state_ready.json";
     writeTextFileAtomically(
@@ -716,6 +731,13 @@ int main()
     requireCondition(
         readyWithModel.localLlm.summary.find("redukovany rezim: false") != std::string::npos,
         "accepted supported local LLM state should expose reduced mode in the summary");
+    requireCondition(
+        readyWithModel.localLlm.supportedModelCatalogCount == 2,
+        "accepted supported local LLM state should still expose the curated supported-model catalog size");
+    requireCondition(
+        readyWithModel.statusCenterSummaryText.find("local_llm_supported_model_catalog_summary: ") !=
+            std::string::npos,
+        "status center summary should keep the supported-model catalog summary visible when ready");
     requireCondition(
         readyWithModel.statusCenterSummaryText.find("local_llm_can_run_inference: true") != std::string::npos,
         "status center summary should expose local LLM inference readiness");

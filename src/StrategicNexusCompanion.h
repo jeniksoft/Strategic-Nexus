@@ -287,6 +287,8 @@ struct CompanionLocalLlmStatus {
     std::string selectedDisplayName;
     std::string runtime;
     std::string catalogStatus;
+    std::size_t supportedModelCatalogCount = 0;
+    std::string supportedModelCatalogSummary;
     std::filesystem::path localPath;
     std::string hardwareFit;
     std::string recommendedModelId;
