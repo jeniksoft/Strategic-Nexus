@@ -2505,7 +2505,8 @@ std::string buildStatusCenterSummaryText(
     const std::string& nextActionReason,
     const std::string& nextActionCommandHint,
     const std::string& nextActionCommandHintSource,
-    const std::filesystem::path& nextActionPath)
+    const std::filesystem::path& nextActionPath,
+    const std::filesystem::path& statusUiStatePath)
 {
     std::ostringstream text;
     CompanionStatusSnapshot ownerTestSnapshot;
@@ -3051,6 +3052,10 @@ std::string buildStatusCenterSummaryText(
     }
     if (!nextActionPath.empty()) {
         text << "next_action_path: " << pathString(nextActionPath) << "\n";
+    }
+    if (!statusUiStatePath.empty()) {
+        text << "status_ui_state_path: " << pathString(statusUiStatePath) << "\n";
+        text << "status_ui_state_note: active page and normal window placement persist between launches\n";
     }
     return text.str();
 }
@@ -3685,6 +3690,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.nextActionCommandHintSource = buildCompanionNextActionCommandHintSource(snapshot);
     snapshot.nextActionPath = buildCompanionNextActionPath(snapshot);
     snapshot.ownerTestPlaybookPath = buildCompanionOwnerTestPlaybookPath(snapshot);
+    snapshot.statusUiStatePath = config.statusUiStatePath;
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
         snapshot.generatedAtLocal,
         snapshot.lifecycle,
@@ -3704,7 +3710,8 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
         snapshot.nextActionReason,
         snapshot.nextActionCommandHint,
         snapshot.nextActionCommandHintSource,
-        snapshot.nextActionPath);
+        snapshot.nextActionPath,
+        snapshot.statusUiStatePath);
     return snapshot;
 }
 
@@ -3857,6 +3864,7 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"next_action_command_hint_source\": " << jsonString(snapshot.nextActionCommandHintSource) << ",\n";
     output << "  \"next_action_path\": " << jsonString(pathString(snapshot.nextActionPath)) << ",\n";
     output << "  \"owner_test_playbook_path\": " << jsonString(pathString(snapshot.ownerTestPlaybookPath)) << ",\n";
+    output << "  \"status_ui_state_path\": " << jsonString(pathString(snapshot.statusUiStatePath)) << ",\n";
     output << "  \"status_center_summary_text\": " << jsonString(snapshot.statusCenterSummaryText) << "\n";
     output << "}\n";
     return output.str();

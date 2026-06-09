@@ -48,6 +48,8 @@ struct CompanionStatusConfig {
         "dist/private_reports/snc_support_report_preview.txt";
     std::filesystem::path crashRecoveryStatePath =
         "dist/private_reports/snc_crash_recovery_state.json";
+    std::filesystem::path statusUiStatePath =
+        "dist/private_reports/snc_ui_state.json";
     bool useConfiguredStartWithWindowsState = false;
 };
 
@@ -349,6 +351,7 @@ struct CompanionStatusSnapshot {
     std::string nextActionCommandHintSource;
     std::filesystem::path nextActionPath;
     std::filesystem::path ownerTestPlaybookPath;
+    std::filesystem::path statusUiStatePath;
     std::string statusCenterSummaryText;
 };
 

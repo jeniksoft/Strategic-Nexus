@@ -2733,6 +2733,12 @@ int main()
         requireCondition(content.find("\"status_center\"") != std::string::npos, "status snapshot should include status center");
         requireCondition(content.find("\"status_center_summary_text\"") != std::string::npos, "status snapshot should include status center summary text");
         requireCondition(
+            content.find("\"status_ui_state_path\": \"dist/private_reports/snc_ui_state.json\"") != std::string::npos,
+            "status snapshot should include status UI state path");
+        requireCondition(
+            content.find("status_ui_state_note: active page and normal window placement persist between launches") != std::string::npos,
+            "status snapshot summary should describe status UI state persistence");
+        requireCondition(
             content.find("\"pairing_command_template\": \"Strategic Nexus.exe --create-snc-friend-request ") != std::string::npos,
             "status snapshot should include friend pairing command template");
         requireCondition(
