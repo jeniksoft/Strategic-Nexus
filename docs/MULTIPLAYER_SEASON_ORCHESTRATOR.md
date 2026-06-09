@@ -509,6 +509,8 @@ stage host local overlay while Stellaris is closed
 produce copyable invite/package status text
 ```
 
+The current SNC companion and tray status surfaces also expose `friend_mp_sync_transport_state`, `friend_mp_sync_transport_reason`, and `friend_mp_sync_transport_next_step` so the signed/encrypted transport gap stays explicit while manual export/import remains the active fallback.
+
 If the intended host lacks the latest handoff:
 
 ```text
