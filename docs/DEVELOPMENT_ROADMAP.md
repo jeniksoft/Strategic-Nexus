@@ -1667,6 +1667,7 @@ Required:
 Current progress:
 Bridge-core and generated-overlay validators reject unsupported values and expose some capability/event-family metadata. Remaining work is a formal enum expansion playbook and migration tests for added values.
 The enum expansion playbook now lives in `docs/SCHEMA_VERSIONING_RULES.md`, so the remaining work is focused on migration tests and any future added-value coverage.
+Migration coverage now explicitly exercises future event-family and source-quality values in `tests/generated_overlay_contract_test.cpp`, so older consumers fail closed instead of silently misreading newly added enum values.
 
 ---
 

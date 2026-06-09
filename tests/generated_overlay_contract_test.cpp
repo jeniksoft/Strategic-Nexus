@@ -267,6 +267,26 @@ int main()
     }
 
     {
+        const auto parseResult = parser.parse(R"(campaign "campaign_future_enum" { empire "empire_001" { rule "future_family" { ministry = military_ministry event_family = monthly_strategy_tick_plus prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.72 rationale = "future event family" } } })");
+        requireCondition(parseResult.ok, "future event-family DSL should parse before validation");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(!validation.ok, "future event-family value should fail validation");
+        requireCondition(
+            !validation.errors.empty() && validation.errors.front().find("unsupported event family") != std::string::npos,
+            "future event-family rejection should be explicit");
+    }
+
+    {
+        const auto parseResult = parser.parse(R"(campaign "campaign_future_enum" { empire "empire_001" { rule "future_source_quality" { ministry = military_ministry source_quality = history_backed_plus prefer military_posture defensive intensity 0.7 duration = next_session confidence = 0.72 rationale = "future source quality" } } })");
+        requireCondition(parseResult.ok, "future source-quality DSL should parse before validation");
+        const auto validation = validator.validate(parseResult.program);
+        requireCondition(!validation.ok, "future source-quality value should fail validation");
+        requireCondition(
+            !validation.errors.empty() && validation.errors.front().find("unsupported source quality") != std::string::npos,
+            "future source-quality rejection should be explicit");
+    }
+
+    {
         const auto parseResult = parser.parse(R"(campaign "campaign_multi_empire" {
   empire "empire_001" {
     rule "watch_one" {
