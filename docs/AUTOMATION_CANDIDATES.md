@@ -182,6 +182,7 @@ Expected output:
 
 * at the start of every invocation, run `tools/dev_attention/start_freework_run.cmd -AutomationId sn-bounded-free-work-execution-2 -RunId <run-id>`; the helper runs the gate, logs `quiet` on concurrency skip, and logs `started` only after the gate allows work
 * if the helper reports `freework_should_continue=false`, stop without claiming work, implementation, or Task Board report spam
+* never invoke a `.ps1` script as a bare command path; use the matching `.cmd` wrapper or explicit `powershell -NoProfile -ExecutionPolicy Bypass -File ...`, otherwise Windows may open the script in an editor instead of executing it
 * before ending the gate, append a second run-log row with the same run id and a final result: `implemented`, `blocked`, `quiet`, `no_safe_task`, or `failed`
 * check unresolved dirty worktree state before modifying files
 * record dirty baseline paths and avoid overlapping them

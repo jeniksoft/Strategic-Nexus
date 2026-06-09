@@ -152,7 +152,7 @@ Suggestion implementation signal rule:
 
 * Clicking `Realizovat` in Task Board should mean `schvaleno-k-realizaci`, not `realizovano`.
 * The foreground chat does not receive a live push notification from Task Board. Codex learns about the click when this chat, Task Board hygiene, or Free Work reads the Task Board JSON state.
-* Task Board hygiene must convert `schvaleno-k-realizaci`, `prijato-k-implementaci`, and `schvaleno-k-implementaci` suggestions into owner-approved sprint chunks through `tools/dev_attention/enqueue_approved_suggestions.ps1`.
+* Task Board hygiene must convert `schvaleno-k-realizaci`, `prijato-k-implementaci`, and `schvaleno-k-implementaci` suggestions into owner-approved sprint chunks through `tools/dev_attention/enqueue_approved_suggestions.cmd`.
 * Owner-approved suggestion chunks should be tried before ordinary roadmap chunks, unless they are unsafe, obsolete, blocked by owner input, or already satisfied by current code.
 * `realizovano` should be written only after the work is actually completed, verified, and recorded with evidence.
 

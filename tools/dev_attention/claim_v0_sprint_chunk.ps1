@@ -122,9 +122,20 @@ function Get-TerminalAutomationRuns {
 }
 
 $repoRoot = (Resolve-Path -LiteralPath '.').Path
-$queueFullPath = Join-Path $repoRoot $QueuePath
-$ledgerFullPath = Join-Path $repoRoot $LedgerPath
-$automationLogFullPath = Join-Path $repoRoot $AutomationLogPath
+
+function Resolve-ProjectPath {
+    param([string]$Path)
+
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return $Path
+    }
+
+    return Join-Path $repoRoot $Path
+}
+
+$queueFullPath = Resolve-ProjectPath -Path $QueuePath
+$ledgerFullPath = Resolve-ProjectPath -Path $LedgerPath
+$automationLogFullPath = Resolve-ProjectPath -Path $AutomationLogPath
 $ledgerDir = Split-Path -Parent $ledgerFullPath
 if ($ledgerDir -and -not (Test-Path -LiteralPath $ledgerDir)) {
     New-Item -ItemType Directory -Path $ledgerDir -Force | Out-Null

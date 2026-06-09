@@ -81,7 +81,7 @@ Default selection order:
 
 1. Read `tools/dev_attention/v0_sprint_chunk_queue.json`.
 2. Refresh owner-approved Task Board suggestions into the queue when practical:
-   `tools/dev_attention/enqueue_approved_suggestions.ps1`.
+   `tools/dev_attention/enqueue_approved_suggestions.cmd`.
 3. Pick the first `ready` chunk whose dependencies are done or already satisfied by current code.
    Chunks with `lane = owner_approved_suggestion` are owner-approved implementation signals and should be tried before ordinary roadmap chunks.
 4. If the first chunk is already implemented, verify it and record the evidence instead of reimplementing it.
@@ -91,6 +91,9 @@ Default selection order:
 The foreground chat may override the queue.
 
 Background Free Work should not invent a new strategic direction when queued worker-ready chunks exist.
+
+If a queued `preferred_tests` entry names a `.ps1` script, treat it as the target test, not as permission to invoke the file as a bare command path.
+Run the matching `.cmd` wrapper when present, or use `powershell -NoProfile -ExecutionPolicy Bypass -File <script.ps1>`.
 
 `no_safe_task` is allowed only when all of these are true:
 
@@ -123,12 +126,12 @@ If another run is using the same write set, the worker must switch to read-only 
 Runtime claim/ledger state may live in `.codex_local/` because it is machine-local coordination state.
 The source-controlled queue describes intended work; local ledgers describe live claims and evidence.
 
-Use `tools/dev_attention/claim_v0_sprint_chunk.ps1` when a worker needs a concrete claim:
+Use `tools/dev_attention/claim_v0_sprint_chunk.cmd` when a worker needs a concrete claim:
 
-```powershell
-tools/dev_attention/claim_v0_sprint_chunk.ps1 -AutomationId sn-bounded-free-work-execution-2 -RunId <run-id>
-tools/dev_attention/claim_v0_sprint_chunk.ps1 -Mode complete -ChunkId <chunk-id> -RunId <run-id> -Evidence <test-or-summary> -Commit <sha>
-tools/dev_attention/claim_v0_sprint_chunk.ps1 -Mode block -ChunkId <chunk-id> -RunId <run-id> -Evidence <blocker>
+```cmd
+tools\dev_attention\claim_v0_sprint_chunk.cmd -AutomationId sn-bounded-free-work-execution-2 -RunId <run-id>
+tools\dev_attention\claim_v0_sprint_chunk.cmd -Mode complete -ChunkId <chunk-id> -RunId <run-id> -Evidence <test-or-summary> -Commit <sha>
+tools\dev_attention\claim_v0_sprint_chunk.cmd -Mode block -ChunkId <chunk-id> -RunId <run-id> -Evidence <blocker>
 ```
 
 The helper writes only local runtime claim state under `.codex_local/`; it does not mutate the source-controlled queue.

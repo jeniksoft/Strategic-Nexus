@@ -600,6 +600,10 @@ Codex may continue on the same slice only when a real bug, failed test, unsafe i
 
 Scheduled or background Free Work must protect foreground architecture work.
 
+Background workers must not invoke a `.ps1` file as a bare command path.
+On Windows that can use the shell file association and open the script in an editor instead of executing it.
+Use the matching `.cmd` wrapper when it exists, or call PowerShell explicitly with `powershell -NoProfile -ExecutionPolicy Bypass -File <script.ps1>`.
+
 Before selecting or claiming implementation work, Free Work must run the local start helper:
 
 ```text

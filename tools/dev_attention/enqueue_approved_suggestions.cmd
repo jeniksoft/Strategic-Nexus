@@ -8,5 +8,5 @@ REM Prefer UTF-8 console to reduce mojibake in owner-facing outputs.
 chcp 65001 >nul
 
 REM Wrapper for environments where PowerShell script execution is restricted.
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0claim_v0_sprint_chunk.ps1" %*
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0enqueue_approved_suggestions.ps1" %*
 exit /b %errorlevel%
