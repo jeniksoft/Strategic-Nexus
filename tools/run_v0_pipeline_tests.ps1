@@ -1534,6 +1534,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc support report preview" -Text $supportReportPreviewText -Expected "support@jeniksoft.cz"
     Assert-Contains -Name "snc support report preview" -Text $supportReportPreviewText -Expected "explicit owner approval required"
     Assert-Contains -Name "snc support report preview" -Text $supportReportPreviewText -Expected "Raw saves included: no"
+    Assert-Contains -Name "snc support report preview output" -Text ($supportPreviewOutput -join "`n") -Expected "support_report_open_command_hint=cmd /c start"
 
     $mpExportOutput = & $exePath `
         --export-mp-overlay-package `

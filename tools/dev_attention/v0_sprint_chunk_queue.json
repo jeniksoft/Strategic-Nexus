@@ -1531,6 +1531,23 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-162-support-report-preview-open-hint",
+      "title": "Support report preview open hint",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Status Center / support report approval and preview contract",
+      "goal": "Make the local support report preview helper emit a direct open-command hint for the generated preview file and lock that hint into the v0 regression path.",
+      "acceptance": [
+        "tools/prepare_snc_support_report.ps1 emits a support_report_open_command_hint for the generated preview file.",
+        "The v0 pipeline regression verifies the preview helper output includes the open hint alongside the approval and privacy text.",
+        "The change stays bounded to support-report preview review workflow and does not enable automatic sending."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
     }
   ]
 }

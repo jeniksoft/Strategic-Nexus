@@ -241,3 +241,4 @@ Set-Content -LiteralPath $resolvedOutputPath -Value ($lines -join "`r`n") -Encod
 Write-Output ("support_report_preview_path=" + ($resolvedOutputPath.Replace('\', '/')))
 Write-Output "support_report_preview_ready=true"
 Write-Output "support_report_send_requires_approval=true"
+Write-Output ('support_report_open_command_hint=cmd /c start "" "' + $resolvedOutputPath + '"')
