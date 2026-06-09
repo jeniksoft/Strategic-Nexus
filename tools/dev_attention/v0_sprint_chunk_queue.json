@@ -1455,7 +1455,7 @@
     {
       "id": "v0-sprint-158-verify-friend-mp-sync-outbox-plan-surface",
       "title": "Verify friend MP sync outbox-plan surface",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Release Companion MP Package UX / friend MP sync outbox-plan template",
       "goal": "Verify that the companion, tray, and visible dashboard surfaces expose the stable friend MP sync outbox-plan command template with no-send/no-upload/no-staging wording on current head.",
@@ -1471,6 +1471,27 @@
       ],
       "dependencies": [
         "v0-sprint-153-verify-friend-trust-store-visibility-and-auto-sync-controls"
+      ]
+    },
+    {
+      "id": "v0-sprint-159-verify-mp-zip-handoff-continuity-surface",
+      "title": "Verify MP ZIP handoff continuity surface",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "MP ZIP Handoff And Host Rotation Continuity",
+      "goal": "Verify on current head that MP ZIP handoff continuity still exposes package path, hash, bytes, previous-host availability, and host/client readiness without touching the dirty release-companion write set.",
+      "acceptance": [
+        "Companion and tray status surfaces still expose mp_package_zip_path, mp_package_zip_hash, and mp_package_zip_bytes.",
+        "Companion and Status Center output still expose host_readiness, client_readiness_gate, and host_handoff_state or previous_host_available continuity text on current head.",
+        "Targeted companion, tray, and v0 pipeline tests pass without modifying the dirty src/SncTrayApp.cpp or docs/MASTER_ARCHITECTURE_INDEX.md write set."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-158-verify-friend-mp-sync-outbox-plan-surface"
       ]
     }
   ]
