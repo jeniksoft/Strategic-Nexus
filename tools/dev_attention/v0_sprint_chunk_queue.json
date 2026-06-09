@@ -1347,6 +1347,26 @@
       "dependencies": [
         "v0-sprint-151-surface-friend-mp-sync-transport-next-step"
       ]
+    },
+    {
+      "id": "v0-sprint-153-verify-friend-trust-store-visibility-and-auto-sync-controls",
+      "title": "Verify friend trust-store visibility",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Release Companion MP Package UX / local friend trust store visibility",
+      "goal": "Verify that the existing friend trust store status surfaces keep exposing trust counts, auto-sync availability, and the manual pairing and MP sync command templates on current head.",
+      "acceptance": [
+        "Companion status exposes trusted, revoked, blocked, and auto-sync counts plus auto-sync availability.",
+        "Companion and Status Center surfaces expose the manual friend pairing, friend MP sync envelope, inbox-plan, outbox-plan, and transport next-step text.",
+        "Unsupported friend trust store schema still fails closed with attention_required status."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-152-surface-friend-mp-sync-preflight-checklist"
+      ]
     }
   ]
 }
