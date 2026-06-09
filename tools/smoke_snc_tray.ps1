@@ -859,6 +859,11 @@ try {
                     $sncTraySource -like "*SNC uz bezi*") {
                     throw "SNC tray source did not redirect duplicate launches to the existing status window."
                 }
+                if ($sncTraySource -notlike "*ID_STATUS_EXPORT_MP_PACKAGE*" -or
+                    $sncTraySource -notlike "*MP export*" -or
+                    $sncTraySource -notlike "*Rebuilds the multiplayer overlay package from validated local artifacts.*") {
+                    throw "SNC tray source did not expose the MP export dashboard action."
+                }
                 if ($sncTraySource -notlike "*ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE*" -or
                     $sncTraySource -notlike "*SNC MP sync*" -or
                     $sncTraySource -notlike "*Manual metadata only*" -or
@@ -885,6 +890,9 @@ try {
                 if ($summaryText -notlike "*friend_mp_sync_preflight_checklist: Before a friend MP season*" -or
                     $summaryText -notlike "*run inbox/outbox plan checks with Stellaris closed*") {
                     throw "SNC tray summary text did not expose friend MP sync preflight checklist."
+                }
+                if ($summaryText -notlike "*mp_sdileni_tip: zkopiruj mp_package_zip_path a mp_package_manifest_hash; host/client kroky jsou nize.*") {
+                    throw "SNC tray summary text did not expose MP export/share guidance."
                 }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_pairing_guide_text)) {
                     throw "SNC tray status JSON did not expose friend_pairing_guide_text."

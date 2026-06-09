@@ -1342,6 +1342,11 @@ int main()
         ready.statusCenterSummaryText.find("mp_package_zip_hash: " + ready.mpOverlayPackage.packageZipHash) != std::string::npos,
         "status center summary should include MP package zip hash");
     requireCondition(
+        ready.statusCenterSummaryText.find(
+            "mp_sdileni_tip: zkopiruj mp_package_zip_path a mp_package_manifest_hash; host/client kroky jsou nize.") !=
+            std::string::npos,
+        "status center summary should include MP export/share guidance");
+    requireCondition(
         ready.statusCenterSummaryText.find("post_play_pipeline: ready - generated overlay staging verified") != std::string::npos,
         "status center summary should include post-play pipeline state");
     requireCondition(
