@@ -564,6 +564,16 @@ std::vector<SaveParserFieldAvailability> buildFieldAvailability(const SaveParser
         summary.ok ? std::vector<std::string>{} : std::vector<std::string>{ summary.reason }
     });
     availability.push_back({
+        "country_core",
+        "headline_country_core",
+        summary.ok && !summary.government.empty() && !summary.authority.empty() &&
+            !summary.founderSpeciesName.empty() && !summary.capitalPlanetName.empty() && !summary.homeSystemName.empty(),
+        summary.ok && !summary.government.empty() && !summary.authority.empty() &&
+            !summary.founderSpeciesName.empty() && !summary.capitalPlanetName.empty() && !summary.homeSystemName.empty()
+            ? std::vector<std::string>{}
+            : std::vector<std::string>{ "country core headline fields unavailable without parsed headline summary" }
+    });
+    availability.push_back({
         "owned_fleets",
         "headline_owned_fleets",
         summary.ok,

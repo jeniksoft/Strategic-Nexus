@@ -870,7 +870,7 @@ Required:
 * tests proving unavailable facts remain unavailable
 
 Current progress:
-`SaveParserSummary` now exposes a `field_availability` map in parser summary JSON for headline-derived player empire evidence, including explicit source-quality and missing-reason signals for unsupported diplomacy/subject/federation/border/intel groups. The richer per-empire evidence coverage map still needs broader extraction work beyond headline-only parsing.
+`SaveParserSummary` now exposes a `field_availability` map in parser summary JSON for headline-derived player empire evidence, including explicit source-quality and missing-reason signals for country-core, diplomacy/subject/federation/border/intel groups. The richer per-empire evidence coverage map still needs broader extraction work beyond headline-only parsing.
 
 ---
 

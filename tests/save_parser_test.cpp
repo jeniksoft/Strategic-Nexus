@@ -121,7 +121,7 @@ war={
     requireCondition(summary.homeSystemName == "Aeel System", "home system should parse");
     requireCondition(summary.ownedFleetCount == 1, "owned fleet count should filter by owner");
     requireCondition(summary.activeWarCount == 1, "active war count should parse");
-    requireCondition(summary.fieldAvailability.size() >= 5, "field availability map should be populated");
+    requireCondition(summary.fieldAvailability.size() >= 6, "field availability map should be populated");
 
     const auto* identityAvailability = findFieldAvailability(summary.fieldAvailability, "identity");
     requireCondition(identityAvailability != nullptr, "identity availability should exist");
@@ -136,6 +136,13 @@ war={
     requireCondition(
         fleetsAvailability->sourceQuality == "headline_owned_fleets",
         "owned fleets should have headline owned fleets source quality");
+
+    const auto* countryCoreAvailability = findFieldAvailability(summary.fieldAvailability, "country_core");
+    requireCondition(countryCoreAvailability != nullptr, "country core availability should exist");
+    requireCondition(countryCoreAvailability->available, "country core should be available");
+    requireCondition(
+        countryCoreAvailability->sourceQuality == "headline_country_core",
+        "country core should have headline country core source quality");
 
     const auto* diplomacyAvailability = findFieldAvailability(summary.fieldAvailability, "diplomacy");
     requireCondition(diplomacyAvailability != nullptr, "diplomacy availability should exist");
@@ -153,6 +160,9 @@ war={
     requireCondition(
         json.find("\"field_group\":\"diplomacy\"") != std::string::npos,
         "json should include diplomacy field availability");
+    requireCondition(
+        json.find("\"field_group\":\"country_core\"") != std::string::npos,
+        "json should include country core field availability");
     requireCondition(
         json.find("\"source_quality\":\"headline_owned_fleets\"") != std::string::npos,
         "json should include owned fleets source quality");
