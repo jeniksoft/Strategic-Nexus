@@ -908,7 +908,7 @@ When a 3A or 3B task generates gameplay-affecting overlay behavior, include a fu
 ## 3A. Subjective Other-Empire Profiles And Targeted Rules
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Let each empire build its own predictive picture of important other empires and use that memory for bounded next-session strategic rules.
@@ -929,6 +929,13 @@ Notes:
 Profiles are subjective and predictive, not objective truth about the target empire.
 This is the main path toward galactic social intelligence: empires remember who helped, who betrayed, who exploits weakness, and who can be trusted only in specific contexts.
 If profile confidence is low, store a concise memory summary and skip gameplay-affecting generated rules.
+
+Current progress:
+The first observer-target profile contract exists as a summary-only builder. `ObserverTargetProfileBuilder` now accepts a validated observer brief plus a target empire id and confidence, records bounded evidence references, exposes an explicit observer/target/diplomacy/war/subject/federation/border/intel field-availability map, and intentionally keeps target-specific rule candidates empty until later validation and gameplay-safe generation exist.
+
+The regression coverage confirms the profile contract rejects missing target identity, unsupported source brief quality, invalid confidence, and missing evidence references, and it preserves distinct observer-target memories for different observer empires built from the same shared evidence.
+
+The profile contract still needs actual target-specific interpretation, confidence-scored memory summaries, and generated overlay rule candidates before it can influence gameplay.
 
 ---
 

@@ -101,6 +101,12 @@ $seasonEmpireBriefBuilderSourceFiles = @(
     (Join-Path $repoRoot "tests/season_empire_brief_builder_test.cpp"),
     (Join-Path $repoRoot "src/SeasonEmpireBriefBuilder.cpp")
 )
+$observerTargetProfileBuilderExePath = Join-Path $repoRoot "dist/observer_target_profile_builder_test.exe"
+$observerTargetProfileBuilderSourceFiles = @(
+    (Join-Path $repoRoot "tests/observer_target_profile_builder_test.cpp"),
+    (Join-Path $repoRoot "src/ObserverTargetProfileBuilder.cpp"),
+    (Join-Path $repoRoot "src/SeasonEmpireBriefBuilder.cpp")
+)
 $cabinetContractSourceFiles = @(
     (Join-Path $repoRoot "tests/v0_cabinet_contract_test.cpp"),
     (Join-Path $repoRoot "src/strategic_pipeline/LightweightCabinet.cpp"),
@@ -394,6 +400,7 @@ try {
     Invoke-ClCompile -Name "archive_ministry_input_builder_test" -SourceFiles $archiveMinistryInputBuilderSourceFiles -OutputPath $archiveMinistryInputBuilderExePath
     Invoke-ClCompile -Name "season_delta_ledger_builder_test" -SourceFiles $seasonDeltaLedgerBuilderSourceFiles -OutputPath $seasonDeltaLedgerBuilderExePath
     Invoke-ClCompile -Name "season_empire_brief_builder_test" -SourceFiles $seasonEmpireBriefBuilderSourceFiles -OutputPath $seasonEmpireBriefBuilderExePath
+    Invoke-ClCompile -Name "observer_target_profile_builder_test" -SourceFiles $observerTargetProfileBuilderSourceFiles -OutputPath $observerTargetProfileBuilderExePath
     Invoke-ClCompile -Name "v0_cabinet_contract_test" -SourceFiles $cabinetContractSourceFiles -OutputPath $cabinetContractExePath
     Invoke-ClCompile -Name "v0_priority_score_test" -SourceFiles $priorityScoreSourceFiles -OutputPath $priorityScoreExePath
     Invoke-ClCompile -Name "v0_processing_queue_test" -SourceFiles $processingQueueSourceFiles -OutputPath $processingQueueExePath
