@@ -64,6 +64,37 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-09
+
+Dnesni commitova vlna byla hlavne o zpresneni owner-facing MP sync povrchu a dalsim fail-closed ohraniceni post-play rozhodovani, ne o nove runtime schopnosti. Na verejnem headu `b331c40` (`Verify friend MP sync outbox surface`) se jen potvrzuje a zprehlednuje uz existujici friend MP sync outbox-plan template a disabled transport surface; navazujici commity `Regress ambiguous post-play CLI fail-closed` a `Fail closed SNC branch ambiguity status` drzi branch-aware post-play cestu konzervativni.
+
+Co pribylo v repozitari:
+
+* `tools/dev_attention/v0_sprint_chunk_queue.json` byl posunut tak, aby sprint queue explicitne overovala friend MP sync outbox surface.
+* Pribuzna prace v poslednich commitech dale zpevnuje fail-closed chovani pro nejednoznacne post-play a branch-aware rozhodovani, takze decision inputs nevznikaji z nejasne kampanove situace.
+* Na dokumentacni hranici se soucasne dorovnava terminologie kolem narrow headline parseru a bounded ledger handoff, ale samotny produkcni export/import contract tim jeste neni uzavren.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Posun je hlavne na integration boundary a ve viditelnosti stavu: companion, tray a dashboard presneji popisuji, ze outbox je pripraveny jako template a transport zustava disabled, ne ze by se zvedla nova prava v bezici session.
+* Host-authoritative model zustava stejny: runtime se neobchazi, pouze se zpresnuje, jak ma owner cist dalsi krok a jak se ma fail-closed interpretovat nejednoznacne post-play nebo MP sync rozhodnuti.
+* To je uzitecne pro scripted event/effect path, protoze se snizuje sance, ze se do dalsiho kroku dostane nejasny nebo neovereny stav.
+
+Testy a stav overeni:
+
+* Pro `b331c40` zatim neni k dispozici zadny verejny GitHub Actions workflow run ani combined status check.
+* Dnes jsem nespoustel novy plny lokalni test run; zapis vychazi z commit historie a diffu queue a dokumentacniho povrchu.
+
+Blokery a rizika:
+
+* Zustava stejny produkcni blocker: chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi ucastniky.
+* Friend MP sync outbox je ted lepe videt, ale release-grade transport stale potrebuje skutecny signed/encrypted transport, decrypt/verify staging a plne end-to-end season validation.
+* Rizikem je, ze owner-facing status surface bude citelnejsi rychleji nez skutecne doruceni artefaktu pres integration boundary.
+
+Doporuceny dalsi krok:
+
+* Overit, ze novy outbox surface nijak nerozbija existujici companion/tray/dashboard kontrakt, a pak navazat dalsim bounded krokem na release-companion transport nebo verify/import workflow.
+
 ## 2026-06-08
 
 Dnesni commitova vlna zpevnila hlavne MP package workflow, status surfaces a save/overlay metadata. Jde porad o zpracovani na integration boundary a o overovani host-authoritative modelu, ne o zasah do bezici session.
