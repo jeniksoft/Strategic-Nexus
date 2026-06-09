@@ -1476,7 +1476,7 @@
     {
       "id": "v0-sprint-159-verify-mp-zip-handoff-continuity-surface",
       "title": "Verify MP ZIP handoff continuity surface",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "MP ZIP Handoff And Host Rotation Continuity",
       "goal": "Verify on current head that MP ZIP handoff continuity still exposes package path, hash, bytes, previous-host availability, and host/client readiness without touching the dirty release-companion write set.",
@@ -1493,6 +1493,25 @@
       "dependencies": [
         "v0-sprint-158-verify-friend-mp-sync-outbox-plan-surface"
       ]
+    },
+    {
+      "id": "v0-sprint-160-verify-snc-status-ui-state-persistence",
+      "title": "Verify SNC status UI state persistence",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Release Companion MP Package UX / status-window ergonomics",
+      "goal": "Verify that the companion and tray status surfaces expose the persisted SNC UI state path and that the status window falls back safely when the saved page or placement file is missing or malformed.",
+      "acceptance": [
+        "Companion status output includes status_ui_state_path and the status-center summary text mentions the persisted UI state note.",
+        "Missing or malformed SNC UI state files fall back to default status-window placement and overview page without crashing.",
+        "Targeted companion, tray, and v0 pipeline tests pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
     }
   ]
 }
