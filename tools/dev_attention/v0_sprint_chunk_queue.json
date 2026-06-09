@@ -1263,6 +1263,25 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-149-regress-ambiguous-post-play-cli-fail-closed",
+      "title": "Regress ambiguous post-play CLI fail-closed",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "1D Entry-Point Scoped Post-Play Handoff / branch-aware memory and rules selection",
+      "goal": "Add v0 pipeline regression coverage that the CLI post-play handoff path keeps campaign-level branch ambiguity from producing decision inputs or candidate decisions.",
+      "acceptance": [
+        "The regression creates an ambiguous post-play archive through CLI commands rather than only builder unit tests.",
+        "Decision-input CLI output reports zero decision inputs and branch-ambiguity-blocked entries.",
+        "Candidate-decision CLI output reports zero candidate decisions and does not pass unsafe ambiguous inputs downstream."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-148-block-ambiguous-campaign-post-play-decision-inputs"
+      ]
     }
   ]
 }

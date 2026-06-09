@@ -3598,6 +3598,9 @@ int Application::run(const RunConfig& config) const
             std::cout << "post_play_package_reason=" << sanitizeCliValue(package.reason) << "\n";
             std::cout << "post_play_package_readiness=" << sanitizeCliValue(package.readiness) << "\n";
             std::cout << "post_play_package_entry_points=" << package.entryPointCount << "\n";
+            std::cout << "post_play_package_branch_ambiguity_detected="
+                      << (package.branchAmbiguityDetected ? "true" : "false") << "\n";
+            std::cout << "post_play_package_decision_ready_entry_count=" << package.decisionReadyEntryCount << "\n";
             std::cout << "post_play_package_decision_ready_entries=" << package.decisionReadyEntryCount << "\n";
             std::cout << "post_play_package_archived_evidence=" << package.archivedEvidenceCount << "\n";
             std::cout << "post_play_package_dry_run_only=" << (package.dryRunOnly ? "true" : "false") << "\n";

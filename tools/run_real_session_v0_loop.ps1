@@ -161,6 +161,27 @@ function Get-SafeFileToken {
     return $safe
 }
 
+function Get-FileSha256Hex {
+    param([Parameter(Mandatory = $true)][string]$LiteralPath)
+
+    if (Get-Command Get-FileHash -ErrorAction SilentlyContinue) {
+        return [string](Get-FileHash -Algorithm SHA256 -LiteralPath $LiteralPath).Hash
+    }
+
+    $stream = [System.IO.File]::OpenRead($LiteralPath)
+    try {
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            $hashBytes = $sha256.ComputeHash($stream)
+            return -join ($hashBytes | ForEach-Object { $_.ToString("x2") })
+        } finally {
+            $sha256.Dispose()
+        }
+    } finally {
+        $stream.Dispose()
+    }
+}
+
 function Get-UniqueNonEmptyValues {
     param([object]$Values)
 
@@ -1109,8 +1130,7 @@ if ($ExportMpPackage) {
     if (-not (Test-Path -LiteralPath $mpPackageZipPath)) {
         throw "MP package zip export did not create expected file: $mpPackageZipPath"
     }
-    $mpPackageZipHash = Get-FileHash -Algorithm SHA256 -LiteralPath $mpPackageZipPath
-    $mpPackageZipSha256 = [string]$mpPackageZipHash.Hash
+    $mpPackageZipSha256 = Get-FileSha256Hex -LiteralPath $mpPackageZipPath
     $mpPackageZipBytes = [string](Get-Item -LiteralPath $mpPackageZipPath).Length
     $mpPackageZipState = "ready"
     $mpPackageZipReason = "zip_created"

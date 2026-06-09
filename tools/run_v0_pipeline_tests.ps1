@@ -448,6 +448,14 @@ function Assert-NotContains {
     }
 }
 
+function Assert-LastExitCodeOk {
+    param([Parameter(Mandatory = $true)][string]$StepName)
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "$StepName failed (exit code $LASTEXITCODE)."
+    }
+}
+
 function Invoke-V0PipelineCase {
     param(
         [string]$Name,
@@ -3006,6 +3014,88 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Write-Host "[PASS] real_session_loop_mismatch_forwarding"
 }
 
+function Invoke-AmbiguousPostPlayCliFailClosedCase {
+    $root = Join-Path $repoRoot "dist\test_ambiguous_post_play_cli"
+    Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue
+
+    $captureRoot = Join-Path $root "capture_root"
+    $currentRoot = Join-Path $root "current_root"
+    $archiveRoot = Join-Path $root "archive"
+    $sessionId = "session_ambiguous_post_play_cli"
+    $postPlayPackagePath = Join-Path $root "snc_post_play_package.json"
+    $decisionInputPackagePath = Join-Path $root "snc_decision_input_package.json"
+    $candidateDecisionPackagePath = Join-Path $root "snc_candidate_decision_package.json"
+    $captureCampaignRoot = Join-Path $captureRoot "Gamma Campaign"
+    $currentCampaignRoot = Join-Path $currentRoot "Gamma Campaign"
+
+    New-Item -ItemType Directory -Force -Path $captureCampaignRoot, $currentCampaignRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $captureCampaignRoot "autosave_2200.01.01.sav") -Value "gamma branch one" -NoNewline
+    & $exePath --archive-live-saves $captureRoot $archiveRoot $sessionId 0
+    Assert-LastExitCodeOk -StepName "ambiguous post-play cli archive branch one"
+
+    Set-Content -LiteralPath (Join-Path $captureCampaignRoot "autosave_2200.01.01.sav") -Value "gamma branch two" -NoNewline
+    & $exePath --archive-live-saves $captureRoot $archiveRoot $sessionId 0
+    Assert-LastExitCodeOk -StepName "ambiguous post-play cli archive branch two"
+
+    Set-Content -LiteralPath (Join-Path $currentCampaignRoot "autosave_2200.01.01.sav") -Value "gamma branch two" -NoNewline
+    Set-Content -LiteralPath (Join-Path $currentCampaignRoot "2200.02.01.sav") -Value "gamma manual entry point" -NoNewline
+
+    $postPlayOutput = & $exePath --build-post-play-package (Join-Path $archiveRoot $sessionId) $postPlayPackagePath $currentRoot
+    if ($LASTEXITCODE -ne 0) {
+        throw "Ambiguous post-play package CLI failed. Actual output:`n$($postPlayOutput -join "`n")"
+    }
+    $postPlayText = $postPlayOutput -join "`n"
+    Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_success=true"
+    Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_readiness=ambiguous"
+    Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_branch_ambiguity_detected=true"
+    Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_decision_ready_entry_count=0"
+
+    $postPlayJsonText = Get-Content -LiteralPath $postPlayPackagePath -Raw
+    $postPlayJson = $postPlayJsonText | ConvertFrom-Json
+    if ($postPlayJson.branch_ambiguity_detected -ne $true) {
+        throw "Ambiguous post-play package JSON did not expose branch_ambiguity_detected=true."
+    }
+    if ([int]$postPlayJson.decision_ready_entry_count -ne 0) {
+        throw "Ambiguous post-play package JSON exposed decision-ready entries."
+    }
+    Assert-Contains -Name "ambiguous post-play cli json" -Text $postPlayJsonText -Expected '"post_play_branch_ambiguity_blocks_decision_input"'
+
+    $decisionInputOutput = & $exePath --build-snc-decision-input-package $postPlayPackagePath $decisionInputPackagePath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Ambiguous decision-input CLI failed. Actual output:`n$($decisionInputOutput -join "`n")"
+    }
+    $decisionInputText = $decisionInputOutput -join "`n"
+    Assert-Contains -Name "ambiguous decision-input cli" -Text $decisionInputText -Expected "snc_decision_input_package_success=true"
+    Assert-Contains -Name "ambiguous decision-input cli" -Text $decisionInputText -Expected "snc_decision_input_package_readiness=needs_attention"
+    Assert-Contains -Name "ambiguous decision-input cli" -Text $decisionInputText -Expected "snc_decision_input_package_decision_inputs=0"
+    Assert-Contains -Name "ambiguous decision-input cli" -Text $decisionInputText -Expected "snc_decision_input_package_blocked_entries=2"
+
+    $decisionInputJson = Get-Content -LiteralPath $decisionInputPackagePath -Raw | ConvertFrom-Json
+    if ([int]$decisionInputJson.decision_input_count -ne 0) {
+        throw "Ambiguous decision-input package JSON exposed decision inputs."
+    }
+    if ([int]$decisionInputJson.blocked_entry_count -lt 1) {
+        throw "Ambiguous decision-input package JSON did not keep blocked entries."
+    }
+
+    $candidateDecisionOutput = & $exePath --build-snc-candidate-decision-package $decisionInputPackagePath $candidateDecisionPackagePath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Ambiguous candidate-decision CLI failed. Actual output:`n$($candidateDecisionOutput -join "`n")"
+    }
+    $candidateDecisionText = $candidateDecisionOutput -join "`n"
+    Assert-Contains -Name "ambiguous candidate-decision cli" -Text $candidateDecisionText -Expected "snc_candidate_decision_package_success=true"
+    Assert-Contains -Name "ambiguous candidate-decision cli" -Text $candidateDecisionText -Expected "snc_candidate_decision_package_readiness=needs_attention"
+    Assert-Contains -Name "ambiguous candidate-decision cli" -Text $candidateDecisionText -Expected "snc_candidate_decision_package_candidate_decisions=0"
+    Assert-Contains -Name "ambiguous candidate-decision cli" -Text $candidateDecisionText -Expected "snc_candidate_decision_package_blocked_source_entries=2"
+
+    $candidateDecisionJson = Get-Content -LiteralPath $candidateDecisionPackagePath -Raw | ConvertFrom-Json
+    if ([int]$candidateDecisionJson.candidate_decision_count -ne 0) {
+        throw "Ambiguous candidate-decision package JSON exposed candidate decisions."
+    }
+
+    Write-Host "[PASS] ambiguous_post_play_cli_fail_closed"
+}
+
 function Invoke-RealSessionLoopMpSnapshotContractCase {
     $saveRoot = Join-Path $repoRoot "dist/test_real_session_loop_saves"
     $archiveRoot = Join-Path $repoRoot "dist/test_real_session_loop_archive"
@@ -3727,6 +3817,7 @@ Invoke-RealSessionLoopNextActionStrictVerifySourceContractCase
 Invoke-RealSessionLoopAutoResolutionCase
 Invoke-RealSessionLoopMultiCampaignEligibleAutoResolutionCase
 Invoke-RealSessionLoopMismatchForwardingCase
+Invoke-AmbiguousPostPlayCliFailClosedCase
 Write-Host "Running generated overlay gameplay acceptance cases..."
 $gameplayAcceptanceOutput = & cmd /c (Join-Path $repoRoot "tools\\run_generated_overlay_gameplay_acceptance.cmd")
 if ($LASTEXITCODE -ne 0) {
@@ -4260,7 +4351,7 @@ if ($null -ne $existingTrayProcess) {
     }
     $sncTrayMemoryRecoverySmokeText = $sncTrayMemoryRecoverySmokeOutput -join "`n"
     Assert-Contains -Name "snc tray memory recovery smoke output" -Text $sncTrayMemoryRecoverySmokeText -Expected "snc_tray_smoke_success=true"
-    Assert-Contains -Name "snc tray memory recovery smoke output" -Text $sncTrayMemoryRecoverySmokeText -Expected "snc_tray_smoke_next_action=review_memory_recovery_status"
+    Assert-Contains -Name "snc tray memory recovery smoke output" -Text $sncTrayMemoryRecoverySmokeText -Expected "snc_tray_smoke_next_action=review_entry_point_ambiguity"
 }
 
 Write-Host "V0 strategic pipeline tests passed."
