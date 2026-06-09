@@ -711,11 +711,11 @@ int main()
         memoryRecoveryWarning.postPlayPipeline.memoryRecovery.warningVisible,
         "degraded memory recovery should be visible as a warning");
     requireCondition(
-        memoryRecoveryWarning.nextAction == "review_memory_recovery_status",
-        "degraded memory recovery should become the top-level next action when higher-priority gates do not apply");
+        memoryRecoveryWarning.nextAction == "review_entry_point_ambiguity",
+        "branch ambiguity should become the top-level next action before degraded memory recovery review");
     requireCondition(
-        memoryRecoveryWarning.nextActionReason == "branch ambiguity requires conservative recovery anchor",
-        "degraded memory recovery should expose its reason as the next-action reason");
+        memoryRecoveryWarning.nextActionReason == "entry_point_branch_ambiguity_detected",
+        "branch ambiguity should expose its stable next-action reason");
     requireCondition(
         memoryRecoveryWarning.nextActionCommandHint.empty(),
         "memory recovery review should not invent a command hint");
@@ -724,7 +724,7 @@ int main()
         "memory recovery review should keep the command hint source fail-closed");
     requireCondition(
         memoryRecoveryWarning.nextActionPath == memoryRecoveryEntryPointAnalysisPath,
-        "degraded memory recovery should point next-action path at entry-point evidence");
+        "branch ambiguity should point next-action path at entry-point evidence");
 
     const auto unsupportedLocalModelStatePath = root / "snc_local_model_state_unsupported.json";
     writeTextFileAtomically(
@@ -1855,6 +1855,27 @@ int main()
 
     const auto ambiguousRecovery = companion.buildStatusSnapshot(ambiguousConfig);
     requireCondition(
+        ambiguousRecovery.postPlayPipeline.state == "needs_attention",
+        "branch ambiguity should override stale ready post-play downstream artifacts");
+    requireCondition(
+        ambiguousRecovery.postPlayPipeline.reason == "entry point analysis branch ambiguity detected",
+        "branch ambiguity should be the post-play pipeline attention reason");
+    requireCondition(
+        ambiguousRecovery.statusCenter.state == "attention_required",
+        "branch ambiguity should make status center require attention");
+    requireCondition(
+        ambiguousRecovery.statusCenter.path == ambiguousEntryPointAnalysisPath,
+        "branch ambiguity should focus status center on entry point analysis");
+    requireCondition(
+        ambiguousRecovery.nextAction == "review_entry_point_ambiguity",
+        "branch ambiguity should become the top-level next action before stale downstream review");
+    requireCondition(
+        ambiguousRecovery.nextActionReason == "entry_point_branch_ambiguity_detected",
+        "branch ambiguity should expose a stable next-action reason");
+    requireCondition(
+        ambiguousRecovery.nextActionPath == ambiguousEntryPointAnalysisPath,
+        "branch ambiguity should route the next action to the entry point analysis artifact");
+    requireCondition(
         ambiguousRecovery.postPlayPipeline.memoryRecovery.state == "degraded",
         "branch ambiguity should downgrade memory recovery state");
     requireCondition(
@@ -1880,6 +1901,14 @@ int main()
         ambiguousRecovery.statusCenterSummaryText.find("memory_recovery_owner_note: latest loadable save anchor is degraded or needs attention") !=
             std::string::npos,
         "status center summary should keep the degraded recovery note explicit");
+    requireCondition(
+        ambiguousRecovery.statusCenterSummaryText.find("post_play_pipeline: needs_attention - entry point analysis branch ambiguity detected") !=
+            std::string::npos,
+        "status center summary should surface branch ambiguity as the post-play pipeline state");
+    requireCondition(
+        ambiguousRecovery.statusCenterSummaryText.find("next_action: review_entry_point_ambiguity") !=
+            std::string::npos,
+        "status center summary should surface the branch ambiguity next action");
     const auto ambiguousRecoveryJson = strategic_nexus::serializeCompanionStatusSnapshot(ambiguousRecovery);
     requireCondition(
         ambiguousRecoveryJson.find("\"memory_recovery\": {") != std::string::npos,
@@ -1889,6 +1918,11 @@ int main()
             ambiguousRecoveryJson.find("\"confidence\": \"reduced\"") != std::string::npos &&
             ambiguousRecoveryJson.find("\"warning_visible\": true") != std::string::npos,
         "snapshot JSON should expose degraded branch-aware recovery state");
+    requireCondition(
+        ambiguousRecoveryJson.find("\"next_action\": \"review_entry_point_ambiguity\"") != std::string::npos &&
+            ambiguousRecoveryJson.find("\"next_action_reason\": \"entry_point_branch_ambiguity_detected\"") !=
+                std::string::npos,
+        "snapshot JSON should expose branch ambiguity as the top-level next action");
 
     const auto missingEntryPointAnalysisPath = root / "snc_entry_point_analysis_missing.json";
     strategic_nexus::CompanionStatusConfig missingAnalysisConfig = readyConfig;

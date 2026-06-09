@@ -1103,6 +1103,9 @@ std::filesystem::path postPlayPipelineFocusPath(const CompanionPostPlayPipelineS
         return value.rfind(prefix, 0) == 0;
     };
 
+    if (status.branchAmbiguityDetected) {
+        return status.entryPointAnalysisPath;
+    }
     if (hasPrefix(status.reason, "generated overlay staging ")) {
         return status.generatedOverlayStagingStatusPath;
     }
@@ -2032,6 +2035,11 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
         candidateAvailable && isReadyLikeReadiness(status.candidateDecisionPackageReadiness);
     const bool dslDraftReadyLike = dslDraftAvailable && isReadyLikeReadiness(status.dslDraftReadiness);
 
+    if (status.branchAmbiguityDetected) {
+        status.state = "needs_attention";
+        status.reason = "entry point analysis branch ambiguity detected";
+        return status;
+    }
     if (generatedOverlayStagingAvailable && dslDraftReadyLike && candidateReadyLike && decisionInputReadyLike &&
         postPlayReadyLike && isStagedOverlayReadyLike(status.generatedOverlayStagingReadiness)) {
         status.state = stateFromGeneratedOverlayStagingReadiness(status.generatedOverlayStagingReadiness);
@@ -2195,9 +2203,13 @@ CompanionSubsystemStatus buildStatusCenterStatus(
         }
         if (postPlayNeedsAttention && memoryRecoveryNeedsAttention) {
             status.reason = "post-play pipeline and memory recovery need attention";
-            status.path = postPlayPipeline.memoryRecovery.anchorPath.empty()
-                ? postPlayPipelineFocusPath(postPlayPipeline)
-                : postPlayPipeline.memoryRecovery.anchorPath;
+            if (postPlayPipeline.branchAmbiguityDetected) {
+                status.path = postPlayPipeline.entryPointAnalysisPath;
+            } else {
+                status.path = postPlayPipeline.memoryRecovery.anchorPath.empty()
+                    ? postPlayPipelineFocusPath(postPlayPipeline)
+                    : postPlayPipeline.memoryRecovery.anchorPath;
+            }
             if (status.path.empty()) {
                 status.path = postPlayPipeline.entryPointAnalysisPath;
             }
@@ -2982,6 +2994,9 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     if (crashRecoveryNeedsAttention(snapshot.crashRecovery)) {
         return "review_crash_recovery_status";
     }
+    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
+        return "review_entry_point_ambiguity";
+    }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         return "review_mp_handoff_continuity";
     }
@@ -3009,9 +3024,6 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     if (startsWith(snapshot.postPlayPipeline.candidateDecisionPackageReadiness, "ready")) {
         return "review_candidate_decision_package";
     }
-    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
-        return "review_entry_point_ambiguity";
-    }
     if (snapshot.statusCenter.state == "attention_required") {
         return "review_status_center_issue";
     }
@@ -3028,6 +3040,9 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
     }
     if (crashRecoveryNeedsAttention(snapshot.crashRecovery)) {
         return snapshot.crashRecovery.reason.empty() ? snapshot.crashRecovery.state : snapshot.crashRecovery.reason;
+    }
+    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
+        return "entry_point_branch_ambiguity_detected";
     }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         return "mp_handoff_degraded_previous_host_unavailable";
@@ -3058,9 +3073,6 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
     }
     if (startsWith(snapshot.postPlayPipeline.candidateDecisionPackageReadiness, "ready")) {
         return "candidate_decisions_ready_before_dsl_draft";
-    }
-    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
-        return "entry_point_branch_ambiguity_detected";
     }
     if (!snapshot.statusCenter.reason.empty()) {
         return snapshot.statusCenter.reason;
@@ -3149,6 +3161,9 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
         }
         return snapshot.crashRecovery.statePath;
     }
+    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
+        return snapshot.postPlayPipeline.entryPointAnalysisPath;
+    }
     if (hasDegradedMpHandoffContinuity(snapshot) || snapshot.mpOverlayPackage.state == "needs_attention") {
         return snapshot.mpOverlayPackage.path;
     }
@@ -3177,9 +3192,6 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
     }
     if (startsWith(snapshot.postPlayPipeline.candidateDecisionPackageReadiness, "ready")) {
         return snapshot.postPlayPipeline.candidateDecisionPackagePath;
-    }
-    if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
-        return snapshot.postPlayPipeline.entryPointAnalysisPath;
     }
     return snapshot.statusCenter.path;
 }

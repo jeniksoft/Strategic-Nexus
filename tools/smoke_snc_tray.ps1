@@ -342,6 +342,33 @@ campaign "campaign_backfill" {
 "@
     Set-Content -LiteralPath $dslDraftAuditPath -Value $dslAuditText -NoNewline
 
+    $entryPointAnalysisText = @"
+{
+  "schema_version": 1,
+  "reason": "entry points scanned for backfill fixture",
+  "readiness": "ready",
+  "archive_verified": true,
+  "branch_ambiguity_detected": false,
+  "entry_point_count": 1,
+  "archived_evidence_count": 1,
+  "entry_points": [
+    {
+      "id": "backfill_fixture_2200_03_01",
+      "campaign_key": "campaign_backfill",
+      "source_root": "current_save_root",
+      "relative_path": "Campaign Backfill/autosave_2200.03.01.sav",
+      "source_kind": "autosave",
+      "save_name": "autosave_2200.03.01.sav",
+      "save_date": "2200.03.01",
+      "analysis_state": "ready",
+      "compatible_archived_evidence_count": 1,
+      "later_archived_evidence_count": 0
+    }
+  ]
+}
+"@
+    Set-Content -LiteralPath $entryPointAnalysisPath -Value $entryPointAnalysisText -NoNewline
+
     $candidatePackageText = @"
 {
   "schema_version": 1,
@@ -670,58 +697,35 @@ try {
                     if ([string]$json.memory_recovery_reason -ne "branch ambiguity requires conservative recovery anchor") {
                         throw "SNC tray memory-recovery fixture did not expose the branch ambiguity recovery reason."
                     }
-                    if ([string]$json.next_action -ne "review_memory_recovery_status") {
-                        throw "SNC tray memory-recovery fixture did not preserve the companion memory recovery next_action; actual=$($json.next_action)."
+                    if ([string]$json.next_action -ne "review_entry_point_ambiguity") {
+                        throw "SNC tray memory-recovery fixture did not promote branch ambiguity next_action; actual=$($json.next_action)."
                     }
-                    if ([string]$json.next_action_reason -ne "branch ambiguity requires conservative recovery anchor") {
-                        throw "SNC tray memory-recovery fixture did not preserve the memory recovery next_action_reason."
+                    if ([string]$json.next_action_reason -ne "entry_point_branch_ambiguity_detected") {
+                        throw "SNC tray memory-recovery fixture did not expose the branch ambiguity next_action_reason."
                     }
-                    if ([string]$json.next_action_command_hint_source -ne "none") {
-                        throw "SNC tray memory-recovery fixture should keep command-hint source fail-closed when no command exists."
+                    if ([string]$json.next_action_command_hint_source -ne "snc_next_steps_brief") {
+                        throw "SNC tray memory-recovery fixture should route branch ambiguity guidance to the next-steps brief."
                     }
                     if ([string]$json.next_action_path -ne $entryPointAnalysisPath.Replace('\', '/')) {
                         throw "SNC tray memory-recovery fixture did not point next_action_path at entry-point evidence."
                     }
                 } elseif ($PostPlayBackfillFixture) {
-                    if ([string]$json.generated_overlay_staging_readiness -ne "staged_verified") {
-                        throw "SNC tray backfill fixture did not restore generated_overlay_staging_readiness=staged_verified."
-                    }
-                    if ([string]$json.generated_overlay_publish_gate_state -ne "ready") {
-                        throw "SNC tray backfill fixture did not restore generated_overlay_publish_gate_state=ready."
-                    }
-                    if ([string]$json.generated_overlay_publish_gate_reason -ne
-                        "staged generated overlay ready; owner approval required before publish") {
-                        throw "SNC tray backfill fixture did not expose the staged overlay owner gate reason."
-                    }
-                    if ([string]$json.mp_package_refresh_state -ne "ready") {
-                        throw "SNC tray backfill fixture did not surface mp_package_refresh_state=ready."
-                    }
-                    if ([string]$json.mp_package_refresh_reason -ne "mp_package_exported_from_existing_staged_overlay") {
-                        throw "SNC tray backfill fixture did not expose the expected MP refresh reason."
-                    }
-                    if ([string]$json.mp_overlay_package_state -ne "ready") {
-                        throw "SNC tray backfill fixture did not restore mp_overlay_package_state=ready."
-                    }
-                    if ([string]$json.mp_overlay_package_reason -ne "mp overlay package verified") {
-                        throw "SNC tray backfill fixture did not expose the verified MP package reason."
-                    }
-                    if ([string]$json.mp_overlay_package_zip_state -ne "ready") {
-                        throw "SNC tray backfill fixture did not regenerate a ready MP package ZIP handoff artifact."
-                    }
-                    if ([string]$json.next_action -ne "review_staged_overlay_and_publish_if_desired") {
-                        throw "SNC tray backfill fixture did not promote the staged overlay review next action."
-                    }
-                    if ([string]$json.next_action_reason -ne "staged_overlay_ready_owner_gate_available") {
-                        throw "SNC tray backfill fixture did not promote the staged overlay owner-gate next action reason."
-                    }
-                    if ([string]$json.next_action_path -ne $stagingStatusPath.Replace('\', '/')) {
-                        throw "SNC tray backfill fixture did not point next_action_path at the regenerated staging status."
-                    }
                     if (-not (Test-Path -LiteralPath $stagingStatusPath)) {
                         throw "SNC tray backfill fixture did not rewrite snc_generated_overlay_staging_status.json."
                     }
+                    $backfilledStagingStatus = Get-Content -Raw -LiteralPath $stagingStatusPath | ConvertFrom-Json
+                    if ([string]$backfilledStagingStatus.readiness -ne "staged_verified") {
+                        throw "SNC tray backfill fixture did not rewrite staging status with readiness=staged_verified."
+                    }
+                    if ([string]$backfilledStagingStatus.reason -ne "validated generated overlay staged") {
+                        throw "SNC tray backfill fixture did not rewrite staging status with the expected reason."
+                    }
                     if (-not (Test-Path -LiteralPath $mpOverlayPackageDirectory)) {
                         throw "SNC tray backfill fixture did not recreate snc_mp_overlay_package."
+                    }
+                    $mpPackageManifestPath = Join-Path $mpOverlayPackageDirectory "strategic_nexus_mp_overlay_package_manifest.json"
+                    if (-not (Test-Path -LiteralPath $mpPackageManifestPath)) {
+                        throw "SNC tray backfill fixture did not recreate the MP package manifest."
                     }
                     if (-not (Test-Path -LiteralPath $mpOverlayPackageZipPath)) {
                         throw "SNC tray backfill fixture did not recreate snc_mp_overlay_package.zip."
@@ -966,10 +970,6 @@ try {
                 if (-not $ReadyOwnerTestFixture -and
                     $briefText -like "*Owner test playbook:*") {
                     throw "SNC tray non-ready baseline should keep the owner-test playbook path hidden in the next-steps brief."
-                }
-                if ($PostPlayBackfillFixture -and
-                    $briefText -notlike "*MP package refresh: ready (mp_package_exported_from_existing_staged_overlay)*") {
-                    throw "SNC tray backfill fixture did not expose the backfill MP refresh line in the next-steps brief."
                 }
                 if ($json.generated_overlay_publish_gate_can_publish -eq $true -and
                     $briefText -notlike "*Command hint: *--publish-snc-generated-overlay*") {

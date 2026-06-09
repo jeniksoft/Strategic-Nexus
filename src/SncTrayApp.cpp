@@ -3830,7 +3830,7 @@ bool isGeneratedOverlayStagingReviewable(const bool publishAllowed, const std::s
 
 bool isCompanionRecoveryNextAction(const std::string& action)
 {
-    return action == "review_memory_recovery_status";
+    return action == "review_memory_recovery_status" || action == "review_entry_point_ambiguity";
 }
 
 std::string buildNextAction(
