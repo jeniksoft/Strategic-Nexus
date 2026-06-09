@@ -1497,7 +1497,7 @@
     {
       "id": "v0-sprint-160-verify-snc-status-ui-state-persistence",
       "title": "Verify SNC status UI state persistence",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Release Companion MP Package UX / status-window ergonomics",
       "goal": "Verify that the companion and tray status surfaces expose the persisted SNC UI state path and that the status window falls back safely when the saved page or placement file is missing or malformed.",
@@ -1516,7 +1516,7 @@
     {
       "id": "v0-sprint-161-verify-release-companion-mp-package-ux-current-head",
       "title": "Verify release-companion MP package UX on current head",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Release Companion MP Package UX / current-head usability verification",
       "goal": "Verify on current head that the companion, tray, and dashboard still expose the release-companion MP package handoff surface, including copyable share guidance, strict verify/import hints, mismatch warnings, and the no-IP host/client workflow boundary.",
@@ -1552,7 +1552,7 @@
     {
       "id": "v0-sprint-163-verify-release-companion-action-surface-on-current-head",
       "title": "Verify release-companion action surface on current head",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "Release Companion Orchestrator UX / status center actions for archive, model, publish, and MP package state",
       "goal": "Verify that the current head keeps the release-companion archive, model manager, publish gate, and MP package handoff actions visible through the companion, tray, and next-steps surfaces with fail-closed wording.",
@@ -1564,6 +1564,24 @@
       "preferred_tests": [
         "dist/strategic_nexus_companion_test.exe",
         "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-164-verify-enum-expansion-safety-on-current-head",
+      "title": "Verify enum expansion safety on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "Schema versioning / enum expansion safety",
+      "goal": "Verify that current-head bridge and generated-overlay enum coverage still fails closed for unsupported future values while the roadmap status is corrected to implemented.",
+      "acceptance": [
+        "Generated-overlay contract tests still reject future event-family and source-quality values on current head.",
+        "The roadmap status for enum expansion safety is updated to implemented, matching the existing coverage in tests/generated_overlay_contract_test.cpp.",
+        "Targeted validation passes without modifying the release-companion write set."
+      ],
+      "preferred_tests": [
+        "dist/generated_overlay_contract_test.exe",
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []

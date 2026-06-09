@@ -1652,7 +1652,7 @@ Bridge core requires `schema_version`, and the post-play package parser rejects 
 ## 12B. Enum Expansion Safety
 
 Status:
-IN_PROGRESS
+IMPLEMENTED
 
 Goal:
 Allow strategy enums and DSL capabilities to expand without old consumers silently misreading new values.
@@ -1666,9 +1666,7 @@ Required:
 * compatibility notes for future enum additions
 
 Current progress:
-Bridge-core and generated-overlay validators reject unsupported values and expose some capability/event-family metadata. Remaining work is a formal enum expansion playbook and migration tests for added values.
-The enum expansion playbook now lives in `docs/SCHEMA_VERSIONING_RULES.md`, so the remaining work is focused on migration tests and any future added-value coverage.
-Migration coverage now explicitly exercises future event-family and source-quality values in `tests/generated_overlay_contract_test.cpp`, so older consumers fail closed instead of silently misreading newly added enum values.
+Bridge-core and generated-overlay validators reject unsupported values and expose some capability/event-family metadata. The enum expansion playbook now lives in `docs/SCHEMA_VERSIONING_RULES.md`, and migration coverage now explicitly exercises future event-family and source-quality values in `tests/generated_overlay_contract_test.cpp`, so older consumers fail closed instead of silently misreading newly added enum values.
 
 ---
 
