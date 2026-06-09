@@ -5344,6 +5344,9 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.installGuidance.empty()) {
         summary << "local_llm_install_guidance: " << localLlm.installGuidance << "\n";
     }
+    if (!localLlm.summary.empty()) {
+        summary << "local_llm_model_manager_summary: " << localLlm.summary << "\n";
+    }
     appendStartupRationaleLines(summary, lifecycle);
     appendOwnerFacingStatusValueLine(summary, "support_report_state", supportReport.state);
     appendOwnerFacingStatusReasonLine(summary, "support_report_reason", supportReport.reason);
@@ -6053,6 +6056,8 @@ void writeStatus(
     json << ",\n";
     json << "  \"local_llm_install_guidance\": \""
          << jsonEscape(companionSnapshot.localLlm.installGuidance) << "\",\n";
+    json << "  \"local_llm_model_manager_summary\": \""
+         << jsonEscape(companionSnapshot.localLlm.summary) << "\",\n";
     json << "  \"crash_recovery_state\": \""
          << jsonEscape(companionSnapshot.crashRecovery.state) << "\",\n";
     json << "  \"crash_recovery_reason\": \""

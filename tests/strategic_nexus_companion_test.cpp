@@ -677,6 +677,13 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("local_llm_install_guidance: ") != std::string::npos,
         "status center summary should expose local LLM install guidance");
+    requireCondition(
+        ready.localLlm.summary.find("Vybrany model") != std::string::npos ||
+            ready.localLlm.summary.find("Neni vybran podporovany lokalni model") != std::string::npos,
+        "local LLM status should expose an owner-facing model-manager summary");
+    requireCondition(
+        ready.statusCenterSummaryText.find("local_llm_model_manager_summary: ") != std::string::npos,
+        "status center summary should expose local LLM model-manager summary");
 
     const auto readyLocalModelStatePath = root / "snc_local_model_state_ready.json";
     writeTextFileAtomically(
@@ -704,6 +711,12 @@ int main()
         !readyWithModel.localLlm.reducedMode,
         "accepted supported local LLM state should leave reduced mode");
     requireCondition(
+        readyWithModel.localLlm.summary.find("Vybrany model: ") != std::string::npos,
+        "accepted supported local LLM state should expose the selected model in the summary");
+    requireCondition(
+        readyWithModel.localLlm.summary.find("redukovany rezim: false") != std::string::npos,
+        "accepted supported local LLM state should expose reduced mode in the summary");
+    requireCondition(
         readyWithModel.statusCenterSummaryText.find("local_llm_can_run_inference: true") != std::string::npos,
         "status center summary should expose local LLM inference readiness");
     requireCondition(
@@ -725,6 +738,9 @@ int main()
     requireCondition(
         readyWithModel.statusCenterSummaryText.find("local_llm_install_guidance:") == std::string::npos,
         "status center summary should omit local LLM install guidance when the model is ready");
+    requireCondition(
+        readyWithModel.statusCenterSummaryText.find("local_llm_model_manager_summary: ") != std::string::npos,
+        "status center summary should expose the owner-facing model-manager summary when the model is ready");
 
     auto memoryRecoveryWarningConfig = readyConfig;
     memoryRecoveryWarningConfig.entryPointAnalysisPath = memoryRecoveryEntryPointAnalysisPath;

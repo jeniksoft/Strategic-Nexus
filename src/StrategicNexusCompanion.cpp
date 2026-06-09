@@ -2114,6 +2114,26 @@ CompanionLocalLlmStatus buildLocalLlmStatus(const CompanionStatusConfig& config)
         prepareModelId,
         config.localLlmModelStatePath);
     status.installGuidance = strategic_nexus::buildLocalLlmInstallGuidance(readiness, status.prepareCommandHint);
+    {
+        std::ostringstream summary;
+        if (status.selectedModelId.empty()) {
+            summary << "Neni vybran podporovany lokalni model";
+        } else if (!status.selectedDisplayName.empty()) {
+            summary << "Vybrany model: " << status.selectedDisplayName << " (" << status.selectedModelId << ")";
+        } else {
+            summary << "Vybrany model ID: " << status.selectedModelId;
+        }
+        summary << "; stav: " << status.state;
+        summary << "; redukovany rezim: " << (status.reducedMode ? "true" : "false");
+        if (status.canRunInference) {
+            summary << "; dalsi krok: zadny";
+        } else if (!status.installGuidance.empty()) {
+            summary << "; dalsi krok: " << status.installGuidance;
+        } else if (!status.reason.empty()) {
+            summary << "; dalsi krok: " << status.reason;
+        }
+        status.summary = summary.str();
+    }
     return status;
 }
 
@@ -2924,6 +2944,9 @@ std::string buildStatusCenterSummaryText(
     if (!localLlm.installGuidance.empty()) {
         text << "local_llm_install_guidance: " << localLlm.installGuidance << "\n";
     }
+    if (!localLlm.summary.empty()) {
+        text << "local_llm_model_manager_summary: " << localLlm.summary << "\n";
+    }
     text << "friend_trust_store: " << friendTrustStore.state << " - "
          << friendTrustStore.reason << "\n";
     if (!friendTrustStore.path.empty()) {
@@ -3279,6 +3302,7 @@ void writeLocalLlmJson(
     output << indent << "  \"model_state_path\": " << jsonString(pathString(status.modelStatePath)) << ",\n";
     output << indent << "  \"prepare_command_hint\": " << jsonString(status.prepareCommandHint) << ",\n";
     output << indent << "  \"install_guidance\": " << jsonString(status.installGuidance) << ",\n";
+    output << indent << "  \"summary\": " << jsonString(status.summary) << ",\n";
     output << indent << "  \"can_run_inference\": " << (status.canRunInference ? "true" : "false") << ",\n";
     output << indent << "  \"reduced_mode\": " << (status.reducedMode ? "true" : "false") << ",\n";
     output << indent << "  \"user_action_required\": "
