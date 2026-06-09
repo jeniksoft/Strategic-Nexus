@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-09T14:42:15+02:00",
+  "updated_at": "2026-06-09T15:34:00+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -1414,7 +1414,7 @@
     {
       "id": "v0-sprint-156-surface-local-llm-supported-catalog-summary",
       "title": "Surface local LLM catalog summary",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "Local LLM Model Manager / supported model catalog visibility",
       "goal": "Expose the curated supported local LLM catalog in owner-facing companion and tray status surfaces so the model manager can show which models are allowed before selection while keeping unknown and unsupported models fail closed.",
@@ -1430,6 +1430,26 @@
       ],
       "dependencies": [
         "v0-sprint-155-surface-owner-facing-local-llm-model-manager-summary"
+      ]
+    },
+    {
+      "id": "v0-sprint-157-verify-monthly-reactive-owner-test-readiness",
+      "title": "Verify monthly reactive owner-test readiness",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "Reactive Policy Pack Dispatch / owner-ready monthly reactive test contract",
+      "goal": "Verify that the owner-ready monthly reactive test contract stays fail-closed until the published overlay is genuinely ready, and that SNC status, tray, and real-session loop outputs surface the same playbook path and next-action hints on current head.",
+      "acceptance": [
+        "Companion and tray surfaces expose owner_test_playbook_path only when the monthly reactive owner-test contract is truly ready.",
+        "The ready-state contract keeps next_action, next_action_command_hint, and next_action_command_hint_source aligned with docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md.",
+        "The non-ready baseline stays fail-closed and the targeted tray / pipeline tests pass on current head."
+      ],
+      "preferred_tests": [
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": [
+        "v0-sprint-156-surface-local-llm-supported-catalog-summary"
       ]
     }
   ]
