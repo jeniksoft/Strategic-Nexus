@@ -1541,7 +1541,7 @@ Required:
 * downgrade/reject path for contradictory recommendations
 
 Current progress:
-StrategicWorker now refines doctrine choices through personality and capability checks for the dominant empire, and the LLM prompt surfaces the resulting personality bias when that focus empire is available. Remaining work is broader coverage for contradiction checks, richer downgrade/reject paths, and exposing the alignment note more visibly in owner-facing output.
+StrategicWorker now refines doctrine choices through personality and capability checks for the dominant empire, and the LLM prompt surfaces the resulting personality bias when that focus empire is available. The regression coverage now also exercises a capability-only opportunistic-expansion downgrade path, while the alignment note already flows through prompt, JSON, and worker stdout. Remaining work is broader contradiction coverage, richer downgrade/reject paths, and any additional owner-facing surface that needs the note made even more prominent.
 
 ---
 

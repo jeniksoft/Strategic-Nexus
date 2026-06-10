@@ -107,6 +107,41 @@ int main()
         downgradedNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "downgrade note should expose the personality bias");
 
+    strategic_nexus::EmpireState capabilityConstrainedEmpire;
+    capabilityConstrainedEmpire.id = "empire_capability_constrained";
+    capabilityConstrainedEmpire.power.fleetPower = 34;
+    capabilityConstrainedEmpire.power.economicRank = 3;
+    capabilityConstrainedEmpire.power.technologyRank = 3;
+    capabilityConstrainedEmpire.personality.boldness = 0.57;
+    capabilityConstrainedEmpire.personality.paranoia = 0.28;
+    capabilityConstrainedEmpire.personality.honor = 0.38;
+    capabilityConstrainedEmpire.personality.opportunism = 0.76;
+    capabilityConstrainedEmpire.adaptiveState.fearOfPlayer = 0.18;
+
+    const auto capabilityDrivenDowngrade = engine.refineDoctrineDecision(
+        capabilityConstrainedEmpire,
+        quietSummary,
+        proposedExpansion);
+    requireCondition(
+        capabilityDrivenDowngrade.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak capability alone should downgrade opportunistic expansion to defense");
+    requireCondition(
+        capabilityDrivenDowngrade.rationale == "Personality and capability do not support opportunistic expansion yet.",
+        "capability-driven downgrade should explain the contradiction");
+    requireCondition(
+        capabilityDrivenDowngrade.confidence == 0.52,
+        "capability-driven downgrade should clamp confidence");
+    const auto capabilityDrivenNote = engine.buildDoctrineAlignmentNote(
+        capabilityConstrainedEmpire,
+        proposedExpansion,
+        capabilityDrivenDowngrade);
+    requireCondition(
+        capabilityDrivenNote.find("downgraded from opportunistic_expansion to defensive_posture") != std::string::npos,
+        "capability-driven downgrade note should explain the alignment shift");
+    requireCondition(
+        capabilityDrivenNote.find("bias = opportunistic pressure") != std::string::npos,
+        "capability-driven downgrade note should expose the opportunistic bias");
+
     strategic_nexus::EmpireState steadyEmpire;
     steadyEmpire.id = "empire_steady";
     steadyEmpire.power.fleetPower = 88;
