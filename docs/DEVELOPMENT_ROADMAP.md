@@ -2107,6 +2107,7 @@ Roadmap priority is now the friend-mesh update path: implement signed/encrypted 
 The existing manual MP package path is legacy fallback/dev evidence. Keep it tested because it is the safety net, but treat new owner-facing manual affordances as compatibility/recovery work rather than primary product progress.
 The canonical multiplayer season guide now names `friend_mp_sync_outbox_plan_command_template` alongside `friend_mp_sync_transport_next_step`, so the manual no-send/no-upload fallback stays discoverable without reopening raw status JSON.
 Current-head verification confirms the outbox-plan template and transport-next-step wording stay aligned across companion, tray, and dashboard surfaces.
+Current-head verification also confirms `friend_mesh_update_state`, `friend_mesh_update_reason`, and `friend_mesh_update_next_step` are surfaced across companion, tray, and Status Center views for degraded handoff visibility.
 
 ---
 
