@@ -3660,6 +3660,41 @@ Invoke-V0PipelineCase `
     )
 
 Invoke-V0PipelineCase `
+    -Name "v0_legacy_schema_migrated" `
+    -InputFixture "resources/ministry_context_legacy_schema.json" `
+    -DecisionOutput "dist/v0_decision_legacy_schema.json" `
+    -SequenceId 110 `
+    -NowUnixMs 10000 `
+    -ExpectedAppOutput @(
+        "v0_pipeline_success=true",
+        "v0_pipeline_schema_compatibility_state=partial_compatibility",
+        "v0_pipeline_schema_compatibility_note=migrated legacy ministry input schema_version 0 to current schema_version 1",
+        "v0_pipeline_military_posture=defensive",
+        "v0_pipeline_research_bias=economy"
+    ) `
+    -ExpectedDecisionJson @(
+        '"sequence_id": 110',
+        '"military_posture": "defensive"',
+        '"research_bias": "economy"',
+        '"fallback_required": false'
+    ) `
+    -ExpectedAuditJson @(
+        '"source_schema_version": 0',
+        '"schema_compatibility_state": "partial_compatibility"',
+        '"schema_compatibility_note": "migrated legacy ministry input schema_version 0 to current schema_version 1"'
+    ) `
+    -ExpectedBridgeOutput @(
+        "pipeline_accepted=true",
+        "pipeline_reason=accepted",
+        "pipeline_sequence_id=110"
+    ) `
+    -ExpectedEffectBatch @(
+        "effect set_global_flag = strategic_nexus_military_posture_defensive",
+        "effect set_global_flag = strategic_nexus_research_bias_economy",
+        "event strategic_nexus.1400"
+    )
+
+Invoke-V0PipelineCase `
     -Name "v0_research_military_industry" `
     -InputFixture "resources/ministry_context_research_military_industry.json" `
     -DecisionOutput "dist/v0_decision_research_military_industry.json" `

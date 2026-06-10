@@ -146,7 +146,16 @@ MinistryInputReadResult MinistryInputReader::read(const std::filesystem::path& p
         result.error = "missing schema_version";
         return result;
     }
-    if (result.input.schemaVersion != 1) {
+    result.input.sourceSchemaVersion = result.input.schemaVersion;
+    result.input.schemaVersion = 1;
+
+    if (result.input.sourceSchemaVersion == 1) {
+        result.input.schemaCompatibilityState = "current";
+    } else if (result.input.sourceSchemaVersion == 0) {
+        result.input.schemaCompatibilityState = "partial_compatibility";
+        result.input.schemaCompatibilityNote =
+            "migrated legacy ministry input schema_version 0 to current schema_version 1";
+    } else {
         result.error = "unsupported schema_version";
         return result;
     }

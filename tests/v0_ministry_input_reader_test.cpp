@@ -81,6 +81,46 @@ int main()
             result.input.knownFacts.end(),
             "turn_context_pressure_war_hint_confidence_percent:70") != result.input.knownFacts.end(),
         "reader should retain late turn-context pressure hint inside bound");
+    requireCondition(result.input.sourceSchemaVersion == 1, "reader should preserve current source schema version");
+    requireCondition(result.input.schemaVersion == 1, "reader should normalize current fixtures to schema version 1");
+    requireCondition(
+        result.input.schemaCompatibilityState == "current",
+        "reader should mark current fixtures as current");
+    requireCondition(
+        result.input.schemaCompatibilityNote.empty(),
+        "reader should keep current fixtures free of compatibility notes");
+
+    const std::filesystem::path legacySchemaPath = "dist/v0_ministry_input_reader_legacy_schema.json";
+    const std::string legacySchemaJson =
+        "{\n"
+        "  \"schema_version\": 0,\n"
+        "  \"context_id\": \"legacy_context_v0\",\n"
+        "  \"campaign_id\": \"campaign_cli\",\n"
+        "  \"empire_id\": \"empire_cli\",\n"
+        "  \"ministry\": \"military\",\n"
+        "  \"turn_context\": {\"year\": 2230, \"is_at_war\": false, \"strategic_pressure\": 0.35},\n"
+        "  \"known_facts\": [\"legacy_context_preserved\"],\n"
+        "  \"uncertainties\": [\"legacy_schema_requires_migration_note\"],\n"
+        "  \"current_agenda\": {\"military_posture\": \"defensive\", \"research_bias\": \"economy\"}\n"
+        "}\n";
+    requireCondition(
+        strategic_nexus::common::writeTextFileAtomically(legacySchemaPath, legacySchemaJson),
+        "legacy-schema fixture JSON should be written");
+    const auto legacySchemaResult = reader.read(legacySchemaPath);
+    requireCondition(legacySchemaResult.ok, "reader should accept legacy schema v0 fixture");
+    requireCondition(
+        legacySchemaResult.input.sourceSchemaVersion == 0,
+        "legacy schema should preserve its source version");
+    requireCondition(
+        legacySchemaResult.input.schemaVersion == 1,
+        "legacy schema should normalize to current schema version 1");
+    requireCondition(
+        legacySchemaResult.input.schemaCompatibilityState == "partial_compatibility",
+        "legacy schema should expose partial compatibility state");
+    requireCondition(
+        legacySchemaResult.input.schemaCompatibilityNote ==
+            "migrated legacy ministry input schema_version 0 to current schema_version 1",
+        "legacy schema should expose a migration note");
 
     const std::filesystem::path missingCampaignPath = "dist/v0_ministry_input_reader_missing_campaign.json";
     const std::string missingCampaignJson =

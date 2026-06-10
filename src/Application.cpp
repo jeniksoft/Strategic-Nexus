@@ -1281,6 +1281,14 @@ int Application::run(const RunConfig& config) const
             std::cout << "v0_pipeline_military_posture=" << result.payload.militaryPosture << "\n";
             std::cout << "v0_pipeline_research_bias=" << result.payload.researchBias << "\n";
             std::cout << "v0_pipeline_confidence=" << result.payload.confidence << "\n";
+            if (result.input.schemaCompatibilityState != "current") {
+                std::cout << "v0_pipeline_schema_compatibility_state="
+                          << sanitizeCliValue(result.input.schemaCompatibilityState) << "\n";
+                if (!result.input.schemaCompatibilityNote.empty()) {
+                    std::cout << "v0_pipeline_schema_compatibility_note="
+                              << sanitizeCliValue(result.input.schemaCompatibilityNote) << "\n";
+                }
+            }
             std::cout << "v0_pipeline_decision_written=" << (result.decisionOutputWritten ? "true" : "false") << "\n";
             std::cout << "v0_pipeline_audit_requested=" << (result.auditOutputRequested ? "true" : "false") << "\n";
             std::cout << "v0_pipeline_audit_written=" << (result.auditOutputWritten ? "true" : "false") << "\n";

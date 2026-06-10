@@ -71,6 +71,9 @@ std::string serializeMinistryInputContext(const MinistryInputContext& input)
     std::ostringstream json;
     json << "{\n";
     json << "  \"schema_version\": " << input.schemaVersion << ",\n";
+    json << "  \"source_schema_version\": " << input.sourceSchemaVersion << ",\n";
+    json << "  \"schema_compatibility_state\": \"" << escapeJsonString(input.schemaCompatibilityState) << "\",\n";
+    json << "  \"schema_compatibility_note\": \"" << escapeJsonString(input.schemaCompatibilityNote) << "\",\n";
     json << "  \"context_id\": \"" << escapeJsonString(input.contextId) << "\",\n";
     json << "  \"campaign_id\": \"" << escapeJsonString(input.campaignId) << "\",\n";
     json << "  \"empire_id\": \"" << escapeJsonString(input.empireId) << "\",\n";
@@ -103,6 +106,9 @@ std::string serializePipelineAuditRecord(const PipelineRunResult& result)
     json << "  \"reason\": \"" << escapeJsonString(result.reason) << "\",\n";
     json << "  \"ministry_input\": {\n";
     json << "    \"schema_version\": " << result.input.schemaVersion << ",\n";
+    json << "    \"source_schema_version\": " << result.input.sourceSchemaVersion << ",\n";
+    json << "    \"schema_compatibility_state\": \"" << escapeJsonString(result.input.schemaCompatibilityState) << "\",\n";
+    json << "    \"schema_compatibility_note\": \"" << escapeJsonString(result.input.schemaCompatibilityNote) << "\",\n";
     json << "    \"context_id\": \"" << escapeJsonString(result.input.contextId) << "\",\n";
     json << "    \"campaign_id\": \"" << escapeJsonString(result.input.campaignId) << "\",\n";
     json << "    \"empire_id\": \"" << escapeJsonString(result.input.empireId) << "\",\n";

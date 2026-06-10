@@ -28,6 +28,9 @@ struct ProcessingPriorityScore {
 
 struct MinistryInputContext {
     int schemaVersion = 0;
+    int sourceSchemaVersion = 0;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
     std::string contextId;
     std::string campaignId;
     std::string empireId;

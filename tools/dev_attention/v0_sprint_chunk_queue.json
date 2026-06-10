@@ -9,6 +9,24 @@
   "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, and visible outbox-plan template action are implemented. The companion now also surfaces the explicit host-owned automatic handoff sync gap for host rotation, so the remaining 15G work stays discoverable and fail closed. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract, and the next verification step is to keep zero-history bootstrap provenance visible on current head while the remaining target-specific gameplay rule generation stays deferred.",
   "chunks": [
     {
+      "id": "v0-sprint-188-migrate-legacy-ministry-input-schema-with-compatibility-note",
+      "title": "Migrate legacy ministry input schema with compatibility note",
+      "status": "not_started",
+      "lane": "implementation",
+      "roadmap_anchor": "12C Backward Migration Rules",
+      "goal": "Add a minimal ministry-input migration registry slice that accepts schema_version 0 as partial compatibility, normalizes it to the current internal schema, and surfaces the compatibility note in CLI and audit output.",
+      "acceptance": [
+        "Ministry input reading preserves current schema_version 1 behavior while accepting a bounded schema_version 0 legacy fixture as partial compatibility.",
+        "Companion CLI and pipeline audit output surface the schema compatibility state and migration note for the legacy fixture.",
+        "The change stays bounded to the ministry input reader, the v0 pipeline output, and regression coverage for the legacy migration slice."
+      ],
+      "preferred_tests": [
+        "dist/v0_ministry_input_reader_test.exe",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
+    },
+    {
       "id": "v0-sprint-084-document-generated-overlay-gameplay-acceptance-gap",
       "title": "Document generated overlay acceptance gap",
       "status": "done",

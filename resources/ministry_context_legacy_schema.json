@@ -1,0 +1,24 @@
+{
+  "schema_version": 0,
+  "context_id": "context_military_legacy_001",
+  "campaign_id": "sample_campaign",
+  "empire_id": "empire_001",
+  "ministry": "military",
+  "turn_context": {
+    "year": 2230,
+    "is_at_war": false,
+    "strategic_pressure": 0.35
+  },
+  "known_facts": [
+    "Neighbor border pressure exists but no active war is detected.",
+    "Current v0 sample has no fleet composition details."
+  ],
+  "uncertainties": [
+    "Enemy reserve fleet strength is unknown.",
+    "Real save parser is not connected in v0."
+  ],
+  "current_agenda": {
+    "military_posture": "balanced",
+    "research_bias": "economy"
+  }
+}
