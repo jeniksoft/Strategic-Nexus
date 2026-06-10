@@ -132,9 +132,10 @@ Use `tools/dev_attention/claim_v0_sprint_chunk.cmd` when a worker needs a concre
 tools\dev_attention\claim_v0_sprint_chunk.cmd -AutomationId sn-bounded-free-work-execution-2 -RunId <run-id>
 tools\dev_attention\claim_v0_sprint_chunk.cmd -Mode complete -ChunkId <chunk-id> -RunId <run-id> -Evidence <test-or-summary> -Commit <sha>
 tools\dev_attention\claim_v0_sprint_chunk.cmd -Mode block -ChunkId <chunk-id> -RunId <run-id> -Evidence <blocker>
+tools\dev_attention\claim_v0_sprint_chunk.cmd -Mode sync -AutomationId sn-bounded-free-work-execution-2 -RunId <run-id>
 ```
 
-The helper writes only local runtime claim state under `.codex_local/`; it does not mutate the source-controlled queue.
+The helper writes local runtime claim state under `.codex_local/` and keeps terminal source-controlled queue status synchronized: completed chunks become `done`, blocked chunks become `blocked`, and `sync` reconciles the queue from the ledger/terminal log without claiming new work.
 
 ---
 

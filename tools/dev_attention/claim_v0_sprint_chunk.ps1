@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('claim', 'complete', 'block')]
+    [ValidateSet('claim', 'complete', 'block', 'sync')]
     [string]$Mode = 'claim',
 
     [string]$AutomationId = 'manual',
@@ -121,6 +121,159 @@ function Get-TerminalAutomationRuns {
     return $records
 }
 
+function Set-ObjectProperty {
+    param(
+        [object]$Object,
+        [string]$Name,
+        [object]$Value
+    )
+
+    if ($null -eq $Object) {
+        return $false
+    }
+
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) {
+        $Object | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
+        return $true
+    }
+
+    if ([string]$property.Value -eq [string]$Value) {
+        return $false
+    }
+
+    $property.Value = $Value
+    return $true
+}
+
+function Set-QueueChunkStatus {
+    param(
+        [object]$Queue,
+        [string]$ChunkId,
+        [string]$Status,
+        [hashtable]$StatusUpdates
+    )
+
+    if ([string]::IsNullOrWhiteSpace($ChunkId)) {
+        return $false
+    }
+
+    foreach ($chunk in (Convert-Array $Queue.chunks)) {
+        if ([string]$chunk.id -ne $ChunkId) {
+            continue
+        }
+
+        $changed = Set-ObjectProperty -Object $chunk -Name 'status' -Value $Status
+        if ($changed -and $null -ne $StatusUpdates) {
+            $StatusUpdates[$ChunkId] = $Status
+        }
+
+        return $changed
+    }
+
+    return $false
+}
+
+function Write-QueueStatusUpdates {
+    param(
+        [string]$Path,
+        [hashtable]$StatusUpdates,
+        [string]$UpdatedAt
+    )
+
+    if ($null -eq $StatusUpdates -or $StatusUpdates.Count -eq 0) {
+        return
+    }
+
+    $raw = Get-Content -LiteralPath $Path -Raw
+    $updatedAtRegex = [System.Text.RegularExpressions.Regex]::new('("updated_at"\s*:\s*")([^"]*)(")')
+    $raw = $updatedAtRegex.Replace(
+        $raw,
+        [System.Text.RegularExpressions.MatchEvaluator]{
+            param($match)
+            return $match.Groups[1].Value + $UpdatedAt + $match.Groups[3].Value
+        },
+        1
+    )
+
+    foreach ($chunkId in $StatusUpdates.Keys) {
+        $status = [string]$StatusUpdates[$chunkId]
+        $chunkPattern = '(\{\s*"id"\s*:\s*"' + [System.Text.RegularExpressions.Regex]::Escape([string]$chunkId) + '".*?"status"\s*:\s*")([^"]*)(")'
+        $chunkRegex = [System.Text.RegularExpressions.Regex]::new($chunkPattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+        $match = $chunkRegex.Match($raw)
+        if (-not $match.Success) {
+            throw "Could not update queue status for chunk '$chunkId' in $Path"
+        }
+
+        $replacement = $match.Groups[1].Value + $status + $match.Groups[3].Value
+        $raw = $raw.Substring(0, $match.Index) + $replacement + $raw.Substring($match.Index + $match.Length)
+    }
+
+    [System.IO.File]::WriteAllText((Resolve-Path -LiteralPath $Path).Path, $raw, [System.Text.UTF8Encoding]::new($false))
+}
+
+function Get-RecordTimestamp {
+    param([object]$Record)
+
+    $timestamp = [DateTimeOffset]::MinValue
+    if ($null -ne $Record -and [DateTimeOffset]::TryParse([string]$Record.at, [ref]$timestamp)) {
+        return $timestamp
+    }
+
+    return [DateTimeOffset]::MinValue
+}
+
+function Sync-QueueStatusesFromLedger {
+    param(
+        [object]$Queue,
+        [object]$Ledger,
+        [hashtable]$StatusUpdates
+    )
+
+    $records = New-Object System.Collections.Generic.List[object]
+    $order = 0
+
+    foreach ($blocked in (Convert-Array $Ledger.blocked)) {
+        if (-not $blocked.chunk_id) {
+            continue
+        }
+
+        $order++
+        $records.Add([pscustomobject]@{
+            chunk_id = [string]$blocked.chunk_id
+            status = 'blocked'
+            timestamp = Get-RecordTimestamp -Record $blocked
+            order = $order
+        })
+    }
+
+    foreach ($completed in (Convert-Array $Ledger.completed)) {
+        if (-not $completed.chunk_id) {
+            continue
+        }
+
+        $order++
+        $records.Add([pscustomobject]@{
+            chunk_id = [string]$completed.chunk_id
+            status = 'done'
+            timestamp = Get-RecordTimestamp -Record $completed
+            order = $order
+        })
+    }
+
+    $finalStatuses = @{}
+    foreach ($record in ($records | Sort-Object timestamp, order)) {
+        $finalStatuses[[string]$record.chunk_id] = [string]$record.status
+    }
+
+    $changed = $false
+    foreach ($chunkId in $finalStatuses.Keys) {
+        $changed = (Set-QueueChunkStatus -Queue $Queue -ChunkId $chunkId -Status $finalStatuses[$chunkId] -StatusUpdates $StatusUpdates) -or $changed
+    }
+
+    return $changed
+}
+
 $repoRoot = (Resolve-Path -LiteralPath '.').Path
 
 function Resolve-ProjectPath {
@@ -165,6 +318,8 @@ try {
     if ($null -eq $queue) {
         throw "Sprint queue not found or empty: $queueFullPath"
     }
+    $queueChanged = $false
+    $queueStatusUpdates = @{}
 
     $defaultLedger = [pscustomobject]@{
         schema_version = 1
@@ -278,6 +433,26 @@ try {
         $activeClaims.Add($claim)
     }
     $ledger.active_claims = @($activeClaims.ToArray())
+    $queueChanged = (Sync-QueueStatusesFromLedger -Queue $queue -Ledger $ledger -StatusUpdates $queueStatusUpdates) -or $queueChanged
+
+    if ($Mode -eq 'sync') {
+        $ledger.updated_at = Get-IsoNow
+        Write-JsonFile -Path $ledgerFullPath -Value $ledger
+        if ($queueChanged) {
+            Write-QueueStatusUpdates -Path $queueFullPath -StatusUpdates $queueStatusUpdates -UpdatedAt (Get-IsoNow)
+        }
+
+        [ordered]@{
+            state = 'synced'
+            run_id = $RunId
+            automation_id = $AutomationId
+            queue_updated = $queueChanged
+            active_claim_count = @(Convert-Array $ledger.active_claims).Count
+            queue_path = $QueuePath
+            ledger_path = $LedgerPath
+        } | ConvertTo-Json -Depth 20
+        return
+    }
 
     if ($Mode -eq 'claim') {
         $completedIds = @{}
@@ -330,11 +505,15 @@ try {
         if ($null -eq $selected) {
             $ledger.updated_at = Get-IsoNow
             Write-JsonFile -Path $ledgerFullPath -Value $ledger
+            if ($queueChanged) {
+                Write-QueueStatusUpdates -Path $queueFullPath -StatusUpdates $queueStatusUpdates -UpdatedAt (Get-IsoNow)
+            }
             [ordered]@{
                 state = 'no_claim_available'
                 run_id = $RunId
                 queue_path = $QueuePath
                 ledger_path = $LedgerPath
+                queue_updated = $queueChanged
             } | ConvertTo-Json -Depth 20
             return
         }
@@ -358,6 +537,9 @@ try {
         }))
         $ledger.updated_at = Get-IsoNow
         Write-JsonFile -Path $ledgerFullPath -Value $ledger
+        if ($queueChanged) {
+            Write-QueueStatusUpdates -Path $queueFullPath -StatusUpdates $queueStatusUpdates -UpdatedAt (Get-IsoNow)
+        }
 
         [ordered]@{
             state = 'claimed'
@@ -366,6 +548,7 @@ try {
             lease_expires_at = $claimRecord.lease_expires_at
             chunk = $selected
             ledger_path = $LedgerPath
+            queue_updated = $queueChanged
         } | ConvertTo-Json -Depth 30
         return
     }
@@ -394,8 +577,10 @@ try {
 
     if ($Mode -eq 'complete') {
         $ledger.completed = @(@(Convert-Array $ledger.completed) + $record)
+        $queueChanged = (Set-QueueChunkStatus -Queue $queue -ChunkId $ChunkId -Status 'done' -StatusUpdates $queueStatusUpdates) -or $queueChanged
     } else {
         $ledger.blocked = @(@(Convert-Array $ledger.blocked) + $record)
+        $queueChanged = (Set-QueueChunkStatus -Queue $queue -ChunkId $ChunkId -Status 'blocked' -StatusUpdates $queueStatusUpdates) -or $queueChanged
     }
 
     $ledger.history = @(@(Convert-Array $ledger.history) + ([ordered]@{
@@ -409,6 +594,9 @@ try {
     }))
     $ledger.updated_at = Get-IsoNow
     Write-JsonFile -Path $ledgerFullPath -Value $ledger
+    if ($queueChanged) {
+        Write-QueueStatusUpdates -Path $queueFullPath -StatusUpdates $queueStatusUpdates -UpdatedAt (Get-IsoNow)
+    }
 
     [ordered]@{
         state = $eventName
@@ -416,6 +604,9 @@ try {
         automation_id = $AutomationId
         chunk_id = $ChunkId
         ledger_path = $LedgerPath
+        queue_path = $QueuePath
+        queue_updated = $queueChanged
+        queue_status = if ($Mode -eq 'complete') { 'done' } else { 'blocked' }
     } | ConvertTo-Json -Depth 20
 } finally {
     $lockStream.Close()
