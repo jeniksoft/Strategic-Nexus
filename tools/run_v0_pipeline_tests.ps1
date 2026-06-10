@@ -120,7 +120,11 @@ $personalityEngineSourceFiles = @(
     (Join-Path $repoRoot "tests/personality_engine_test.cpp"),
     (Join-Path $repoRoot "src/PersonalityEngine.cpp"),
     (Join-Path $repoRoot "src/DoctrinePlanner.cpp"),
-    (Join-Path $repoRoot "src/LlmClient.cpp")
+    (Join-Path $repoRoot "src/LlmClient.cpp"),
+    (Join-Path $repoRoot "src/StrategicRequest.cpp"),
+    (Join-Path $repoRoot "src/BridgeContract.cpp"),
+    (Join-Path $repoRoot "src/ModIntegration.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp")
 )
 $cabinetContractSourceFiles = @(
     (Join-Path $repoRoot "tests/v0_cabinet_contract_test.cpp"),

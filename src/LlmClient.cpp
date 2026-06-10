@@ -21,6 +21,9 @@ std::string LlmClient::buildPrompt(
     prompt << "Hegemony detected: " << (summary.hegemonyDetected ? "yes" : "no") << "\n";
     prompt << "Selected doctrine: " << toString(decision.type) << "\n";
     prompt << "Rationale: " << decision.rationale << "\n";
+    if (!decision.personalityAlignmentNote.empty()) {
+        prompt << "Personality alignment note: " << decision.personalityAlignmentNote << "\n";
+    }
     if (!personalityBias.empty()) {
         prompt << "Personality bias: " << personalityBias << "\n";
     }

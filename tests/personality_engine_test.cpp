@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Antonin Jenik
 
 #include "LlmClient.h"
+#include "ModIntegration.h"
 #include "PersonalityEngine.h"
 
 #include <iostream>
@@ -56,6 +57,16 @@ int main()
     requireCondition(
         engine.describeStrategicBias(boldEmpire) == "assertive expansion",
         "bold empire should be described as assertive expansion");
+    const auto upgradedNote = engine.buildDoctrineAlignmentNote(
+        boldEmpire,
+        proposedConsolidate,
+        upgradedDecision);
+    requireCondition(
+        upgradedNote.find("upgraded from consolidate to opportunistic_expansion") != std::string::npos,
+        "upgrade note should explain the personality alignment shift");
+    requireCondition(
+        upgradedNote.find("bias = assertive expansion") != std::string::npos,
+        "upgrade note should expose the personality bias");
 
     strategic_nexus::EmpireState fearfulEmpire;
     fearfulEmpire.id = "empire_fearful";
@@ -85,12 +96,61 @@ int main()
     requireCondition(
         engine.describeStrategicBias(fearfulEmpire) == "risk-sensitive balancing",
         "fearful empire should be described as risk-sensitive balancing");
+    const auto downgradedNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedExpansion,
+        downgradedDecision);
+    requireCondition(
+        downgradedNote.find("downgraded from opportunistic_expansion to defensive_posture") != std::string::npos,
+        "downgrade note should explain the personality alignment shift");
+    requireCondition(
+        downgradedNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "downgrade note should expose the personality bias");
+
+    strategic_nexus::EmpireState steadyEmpire;
+    steadyEmpire.id = "empire_steady";
+    steadyEmpire.power.fleetPower = 88;
+    steadyEmpire.power.economicRank = 3;
+    steadyEmpire.power.technologyRank = 3;
+    steadyEmpire.personality.boldness = 0.48;
+    steadyEmpire.personality.paranoia = 0.35;
+    steadyEmpire.personality.honor = 0.58;
+    steadyEmpire.personality.opportunism = 0.46;
+
+    const auto steadyDecision = engine.refineDoctrineDecision(steadyEmpire, quietSummary, proposedConsolidate);
+    requireCondition(
+        steadyDecision.type == strategic_nexus::DoctrineType::Consolidate,
+        "steady empire should keep the consolidate doctrine");
+    const auto neutralNote = engine.buildDoctrineAlignmentNote(
+        steadyEmpire,
+        proposedConsolidate,
+        steadyDecision);
+    requireCondition(
+        neutralNote.find("no doctrine adjustment") != std::string::npos,
+        "neutral note should explain the absence of an adjustment");
+    requireCondition(
+        neutralNote.find("bias = cautious consolidation") != std::string::npos,
+        "neutral note should expose the cautious bias");
 
     const strategic_nexus::LlmClient llmClient;
-    const auto prompt = llmClient.buildPrompt(quietSummary, upgradedDecision, "assertive expansion");
+    auto promptDecision = upgradedDecision;
+    promptDecision.personalityAlignmentNote = upgradedNote;
+    const auto prompt = llmClient.buildPrompt(quietSummary, promptDecision, "assertive expansion");
     requireCondition(
         prompt.find("Personality bias: assertive expansion") != std::string::npos,
         "LLM prompt should surface the personality bias");
+    requireCondition(
+        prompt.find("Personality alignment note") != std::string::npos,
+        "LLM prompt should surface the personality alignment note when present");
+
+    const strategic_nexus::ModIntegration modIntegration;
+    const auto doctrineJson = modIntegration.renderDoctrineJson(promptDecision);
+    requireCondition(
+        doctrineJson.find("\"personality_alignment_note\": \"") != std::string::npos,
+        "doctrine JSON should surface the personality alignment note field");
+    requireCondition(
+        doctrineJson.find("assertive expansion") != std::string::npos,
+        "doctrine JSON should carry the alignment note content");
 
     std::cout << "personality engine tests passed.\n";
     return 0;

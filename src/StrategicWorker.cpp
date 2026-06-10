@@ -42,19 +42,28 @@ int StrategicWorker::processRequest(const StrategicRequest& request) const
     const DoctrineDecision decision = focusEmpire != nullptr
         ? personalityEngine.refineDoctrineDecision(*focusEmpire, summary, proposedDecision)
         : proposedDecision;
+    const std::string personalityAlignmentNote =
+        focusEmpire != nullptr
+            ? personalityEngine.buildDoctrineAlignmentNote(*focusEmpire, proposedDecision, decision)
+            : std::string();
+    DoctrineDecision decisionWithAlignmentNote = decision;
+    decisionWithAlignmentNote.personalityAlignmentNote = personalityAlignmentNote;
 
     const LlmClient llmClient;
     const std::string prompt = llmClient.buildPrompt(
         summary,
-        decision,
+        decisionWithAlignmentNote,
         focusEmpire != nullptr ? personalityEngine.describeStrategicBias(*focusEmpire) : std::string());
 
     const ModIntegration modIntegration;
-    modIntegration.writeDoctrineJson(request.outputDoctrinePath, request, decision);
+    modIntegration.writeDoctrineJson(request.outputDoctrinePath, request, decisionWithAlignmentNote);
 
     std::cout << "Request id: " << request.requestId << "\n";
     std::cout << "Strategic request trigger: " << toString(request.trigger) << "\n";
     std::cout << prompt;
+    if (!decisionWithAlignmentNote.personalityAlignmentNote.empty()) {
+        std::cout << "Personality alignment note: " << decisionWithAlignmentNote.personalityAlignmentNote << "\n";
+    }
     std::cout << "Doctrine output: " << request.outputDoctrinePath.string() << "\n";
     std::cout << "Historical events loaded: " << memory.events().size() << "\n";
 

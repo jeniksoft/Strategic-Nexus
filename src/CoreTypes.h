@@ -69,6 +69,7 @@ struct DoctrineDecision {
     DoctrineType type = DoctrineType::Consolidate;
     std::string rationale;
     double confidence = 0.0;
+    std::string personalityAlignmentNote;
 };
 
 } // namespace strategic_nexus

@@ -60,6 +60,7 @@ std::string ModIntegration::renderDoctrineJson(const DoctrineDecision& decision)
     output << "{\n";
     output << "  \"doctrine\": \"" << toString(decision.type) << "\",\n";
     output << "  \"confidence\": " << std::fixed << std::setprecision(2) << decision.confidence << ",\n";
+    output << "  \"personality_alignment_note\": \"" << escapeJsonString(decision.personalityAlignmentNote) << "\",\n";
     output << "  \"safe_mode\": true\n";
     output << "}\n";
     return output.str();
@@ -83,6 +84,7 @@ std::string ModIntegration::renderDoctrineJson(const StrategicRequest& request, 
     output << "  \"decision\": {\n";
     output << "    \"doctrine\": \"" << toString(decision.type) << "\",\n";
     output << "    \"confidence\": " << std::fixed << std::setprecision(2) << decision.confidence << ",\n";
+    output << "    \"personality_alignment_note\": \"" << escapeJsonString(decision.personalityAlignmentNote) << "\",\n";
     output << "    \"safe_mode\": true\n";
     output << "  },\n";
     output << BridgeContract().renderJson(BridgeContract().buildValues(decision)) << "\n";

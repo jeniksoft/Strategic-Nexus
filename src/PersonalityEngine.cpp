@@ -3,6 +3,8 @@
 
 #include "PersonalityEngine.h"
 
+#include "DoctrinePlanner.h"
+
 namespace strategic_nexus {
 
 std::string PersonalityEngine::describeStrategicBias(const EmpireState& empire) const
@@ -20,6 +22,44 @@ std::string PersonalityEngine::describeStrategicBias(const EmpireState& empire) 
     }
 
     return "cautious consolidation";
+}
+
+std::string PersonalityEngine::buildDoctrineAlignmentNote(
+    const EmpireState& empire,
+    const DoctrineDecision& proposedDecision,
+    const DoctrineDecision& refinedDecision) const
+{
+    const std::string bias = describeStrategicBias(empire);
+
+    if (refinedDecision.type == proposedDecision.type) {
+        std::string note = "Personality alignment: no doctrine adjustment; bias = " + bias;
+        if (!refinedDecision.rationale.empty()) {
+            note += "; rationale = " + refinedDecision.rationale;
+        }
+        note += '.';
+        return note;
+    }
+
+    std::string note = "Personality alignment: ";
+    if (proposedDecision.type == DoctrineType::Consolidate &&
+        refinedDecision.type == DoctrineType::OpportunisticExpansion) {
+        note += "upgraded from consolidate to opportunistic_expansion";
+    } else if (proposedDecision.type == DoctrineType::OpportunisticExpansion &&
+               refinedDecision.type == DoctrineType::DefensivePosture) {
+        note += "downgraded from opportunistic_expansion to defensive_posture";
+    } else {
+        note += "adjusted from ";
+        note += toString(proposedDecision.type);
+        note += " to ";
+        note += toString(refinedDecision.type);
+    }
+
+    note += "; bias = " + bias;
+    if (!refinedDecision.rationale.empty()) {
+        note += "; rationale = " + refinedDecision.rationale;
+    }
+    note += '.';
+    return note;
 }
 
 DoctrineDecision PersonalityEngine::refineDoctrineDecision(
