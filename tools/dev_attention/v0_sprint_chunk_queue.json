@@ -1864,7 +1864,7 @@
     {
       "id": "v0-sprint-180-surface-personality-alignment-in-doctrine-output",
       "title": "Surface personality alignment in doctrine output",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "9C Personality-To-Rule Validation / personality-aware doctrine output surface",
       "goal": "Expose the current personality-driven doctrine alignment in the worker output path so the owner can inspect when a proposed doctrine was upgraded or downgraded for capability or fear mismatch.",
