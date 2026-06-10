@@ -1959,7 +1959,7 @@
     {
       "id": "v0-sprint-185-document-mp-host-rotation-sync-gap-in-season-guide",
       "title": "Document MP host rotation sync gap in season guide",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "15G. Release Companion MP Package UX / host-rotation handoff workflow",
       "goal": "Make the host-owned automatic handoff sync gap explicit in the canonical multiplayer season guide so the manual host-rotation fallback is discoverable without opening the tray brief or raw status JSON.",
