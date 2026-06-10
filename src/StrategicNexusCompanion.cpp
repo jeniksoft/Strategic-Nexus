@@ -565,6 +565,14 @@ CompanionSupportReportStatus buildSupportReportStatus(const CompanionStatusConfi
     return status;
 }
 
+bool supportReportNeedsAttention(const CompanionSupportReportStatus& status)
+{
+    return status.state == "not_prepared" ||
+           status.state == "preview_probe_failed" ||
+           status.state == "preview_path_unavailable" ||
+           status.state == "preview_path_not_file";
+}
+
 std::string defaultCrashRecoveryReasonForState(const std::string& state)
 {
     if (state == "no_recent_unexpected_crash") {
@@ -2173,6 +2181,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
     const CompanionMpOverlayPackageStatus& mpOverlayPackage,
     const CompanionPostPlayPipelineStatus& postPlayPipeline,
     const CompanionSubsystemStatus& gameplayAcceptance,
+    const CompanionSupportReportStatus& supportReport,
     const CompanionCrashRecoveryStatus& crashRecovery,
     const CompanionLocalLlmStatus& localLlm,
     const CompanionFriendTrustStoreStatus& friendTrustStore)
@@ -3204,6 +3213,9 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
         snapshot.localLlm.state == "model_changed_revalidation_needed") {
         return "review_local_llm_model_manager";
     }
+    if (supportReportNeedsAttention(snapshot.supportReport)) {
+        return "review_support_report_status";
+    }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
         return "review_staged_overlay_status";
     }
@@ -3261,6 +3273,10 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
         snapshot.localLlm.state == "model_changed_revalidation_needed") {
         return snapshot.localLlm.reason.empty() ? snapshot.localLlm.state : snapshot.localLlm.reason;
     }
+    if (supportReportNeedsAttention(snapshot.supportReport)) {
+        return snapshot.supportReport.reason.empty() ? "support report needs attention"
+                                                     : snapshot.supportReport.reason;
+    }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
         return "staged_overlay_written_but_publish_gate_not_ready";
     }
@@ -3302,6 +3318,15 @@ std::string buildCompanionNextActionCommandHint(const CompanionStatusSnapshot& s
             return snapshot.mpOverlayPackage.verifyCommand;
         }
     }
+    if (buildCompanionNextAction(snapshot) == "review_support_report_status" &&
+        supportReportNeedsAttention(snapshot.supportReport)) {
+        if (!snapshot.supportReport.openCommandHint.empty()) {
+            return snapshot.supportReport.openCommandHint;
+        }
+        if (!snapshot.supportReport.prepareCommandHint.empty()) {
+            return snapshot.supportReport.prepareCommandHint;
+        }
+    }
     if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
         return snapshot.mpOverlayPackage.verifyCommand;
     }
@@ -3335,6 +3360,15 @@ std::string buildCompanionNextActionCommandHintSource(const CompanionStatusSnaps
         }
         if (!snapshot.mpOverlayPackage.verifyCommand.empty()) {
             return "mp_overlay_package_verify_command";
+        }
+    }
+    if (buildCompanionNextAction(snapshot) == "review_support_report_status" &&
+        supportReportNeedsAttention(snapshot.supportReport)) {
+        if (!snapshot.supportReport.openCommandHint.empty()) {
+            return "support_report_open_command";
+        }
+        if (!snapshot.supportReport.prepareCommandHint.empty()) {
+            return "support_report_prepare_command";
         }
     }
     if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
@@ -3391,6 +3425,12 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
         }
         if (!snapshot.localLlm.localPath.empty()) {
             return snapshot.localLlm.localPath;
+        }
+    }
+    if (buildCompanionNextAction(snapshot) == "review_support_report_status" &&
+        supportReportNeedsAttention(snapshot.supportReport)) {
+        if (!snapshot.supportReport.previewPath.empty()) {
+            return snapshot.supportReport.previewPath;
         }
     }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
@@ -3832,6 +3872,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
             snapshot.mpOverlayPackage,
             snapshot.postPlayPipeline,
             snapshot.gameplayAcceptance,
+            snapshot.supportReport,
             snapshot.crashRecovery,
             snapshot.localLlm,
             snapshot.friendTrustStore);

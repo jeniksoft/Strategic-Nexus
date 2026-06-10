@@ -2589,6 +2589,32 @@ int main()
             std::string::npos,
         "ready status center summary should expose prepared support report state");
 
+    strategic_nexus::CompanionStatusConfig supportReportAttentionConfig = readyModelConfig;
+    supportReportAttentionConfig.gameplayAcceptanceReportPath = readyGameplayAcceptanceReport;
+    supportReportAttentionConfig.mpOverlayPackageDirectory = mpPackageCompleteRoot;
+    supportReportAttentionConfig.supportReportPreviewPath = root / "snc_support_report_preview_missing.txt";
+    const auto supportReportAttention = companion.buildStatusSnapshot(supportReportAttentionConfig);
+    requireCondition(
+        supportReportAttention.supportReport.state == "not_prepared",
+        "support report attention fixture should keep the preview missing");
+    requireCondition(
+        supportReportAttention.nextAction == "review_support_report_status",
+        "support report attention fixture should route the top-level next action to support report review (actual: " +
+            supportReportAttention.nextAction + ")");
+    requireCondition(
+        supportReportAttention.nextActionReason == "prepare local support report preview before manual review or send",
+        "support report attention fixture should expose the support report reason");
+    requireCondition(
+        supportReportAttention.nextActionCommandHint ==
+            "powershell -NoProfile -ExecutionPolicy Bypass -File tools\\prepare_snc_support_report.ps1",
+        "support report attention fixture should expose the prepare command hint");
+    requireCondition(
+        supportReportAttention.nextActionCommandHintSource == "support_report_prepare_command",
+        "support report attention fixture should expose the prepare command hint source");
+    requireCondition(
+        supportReportAttention.nextActionPath == supportReportAttentionConfig.supportReportPreviewPath,
+        "support report attention fixture should point at the preview path");
+
     const auto stagedPublishJson = strategic_nexus::serializeCompanionStatusSnapshot(stagedPublishReady);
     requireCondition(
         stagedPublishJson.find("\"staging_status_path\": \"") != std::string::npos,
