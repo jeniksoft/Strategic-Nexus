@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-10T20:28:22.2249108+02:00",
+  "updated_at": "2026-06-10T20:54:08.8495947+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2113,6 +2113,25 @@
       ],
       "preferred_tests": [
         "dist/personality_profile_store_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-194-polish-local-llm-owner-copy",
+      "title": "Polish local LLM owner copy",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "1I. SNC Owner UI And Presentation",
+      "goal": "Tighten the Czech owner-facing labels on the local LLM model manager page so the status dashboard reads naturally without changing model-manager behavior.",
+      "acceptance": [
+        "The LLM page labels use more natural Czech wording for state, recommendation, mode, install guidance, model path, and prepare command while preserving the existing next-action routing.",
+        "The review_local_llm_model_manager action remains visible and fail closed on current head.",
+        "Targeted companion/tray regressions pass without changing the underlying model-manager behavior."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
