@@ -107,6 +107,12 @@ $observerTargetProfileBuilderSourceFiles = @(
     (Join-Path $repoRoot "src/ObserverTargetProfileBuilder.cpp"),
     (Join-Path $repoRoot "src/SeasonEmpireBriefBuilder.cpp")
 )
+$integratedEmpireStateBuilderExePath = Join-Path $repoRoot "dist/integrated_empire_state_builder_test.exe"
+$integratedEmpireStateBuilderSourceFiles = @(
+    (Join-Path $repoRoot "tests/integrated_empire_state_builder_test.cpp"),
+    (Join-Path $repoRoot "src/IntegratedEmpireStateBuilder.cpp"),
+    (Join-Path $repoRoot "src/SeasonEmpireBriefBuilder.cpp")
+)
 $personalityProfileStoreExePath = Join-Path $repoRoot "dist/personality_profile_store_test.exe"
 $personalityProfileStoreSourceFiles = @(
     (Join-Path $repoRoot "tests/personality_profile_store_test.cpp"),
@@ -420,6 +426,7 @@ try {
     Invoke-ClCompile -Name "season_delta_ledger_builder_test" -SourceFiles $seasonDeltaLedgerBuilderSourceFiles -OutputPath $seasonDeltaLedgerBuilderExePath
     Invoke-ClCompile -Name "season_empire_brief_builder_test" -SourceFiles $seasonEmpireBriefBuilderSourceFiles -OutputPath $seasonEmpireBriefBuilderExePath
     Invoke-ClCompile -Name "observer_target_profile_builder_test" -SourceFiles $observerTargetProfileBuilderSourceFiles -OutputPath $observerTargetProfileBuilderExePath
+    Invoke-ClCompile -Name "integrated_empire_state_builder_test" -SourceFiles $integratedEmpireStateBuilderSourceFiles -OutputPath $integratedEmpireStateBuilderExePath
     Invoke-ClCompile -Name "personality_profile_store_test" -SourceFiles $personalityProfileStoreSourceFiles -OutputPath $personalityProfileStoreExePath
     Invoke-ClCompile -Name "personality_engine_test" -SourceFiles $personalityEngineSourceFiles -OutputPath $personalityEngineExePath
     Invoke-ClCompile -Name "v0_cabinet_contract_test" -SourceFiles $cabinetContractSourceFiles -OutputPath $cabinetContractExePath
@@ -3903,6 +3910,11 @@ if ($LASTEXITCODE -ne 0) {
 & $seasonEmpireBriefBuilderExePath
 if ($LASTEXITCODE -ne 0) {
     throw "season empire brief builder tests failed."
+}
+
+& $integratedEmpireStateBuilderExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "integrated empire state builder tests failed."
 }
 
 & $personalityProfileStoreExePath

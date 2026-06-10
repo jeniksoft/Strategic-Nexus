@@ -5626,6 +5626,12 @@ std::string buildStatusCenterSummaryText(
     summary << "friend_mesh_update_state: " << friendMeshUpdate.state << "\n";
     summary << "friend_mesh_update_reason: " << friendMeshUpdate.reason << "\n";
     appendOwnerFacingStatusReasonLine(summary, "friend_mesh_update_next_step", friendMeshUpdate.nextStep);
+    summary << "human_control_guard_state: "
+            << ownerFacingStatusValueUtf8(
+                   mpOverlayPackage.humanControlGuardState.empty()
+                       ? std::string("unknown")
+                       : mpOverlayPackage.humanControlGuardState)
+            << "\n";
     summary << "post_play_decision_ready_entry_count: " << postPlayDecisionReadyEntryCount << "\n";
     summary << "post_play_campaign_count: " << postPlayCampaignCount << "\n";
     summary << "post_play_ready_campaign_count: " << postPlayReadyCampaignCount << "\n";

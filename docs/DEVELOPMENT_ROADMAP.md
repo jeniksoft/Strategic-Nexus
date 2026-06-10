@@ -949,7 +949,7 @@ The profile contract still needs actual target-specific interpretation and gener
 ## 3B. Internal Pressure And Strategic Reputation
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Make empires feel like real political entities with internal constraints and reputational consequences, while keeping AI difficulty fair.
@@ -974,6 +974,11 @@ This layer is intended to make the game harder by making empires more coherent, 
 It must not become a detailed domestic politics simulator or a cheating AI advantage.
 If evidence is weak, store memory summaries and skip gameplay-affecting generated rules.
 Subsystem schemas are implementation boundaries; the empire itself is one integrated state.
+
+Current progress:
+The first bounded integrated empire-state contract scaffold exists as a summary-only builder. It combines a validated season empire brief with a concrete empire state, derives bounded internal pressure, strategic reputation, and doctrine inertia summaries, exposes a field-availability map for unavailable ethics/resources/government/civics/relationship inputs, and fails closed on invalid or mismatched empire ids or out-of-range confidence.
+
+The regression coverage confirms the contract accepts valid summary-only inputs, preserves same-evidence/different-empire interpretations, clamps the derived pressure and reputation values, and serializes the integrated state deterministically for later parser and overlay work.
 
 ---
 
