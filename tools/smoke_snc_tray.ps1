@@ -1022,8 +1022,10 @@ try {
                     throw "SNC tray status JSON did not expose friend_pairing_guide_text."
                 }
                 if ([string]$json.friend_pairing_guide_text -notlike "*create request*friend verifies fingerprint*import acceptance into local trust store*" -or
+                    [string]$json.friend_pairing_guide_text -notlike "*manual MP package export/import*" -or
+                    [string]$json.friend_pairing_guide_text -notlike "*strict verify/import*" -or
                     [string]$json.friend_pairing_guide_text -notlike "*Auto-sync stays disabled until signed/encrypted transport is active*") {
-                    throw "SNC tray friend_pairing_guide_text did not expose the manual flow and auto-sync safety state."
+                    throw "SNC tray friend_pairing_guide_text did not expose the manual flow, fallback, and auto-sync safety state."
                 }
                 if ($summaryText -notlike "*memory_recovery:*") {
                     throw "SNC tray summary text did not expose memory recovery state."

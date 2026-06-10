@@ -2549,9 +2549,11 @@ std::string buildFriendPairingGuideTextUtf8()
 {
     return localizedTextUtf8({
         L"SNC friend pairing n\u00E1vod: 1) vytvo\u0159 request; 2) p\u0159\u00EDtel ov\u011B\u0159\u00ED fingerprint a vytvo\u0159\u00ED acceptance; "
-        L"3) importuj acceptance do lok\u00E1ln\u00EDho trust store. Auto-sync z\u016Fst\u00E1v\u00E1 vypnut\u00FD, dokud nen\u00ED aktivn\u00ED podepsan\u00FD/\u0161ifrovan\u00FD transport.",
+        L"3) importuj acceptance do lok\u00E1ln\u00EDho trust store; 4) do aktivace podepsan\u00E9ho/\u0161ifrovan\u00E9ho transportu pou\u017E\u00EDvej manu\u00E1ln\u00ED MP package export/import a strict verify/import. "
+        L"Auto-sync z\u016Fst\u00E1v\u00E1 vypnut\u00FD, dokud nen\u00ED aktivn\u00ED podepsan\u00FD/\u0161ifrovan\u00FD transport.",
         L"SNC friend pairing guide: 1) create request; 2) friend verifies fingerprint and creates acceptance; "
-        L"3) import acceptance into local trust store. Auto-sync stays disabled until signed/encrypted transport is active."});
+        L"3) import acceptance into local trust store; 4) until signed/encrypted transport is active, use manual MP package export/import and strict verify/import. "
+        L"Auto-sync stays disabled until signed/encrypted transport is active."});
 }
 
 std::wstring buildFriendPairingGuideText(const StatusDashboardData& data)
@@ -2567,6 +2569,9 @@ std::wstring buildFriendPairingGuideText(const StatusDashboardData& data)
     guide += localizedTextWide({
         L"3. Prvn\u00ED hr\u00E1\u010D importuje acceptance do lok\u00E1ln\u00EDho trust store.\r\n",
         L"3. First player imports acceptance into the local trust store.\r\n"});
+    guide += localizedTextWide({
+        L"4. Dokud nen\u00ED aktivn\u00ED podepsan\u00FD/\u0161ifrovan\u00FD transport, pou\u017E\u00EDvej manu\u00E1ln\u00ED MP package export/import a strict verify/import.\r\n",
+        L"4. Until signed/encrypted transport is active, use manual MP package export/import and strict verify/import.\r\n"});
     guide += localizedTextWide({L"Stav trust store: ", L"Trust store status: "});
     guide += data.friendTrustStoreState.empty() ? kStatusEmptyValue : data.friendTrustStoreState;
     if (!data.friendTrustStoreReason.empty()) {

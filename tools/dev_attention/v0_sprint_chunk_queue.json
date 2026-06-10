@@ -2187,6 +2187,24 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-198-surface-manual-mp-export-import-fallback-in-friend-pairing-guide",
+      "title": "Surface manual MP export/import fallback in friend pairing guide",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / friend-pairing guide fallback visibility",
+      "goal": "Add an explicit manual MP package export/import fallback line to the friend-pairing guide so the transport-disabled path stays visible in companion, tray, and brief surfaces without changing the underlying fallback behavior.",
+      "acceptance": [
+        "The companion and tray friend-pairing guide text mentions manual MP package export/import as the fallback while signed/encrypted transport is disabled.",
+        "The existing friend pairing guide still keeps auto-sync disabled until signed/encrypted transport is active.",
+        "Targeted companion/tray regression coverage plus the v0 pipeline regression pass on current head."
+      ],
+      "preferred_tests": [
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
