@@ -132,6 +132,8 @@ std::vector<ObserverTargetFieldAvailability> buildFieldAvailability(
     availability.push_back({ "federation", "summary_only_profile_contract", false, { "federation evidence not extracted yet" } });
     availability.push_back({ "border", "summary_only_profile_contract", false, { "border evidence not extracted yet" } });
     availability.push_back({ "intel", "summary_only_profile_contract", false, { "intel evidence not extracted yet" } });
+    availability.push_back({ "internal_pressure", "summary_only_profile_contract", false, { "internal pressure evidence not extracted yet" } });
+    availability.push_back({ "strategic_reputation", "summary_only_profile_contract", false, { "strategic reputation evidence not extracted yet" } });
     return availability;
 }
 
@@ -245,6 +247,8 @@ ObserverTargetProfile ObserverTargetProfileBuilder::build(
     profile.missingInformation.push_back("observer_target_relationship_delta_not_generated_yet");
     profile.missingInformation.push_back("target_specific_rule_generation_not_implemented_yet");
     profile.missingInformation.push_back("gameplay_affecting_target_rules_require_later_validation");
+    profile.missingInformation.push_back("internal_pressure_not_generated_yet");
+    profile.missingInformation.push_back("strategic_reputation_not_generated_yet");
 
     profile.compressionNotes = observerBrief.compressionNotes;
     profile.compressionNotes.push_back("observer_target_profile_summary_only_contract");

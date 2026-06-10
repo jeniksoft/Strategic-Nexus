@@ -57,8 +57,8 @@ int main()
         requireCondition(profile.ruleCandidateValidation.candidateDomains.size() == 4, "profile should expose bounded candidate-domain hooks");
         requireCondition(profile.ruleCandidateValidation.blockedReasons.size() == 3, "profile should explain why candidate generation is blocked");
         requireCondition(!profile.ruleCandidateValidation.allowsDomain("diplomacy"), "profile should fail closed on candidate-domain checks");
-        requireCondition(profile.fieldAvailability.size() == 8, "profile should expose a bounded field availability map");
-        requireCondition(profile.missingInformation.size() == 8, "profile should carry brief missing information plus contract gaps");
+        requireCondition(profile.fieldAvailability.size() == 10, "profile should expose a bounded field availability map");
+        requireCondition(profile.missingInformation.size() == 10, "profile should carry brief missing information plus contract gaps");
         requireCondition(profile.compressionNotes.size() == 4, "profile should carry brief compression notes plus contract notes");
         requireCondition(profile.relationshipDelta.generalTrust == 0.0, "profile should not invent trust delta values");
         requireCondition(profile.relationshipDelta.predictedFutureBehavior == 0.0, "profile should not invent predictive delta values");
@@ -71,6 +71,8 @@ int main()
         requireCondition(json.find("\"target_memory_summary_confidence\": 0.42") != std::string::npos, "profile JSON should include target memory summary confidence");
         requireCondition(json.find("\"target_memory_summary_confidence_band\": \"low\"") != std::string::npos, "profile JSON should include target memory summary confidence band");
         requireCondition(json.find("\"field_availability\": [") != std::string::npos, "profile JSON should include field availability");
+        requireCondition(json.find("\"internal_pressure\"") != std::string::npos, "profile JSON should include internal pressure availability");
+        requireCondition(json.find("\"strategic_reputation\"") != std::string::npos, "profile JSON should include strategic reputation availability");
         requireCondition(json.find("\"rule_candidate_validation\": {") != std::string::npos, "profile JSON should include candidate validation scaffold");
         requireCondition(json.find("\"allowed_rule_domains\": [") != std::string::npos, "profile JSON should include allowed rule domains");
         requireCondition(json.find("\"target_specific_rule_candidates\": [") != std::string::npos, "profile JSON should include candidate rules field");
