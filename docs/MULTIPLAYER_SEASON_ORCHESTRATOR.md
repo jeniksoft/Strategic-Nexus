@@ -727,6 +727,7 @@ Owner-facing minimum test:
 * open `dist/private_reports/snc_next_steps_brief.txt`
 * confirm the MP package lines show the current package directory, ZIP path, and strict verify/import commands
 * run one ordinary MP handoff or join flow using the current package guidance
+* if the client reports the wrong overlay or a mismatch warning, keep the warning text and switch to manual export/import or a freshly verified package before retrying
 * expect `friend_mp_sync_transport_state` to stay disabled for now; manual MP export/import is still the active fallback
 * keep any observed warning text or blocked state unchanged until Codex inspects the resulting evidence
 
@@ -735,6 +736,7 @@ What Codex will inspect after the run:
 * `dist/real_session_v0_loop/<session_id>/real_session_v0_loop_evidence.json`
 * `dist/real_session_v0_loop/<session_id>/real_session_v0_next_steps.md`
 * `dist/private_reports/snc_next_steps_brief.txt`
+* any copied mismatch or recovery text from the run, if the wrong-overlay fallback was exercised
 * current SNC status or tray snapshot if the run was degraded, blocked, or missing the previous host
 
 Known limitation:

@@ -1160,7 +1160,7 @@ Required:
 * result recorded as owner-facing evidence
 
 Current progress:
-No real MP desync/fallback validation evidence exists yet.
+The owner-facing validation checklist now explicitly calls out wrong-overlay / mismatch fallback handling, the recovery text to preserve, and the evidence files to inspect after the run. No real MP desync/fallback validation evidence exists yet.
 
 ---
 
