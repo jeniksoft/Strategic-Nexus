@@ -2145,13 +2145,13 @@ CompanionLocalLlmStatus buildLocalLlmStatus(const CompanionStatusConfig& config)
     {
         std::ostringstream summary;
         if (status.selectedModelId.empty()) {
-            summary << "Neni vybran podporovany lokalni model";
+            summary << "Neni vybran zadny podporovany lokalni model";
         } else if (!status.selectedDisplayName.empty()) {
             summary << "Vybrany model: " << status.selectedDisplayName << " (" << status.selectedModelId << ")";
         } else {
             summary << "Vybrany model ID: " << status.selectedModelId;
         }
-        summary << "; stav: " << status.state;
+        summary << "; stav modelu: " << status.state;
         summary << "; redukovany rezim: " << (status.reducedMode ? "true" : "false");
         if (status.canRunInference) {
             summary << "; dalsi krok: zadny";
