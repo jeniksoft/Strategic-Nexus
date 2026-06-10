@@ -2079,6 +2079,25 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-192-verify-friend-mp-sync-outbox-plan-template-on-current-head",
+      "title": "Verify friend MP sync outbox-plan template on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / friend-mesh outbox-plan template",
+      "goal": "Verify that the current-head companion, tray, and Status Center surfaces expose the friend MP sync outbox-plan command template with explicit no-send/no-upload/no-staging wording while the transport adapter remains unimplemented.",
+      "acceptance": [
+        "Companion and tray status surfaces expose friend_mp_sync_outbox_plan_command_template with the stable --plan-snc-friend-mp-sync-outbox command template.",
+        "The visible dashboard copies the template with no-send/no-upload/no-staging wording and keeps the transport gap fail closed.",
+        "The targeted companion status regression and a tray or v0 pipeline regression pass on current head without changing the write set."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
