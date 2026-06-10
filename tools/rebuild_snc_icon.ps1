@@ -357,7 +357,7 @@ try {
         $squareBitmap.Save($sourcePngPath, [System.Drawing.Imaging.ImageFormat]::Png)
         $squareBitmap.Save($previewPath, [System.Drawing.Imaging.ImageFormat]::Png)
 
-        $sizes = @(256, 64, 48, 32, 16)
+        $sizes = @(256, 128, 64, 48, 32, 24, 16)
         $entries = @()
         foreach ($size in $sizes) {
             $entries += @{

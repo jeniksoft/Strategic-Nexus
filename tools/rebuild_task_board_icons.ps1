@@ -323,7 +323,7 @@ function Convert-TaskBoardIcon {
                 $paddedBitmap.Save($pngPath, [System.Drawing.Imaging.ImageFormat]::Png)
 
                 $entries = @()
-                foreach ($size in @(256, 128, 64, 48, 32, 16)) {
+                foreach ($size in @(256, 128, 64, 48, 32, 24, 16)) {
                     $entries += @{
                         Size = $size
                         Bytes = (New-ScaledPngBytes -Bitmap $paddedBitmap -Size $size)
