@@ -8,6 +8,7 @@
 #include "LlmClient.h"
 #include "MemoryStore.h"
 #include "ModIntegration.h"
+#include "PersonalityEngine.h"
 #include "SaveParser.h"
 
 #include <exception>
@@ -27,10 +28,26 @@ int StrategicWorker::processRequest(const StrategicRequest& request) const
     const StrategicSummary summary = analyzer.summarize(state);
 
     const DoctrinePlanner planner;
-    const DoctrineDecision decision = planner.chooseDoctrine(summary);
+    const DoctrineDecision proposedDecision = planner.chooseDoctrine(summary);
+
+    const EmpireState* focusEmpire = nullptr;
+    for (const auto& empire : state.empires) {
+        if (empire.id == summary.dominantEmpireId) {
+            focusEmpire = &empire;
+            break;
+        }
+    }
+
+    const PersonalityEngine personalityEngine;
+    const DoctrineDecision decision = focusEmpire != nullptr
+        ? personalityEngine.refineDoctrineDecision(*focusEmpire, summary, proposedDecision)
+        : proposedDecision;
 
     const LlmClient llmClient;
-    const std::string prompt = llmClient.buildPrompt(summary, decision);
+    const std::string prompt = llmClient.buildPrompt(
+        summary,
+        decision,
+        focusEmpire != nullptr ? personalityEngine.describeStrategicBias(*focusEmpire) : std::string());
 
     const ModIntegration modIntegration;
     modIntegration.writeDoctrineJson(request.outputDoctrinePath, request, decision);

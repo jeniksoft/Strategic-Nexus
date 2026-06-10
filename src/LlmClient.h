@@ -11,7 +11,10 @@ namespace strategic_nexus {
 
 class LlmClient {
 public:
-    std::string buildPrompt(const StrategicSummary& summary, const DoctrineDecision& decision) const;
+    std::string buildPrompt(
+        const StrategicSummary& summary,
+        const DoctrineDecision& decision,
+        const std::string& personalityBias = {}) const;
 };
 
 } // namespace strategic_nexus

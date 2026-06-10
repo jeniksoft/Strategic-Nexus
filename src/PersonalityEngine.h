@@ -12,6 +12,10 @@ namespace strategic_nexus {
 class PersonalityEngine {
 public:
     std::string describeStrategicBias(const EmpireState& empire) const;
+    DoctrineDecision refineDoctrineDecision(
+        const EmpireState& empire,
+        const StrategicSummary& summary,
+        const DoctrineDecision& proposedDecision) const;
 };
 
 } // namespace strategic_nexus

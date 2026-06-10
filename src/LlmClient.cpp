@@ -9,7 +9,10 @@
 
 namespace strategic_nexus {
 
-std::string LlmClient::buildPrompt(const StrategicSummary& summary, const DoctrineDecision& decision) const
+std::string LlmClient::buildPrompt(
+    const StrategicSummary& summary,
+    const DoctrineDecision& decision,
+    const std::string& personalityBias) const
 {
     std::ostringstream prompt;
     prompt << "Strategic Nexus doctrine review\n";
@@ -18,6 +21,9 @@ std::string LlmClient::buildPrompt(const StrategicSummary& summary, const Doctri
     prompt << "Hegemony detected: " << (summary.hegemonyDetected ? "yes" : "no") << "\n";
     prompt << "Selected doctrine: " << toString(decision.type) << "\n";
     prompt << "Rationale: " << decision.rationale << "\n";
+    if (!personalityBias.empty()) {
+        prompt << "Personality bias: " << personalityBias << "\n";
+    }
     return prompt.str();
 }
 

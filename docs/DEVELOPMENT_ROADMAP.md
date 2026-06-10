@@ -1520,7 +1520,7 @@ A durable campaign-empire personality profile store now exists as a bounded JSON
 ## 9C. Personality-To-Rule Validation
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Use personality only when it is compatible with evidence, resources, capability, ethics pressure, and internal state.
@@ -1536,7 +1536,7 @@ Required:
 * downgrade/reject path for contradictory recommendations
 
 Current progress:
-The validation direction is documented, but personality-driven rule validation is not implemented yet.
+StrategicWorker now refines doctrine choices through personality and capability checks for the dominant empire, and the LLM prompt surfaces the resulting personality bias when that focus empire is available. Remaining work is broader coverage for contradiction checks, richer downgrade/reject paths, and exposing the alignment note more visibly in owner-facing output.
 
 ---
 
