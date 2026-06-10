@@ -5638,6 +5638,7 @@ std::string buildStatusCenterSummaryText(
             summary << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
         } else if (campaignLibraryLimitReached) {
             summary << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
+            summary << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
         } else {
             summary << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
         }
@@ -5918,6 +5919,7 @@ void writeNextStepsBrief(
             brief << " (" << campaignLibrarySkippedDueToLimitCount << " campaign(s) skipped by limit)";
             brief << "\n";
             brief << "- Poznamka: aktivni generovana knihovna kampani je zamerne omezena; pokud v pristim testu chybi kampan, zvedni limit nebo uklid lokalni save root.\n";
+            brief << "- Poznamka: user-pinned campaign exceptions zatim nejsou k dispozici; pro sirsi coverage nech local save root dostupny nebo jej obnov.\n";
         } else {
             brief << "\n";
             brief << "- Poznamka: aktivni generovana knihovna kampani se vejde do nastaveneho limitu.\n";

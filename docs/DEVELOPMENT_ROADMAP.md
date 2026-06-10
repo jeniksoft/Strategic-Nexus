@@ -1339,6 +1339,7 @@ Required:
 
 Current progress:
 No owner-facing pinned-campaign override exists yet.
+Status and next-steps surfaces now explicitly call out that user-pinned campaign exceptions are still unavailable when the active generated library is truncated, so the current fallback remains local save-root availability or cleanup.
 
 ---
 

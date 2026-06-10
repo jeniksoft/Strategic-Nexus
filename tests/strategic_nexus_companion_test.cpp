@@ -1735,6 +1735,11 @@ int main()
             "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests") !=
             std::string::npos,
         "status center summary should explain truncated campaign library follow-up");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find(
+            "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests") !=
+            std::string::npos,
+        "status center summary should explain the current pinned-exception gap");
 
     const auto stagedPublishBlocked = companion.buildStatusSnapshot({
         archiveSessionRoot,
