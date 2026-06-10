@@ -1052,6 +1052,15 @@ try {
                 if ($briefText -notlike "*Friend mesh update next step:*") {
                     throw "SNC tray next-steps brief did not expose friend mesh update next step."
                 }
+                if ($briefText -notlike "*MP host rotation sync state: Not implemented yet*") {
+                    throw "SNC tray next-steps brief did not expose MP host rotation sync state."
+                }
+                if ($briefText -notlike "*MP host rotation sync reason: Host-owned automatic handoff sync for host rotation is not implemented yet; the fallback is manual MP export/import.*") {
+                    throw "SNC tray next-steps brief did not expose MP host rotation sync reason."
+                }
+                if ($briefText -notlike "*MP host rotation sync next step: Use the current MP ZIP, strict verify/import, and manual host handoff until signed/encrypted friend transport is implemented.*") {
+                    throw "SNC tray next-steps brief did not expose MP host rotation sync next step."
+                }
                 if ($briefText -notlike "*SNC friend pairing command template:*--create-snc-friend-request*" -or
                     $briefText -notlike "*--create-snc-friend-acceptance*" -or
                     $briefText -notlike "*--import-snc-friend-acceptance*") {

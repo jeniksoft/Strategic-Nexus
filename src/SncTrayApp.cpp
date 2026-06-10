@@ -6072,6 +6072,11 @@ void writeNextStepsBrief(
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
         brief << "- MP recovery: " << ownerFacingStatusReasonUtf8(mpOverlayPackage.handoffRecoveryHint) << "\n";
     }
+    brief << "- MP host rotation sync state: " << ownerFacingStatusValueUtf8(mpOverlayPackage.hostRotationSyncState) << "\n";
+    brief << "- MP host rotation sync reason: "
+          << ownerFacingStatusReasonUtf8(mpOverlayPackage.hostRotationSyncReason) << "\n";
+    brief << "- MP host rotation sync next step: "
+          << ownerFacingStatusReasonUtf8(mpOverlayPackage.hostRotationSyncNextStep) << "\n";
     brief << "- " << buildFriendPairingGuideTextUtf8() << "\n";
     brief << "- SNC friend pairing auto-sync: vypnuto, dokud neni hotovy signed/encrypted transport.\n";
     brief << "- SNC friend pairing command template: "
