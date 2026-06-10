@@ -1293,7 +1293,7 @@ std::wstring formatOwnerFacingStatusValue(const std::string& value)
         {"review_staged_overlay_status", {L"Zkontrolovat stav overlaye", L"Review overlay status"}},
         {"review_dsl_draft", {L"Zkontrolovat DSL draft", L"Review DSL draft"}},
         {"review_candidate_decision_package", {L"Zkontrolovat kandid\u00E1tn\u00ED rozhodnut\u00ED", L"Review candidate decisions"}},
-        {"review_local_llm_model_manager", {L"Zkontrolovat spr\u00E1vu local LLM modelu", L"Review local LLM model manager"}},
+        {"review_local_llm_model_manager", {L"Zkontrolovat spr\u00E1vu lok\u00E1ln\u00EDho LLM modelu", L"Review local LLM model manager"}},
         {"review_entry_point_ambiguity", {L"Vy\u0159e\u0161it nejednozna\u010Dn\u00FD vstupn\u00ED bod", L"Resolve ambiguous entry point"}},
         {"review_entry_point_analysis_failure", {L"Zkontrolovat anal\u00FDzu vstupn\u00EDch bod\u016F", L"Review entry point analysis"}},
         {"review_tray_status", {L"Zkontrolovat stav SNC", L"Review SNC status"}},
@@ -3090,14 +3090,14 @@ std::wstring buildStatusPageDetailsText(const StatusPageId page, const StatusDas
         addLine(text, L"MP client gate: ", data.mpPackageClientReadinessGate);
         break;
     case StatusPageId::Llm:
-        addLine(text, L"Model stav: ", data.modelState);
+        addLine(text, L"Stav modelu: ", data.modelState);
         addLine(text, L"Runtime: ", data.modelRuntime);
-        addLine(text, L"Doporuceni: ", data.modelRecommendation);
-        addLine(text, L"Rezim: ", data.modelMode);
-        addLine(text, L"Instalace: ", data.modelInstallGuidance);
-        addLine(text, L"Model cesta: ", data.modelStatePath);
+        addLine(text, L"Doporučení modelu: ", data.modelRecommendation);
+        addLine(text, L"Režim modelu: ", data.modelMode);
+        addLine(text, L"Návod k instalaci: ", data.modelInstallGuidance);
+        addLine(text, L"Cesta modelu: ", data.modelStatePath);
         if (!data.modelPrepareCommand.empty()) {
-            addLine(text, L"Priprava prikaz: ", data.modelPrepareCommand);
+            addLine(text, L"Přípravný příkaz: ", data.modelPrepareCommand);
         }
         break;
     case StatusPageId::Maintenance:
