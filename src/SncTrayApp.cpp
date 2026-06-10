@@ -31,6 +31,8 @@
 #include "common/JsonExtract.h"
 #include "generated_overlay/MpOverlayPackage.h"
 
+#include <wdui/DesignUi.h>
+
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
@@ -95,6 +97,7 @@ constexpr UINT ID_STATUS_COPY_FRIEND_PAIRING = 224;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE = 225;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN = 226;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN = 227;
+constexpr UINT ID_STATUS_SWITCH_SKIN = 228;
 constexpr UINT ID_STATUS_PAGE_OVERVIEW = 240;
 constexpr UINT ID_STATUS_PAGE_GAMEPLAY = 241;
 constexpr UINT ID_STATUS_PAGE_ARCHIVE = 242;
@@ -149,6 +152,11 @@ enum class StatusFieldId : std::size_t {
 enum class SncUiLanguage {
     Czech,
     English
+};
+
+enum class SncStatusSkinId {
+    Classic,
+    Starlance
 };
 
 struct LocalizedText {
@@ -274,6 +282,32 @@ struct StatusPersistedUiState {
     RECT normalWindowRect{0, 0, 960, 720};
     bool windowMaximized = false;
     StatusPageId activePage = StatusPageId::Overview;
+    SncStatusSkinId activeSkin = SncStatusSkinId::Starlance;
+};
+
+struct SncStatusSkinColors {
+    COLORREF background = RGB(8, 15, 17);
+    COLORREF backgroundTop = RGB(8, 15, 17);
+    COLORREF titleBand = RGB(8, 15, 17);
+    COLORREF panel = RGB(12, 29, 33);
+    COLORREF text = RGB(232, 239, 240);
+    COLORREF muted = RGB(146, 162, 164);
+    COLORREF accent = RGB(214, 170, 76);
+    COLORREF accentHot = RGB(232, 196, 105);
+    COLORREF border = RGB(26, 71, 76);
+    COLORREF valueBackground = RGB(7, 18, 20);
+    COLORREF valueBorder = RGB(39, 72, 74);
+    COLORREF buttonFill = RGB(8, 22, 28);
+    COLORREF buttonHotFill = RGB(18, 56, 60);
+    COLORREF buttonPressedFill = RGB(18, 70, 65);
+    COLORREF buttonDisabledFill = RGB(6, 11, 13);
+    COLORREF buttonBorder = RGB(164, 122, 69);
+    COLORREF buttonText = RGB(211, 228, 221);
+    COLORREF buttonDisabledText = RGB(92, 102, 100);
+    COLORREF scrollTrack = RGB(10, 28, 34);
+    COLORREF scrollThumb = RGB(83, 123, 116);
+    COLORREF scrollThumbHover = RGB(96, 140, 133);
+    COLORREF scrollThumbDrag = RGB(115, 156, 148);
 };
 
 enum class StatusScrollTargetKind {
@@ -283,6 +317,9 @@ enum class StatusScrollTargetKind {
 };
 
 SncUiLanguage detectSncUiLanguage();
+SncStatusSkinColors createStatusSkinColors(SncStatusSkinId skin);
+wdui::Theme createStatusTheme(SncStatusSkinId skin);
+wdui::StyleCatalog createStatusStyleCatalog(const wdui::Theme& theme, SncStatusSkinId skin);
 
 std::atomic_bool g_stopRequested{false};
 std::atomic_bool g_mpPackageRefreshRequested{false};
@@ -352,6 +389,7 @@ HWND g_statusToggleStartupButton = nullptr;
 HWND g_statusCloseButton = nullptr;
 HWND g_statusMaximizeButton = nullptr;
 HWND g_statusMinimizeButton = nullptr;
+HWND g_statusSkinButton = nullptr;
 HWND g_statusWindow = nullptr;
 HWND g_statusHeader = nullptr;
 HWND g_statusSubtitle = nullptr;
@@ -376,6 +414,10 @@ HBRUSH g_statusAccentBrush = nullptr;
 HBRUSH g_statusBorderBrush = nullptr;
 HBRUSH g_statusValueBrush = nullptr;
 SncUiLanguage g_uiLanguage = detectSncUiLanguage();
+SncStatusSkinId g_statusSkinId = SncStatusSkinId::Starlance;
+SncStatusSkinColors g_statusSkinColors = createStatusSkinColors(g_statusSkinId);
+wdui::Theme g_statusTheme = createStatusTheme(g_statusSkinId);
+wdui::StyleCatalog g_statusStyleCatalog = createStatusStyleCatalog(g_statusTheme, g_statusSkinId);
 StatusPersistedUiState g_statusUiState;
 bool g_statusWindowCanPersistPlacement = false;
 const std::array<DashboardSectionSpec, kStatusSectionCount> kStatusSections = {
@@ -591,6 +633,9 @@ bool copyTextToClipboard(HWND hwnd, const std::wstring& text);
 void requestMpPackageImportHandoff(HWND hwnd);
 void updateTrayTip(HWND hwnd, const std::wstring& text);
 void updateStatusCaptionButtons(HWND hwnd);
+void applyStatusSkin(SncStatusSkinId skin, bool persist);
+void cycleStatusSkin(HWND hwnd);
+void destroyStatusBrushes();
 void ensureStatusWindowResources();
 void destroyStatusWindowResources();
 void refreshStatusWindowContent();
@@ -794,6 +839,379 @@ std::wstring localizedTextWide(const LocalizedText& text)
 std::string localizedTextUtf8(const LocalizedText& text)
 {
     return wideToUtf8(localizedTextWide(text));
+}
+
+SncStatusSkinColors createStatusSkinColors(const SncStatusSkinId skin)
+{
+    SncStatusSkinColors colors{};
+    if (skin == SncStatusSkinId::Classic) {
+        return colors;
+    }
+
+    colors.background = RGB(3, 7, 14);
+    colors.backgroundTop = RGB(10, 22, 42);
+    colors.titleBand = RGB(2, 5, 12);
+    colors.panel = RGB(8, 22, 36);
+    colors.text = RGB(234, 247, 255);
+    colors.muted = RGB(144, 172, 190);
+    colors.accent = RGB(248, 166, 72);
+    colors.accentHot = RGB(255, 214, 128);
+    colors.border = RGB(38, 118, 164);
+    colors.valueBackground = RGB(4, 13, 23);
+    colors.valueBorder = RGB(28, 78, 108);
+    colors.buttonFill = RGB(10, 30, 50);
+    colors.buttonHotFill = RGB(18, 62, 92);
+    colors.buttonPressedFill = RGB(7, 42, 70);
+    colors.buttonDisabledFill = RGB(5, 9, 16);
+    colors.buttonBorder = RGB(68, 168, 218);
+    colors.buttonText = RGB(224, 244, 255);
+    colors.buttonDisabledText = RGB(78, 100, 114);
+    colors.scrollTrack = RGB(4, 14, 25);
+    colors.scrollThumb = RGB(58, 136, 170);
+    colors.scrollThumbHover = RGB(78, 184, 220);
+    colors.scrollThumbDrag = RGB(248, 166, 72);
+    return colors;
+}
+
+wdui::Theme createStatusTheme(const SncStatusSkinId skin)
+{
+    wdui::Theme theme = wdui::Theme::taskBoardFamily();
+    if (skin == SncStatusSkinId::Classic) {
+        return theme;
+    }
+
+    theme.frame = RGB(58, 168, 222);
+    theme.shell = RGB(3, 7, 14);
+    theme.panel = RGB(8, 22, 36);
+    theme.header = RGB(13, 48, 78);
+    theme.control = RGB(10, 30, 50);
+    theme.controlHot = RGB(18, 62, 92);
+    theme.controlPressed = RGB(7, 42, 70);
+    theme.border = RGB(38, 118, 164);
+    theme.accent = RGB(248, 166, 72);
+    theme.accentHot = RGB(255, 214, 128);
+    theme.text = RGB(234, 247, 255);
+    theme.textHot = RGB(255, 250, 224);
+    theme.mutedText = RGB(144, 172, 190);
+    theme.disabledText = RGB(78, 100, 114);
+    theme.disabledFill = RGB(5, 9, 16);
+    theme.uiText = wdui::TextStyle{L"Bahnschrift", 10, FW_SEMIBOLD, theme.text, theme.disabledText};
+    theme.monoText = wdui::TextStyle{L"Cascadia Mono", 10, FW_NORMAL, theme.text, theme.disabledText};
+    return theme;
+}
+
+wdui::StyleCatalog createStatusStyleCatalog(const wdui::Theme& theme, const SncStatusSkinId skin)
+{
+    wdui::StyleCatalog catalog = wdui::StyleCatalog::taskBoardFamily(theme);
+    if (skin == SncStatusSkinId::Classic) {
+        return catalog;
+    }
+
+    const COLORREF cyan = RGB(80, 198, 242);
+    const COLORREF cyanHot = RGB(132, 232, 255);
+    const COLORREF amber = RGB(248, 166, 72);
+    const COLORREF amberHot = RGB(255, 214, 128);
+    const COLORREF deepTop = RGB(13, 42, 68);
+    const COLORREF deepBottom = RGB(4, 14, 25);
+
+    wdui::ButtonStyle button = wdui::ButtonStyle::fromTheme(theme);
+    button.surface.normal =
+        wdui::SurfaceStyle::gradient(deepTop, deepBottom, RGB(42, 124, 170))
+            .withShadow(RGB(0, 0, 0), 4, 5, 96)
+            .withGlow(RGB(46, 150, 210), 4, 34)
+            .withNoise(RGB(255, 255, 255), 4, 0x5a7101u);
+    button.surface.hot =
+        wdui::SurfaceStyle::gradient(RGB(22, 70, 104), RGB(7, 28, 46), cyanHot)
+            .withShadow(RGB(0, 0, 0), 4, 5, 88)
+            .withGlow(cyanHot, 8, 70)
+            .withOutline(RGB(180, 240, 255), 1);
+    button.surface.pressed =
+        wdui::SurfaceStyle::gradient(RGB(4, 27, 47), RGB(13, 54, 85), amber)
+            .withShadow(RGB(0, 0, 0), 2, 3, 74)
+            .withGlow(amber, 7, 58);
+    button.surface.active =
+        wdui::SurfaceStyle::gradient(RGB(20, 74, 98), RGB(7, 33, 52), amber)
+            .withShadow(RGB(0, 0, 0), 4, 5, 98)
+            .withGlow(amberHot, 7, 74)
+            .withOutline(RGB(255, 230, 166), 1);
+    button.surface.disabled = wdui::SurfaceStyle::solid(theme.disabledFill, RGB(18, 38, 52));
+    button.text.normal = theme.uiText;
+    button.text.hot = wdui::TextStyle{theme.uiText.fontFamily, theme.uiText.pointSize, FW_SEMIBOLD, RGB(244, 252, 255), theme.disabledText};
+    button.text.pressed = wdui::TextStyle{theme.uiText.fontFamily, theme.uiText.pointSize, FW_SEMIBOLD, amberHot, theme.disabledText};
+    button.text.active = wdui::TextStyle{theme.uiText.fontFamily, theme.uiText.pointSize, FW_SEMIBOLD, amberHot, theme.disabledText};
+    button.text.disabled = wdui::TextStyle{theme.uiText.fontFamily, theme.uiText.pointSize, FW_SEMIBOLD, theme.disabledText, theme.disabledText};
+    catalog.setButton(L"default", button);
+    catalog.setButton(L"secondary", button);
+
+    wdui::ButtonStyle primary = button;
+    primary.surface.normal =
+        wdui::SurfaceStyle::gradient(RGB(120, 68, 26), RGB(32, 19, 11), amber, wdui::ButtonShape::Capsule)
+            .withShadow(RGB(0, 0, 0), 5, 6, 110)
+            .withGlow(amber, 7, 62)
+            .withNoise(RGB(255, 245, 210), 5, 0x5a7102u);
+    primary.surface.hot = primary.surface.normal.withOutline(amberHot, 1).withGlow(amberHot, 10, 82);
+    primary.surface.pressed =
+        wdui::SurfaceStyle::gradient(RGB(42, 24, 10), RGB(136, 80, 28), amberHot, wdui::ButtonShape::Capsule)
+            .withGlow(amberHot, 7, 68);
+    primary.surface.active = primary.surface.hot;
+    catalog.setButton(L"primary", primary);
+    catalog.setButton(L"primary-action", primary);
+    catalog.setButton(L"skin-switch", primary);
+
+    wdui::ButtonStyle titleButton = button;
+    titleButton.surface.normal = wdui::SurfaceStyle::solid(RGB(3, 7, 14), RGB(52, 140, 190));
+    titleButton.surface.hot = wdui::SurfaceStyle::gradient(RGB(18, 58, 84), RGB(5, 16, 26), cyanHot).withGlow(cyanHot, 5, 54);
+    titleButton.surface.pressed = wdui::SurfaceStyle::gradient(RGB(4, 24, 40), RGB(18, 58, 84), amber).withGlow(amber, 5, 48);
+    titleButton.surface.active = titleButton.surface.hot;
+    catalog.setButton(L"title", titleButton);
+
+    wdui::PanelStyle panel = wdui::PanelStyle::fromTheme(theme);
+    panel.surface =
+        wdui::SurfaceStyle::gradient(RGB(11, 30, 49), RGB(4, 12, 22), RGB(40, 120, 164))
+            .withShadow(RGB(0, 0, 0), 7, 9, 96)
+            .withGlow(RGB(42, 132, 188), 6, 32)
+            .withNoise(RGB(255, 255, 255), 5, 0x5a7103u);
+    catalog.setPanel(L"default", panel);
+    catalog.setPanel(L"status-card", panel);
+
+    wdui::ScrollBarStyle scroll = wdui::ScrollBarStyle::fromTheme(theme);
+    scroll.showButtons = false;
+    scroll.trackPadding = 2;
+    scroll.track = wdui::SurfaceStyle::gradient(RGB(3, 12, 22), RGB(2, 7, 14), RGB(26, 74, 104), wdui::ButtonShape::Capsule);
+    scroll.thumb.normal =
+        wdui::SurfaceStyle::gradient(RGB(44, 122, 160), RGB(18, 54, 78), cyan, wdui::ButtonShape::Capsule)
+            .withShadow(RGB(0, 0, 0), 2, 3, 86)
+            .withGlow(cyan, 5, 48);
+    scroll.thumb.hot = scroll.thumb.normal.withOutline(cyanHot, 1).withGlow(cyanHot, 7, 70);
+    scroll.thumb.pressed =
+        wdui::SurfaceStyle::gradient(amber, RGB(102, 55, 18), amberHot, wdui::ButtonShape::Capsule)
+            .withGlow(amberHot, 7, 74);
+    scroll.thumb.active = scroll.thumb.hot;
+    catalog.setScrollBar(L"default", scroll);
+
+    return catalog;
+}
+
+const char* statusSkinToken(const SncStatusSkinId skin)
+{
+    return skin == SncStatusSkinId::Classic ? "classic" : "starlance";
+}
+
+SncStatusSkinId statusSkinFromToken(const std::string& value)
+{
+    if (value == "classic" || value == "legacy" || value == "default") {
+        return SncStatusSkinId::Classic;
+    }
+    if (value == "starlance" || value == "game" || value == "gaming") {
+        return SncStatusSkinId::Starlance;
+    }
+    return SncStatusSkinId::Starlance;
+}
+
+std::wstring statusSkinDisplayName(const SncStatusSkinId skin)
+{
+    if (skin == SncStatusSkinId::Classic) {
+        return localizedTextWide({L"Classic", L"Classic"});
+    }
+    return localizedTextWide({L"Starlance", L"Starlance"});
+}
+
+std::wstring statusSkinButtonLabel()
+{
+    return localizedTextWide({L"Skin: ", L"Skin: "}) + statusSkinDisplayName(g_statusSkinId);
+}
+
+SncStatusSkinId nextStatusSkin(const SncStatusSkinId skin)
+{
+    return skin == SncStatusSkinId::Classic ? SncStatusSkinId::Starlance : SncStatusSkinId::Classic;
+}
+
+COLORREF blendStatusColor(const COLORREF from, const COLORREF to, const double amount)
+{
+    const double t = std::clamp(amount, 0.0, 1.0);
+    const auto blendChannel = [t](const BYTE a, const BYTE b) {
+        return static_cast<BYTE>(static_cast<double>(a) + (static_cast<double>(b) - static_cast<double>(a)) * t);
+    };
+    return RGB(
+        blendChannel(GetRValue(from), GetRValue(to)),
+        blendChannel(GetGValue(from), GetGValue(to)),
+        blendChannel(GetBValue(from), GetBValue(to)));
+}
+
+void fillStatusGradient(HDC hdc, const RECT& rect, const COLORREF start, const COLORREF end, const wdui::GradientDirection direction)
+{
+    if (hdc == nullptr || rect.right <= rect.left || rect.bottom <= rect.top) {
+        return;
+    }
+
+    TRIVERTEX vertices[2]{};
+    vertices[0].x = rect.left;
+    vertices[0].y = rect.top;
+    vertices[0].Red = static_cast<COLOR16>(GetRValue(start) << 8);
+    vertices[0].Green = static_cast<COLOR16>(GetGValue(start) << 8);
+    vertices[0].Blue = static_cast<COLOR16>(GetBValue(start) << 8);
+    vertices[1].x = rect.right;
+    vertices[1].y = rect.bottom;
+    vertices[1].Red = static_cast<COLOR16>(GetRValue(end) << 8);
+    vertices[1].Green = static_cast<COLOR16>(GetGValue(end) << 8);
+    vertices[1].Blue = static_cast<COLOR16>(GetBValue(end) << 8);
+    GRADIENT_RECT gradientRect{0, 1};
+    const ULONG mode = direction == wdui::GradientDirection::Horizontal ? GRADIENT_FILL_RECT_H : GRADIENT_FILL_RECT_V;
+    GradientFill(hdc, vertices, 2, &gradientRect, 1, mode);
+}
+
+void fillStatusSolid(HDC hdc, const RECT& rect, const COLORREF color)
+{
+    const HBRUSH brush = CreateSolidBrush(color);
+    FillRect(hdc, &rect, brush);
+    DeleteObject(brush);
+}
+
+wdui::Rect toWduiRect(const RECT& rect)
+{
+    return wdui::Rect{rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top};
+}
+
+void drawStatusSurface(HDC hdc, const RECT& rect, const wdui::SurfaceStyle& surface)
+{
+    if (hdc == nullptr || rect.right <= rect.left || rect.bottom <= rect.top) {
+        return;
+    }
+
+    if (surface.showGlow) {
+        const int radius = std::max(1, surface.glowRadius);
+        const int passes = std::min(4, radius);
+        for (int pass = passes; pass >= 1; --pass) {
+            RECT glowRect = rect;
+            InflateRect(&glowRect, pass, pass);
+            const HBRUSH glowBrush = CreateSolidBrush(blendStatusColor(g_statusSkinColors.background, surface.glow, 0.18));
+            FrameRect(hdc, &glowRect, glowBrush);
+            DeleteObject(glowBrush);
+        }
+    }
+
+    if (surface.showShadow) {
+        RECT shadowRect = rect;
+        OffsetRect(&shadowRect, surface.shadowOffsetX, surface.shadowOffsetY);
+        fillStatusSolid(hdc, shadowRect, blendStatusColor(g_statusSkinColors.background, surface.shadow, 0.45));
+    }
+
+    if (!surface.skin.empty()) {
+        if (surface.useNineSlice) {
+            surface.skin.drawNineSlice(hdc, toWduiRect(rect), surface.nineSliceInsets, surface.opacity);
+        } else {
+            surface.skin.draw(hdc, toWduiRect(rect), surface.opacity);
+        }
+    } else if (surface.drawFill) {
+        if (surface.useGradient) {
+            fillStatusGradient(hdc, rect, surface.gradientStart, surface.gradientEnd, surface.gradientDirection);
+        } else {
+            fillStatusSolid(hdc, rect, surface.fill);
+        }
+    }
+
+    if (surface.useNoise && surface.noiseOpacity > 0) {
+        const int step = 5;
+        for (int y = rect.top + 2; y < rect.bottom; y += step) {
+            for (int x = rect.left + 2; x < rect.right; x += step) {
+                const std::uint32_t hash =
+                    (static_cast<std::uint32_t>(x) * 73856093u) ^
+                    (static_cast<std::uint32_t>(y) * 19349663u) ^
+                    surface.noiseSeed;
+                if ((hash & 0x0fu) == 0u) {
+                    SetPixelV(hdc, x, y, blendStatusColor(surface.fill, surface.noise, 0.10));
+                }
+            }
+        }
+    }
+
+    if (surface.drawBorder) {
+        const HBRUSH borderBrush = CreateSolidBrush(surface.border);
+        FrameRect(hdc, &rect, borderBrush);
+        DeleteObject(borderBrush);
+    }
+    if (surface.showOutline && surface.outlineWidth > 0) {
+        RECT outlineRect = rect;
+        for (int width = 0; width < surface.outlineWidth; ++width) {
+            InflateRect(&outlineRect, -1, -1);
+            const HBRUSH outlineBrush = CreateSolidBrush(surface.outline);
+            FrameRect(hdc, &outlineRect, outlineBrush);
+            DeleteObject(outlineBrush);
+        }
+    }
+}
+
+const wdui::ButtonStyle* statusButtonStyle(const UINT commandId)
+{
+    if (commandId == ID_STATUS_CLOSE || commandId == ID_STATUS_MAXIMIZE || commandId == ID_STATUS_MINIMIZE) {
+        return g_statusStyleCatalog.button(L"title");
+    }
+    if (commandId == ID_STATUS_SWITCH_SKIN) {
+        return g_statusStyleCatalog.button(L"skin-switch");
+    }
+    if (commandId == ID_STATUS_PUBLISH_GENERATED_OVERLAY ||
+        commandId == ID_STATUS_EXPORT_MP_PACKAGE ||
+        commandId == ID_STATUS_MP_IMPORT_HANDOFF) {
+        return g_statusStyleCatalog.button(L"primary-action");
+    }
+    return g_statusStyleCatalog.button(L"default");
+}
+
+void destroyStatusBrushes()
+{
+    if (g_statusPanelBrush != nullptr) {
+        DeleteObject(g_statusPanelBrush);
+        g_statusPanelBrush = nullptr;
+    }
+    if (g_statusAccentBrush != nullptr) {
+        DeleteObject(g_statusAccentBrush);
+        g_statusAccentBrush = nullptr;
+    }
+    if (g_statusBorderBrush != nullptr) {
+        DeleteObject(g_statusBorderBrush);
+        g_statusBorderBrush = nullptr;
+    }
+    if (g_statusValueBrush != nullptr) {
+        DeleteObject(g_statusValueBrush);
+        g_statusValueBrush = nullptr;
+    }
+    if (g_statusBackgroundBrush != nullptr) {
+        DeleteObject(g_statusBackgroundBrush);
+        g_statusBackgroundBrush = nullptr;
+    }
+}
+
+void applyStatusSkin(const SncStatusSkinId skin, const bool persist)
+{
+    g_statusSkinId = skin;
+    g_statusUiState.activeSkin = skin;
+    g_statusSkinColors = createStatusSkinColors(skin);
+    g_statusTheme = createStatusTheme(skin);
+    g_statusStyleCatalog = createStatusStyleCatalog(g_statusTheme, skin);
+    destroyStatusBrushes();
+
+    if (g_statusWindow != nullptr && IsWindow(g_statusWindow)) {
+        ensureStatusWindowResources();
+        updateStatusCaptionButtons(g_statusWindow);
+        InvalidateRect(g_statusWindow, nullptr, TRUE);
+        RedrawWindow(g_statusWindow, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+    }
+
+    if (persist) {
+        if (g_statusWindow != nullptr && IsWindow(g_statusWindow)) {
+            captureStatusUiStateFromWindow(g_statusWindow);
+        }
+        g_statusUiState.activeSkin = skin;
+        savePersistedStatusUiState();
+    }
+}
+
+void cycleStatusSkin(HWND hwnd)
+{
+    applyStatusSkin(nextStatusSkin(g_statusSkinId), true);
+    if (hwnd != nullptr) {
+        layoutStatusWindow(hwnd);
+    }
 }
 
 std::wstring formatOwnerFacingFallbackToken(const std::string& value)
@@ -1257,7 +1675,7 @@ HWND createStatusValue(HWND parent, const StatusFieldId fieldId, const wchar_t* 
     }
 
     return CreateWindowExW(
-        WS_EX_CLIENTEDGE,
+        0,
         L"EDIT",
         text,
         style,
@@ -1296,22 +1714,24 @@ void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
 
     const bool disabled = (drawItem.itemState & ODS_DISABLED) != 0;
     const bool selected = (drawItem.itemState & ODS_SELECTED) != 0;
+    const bool hot = (drawItem.itemState & ODS_HOTLIGHT) != 0;
     const bool focused = (drawItem.itemState & ODS_FOCUS) != 0;
     const auto* pageSpec = statusPageSpecByCommand(drawItem.CtlID);
     const bool activePageButton = pageSpec != nullptr && pageSpec->id == g_statusActivePage;
 
     RECT rc = drawItem.rcItem;
-    const COLORREF fillColor = disabled
-        ? kStatusButtonDisabledFillColor
-        : ((selected || activePageButton) ? kStatusButtonPressedFillColor : kStatusButtonFillColor);
-
-    const HBRUSH fillBrush = CreateSolidBrush(fillColor);
-    FillRect(drawItem.hDC, &rc, fillBrush);
-    DeleteObject(fillBrush);
-
-    const HBRUSH borderBrush = CreateSolidBrush(kStatusButtonBorderColor);
-    FrameRect(drawItem.hDC, &rc, borderBrush);
-    DeleteObject(borderBrush);
+    const wdui::ButtonStyle* style = statusButtonStyle(drawItem.CtlID);
+    if (style != nullptr) {
+        drawStatusSurface(drawItem.hDC, rc, style->surface.forState(!disabled, hot, selected, activePageButton));
+    } else {
+        const COLORREF fillColor = disabled
+            ? g_statusSkinColors.buttonDisabledFill
+            : ((selected || activePageButton) ? g_statusSkinColors.buttonPressedFill : g_statusSkinColors.buttonFill);
+        fillStatusSolid(drawItem.hDC, rc, fillColor);
+        const HBRUSH borderBrush = CreateSolidBrush(g_statusSkinColors.buttonBorder);
+        FrameRect(drawItem.hDC, &rc, borderBrush);
+        DeleteObject(borderBrush);
+    }
 
     if (focused) {
         RECT focusRc = rc;
@@ -1323,7 +1743,10 @@ void drawStatusButton(const DRAWITEMSTRUCT& drawItem)
     GetWindowTextW(drawItem.hwndItem, label, static_cast<int>(std::size(label)));
 
     SetBkMode(drawItem.hDC, TRANSPARENT);
-    SetTextColor(drawItem.hDC, disabled ? kStatusButtonDisabledTextColor : (activePageButton ? kStatusAccentColor : kStatusButtonTextColor));
+    const COLORREF textColor = style != nullptr
+        ? style->text.forState(!disabled, hot, selected, activePageButton).color
+        : (disabled ? g_statusSkinColors.buttonDisabledText : (activePageButton ? g_statusSkinColors.accent : g_statusSkinColors.buttonText));
+    SetTextColor(drawItem.hDC, textColor);
     const HGDIOBJ oldFont = SelectObject(drawItem.hDC, g_statusSectionFont != nullptr ? g_statusSectionFont : GetStockObject(DEFAULT_GUI_FONT));
     rc.left += 10;
     rc.right -= 10;
@@ -1905,9 +2328,10 @@ void paintStatusCustomScrollbars(HDC hdc)
         return;
     }
 
-    const HBRUSH gutterBrush = CreateSolidBrush(kStatusValueBackgroundColor);
-    const HBRUSH borderBrush = CreateSolidBrush(kStatusValueBorderColor);
-    const HBRUSH trackBrush = CreateSolidBrush(kStatusScrollTrackColor);
+    const auto* scrollStyle = g_statusStyleCatalog.scrollBar(L"default");
+    const HBRUSH gutterBrush = CreateSolidBrush(g_statusSkinColors.valueBackground);
+    const HBRUSH borderBrush = CreateSolidBrush(g_statusSkinColors.valueBorder);
+    const HBRUSH trackBrush = CreateSolidBrush(g_statusSkinColors.scrollTrack);
 
     const auto paintScrollbar = [&](const StatusCustomScrollbar& scrollbar, const bool dragged, const bool hovered) {
         if (!scrollbar.reserved) {
@@ -1920,15 +2344,23 @@ void paintStatusCustomScrollbars(HDC hdc)
         RECT innerTrack = scrollbar.trackRect;
         InflateRect(&innerTrack, -2, -2);
         if ((innerTrack.right - innerTrack.left) > 0 && (innerTrack.bottom - innerTrack.top) > 0) {
-            FillRect(hdc, &innerTrack, trackBrush);
+            if (scrollStyle != nullptr) {
+                drawStatusSurface(hdc, innerTrack, scrollStyle->track);
+            } else {
+                FillRect(hdc, &innerTrack, trackBrush);
+            }
         }
 
         if (!IsRectEmpty(&scrollbar.thumbRect)) {
-            const COLORREF thumbColor =
-                dragged ? kStatusScrollThumbDragColor : hovered ? kStatusScrollThumbHoverColor : kStatusScrollThumbColor;
-            const HBRUSH activeThumbBrush = CreateSolidBrush(thumbColor);
-            FillRect(hdc, &scrollbar.thumbRect, activeThumbBrush);
-            DeleteObject(activeThumbBrush);
+            if (scrollStyle != nullptr) {
+                drawStatusSurface(hdc, scrollbar.thumbRect, scrollStyle->thumb.forState(true, hovered, dragged, false));
+            } else {
+                const COLORREF thumbColor =
+                    dragged ? g_statusSkinColors.scrollThumbDrag : hovered ? g_statusSkinColors.scrollThumbHover : g_statusSkinColors.scrollThumb;
+                const HBRUSH activeThumbBrush = CreateSolidBrush(thumbColor);
+                FillRect(hdc, &scrollbar.thumbRect, activeThumbBrush);
+                DeleteObject(activeThumbBrush);
+            }
         }
     };
 
@@ -2157,6 +2589,10 @@ std::wstring buildFriendPairingGuideText(const StatusDashboardData& data)
 
 void updateStatusCaptionButtons(HWND hwnd)
 {
+    if (g_statusSkinButton != nullptr) {
+        const auto label = statusSkinButtonLabel();
+        SetWindowTextW(g_statusSkinButton, label.c_str());
+    }
     if (g_statusMaximizeButton != nullptr) {
         SetWindowTextW(g_statusMaximizeButton, IsZoomed(hwnd) ? L"[]" : L"[ ]");
     }
@@ -2881,19 +3317,19 @@ HFONT createUiFont(const int pointSize, const int weight, const wchar_t* faceNam
 void ensureStatusWindowResources()
 {
     if (g_statusBackgroundBrush == nullptr) {
-        g_statusBackgroundBrush = CreateSolidBrush(kStatusBackgroundColor);
+        g_statusBackgroundBrush = CreateSolidBrush(g_statusSkinColors.background);
     }
     if (g_statusPanelBrush == nullptr) {
-        g_statusPanelBrush = CreateSolidBrush(kStatusPanelColor);
+        g_statusPanelBrush = CreateSolidBrush(g_statusSkinColors.panel);
     }
     if (g_statusValueBrush == nullptr) {
-        g_statusValueBrush = CreateSolidBrush(kStatusValueBackgroundColor);
+        g_statusValueBrush = CreateSolidBrush(g_statusSkinColors.valueBackground);
     }
     if (g_statusAccentBrush == nullptr) {
-        g_statusAccentBrush = CreateSolidBrush(kStatusAccentColor);
+        g_statusAccentBrush = CreateSolidBrush(g_statusSkinColors.accent);
     }
     if (g_statusBorderBrush == nullptr) {
-        g_statusBorderBrush = CreateSolidBrush(kStatusBorderColor);
+        g_statusBorderBrush = CreateSolidBrush(g_statusSkinColors.border);
     }
     if (g_statusHeaderFont == nullptr) {
         g_statusHeaderFont = createUiFont(10, FW_NORMAL, L"Bahnschrift");
@@ -2934,26 +3370,7 @@ void destroyStatusWindowResources()
         DeleteObject(g_statusDetailsFont);
         g_statusDetailsFont = nullptr;
     }
-    if (g_statusPanelBrush != nullptr) {
-        DeleteObject(g_statusPanelBrush);
-        g_statusPanelBrush = nullptr;
-    }
-    if (g_statusAccentBrush != nullptr) {
-        DeleteObject(g_statusAccentBrush);
-        g_statusAccentBrush = nullptr;
-    }
-    if (g_statusBorderBrush != nullptr) {
-        DeleteObject(g_statusBorderBrush);
-        g_statusBorderBrush = nullptr;
-    }
-    if (g_statusValueBrush != nullptr) {
-        DeleteObject(g_statusValueBrush);
-        g_statusValueBrush = nullptr;
-    }
-    if (g_statusBackgroundBrush != nullptr) {
-        DeleteObject(g_statusBackgroundBrush);
-        g_statusBackgroundBrush = nullptr;
-    }
+    destroyStatusBrushes();
 }
 
 void refreshStatusWindowContent()
@@ -3260,7 +3677,8 @@ void layoutStatusWindow(HWND hwnd)
     const int subtitleHeight = 20;
     const int buttonHeight = 29;
     const int buttonGap = 8;
-    const int titleButtonsWidth = kStatusTitleButtonWidth * 3;
+    const int skinButtonWidth = 144;
+    const int titleButtonsWidth = (kStatusTitleButtonWidth * 3) + skinButtonWidth + buttonGap;
     const int availableWidth = width - (margin * 2);
 
     const int headerWidth = availableWidth - titleButtonsWidth - 12;
@@ -3280,7 +3698,11 @@ void layoutStatusWindow(HWND hwnd)
     const int closeLeft = width - margin - kStatusTitleButtonWidth;
     const int maximizeLeft = closeLeft - kStatusTitleButtonWidth;
     const int minimizeLeft = maximizeLeft - kStatusTitleButtonWidth;
+    const int skinLeft = minimizeLeft - buttonGap - skinButtonWidth;
     updateStatusCaptionButtons(hwnd);
+    if (g_statusSkinButton != nullptr) {
+        MoveWindow(g_statusSkinButton, skinLeft, titleButtonTop, skinButtonWidth, 24, TRUE);
+    }
     if (g_statusCloseButton != nullptr) {
         MoveWindow(g_statusCloseButton, closeLeft, titleButtonTop, kStatusTitleButtonWidth, 24, TRUE);
     }
@@ -3609,13 +4031,14 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyLlmPrepareButton = createStatusButton(hwnd, ID_STATUS_COPY_LLM_PREPARE, statusActionLabel(ID_STATUS_COPY_LLM_PREPARE).c_str());
         g_statusSupportReportButton = createStatusButton(hwnd, ID_STATUS_SUPPORT_REPORT, statusActionLabel(ID_STATUS_SUPPORT_REPORT).c_str());
         g_statusToggleStartupButton = createStatusButton(hwnd, ID_STATUS_TOGGLE_STARTUP, statusActionLabel(ID_STATUS_TOGGLE_STARTUP).c_str());
+        g_statusSkinButton = createStatusButton(hwnd, ID_STATUS_SWITCH_SKIN, statusSkinButtonLabel().c_str());
         g_statusCloseButton = createStatusButton(hwnd, ID_STATUS_CLOSE, L"X");
         g_statusMaximizeButton = createStatusButton(hwnd, ID_STATUS_MAXIMIZE, L"[ ]");
         g_statusMinimizeButton = createStatusButton(hwnd, ID_STATUS_MINIMIZE, L"-");
         g_statusBottomTitle =
             createStatusStatic(hwnd, localizedText({L"Dal\u0161\u00ED krok", L"Next Step"}), WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP);
         g_statusDetails = CreateWindowExW(
-            WS_EX_CLIENTEDGE,
+            0,
             L"EDIT",
             L"",
             WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_WANTRETURN | ES_NOHIDESEL,
@@ -3672,6 +4095,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusCopyLlmPrepareButton, g_statusFieldFont);
         setWindowFont(g_statusSupportReportButton, g_statusFieldFont);
         setWindowFont(g_statusToggleStartupButton, g_statusFieldFont);
+        setWindowFont(g_statusSkinButton, g_statusFieldFont);
         setWindowFont(g_statusCloseButton, g_statusFieldFont);
         setWindowFont(g_statusMaximizeButton, g_statusFieldFont);
         setWindowFont(g_statusMinimizeButton, g_statusFieldFont);
@@ -3688,6 +4112,11 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         for (const auto& action : kStatusActionSpecs) {
             addStatusTooltip(statusActionButton(action.id), localizedText(action.tooltip));
         }
+        addStatusTooltip(
+            g_statusSkinButton,
+            localizedText({
+                L"P\u0159epne vizu\u00E1ln\u00ED skin SNC okna. Volba se ulo\u017E\u00ED do lok\u00E1ln\u00EDho UI stavu.",
+                L"Switches the visual skin for the SNC window. The choice is saved in local UI state."}));
         for (std::size_t index = 0; index < kStatusSections.size(); ++index) {
             addStatusTooltip(g_statusSectionTitles[index], localizedText(kStatusSections[index].title));
             for (const auto field : kStatusSections[index].fields) {
@@ -3926,6 +4355,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case ID_STATUS_TOGGLE_STARTUP:
             toggleStartWithWindows(hwnd);
             return 0;
+        case ID_STATUS_SWITCH_SKIN:
+            cycleStatusSkin(hwnd);
+            return 0;
         case ID_STATUS_MAXIMIZE:
             ShowWindow(hwnd, IsZoomed(hwnd) ? SW_RESTORE : SW_MAXIMIZE);
             updateStatusCaptionButtons(hwnd);
@@ -3992,9 +4424,11 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         RECT closeRect{};
         RECT maxRect{};
         RECT minRect{};
+        RECT skinRect{};
         if ((g_statusCloseButton != nullptr && GetWindowRect(g_statusCloseButton, &closeRect) && PtInRect(&closeRect, point)) ||
             (g_statusMaximizeButton != nullptr && GetWindowRect(g_statusMaximizeButton, &maxRect) && PtInRect(&maxRect, point)) ||
-            (g_statusMinimizeButton != nullptr && GetWindowRect(g_statusMinimizeButton, &minRect) && PtInRect(&minRect, point))) {
+            (g_statusMinimizeButton != nullptr && GetWindowRect(g_statusMinimizeButton, &minRect) && PtInRect(&minRect, point)) ||
+            (g_statusSkinButton != nullptr && GetWindowRect(g_statusSkinButton, &skinRect) && PtInRect(&skinRect, point))) {
             return HTCLIENT;
         }
 
@@ -4025,19 +4459,19 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
     case WM_CTLCOLORSTATIC: {
         const HDC hdc = reinterpret_cast<HDC>(wParam);
         const HWND control = reinterpret_cast<HWND>(lParam);
-        COLORREF color = kStatusMutedColor;
+        COLORREF color = g_statusSkinColors.muted;
         bool accent = false;
 
         if (control == g_statusHeader) {
-            color = kStatusTextColor;
+            color = g_statusSkinColors.text;
         } else if (control == g_statusPageTitle) {
             accent = true;
         } else if (control == g_statusPageHelp) {
-            color = kStatusMutedColor;
+            color = g_statusSkinColors.muted;
         } else if (control == g_statusBottomTitle) {
             accent = true;
         } else if (control == g_statusSubtitle) {
-            color = kStatusMutedColor;
+            color = g_statusSkinColors.muted;
         } else {
             for (const auto sectionTitle : g_statusSectionTitles) {
                 if (control == sectionTitle) {
@@ -4048,32 +4482,32 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             if (!accent) {
                 for (const auto label : g_statusFieldLabels) {
                     if (control == label) {
-                        color = kStatusMutedColor;
+                        color = g_statusSkinColors.muted;
                         break;
                     }
                 }
             }
         }
 
-        SetTextColor(hdc, accent ? kStatusAccentColor : color);
+        SetTextColor(hdc, accent ? g_statusSkinColors.accent : color);
         SetBkMode(hdc, TRANSPARENT);
         return reinterpret_cast<LRESULT>(g_statusBackgroundBrush);
     }
     case WM_CTLCOLOREDIT: {
         const HDC hdc = reinterpret_cast<HDC>(wParam);
-        SetTextColor(hdc, kStatusTextColor);
-        SetBkColor(hdc, kStatusValueBackgroundColor);
+        SetTextColor(hdc, g_statusSkinColors.text);
+        SetBkColor(hdc, g_statusSkinColors.valueBackground);
         return reinterpret_cast<LRESULT>(g_statusValueBrush != nullptr ? g_statusValueBrush : g_statusPanelBrush);
     }
     case WM_ERASEBKGND: {
         const HDC hdc = reinterpret_cast<HDC>(wParam);
         RECT client{};
         GetClientRect(hwnd, &client);
-        FillRect(hdc, &client, g_statusBackgroundBrush);
+        fillStatusGradient(hdc, client, g_statusSkinColors.backgroundTop, g_statusSkinColors.background, wdui::GradientDirection::Vertical);
 
         RECT titleBand = client;
         titleBand.bottom = titleBand.top + kStatusTitleBarHeight;
-        FillRect(hdc, &titleBand, g_statusBackgroundBrush);
+        fillStatusGradient(hdc, titleBand, g_statusSkinColors.titleBand, g_statusSkinColors.background, wdui::GradientDirection::Horizontal);
 
         return 1;
     }
@@ -4206,6 +4640,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCloseButton = nullptr;
         g_statusMaximizeButton = nullptr;
         g_statusMinimizeButton = nullptr;
+        g_statusSkinButton = nullptr;
         for (auto& label : g_statusFieldLabels) {
             label = nullptr;
         }
@@ -4459,15 +4894,19 @@ void loadPersistedStatusUiState()
     g_statusUiState = {};
     g_statusUiState.normalWindowRect = {0, 0, kStatusDefaultWindowWidth, kStatusDefaultWindowHeight};
     g_statusUiState.activePage = StatusPageId::Overview;
+    g_statusUiState.activeSkin = SncStatusSkinId::Starlance;
 
     std::string json;
     if (!strategic_nexus::common::tryReadTextFile(g_statusUiStatePath, json)) {
         g_statusActivePage = g_statusUiState.activePage;
+        applyStatusSkin(g_statusUiState.activeSkin, false);
         return;
     }
 
     g_statusUiState.activePage =
         statusPageFromToken(strategic_nexus::common::extractJsonString(json, "active_page").value_or(""));
+    g_statusUiState.activeSkin =
+        statusSkinFromToken(strategic_nexus::common::extractJsonString(json, "skin").value_or(""));
     g_statusUiState.windowMaximized = extractJsonBool(json, "window_maximized").value_or(false);
 
     const auto left = extractJsonInt(json, "normal_left");
@@ -4483,11 +4922,13 @@ void loadPersistedStatusUiState()
     }
 
     g_statusActivePage = g_statusUiState.activePage;
+    applyStatusSkin(g_statusUiState.activeSkin, false);
 }
 
 void captureStatusUiStateFromWindow(HWND hwnd)
 {
     g_statusUiState.activePage = g_statusActivePage;
+    g_statusUiState.activeSkin = g_statusSkinId;
     if (hwnd == nullptr || !IsWindow(hwnd)) {
         return;
     }
@@ -4522,6 +4963,7 @@ void savePersistedStatusUiState()
     json << "  \"updated_at_local\": \"" << jsonEscape(formatLocalTimestamp()) << "\",\n";
     json << "  \"ui\": {\n";
     json << "    \"active_page\": \"" << jsonEscape(statusPageToken(g_statusUiState.activePage)) << "\",\n";
+    json << "    \"skin\": \"" << jsonEscape(statusSkinToken(g_statusUiState.activeSkin)) << "\",\n";
     json << "    \"language_mode\": \"auto\",\n";
     json << "    \"resolved_language\": \"" << sncUiLanguageToken(g_uiLanguage) << "\"\n";
     json << "  },\n";
@@ -5706,10 +6148,10 @@ std::string buildStatusCenterSummaryText(
             summary << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
         } else if (campaignLibraryLimitReached) {
             summary << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
+            summary << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
             summary << "campaign_library_pin_state: unavailable\n";
             summary << "campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
             summary << "campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
-            summary << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
         } else {
             summary << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
         }
@@ -5988,13 +6430,13 @@ void writeNextStepsBrief(
             brief << "\n";
             brief << "- Poznamka: sidecar plan knihovny kampani potrebuje pozornost; SNC nema duverovat aktivnimu coverage, dokud se plan neopravi.\n";
         } else if (campaignLibraryLimitReached) {
-            brief << "- campaign_library_pin_state: unavailable\n";
-            brief << "- campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
-            brief << "- campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
             brief << " (" << campaignLibrarySkippedDueToLimitCount << " campaign(s) skipped by limit)";
             brief << "\n";
             brief << "- Poznamka: aktivni generovana knihovna kampani je zamerne omezena; pokud v pristim testu chybi kampan, zvedni limit nebo uklid lokalni save root.\n";
             brief << "- Poznamka: user-pinned campaign exceptions zatim nejsou k dispozici; pro sirsi coverage nech local save root dostupny nebo jej obnov.\n";
+            brief << "- campaign_library_pin_state: unavailable\n";
+            brief << "- campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
+            brief << "- campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
         } else {
             brief << "\n";
             brief << "- Poznamka: aktivni generovana knihovna kampani se vejde do nastaveneho limitu.\n";

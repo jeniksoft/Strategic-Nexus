@@ -16,6 +16,33 @@ if (-not (Test-Path -LiteralPath $objectDir)) {
 Get-ChildItem -LiteralPath $objectDir -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 $objectOutputArg = "/Fo$objectDir\\"
 
+$wduiRootCandidates = @()
+if (-not [string]::IsNullOrWhiteSpace($env:WDUI_ROOT)) {
+    $wduiRootCandidates += $env:WDUI_ROOT
+}
+if (-not [string]::IsNullOrWhiteSpace($env:WDUi_ROOT)) {
+    $wduiRootCandidates += $env:WDUi_ROOT
+}
+$wduiRootCandidates += @(
+    (Join-Path (Split-Path -Parent $repoRoot) "codex-private-memory-ui-framework\tools\win32-design-ui"),
+    "C:\Codex\codex-private-memory-ui-framework\tools\win32-design-ui"
+)
+$wduiRoot = $wduiRootCandidates |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    ForEach-Object { [System.IO.Path]::GetFullPath($_) } |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_ "include\wdui\DesignUi.h") } |
+    Select-Object -First 1
+
+if (-not $wduiRoot) {
+    throw "WDUi root was not found. Set WDUI_ROOT or place it at C:\Codex\codex-private-memory-ui-framework\tools\win32-design-ui."
+}
+
+$wduiInclude = Join-Path $wduiRoot "include"
+$wduiSource = Join-Path $wduiRoot "src\DesignUi.cpp"
+if (-not (Test-Path -LiteralPath $wduiSource)) {
+    throw "WDUi source was not found: $wduiSource"
+}
+
 function Invoke-WithDeveloperShell {
     param(
         [string]$ScriptPath
@@ -62,6 +89,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $sourceFiles = @(
+    $wduiSource,
     (Join-Path $repoRoot "src\SncTrayApp.cpp"),
     (Join-Path $repoRoot "src\AutosaveArchiver.cpp"),
     (Join-Path $repoRoot "src\AutosaveArchiveVerifier.cpp"),
@@ -98,6 +126,7 @@ $sourceFiles = @(
     /DUNICODE `
     /D_UNICODE `
     /I (Join-Path $repoRoot "src") `
+    /I $wduiInclude `
     $objectOutputArg `
     $sourceFiles `
     /Fe:$outputPath `
@@ -106,7 +135,10 @@ $sourceFiles = @(
     $resourceOutput `
     Shell32.lib `
     User32.lib `
-    Gdi32.lib
+    Gdi32.lib `
+    Msimg32.lib `
+    Ole32.lib `
+    Windowscodecs.lib
 
 if ($LASTEXITCODE -ne 0) {
     throw "SNC tray build failed with exit code $LASTEXITCODE"
