@@ -1784,6 +1784,24 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-176-regress-missing-entry-point-analysis-fallback",
+      "title": "Regress missing entry-point analysis fallback",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "1D Entry-Point Scoped Post-Play Handoff / Branch-Aware Memory Reconstruction",
+      "goal": "Verify that a missing entry-point analysis keeps the memory-recovery warning visible and routes the owner to review the entry-point evidence instead of falling back to a generic tray summary.",
+      "acceptance": [
+        "Missing entry-point analysis keeps memory recovery in needs_attention with low confidence and a visible warning.",
+        "The companion next action becomes review_memory_recovery_status and its path points at the entry-point analysis artifact when that artifact path exists.",
+        "dist/strategic_nexus_companion_test.exe and tools/run_v0_pipeline_tests.cmd pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }

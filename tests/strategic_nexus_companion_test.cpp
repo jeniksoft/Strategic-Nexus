@@ -2018,6 +2018,15 @@ int main()
         missingAnalysisRecovery.postPlayPipeline.memoryRecovery.reason == "entry point analysis unavailable",
         "missing entry point analysis should expose an unavailable reason");
     requireCondition(
+        missingAnalysisRecovery.nextAction == "review_memory_recovery_status",
+        "missing entry point analysis should route the owner to memory recovery review");
+    requireCondition(
+        missingAnalysisRecovery.nextActionReason == "entry_point_analysis_unavailable",
+        "missing entry point analysis should expose a stable next-action reason");
+    requireCondition(
+        missingAnalysisRecovery.nextActionPath == missingEntryPointAnalysisPath,
+        "missing entry point analysis should route the next action to the entry-point evidence");
+    requireCondition(
         missingAnalysisRecovery.statusCenterSummaryText.find("memory_recovery: needs_attention - entry point analysis unavailable") !=
             std::string::npos,
         "status center summary should surface missing-analysis attention");
