@@ -3071,6 +3071,9 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
         return "review_entry_point_ambiguity";
     }
+    if (memoryRecoveryNeedsAttention(snapshot)) {
+        return "review_memory_recovery_status";
+    }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         return "review_mp_handoff_continuity";
     }
@@ -3085,9 +3088,6 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     }
     if (snapshot.generatedOverlayPublishGate.state == "published") {
         return "review_published_overlay_status";
-    }
-    if (memoryRecoveryNeedsAttention(snapshot)) {
-        return "review_memory_recovery_status";
     }
     if (snapshot.localLlm.state == "model_incompatible_with_hardware" ||
         snapshot.localLlm.state == "no_model_installed" ||
@@ -3127,6 +3127,9 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
     if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
         return "entry_point_branch_ambiguity_detected";
     }
+    if (memoryRecoveryNeedsAttention(snapshot)) {
+        return "entry_point_analysis_unavailable";
+    }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         return "mp_handoff_degraded_previous_host_unavailable";
     }
@@ -3142,11 +3145,6 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
     }
     if (snapshot.generatedOverlayPublishGate.state == "published") {
         return "current_staged_overlay_already_published";
-    }
-    if (memoryRecoveryNeedsAttention(snapshot)) {
-        return snapshot.postPlayPipeline.memoryRecovery.reason.empty()
-            ? snapshot.postPlayPipeline.memoryRecovery.state
-            : snapshot.postPlayPipeline.memoryRecovery.reason;
     }
     if (snapshot.localLlm.state == "model_incompatible_with_hardware" ||
         snapshot.localLlm.state == "no_model_installed" ||
@@ -3256,22 +3254,11 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
     if (snapshot.postPlayPipeline.branchAmbiguityDetected) {
         return snapshot.postPlayPipeline.entryPointAnalysisPath;
     }
+    if (memoryRecoveryNeedsAttention(snapshot) && !snapshot.postPlayPipeline.entryPointAnalysisPath.empty()) {
+        return snapshot.postPlayPipeline.entryPointAnalysisPath;
+    }
     if (hasDegradedMpHandoffContinuity(snapshot) || snapshot.mpOverlayPackage.state == "needs_attention") {
         return snapshot.mpOverlayPackage.path;
-    }
-    if (snapshot.localLlm.state == "model_incompatible_with_hardware" ||
-        snapshot.localLlm.state == "no_model_installed" ||
-        snapshot.localLlm.state == "model_missing" ||
-        snapshot.localLlm.state == "model_license_not_supported" ||
-        snapshot.localLlm.state == "model_license_requires_user_action" ||
-        snapshot.localLlm.state == "model_runtime_failed" ||
-        snapshot.localLlm.state == "model_changed_revalidation_needed") {
-        if (!snapshot.localLlm.modelStatePath.empty()) {
-            return snapshot.localLlm.modelStatePath;
-        }
-        if (!snapshot.localLlm.localPath.empty()) {
-            return snapshot.localLlm.localPath;
-        }
     }
     if (snapshot.generatedOverlayPublishGate.canPublish) {
         return snapshot.generatedOverlayPublishGate.stagingStatusPath.empty()
@@ -3286,8 +3273,19 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
             ? snapshot.generatedOverlayPublishGate.path
             : snapshot.generatedOverlayPublishGate.publishStatusPath;
     }
-    if (memoryRecoveryNeedsAttention(snapshot) && !snapshot.postPlayPipeline.entryPointAnalysisPath.empty()) {
-        return snapshot.postPlayPipeline.entryPointAnalysisPath;
+    if (snapshot.localLlm.state == "model_incompatible_with_hardware" ||
+        snapshot.localLlm.state == "no_model_installed" ||
+        snapshot.localLlm.state == "model_missing" ||
+        snapshot.localLlm.state == "model_license_not_supported" ||
+        snapshot.localLlm.state == "model_license_requires_user_action" ||
+        snapshot.localLlm.state == "model_runtime_failed" ||
+        snapshot.localLlm.state == "model_changed_revalidation_needed") {
+        if (!snapshot.localLlm.modelStatePath.empty()) {
+            return snapshot.localLlm.modelStatePath;
+        }
+        if (!snapshot.localLlm.localPath.empty()) {
+            return snapshot.localLlm.localPath;
+        }
     }
     if (snapshot.postPlayPipeline.generatedOverlayStagingReadiness == "staged_verified") {
         return snapshot.postPlayPipeline.generatedOverlayStagingStatusPath;
