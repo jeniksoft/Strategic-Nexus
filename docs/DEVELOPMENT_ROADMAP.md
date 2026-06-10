@@ -1491,7 +1491,7 @@ Generated overlay metadata carries source-quality and bootstrap provenance, and 
 ## 9B. Campaign-Empire Personality Profile Store
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Persist validated personality state for each campaign empire across sessions.
@@ -1506,7 +1506,7 @@ Required:
 * no raw LLM conversation persisted as trusted state
 
 Current progress:
-No durable campaign-empire personality profile store is implemented yet.
+A durable campaign-empire personality profile store now exists as a bounded JSON store keyed by campaign and empire. It persists validated update summaries, confidence, source save/date provenance, and zero-history bootstrap state while failing closed on malformed or missing records. The remaining work is wiring this store into the broader personality generation path so future sessions can reuse validated profiles instead of treating every campaign as fresh state.
 
 ---
 

@@ -107,6 +107,14 @@ $observerTargetProfileBuilderSourceFiles = @(
     (Join-Path $repoRoot "src/ObserverTargetProfileBuilder.cpp"),
     (Join-Path $repoRoot "src/SeasonEmpireBriefBuilder.cpp")
 )
+$personalityProfileStoreExePath = Join-Path $repoRoot "dist/personality_profile_store_test.exe"
+$personalityProfileStoreSourceFiles = @(
+    (Join-Path $repoRoot "tests/personality_profile_store_test.cpp"),
+    (Join-Path $repoRoot "src/PersonalityProfileStore.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
 $cabinetContractSourceFiles = @(
     (Join-Path $repoRoot "tests/v0_cabinet_contract_test.cpp"),
     (Join-Path $repoRoot "src/strategic_pipeline/LightweightCabinet.cpp"),
@@ -401,6 +409,7 @@ try {
     Invoke-ClCompile -Name "season_delta_ledger_builder_test" -SourceFiles $seasonDeltaLedgerBuilderSourceFiles -OutputPath $seasonDeltaLedgerBuilderExePath
     Invoke-ClCompile -Name "season_empire_brief_builder_test" -SourceFiles $seasonEmpireBriefBuilderSourceFiles -OutputPath $seasonEmpireBriefBuilderExePath
     Invoke-ClCompile -Name "observer_target_profile_builder_test" -SourceFiles $observerTargetProfileBuilderSourceFiles -OutputPath $observerTargetProfileBuilderExePath
+    Invoke-ClCompile -Name "personality_profile_store_test" -SourceFiles $personalityProfileStoreSourceFiles -OutputPath $personalityProfileStoreExePath
     Invoke-ClCompile -Name "v0_cabinet_contract_test" -SourceFiles $cabinetContractSourceFiles -OutputPath $cabinetContractExePath
     Invoke-ClCompile -Name "v0_priority_score_test" -SourceFiles $priorityScoreSourceFiles -OutputPath $priorityScoreExePath
     Invoke-ClCompile -Name "v0_processing_queue_test" -SourceFiles $processingQueueSourceFiles -OutputPath $processingQueueExePath
@@ -3882,6 +3891,11 @@ if ($LASTEXITCODE -ne 0) {
 & $seasonEmpireBriefBuilderExePath
 if ($LASTEXITCODE -ne 0) {
     throw "season empire brief builder tests failed."
+}
+
+& $personalityProfileStoreExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "personality profile store tests failed."
 }
 
 & $cabinetContractExePath
