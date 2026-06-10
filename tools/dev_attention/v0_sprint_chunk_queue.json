@@ -1878,6 +1878,25 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-181-verify-local-llm-reduced-mode-guidance-on-current-head",
+      "title": "Verify local LLM reduced-mode guidance on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "1G. Local LLM Model Manager / reduced-mode guidance visibility",
+      "goal": "Verify that SNC status, tray, and companion surfaces keep local_llm_install_guidance, local_llm_model_state_path, and review_local_llm_model_manager next-action fields visible and fail closed on current head.",
+      "acceptance": [
+        "Companion and tray surfaces expose local_llm_install_guidance and local_llm_model_state_path.",
+        "When local LLM attention is active, next_action points at review_local_llm_model_manager and next_action_path points at local_llm_model_state_path.",
+        "dist/strategic_nexus_companion_test.exe, tools/smoke_snc_tray.cmd, and tools/run_v0_pipeline_tests.cmd pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
