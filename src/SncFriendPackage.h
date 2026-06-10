@@ -49,6 +49,12 @@ struct SncFriendTrustStore {
     std::vector<SncTrustedFriend> friends;
 };
 
+struct SncFriendTrustStoreUpdateResult {
+    bool ok = false;
+    std::string reason;
+    SncFriendTrustStore store;
+};
+
 struct SncFriendMpSyncEnvelopePackage {
     bool ok = false;
     std::string reason;
@@ -89,6 +95,13 @@ struct SncFriendMpSyncOutboxPlanResult {
 SncFriendRequestPackage parseSncFriendRequestPackageJson(const std::string& json);
 SncFriendAcceptancePackage parseSncFriendAcceptancePackageJson(const std::string& json);
 SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json);
+SncFriendTrustStoreUpdateResult updateSncFriendTrustStoreEntry(
+    const SncFriendTrustStore& store,
+    const std::string& nodeId,
+    const std::string& trustState,
+    bool autoSyncEnabled,
+    const std::string& updatedAt,
+    const std::string& localAlias = "");
 SncFriendMpSyncEnvelopePackage parseSncFriendMpSyncEnvelopePackageJson(const std::string& json);
 SncFriendMpSyncApplyGateResult evaluateSncFriendMpSyncApplyGate(
     const SncFriendMpSyncEnvelopePackage& package,

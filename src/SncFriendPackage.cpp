@@ -10,6 +10,7 @@
 #include <optional>
 #include <regex>
 #include <sstream>
+#include <utility>
 
 namespace strategic_nexus {
 namespace {
@@ -544,6 +545,78 @@ SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json)
     store.ok = true;
     store.reason = "friend trust store parsed";
     return store;
+}
+
+SncFriendTrustStoreUpdateResult updateSncFriendTrustStoreEntry(
+    const SncFriendTrustStore& store,
+    const std::string& nodeId,
+    const std::string& trustState,
+    const bool autoSyncEnabled,
+    const std::string& updatedAt,
+    const std::string& localAlias)
+{
+    SncFriendTrustStoreUpdateResult result;
+    if (!store.ok) {
+        result.reason = store.reason.empty()
+            ? "friend trust store is invalid"
+            : store.reason;
+        return result;
+    }
+    if (!isSafeToken(nodeId, kMaxNodeIdLength)) {
+        result.reason = "friend trust store node_id is missing or unsafe";
+        return result;
+    }
+    if (!isSupportedTrustState(trustState)) {
+        result.reason = "friend trust state is unsupported";
+        return result;
+    }
+    if (!isSafeToken(updatedAt, kMaxPackageIdLength)) {
+        result.reason = "friend trust store updated_at is missing or unsafe";
+        return result;
+    }
+    if (trustState != "trusted" && autoSyncEnabled) {
+        result.reason = "revoked or blocked friend cannot have auto-sync enabled";
+        return result;
+    }
+    if (!localAlias.empty() && !isSafeDisplayName(localAlias)) {
+        result.reason = "trusted friend local_alias is unsafe";
+        return result;
+    }
+
+    result.store = store;
+    const auto friendIt = std::find_if(
+        result.store.friends.begin(),
+        result.store.friends.end(),
+        [&nodeId](const SncTrustedFriend& friendEntry) {
+            return friendEntry.identity.nodeId == nodeId;
+        });
+    if (friendIt == result.store.friends.end()) {
+        result.reason = "friend trust store does not contain requested node_id";
+        result.store.ok = false;
+        return result;
+    }
+
+    friendIt->trustState = trustState;
+    friendIt->autoSyncEnabled = autoSyncEnabled;
+    friendIt->updatedAt = updatedAt;
+    if (!localAlias.empty()) {
+        friendIt->localAlias = localAlias;
+    }
+
+    const auto updatedJson = serializeSncFriendTrustStore(result.store);
+    const auto parsedUpdatedStore = parseSncFriendTrustStoreJson(updatedJson);
+    if (!parsedUpdatedStore.ok) {
+        result.reason = parsedUpdatedStore.reason.empty()
+            ? "friend trust store update failed validation"
+            : parsedUpdatedStore.reason;
+        result.store.ok = false;
+        return result;
+    }
+
+    result.ok = true;
+    result.reason = "friend trust store entry updated";
+    result.store = std::move(parsedUpdatedStore);
+    return result;
 }
 
 SncFriendMpSyncEnvelopePackage parseSncFriendMpSyncEnvelopePackageJson(const std::string& json)

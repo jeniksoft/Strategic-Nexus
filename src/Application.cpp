@@ -506,6 +506,30 @@ RunConfig parseRunConfig(int argc, char* argv[])
         return config;
     }
 
+    if (argc > 1 && std::string(argv[1]) == "--update-snc-friend-trust-store-entry") {
+        config.updateSncFriendTrustStoreEntryMode = true;
+
+        if (argc > 2) {
+            config.sncFriendTrustStoreOutputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncFriendNodeId = argv[3];
+        }
+        if (argc > 4) {
+            config.sncFriendTrustState = argv[4];
+        }
+        if (argc > 5) {
+            config.sncFriendTrustAutoSyncEnabled = parseBoolArg(argv[5], false);
+        }
+        if (argc > 6) {
+            config.sncFriendTrustUpdatedAt = argv[6];
+        }
+        if (argc > 7) {
+            config.sncFriendLocalAlias = argv[7];
+        }
+        return config;
+    }
+
     if (argc > 1 && std::string(argv[1]) == "--create-snc-friend-mp-sync-envelope") {
         config.createSncFriendMpSyncEnvelopeMode = true;
 
@@ -2121,6 +2145,67 @@ int Application::run(const RunConfig& config) const
             return success ? 0 : 1;
         }
 
+        if (config.updateSncFriendTrustStoreEntryMode) {
+            if (config.sncFriendTrustStoreOutputPath.empty() ||
+                !hasNonWhitespace(config.sncFriendNodeId) ||
+                !hasNonWhitespace(config.sncFriendTrustState) ||
+                !hasNonWhitespace(config.sncFriendTrustUpdatedAt)) {
+                std::cout << "snc_friend_trust_store_update_success=false\n";
+                std::cout << "snc_friend_trust_store_update_reason=missing trust store path, node_id, trust state, or updated_at\n";
+                return 1;
+            }
+
+            std::string storeJson;
+            if (!std::filesystem::exists(config.sncFriendTrustStoreOutputPath)) {
+                std::cout << "snc_friend_trust_store_update_success=false\n";
+                std::cout << "snc_friend_trust_store_update_reason=friend trust store path is missing\n";
+                return 1;
+            }
+            if (!common::tryReadTextFile(config.sncFriendTrustStoreOutputPath, storeJson)) {
+                std::cout << "snc_friend_trust_store_update_success=false\n";
+                std::cout << "snc_friend_trust_store_update_reason=failed to read existing friend trust store\n";
+                return 1;
+            }
+
+            const auto store = parseSncFriendTrustStoreJson(storeJson);
+            const auto updateResult = updateSncFriendTrustStoreEntry(
+                store,
+                config.sncFriendNodeId,
+                config.sncFriendTrustState,
+                config.sncFriendTrustAutoSyncEnabled,
+                config.sncFriendTrustUpdatedAt,
+                config.sncFriendLocalAlias);
+            if (!updateResult.ok) {
+                std::cout << "snc_friend_trust_store_update_success=false\n";
+                std::cout << "snc_friend_trust_store_update_reason=" << sanitizeCliValue(updateResult.reason) << "\n";
+                return 1;
+            }
+
+            const auto updatedJson = serializeSncFriendTrustStore(updateResult.store);
+            const bool written = common::writeTextFileAtomically(
+                config.sncFriendTrustStoreOutputPath,
+                updatedJson);
+            const bool success = written;
+
+            std::cout << "snc_friend_trust_store_update_success=" << (success ? "true" : "false") << "\n";
+            std::cout << "snc_friend_trust_store_update_reason="
+                      << sanitizeCliValue(success ? "friend trust store entry updated" : "failed to write friend trust store") << "\n";
+            std::cout << "snc_friend_trust_store_update_output_written=" << (written ? "true" : "false") << "\n";
+            std::cout << "snc_friend_trust_store_update_node_id="
+                      << sanitizeCliValue(config.sncFriendNodeId) << "\n";
+            std::cout << "snc_friend_trust_store_update_trust_state="
+                      << sanitizeCliValue(config.sncFriendTrustState) << "\n";
+            std::cout << "snc_friend_trust_store_update_auto_sync_enabled="
+                      << (config.sncFriendTrustAutoSyncEnabled ? "true" : "false") << "\n";
+            std::cout << "snc_friend_trust_store_update_updated_at="
+                      << sanitizeCliValue(config.sncFriendTrustUpdatedAt) << "\n";
+            if (hasNonWhitespace(config.sncFriendLocalAlias)) {
+                std::cout << "snc_friend_trust_store_update_local_alias="
+                          << sanitizeCliValue(config.sncFriendLocalAlias) << "\n";
+            }
+            return success ? 0 : 1;
+        }
+
         if (config.createSncFriendMpSyncEnvelopeMode) {
             if (config.sncFriendMpSyncEnvelopeOutputPath.empty() ||
                 !hasNonWhitespace(config.sncFriendNodeId) ||
@@ -2667,6 +2752,14 @@ int Application::run(const RunConfig& config) const
                       << snapshot.friendTrustStore.autoSyncEnabledCount << "\n";
             std::cout << "snc_friend_trust_store_auto_sync_available="
                       << (snapshot.friendTrustStore.autoSyncAvailable ? "true" : "false") << "\n";
+            std::cout << "snc_friend_trust_store_controls_state="
+                      << sanitizeCliValue(snapshot.friendTrustStore.controlsState) << "\n";
+            std::cout << "snc_friend_trust_store_controls_reason="
+                      << sanitizeCliValue(snapshot.friendTrustStore.controlsReason) << "\n";
+            std::cout << "snc_friend_trust_store_controls_next_step="
+                      << sanitizeCliValue(snapshot.friendTrustStore.controlsNextStep) << "\n";
+            std::cout << "snc_friend_trust_store_update_command_template="
+                      << sanitizeCliValue(snapshot.friendTrustStore.controlsCommandTemplate) << "\n";
             std::cout << "snc_friend_pairing_command_template="
                       << sanitizeCliValue(snapshot.friendTrustStore.pairingCommandTemplate) << "\n";
             std::cout << "snc_status_center_state=" << sanitizeCliValue(snapshot.statusCenter.state) << "\n";

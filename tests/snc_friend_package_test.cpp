@@ -153,6 +153,55 @@ int main()
         strategic_nexus::serializeSncFriendTrustStore(blockedAutoSyncStore));
     requireCondition(!blockedAutoSyncRead.ok, "blocked friend with auto-sync enabled should fail closed");
 
+    const auto revokedUpdate = strategic_nexus::updateSncFriendTrustStoreEntry(
+        parsedStore,
+        parsedStore.friends[0].identity.nodeId,
+        "revoked",
+        false,
+        "2026-06-08T18:00:00Z");
+    requireCondition(revokedUpdate.ok, "trusted friend should update to revoked");
+    requireCondition(
+        revokedUpdate.store.friends[0].trustState == "revoked" && !revokedUpdate.store.friends[0].autoSyncEnabled,
+        "revoked trust-store update should disable auto-sync");
+
+    const auto blockedUpdate = strategic_nexus::updateSncFriendTrustStoreEntry(
+        parsedStore,
+        parsedStore.friends[0].identity.nodeId,
+        "blocked",
+        false,
+        "2026-06-08T18:01:00Z",
+        "Client Blocked");
+    requireCondition(blockedUpdate.ok, "trusted friend should update to blocked");
+    requireCondition(
+        blockedUpdate.store.friends[0].trustState == "blocked" &&
+            blockedUpdate.store.friends[0].localAlias == "Client Blocked",
+        "blocked trust-store update should preserve the requested alias");
+
+    const auto disabledAutoSyncUpdate = strategic_nexus::updateSncFriendTrustStoreEntry(
+        parsedStore,
+        parsedStore.friends[0].identity.nodeId,
+        "trusted",
+        false,
+        "2026-06-08T18:02:00Z");
+    requireCondition(disabledAutoSyncUpdate.ok, "trusted friend should allow disabling auto-sync");
+    requireCondition(
+        disabledAutoSyncUpdate.store.friends[0].trustState == "trusted" &&
+            !disabledAutoSyncUpdate.store.friends[0].autoSyncEnabled,
+        "trusted update should allow disabling auto-sync");
+
+    const auto blockedAutoSyncUpdate = strategic_nexus::updateSncFriendTrustStoreEntry(
+        parsedStore,
+        parsedStore.friends[0].identity.nodeId,
+        "blocked",
+        true,
+        "2026-06-08T18:03:00Z");
+    requireCondition(
+        !blockedAutoSyncUpdate.ok,
+        "blocked trust-state update should reject auto-sync");
+    requireCondition(
+        blockedAutoSyncUpdate.reason == "revoked or blocked friend cannot have auto-sync enabled",
+        "blocked trust-state update should explain why auto-sync is rejected");
+
     strategic_nexus::SncFriendMpSyncEnvelopePackage syncEnvelope;
     syncEnvelope.ok = true;
     syncEnvelope.sender = parsedRequest.sender;

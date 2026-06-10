@@ -4111,6 +4111,23 @@ $sncFriendTrustStoreJson = Get-Content -LiteralPath $sncFriendTrustStorePath -Ra
 Assert-Contains -Name "snc friend trust store cli json" -Text $sncFriendTrustStoreJson -Expected '"trust_state": "trusted"'
 Assert-Contains -Name "snc friend trust store cli json" -Text $sncFriendTrustStoreJson -Expected '"auto_sync_enabled": false'
 
+$sncFriendTrustStoreUpdateOutput = & $exePath `
+    --update-snc-friend-trust-store-entry `
+    $sncFriendTrustStorePath `
+    "snc-node-client-cli-001" `
+    "trusted" `
+    "true" `
+    "2026-06-08T18:06:30Z" `
+    "Client CLI"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend trust store update CLI failed. Actual output:`n$($sncFriendTrustStoreUpdateOutput -join "`n")"
+}
+$sncFriendTrustStoreUpdateText = $sncFriendTrustStoreUpdateOutput -join "`n"
+Assert-Contains -Name "snc friend trust store update cli" -Text $sncFriendTrustStoreUpdateText -Expected "snc_friend_trust_store_update_success=true"
+Assert-Contains -Name "snc friend trust store update cli" -Text $sncFriendTrustStoreUpdateText -Expected "snc_friend_trust_store_update_auto_sync_enabled=true"
+$sncFriendTrustStoreUpdatedJson = Get-Content -LiteralPath $sncFriendTrustStorePath -Raw
+Assert-Contains -Name "snc friend trust store updated cli json" -Text $sncFriendTrustStoreUpdatedJson -Expected '"auto_sync_enabled": true'
+
 $sncFriendSelfAcceptanceOutput = & $exePath `
     --create-snc-friend-acceptance `
     $sncFriendRequestPath `

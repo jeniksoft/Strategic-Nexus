@@ -193,6 +193,10 @@ struct StatusDashboardData {
     std::wstring friendTrustStoreState;
     std::wstring friendTrustStoreReason;
     std::wstring friendTrustStorePath;
+    std::wstring friendTrustStoreControlsState;
+    std::wstring friendTrustStoreControlsReason;
+    std::wstring friendTrustStoreControlsNextStep;
+    std::wstring friendTrustStoreUpdateCommandTemplate;
     std::wstring friendPairingCommandTemplate;
     std::wstring friendMpSyncEnvelopeCommandTemplate;
     std::wstring friendMpSyncInboxPlanCommandTemplate;
@@ -2099,6 +2103,16 @@ std::string buildFriendMpSyncOutboxPlanCommandTemplateUtf8()
     return command;
 }
 
+std::string buildFriendTrustStoreUpdateCommandTemplateUtf8()
+{
+    std::string command;
+    command += "Strategic Nexus.exe --update-snc-friend-trust-store-entry ";
+    command += "\"dist/private_reports/snc_friend_trust_store.json\" ";
+    command += "<friend_node_id> <trusted|revoked|blocked> ";
+    command += "<auto_sync_enabled:true|false> <updated_at_utc> [local_alias]";
+    return command;
+}
+
 std::string buildFriendPairingGuideTextUtf8()
 {
     return localizedTextUtf8({
@@ -2189,6 +2203,10 @@ StatusDashboardData loadStatusDashboardData()
     data.friendTrustStoreState = L"\u2014";
     data.friendTrustStoreReason = L"\u2014";
     data.friendTrustStorePath = L"\u2014";
+    data.friendTrustStoreControlsState = L"\u2014";
+    data.friendTrustStoreControlsReason.clear();
+    data.friendTrustStoreControlsNextStep.clear();
+    data.friendTrustStoreUpdateCommandTemplate = utf8ToWide(buildFriendTrustStoreUpdateCommandTemplateUtf8());
     data.friendPairingCommandTemplate = utf8ToWide(buildFriendPairingCommandTemplateUtf8());
     data.friendMpSyncEnvelopeCommandTemplate = utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8());
     data.friendMpSyncInboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8());
@@ -2337,6 +2355,20 @@ StatusDashboardData loadStatusDashboardData()
         formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_trust_store_reason").value_or(""));
     data.friendTrustStorePath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_path").value_or(""));
+    data.friendTrustStoreControlsState =
+        formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "friend_trust_store_controls_state").value_or(""));
+    if (data.friendTrustStoreControlsState.empty()) {
+        data.friendTrustStoreControlsState = formatOwnerFacingStatusValue("not_configured");
+    }
+    data.friendTrustStoreControlsReason =
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_trust_store_controls_reason").value_or(""));
+    data.friendTrustStoreControlsNextStep =
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_trust_store_controls_next_step").value_or(""));
+    data.friendTrustStoreUpdateCommandTemplate =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_trust_store_update_command_template").value_or(""));
+    if (data.friendTrustStoreUpdateCommandTemplate.empty()) {
+        data.friendTrustStoreUpdateCommandTemplate = utf8ToWide(buildFriendTrustStoreUpdateCommandTemplateUtf8());
+    }
     data.friendMpSyncEnvelopeCommandTemplate =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_envelope_command_template").value_or(""));
     if (data.friendMpSyncEnvelopeCommandTemplate.empty()) {
@@ -2459,6 +2491,14 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.friendTrustStoreReason.empty() ? kStatusEmptyValue : data.friendTrustStoreReason;
     text += L"\r\nSNC pratele cesta: ";
     text += data.friendTrustStorePath.empty() ? kStatusEmptyValue : data.friendTrustStorePath;
+    text += L"\r\nSNC pratele controls: ";
+    text += data.friendTrustStoreControlsState.empty() ? kStatusEmptyValue : data.friendTrustStoreControlsState;
+    text += L"\r\nSNC pratele controls duvod: ";
+    text += data.friendTrustStoreControlsReason.empty() ? kStatusEmptyValue : data.friendTrustStoreControlsReason;
+    text += L"\r\nSNC pratele controls dalsi krok: ";
+    text += data.friendTrustStoreControlsNextStep.empty() ? kStatusEmptyValue : data.friendTrustStoreControlsNextStep;
+    text += L"\r\nSNC pratele update template: ";
+    text += data.friendTrustStoreUpdateCommandTemplate.empty() ? kStatusEmptyValue : data.friendTrustStoreUpdateCommandTemplate;
     text += L"\r\nSNC pairing guide: ";
     text += buildFriendPairingGuideText(data);
     text += L"\r\nSNC pairing template: ";
@@ -5622,6 +5662,24 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
         appendOwnerFacingStatusReasonLine(summary, "mp_handoff_recovery_hint", mpOverlayPackage.handoffRecoveryHint);
     }
+    summary << "friend_trust_store_controls_state: "
+            << ownerFacingStatusValueUtf8(
+                   friendTrustStore.controlsState.empty()
+                       ? std::string("not_configured")
+                       : friendTrustStore.controlsState)
+            << "\n";
+    if (!friendTrustStore.controlsReason.empty()) {
+        summary << "friend_trust_store_controls_reason: "
+                << friendTrustStore.controlsReason << "\n";
+    }
+    if (!friendTrustStore.controlsNextStep.empty()) {
+        summary << "friend_trust_store_controls_next_step: "
+                << friendTrustStore.controlsNextStep << "\n";
+    }
+    if (!friendTrustStore.controlsCommandTemplate.empty()) {
+        summary << "friend_trust_store_update_command_template: "
+                << friendTrustStore.controlsCommandTemplate << "\n";
+    }
     const auto friendMeshUpdate = strategic_nexus::buildFriendMeshUpdateStatus(friendTrustStore, mpOverlayPackage);
     summary << "friend_mesh_update_state: " << friendMeshUpdate.state << "\n";
     summary << "friend_mesh_update_reason: " << friendMeshUpdate.reason << "\n";
@@ -6557,6 +6615,14 @@ void writeStatus(
          << companionSnapshot.friendTrustStore.autoSyncEnabledCount << ",\n";
     json << "  \"friend_trust_store_auto_sync_available\": "
          << (companionSnapshot.friendTrustStore.autoSyncAvailable ? "true" : "false") << ",\n";
+    json << "  \"friend_trust_store_controls_state\": \""
+         << jsonEscape(companionSnapshot.friendTrustStore.controlsState) << "\",\n";
+    json << "  \"friend_trust_store_controls_reason\": \""
+         << jsonEscape(companionSnapshot.friendTrustStore.controlsReason) << "\",\n";
+    json << "  \"friend_trust_store_controls_next_step\": \""
+         << jsonEscape(companionSnapshot.friendTrustStore.controlsNextStep) << "\",\n";
+    json << "  \"friend_trust_store_update_command_template\": \""
+         << jsonEscape(companionSnapshot.friendTrustStore.controlsCommandTemplate) << "\",\n";
     json << "  \"friend_pairing_command_template\": \""
          << jsonEscape(buildFriendPairingCommandTemplateUtf8()) << "\",\n";
     json << "  \"friend_mp_sync_envelope_command_template\": \""

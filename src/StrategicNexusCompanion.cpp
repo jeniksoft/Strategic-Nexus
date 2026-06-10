@@ -2413,6 +2413,16 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         "\"<friend_acceptance_path>\" "
         "\"dist/private_reports/snc_friend_trust_store.json\" "
         "<accepted_at_utc> [local_alias]";
+    status.controlsCommandTemplate =
+        "Strategic Nexus.exe --update-snc-friend-trust-store-entry "
+        "\"dist/private_reports/snc_friend_trust_store.json\" "
+        "<friend_node_id> <trusted|revoked|blocked> "
+        "<auto_sync_enabled:true|false> <updated_at_utc> [local_alias]";
+    status.controlsState = "not_configured";
+    status.controlsReason =
+        "friend trust store update controls are available once the trust store exists";
+    status.controlsNextStep =
+        "Import a friend acceptance first, then use the update command to revoke, block, or disable auto-sync for a trusted friend.";
     status.mpSyncEnvelopeCommandTemplate =
         "Strategic Nexus.exe --create-snc-friend-mp-sync-envelope "
         "\"dist/private_reports/snc_friend_mp_sync_envelope.json\" "
@@ -2449,11 +2459,19 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
     if (!std::filesystem::is_regular_file(status.path, error) || error) {
         status.state = "needs_attention";
         status.reason = "friend trust store path is not a file";
+        status.controlsState = "needs_attention";
+        status.controlsReason = "friend trust store controls need a valid trust store file";
+        status.controlsNextStep =
+            "Create or point SNC at a valid friend trust store before using the update command.";
         return status;
     }
     if (!common::tryReadTextFile(status.path, json)) {
         status.state = "needs_attention";
         status.reason = "friend trust store path is not readable";
+        status.controlsState = "needs_attention";
+        status.controlsReason = "friend trust store controls need a readable trust store file";
+        status.controlsNextStep =
+            "Fix read access to the trust store, then use the update command to change revoke/block/auto-sync state.";
         return status;
     }
 
@@ -2463,6 +2481,10 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         status.reason = store.reason.empty()
             ? "friend trust store failed validation"
             : store.reason;
+        status.controlsState = "needs_attention";
+        status.controlsReason = "friend trust store controls are blocked until the trust store validates";
+        status.controlsNextStep =
+            "Repair or recreate the trust store before relying on revoke/block/auto-sync controls.";
         return status;
     }
 
@@ -2483,6 +2505,11 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
     status.reason = status.autoSyncAvailable
         ? "trusted friends available for future explicit package sync"
         : "friend trust store parsed; no trusted friend has auto-sync enabled";
+    status.controlsState = "ready";
+    status.controlsReason =
+        "trusted friends can be revoked, blocked, or have auto-sync disabled through the trust-store update command";
+    status.controlsNextStep =
+        "Use the trust-store update command with the target node_id, trust_state, auto_sync_enabled flag, and updated_at timestamp.";
     return status;
 }
 
@@ -3060,6 +3087,19 @@ std::string buildStatusCenterSummaryText(
          << friendTrustStore.autoSyncEnabledCount << "\n";
     text << "friend_trust_store_auto_sync_available: "
          << (friendTrustStore.autoSyncAvailable ? "true" : "false") << "\n";
+    if (!friendTrustStore.controlsState.empty()) {
+        text << "friend_trust_store_controls_state: " << friendTrustStore.controlsState << "\n";
+    }
+    if (!friendTrustStore.controlsReason.empty()) {
+        text << "friend_trust_store_controls_reason: " << friendTrustStore.controlsReason << "\n";
+    }
+    if (!friendTrustStore.controlsNextStep.empty()) {
+        text << "friend_trust_store_controls_next_step: " << friendTrustStore.controlsNextStep << "\n";
+    }
+    if (!friendTrustStore.controlsCommandTemplate.empty()) {
+        text << "friend_trust_store_update_command_template: "
+             << friendTrustStore.controlsCommandTemplate << "\n";
+    }
     if (!friendTrustStore.pairingCommandTemplate.empty()) {
         text << "friend_pairing_command_template: "
              << friendTrustStore.pairingCommandTemplate << "\n";
@@ -3460,6 +3500,11 @@ void writeFriendTrustStoreJson(
     output << indent << "  \"revoked_friend_count\": " << status.revokedFriendCount << ",\n";
     output << indent << "  \"blocked_friend_count\": " << status.blockedFriendCount << ",\n";
     output << indent << "  \"auto_sync_enabled_count\": " << status.autoSyncEnabledCount << ",\n";
+    output << indent << "  \"controls_state\": " << jsonString(status.controlsState) << ",\n";
+    output << indent << "  \"controls_reason\": " << jsonString(status.controlsReason) << ",\n";
+    output << indent << "  \"controls_next_step\": " << jsonString(status.controlsNextStep) << ",\n";
+    output << indent << "  \"update_command_template\": "
+           << jsonString(status.controlsCommandTemplate) << ",\n";
     output << indent << "  \"pairing_command_template\": "
            << jsonString(status.pairingCommandTemplate) << ",\n";
     output << indent << "  \"mp_sync_envelope_command_template\": "
@@ -3955,6 +4000,14 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"friend_trust_store_status\": ";
     writeFriendTrustStoreJson(output, snapshot.friendTrustStore, "  ");
     output << ",\n";
+    output << "  \"friend_trust_store_controls_state\": "
+           << jsonString(snapshot.friendTrustStore.controlsState) << ",\n";
+    output << "  \"friend_trust_store_controls_reason\": "
+           << jsonString(snapshot.friendTrustStore.controlsReason) << ",\n";
+    output << "  \"friend_trust_store_controls_next_step\": "
+           << jsonString(snapshot.friendTrustStore.controlsNextStep) << ",\n";
+    output << "  \"friend_trust_store_update_command_template\": "
+           << jsonString(snapshot.friendTrustStore.controlsCommandTemplate) << ",\n";
     const auto friendMeshUpdate = buildFriendMeshUpdateStatus(snapshot.friendTrustStore, snapshot.mpOverlayPackage);
     output << "  \"friend_mesh_update_state\": " << jsonString(friendMeshUpdate.state) << ",\n";
     output << "  \"friend_mesh_update_reason\": " << jsonString(friendMeshUpdate.reason) << ",\n";

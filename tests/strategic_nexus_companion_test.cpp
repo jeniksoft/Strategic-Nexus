@@ -529,6 +529,18 @@ int main()
         ready.friendTrustStore.autoSyncEnabledCount == 1 && ready.friendTrustStore.autoSyncAvailable,
         "friend trust store should expose auto-sync availability");
     requireCondition(
+        ready.friendTrustStore.controlsState == "ready",
+        "friend trust store should expose ready control state");
+    requireCondition(
+        ready.friendTrustStore.controlsReason.find("revoked, blocked, or have auto-sync disabled") != std::string::npos &&
+            ready.friendTrustStore.controlsReason.find("trust-store update command") != std::string::npos,
+        "friend trust store should explain the revoke/block/disable-auto-sync controls");
+    requireCondition(
+        ready.friendTrustStore.controlsCommandTemplate.find("--update-snc-friend-trust-store-entry") != std::string::npos &&
+            ready.friendTrustStore.controlsCommandTemplate.find("<friend_node_id>") != std::string::npos &&
+            ready.friendTrustStore.controlsCommandTemplate.find("<trusted|revoked|blocked>") != std::string::npos,
+        "friend trust store should expose the update command template");
+    requireCondition(
         ready.friendTrustStore.pairingCommandTemplate.find("--create-snc-friend-request") != std::string::npos &&
             ready.friendTrustStore.pairingCommandTemplate.find("--create-snc-friend-acceptance") != std::string::npos &&
             ready.friendTrustStore.pairingCommandTemplate.find("--import-snc-friend-acceptance") != std::string::npos,
@@ -568,6 +580,11 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
         "status center summary should expose friend trust store auto-sync count");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_trust_store_controls_state: ready") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_trust_store_controls_reason: trusted friends can be revoked, blocked, or have auto-sync disabled through the trust-store update command") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_trust_store_update_command_template: Strategic Nexus.exe --update-snc-friend-trust-store-entry ") != std::string::npos,
+        "status center summary should expose friend trust store control visibility");
     requireCondition(
         ready.statusCenterSummaryText.find("friend_pairing_command_template: Strategic Nexus.exe --create-snc-friend-request ") != std::string::npos,
         "status center summary should expose the manual friend-pairing command template");
@@ -1359,6 +1376,10 @@ int main()
     requireCondition(
         readyJson.find("\"friend_mesh_update_state\": \"degraded_handoff\"") != std::string::npos,
         "snapshot JSON should expose the friend mesh update state");
+    requireCondition(
+        readyJson.find("\"friend_trust_store_controls_state\": \"ready\"") != std::string::npos &&
+            readyJson.find("\"friend_trust_store_update_command_template\": \"Strategic Nexus.exe --update-snc-friend-trust-store-entry ") != std::string::npos,
+        "snapshot JSON should expose friend trust store control visibility");
     requireCondition(
         readyJson.find(
             "\"friend_mesh_update_reason\": \"previous host unavailable; handoff continuity is degraded\"") !=

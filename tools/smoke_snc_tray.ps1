@@ -139,6 +139,7 @@ function Initialize-ReadyOwnerTestFixture {
         $statusPath,
         $liveStatusPath,
         $nextStepsBriefPath,
+        $friendTrustStorePath,
         $activeOverlayDirectory,
         $stagedOverlayDirectory,
         $stagingStatusPath,
@@ -261,6 +262,54 @@ function Initialize-ReadyOwnerTestFixture {
 }
 "@
     Set-Content -LiteralPath $gameplayAcceptanceReportPath -Value $gameplayAcceptanceReportText -NoNewline
+
+    $friendTrustStoreText = @"
+{
+  "schema_version": 1,
+  "friends": [
+    {
+      "node_id": "snc-node-client-001",
+      "display_name": "Client SNC",
+      "local_alias": "Client",
+      "signing_public_key": "ed25519:snc-node-client-001-signing-public-key",
+      "encryption_public_key": "x25519:snc-node-client-001-encryption-public-key",
+      "fingerprint": "fp-client-001",
+      "capabilities": ["mp_package_sync", "handoff_sync"],
+      "trust_state": "trusted",
+      "auto_sync_enabled": true,
+      "accepted_at": "2026-06-08T17:36:00Z",
+      "updated_at": "2026-06-08T17:36:00Z"
+    },
+    {
+      "node_id": "snc-node-old-client-001",
+      "display_name": "Old Client SNC",
+      "local_alias": "Old Client",
+      "signing_public_key": "ed25519:snc-node-old-client-001-signing-public-key",
+      "encryption_public_key": "x25519:snc-node-old-client-001-encryption-public-key",
+      "fingerprint": "fp-old-client-001",
+      "capabilities": ["mp_package_sync", "handoff_sync"],
+      "trust_state": "revoked",
+      "auto_sync_enabled": false,
+      "accepted_at": "2026-06-07T10:00:00Z",
+      "updated_at": "2026-06-08T10:00:00Z"
+    },
+    {
+      "node_id": "snc-node-blocked-001",
+      "display_name": "Blocked SNC",
+      "local_alias": "Blocked",
+      "signing_public_key": "ed25519:snc-node-blocked-001-signing-public-key",
+      "encryption_public_key": "x25519:snc-node-blocked-001-encryption-public-key",
+      "fingerprint": "fp-blocked-001",
+      "capabilities": ["mp_package_sync", "handoff_sync"],
+      "trust_state": "blocked",
+      "auto_sync_enabled": false,
+      "accepted_at": "2026-06-07T17:36:00Z",
+      "updated_at": "2026-06-08T17:36:00Z"
+    }
+  ]
+}
+"@
+    Set-Content -LiteralPath $friendTrustStorePath -Value $friendTrustStoreText -NoNewline
 
     $seedPackageDirectory = Join-Path $repoRoot "dist\generated_overlay_mp_package_cli"
     if (-not (Test-Path -LiteralPath $seedPackageDirectory)) {
@@ -571,6 +620,10 @@ try {
                 $null -ne $json.mp_overlay_package_directory -and
                 $null -ne $json.mp_overlay_package_state
             ) {
+                if ($ReadyOwnerTestFixture -and [string]$json.friend_trust_store_controls_state -ne "ready") {
+                    Start-Sleep -Milliseconds 250
+                    continue
+                }
                 if ($json.window_close_behavior -ne "minimize_to_tray") {
                     throw "SNC tray status JSON did not expose window_close_behavior=minimize_to_tray."
                 }
@@ -818,6 +871,20 @@ try {
                 if ([string]$json.friend_trust_store_path -ne $expectedFriendTrustStorePathText) {
                     throw "SNC tray status JSON did not expose the expected friend_trust_store_path."
                 }
+                if ([string]::IsNullOrWhiteSpace([string]$json.friend_trust_store_controls_state)) {
+                    throw "SNC tray status JSON did not expose friend_trust_store_controls_state."
+                }
+                if ([string]$json.friend_trust_store_controls_state -ne "ready") {
+                    throw "SNC tray friend_trust_store_controls_state did not report ready."
+                }
+                if ([string]::IsNullOrWhiteSpace([string]$json.friend_trust_store_update_command_template)) {
+                    throw "SNC tray status JSON did not expose friend_trust_store_update_command_template."
+                }
+                if ([string]$json.friend_trust_store_update_command_template -notlike "*--update-snc-friend-trust-store-entry*" -or
+                    [string]$json.friend_trust_store_update_command_template -notlike "*<friend_node_id>*" -or
+                    [string]$json.friend_trust_store_update_command_template -notlike "*<trusted|revoked|blocked>*") {
+                    throw "SNC tray friend_trust_store_update_command_template did not include the trust-state update controls."
+                }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_pairing_command_template)) {
                     throw "SNC tray status JSON did not expose friend_pairing_command_template."
                 }
@@ -929,6 +996,11 @@ try {
                 if ($summaryText -notlike "*friend_mp_sync_preflight_checklist: Before a friend MP season*" -or
                     $summaryText -notlike "*run inbox/outbox plan checks with Stellaris closed*") {
                     throw "SNC tray summary text did not expose friend MP sync preflight checklist."
+                }
+                if ($summaryText -notlike "*friend_trust_store_controls_state: ready*" -or
+                    $summaryText -notlike "*friend_trust_store_controls_reason: trusted friends can be revoked, blocked, or have auto-sync disabled through the trust-store update command*" -or
+                    $summaryText -notlike "*friend_trust_store_update_command_template: Strategic Nexus.exe --update-snc-friend-trust-store-entry*") {
+                    throw "SNC tray summary text did not expose friend trust store control visibility."
                 }
                 if ($summaryText -notlike "*mp_host_rotation_sync_state: Not implemented yet*" -or
                     $summaryText -notlike "*mp_host_rotation_sync_reason: Host-owned automatic handoff sync for host rotation is not implemented yet*" -or

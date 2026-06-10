@@ -320,6 +320,10 @@ struct CompanionFriendTrustStoreStatus {
     std::size_t blockedFriendCount = 0;
     std::size_t autoSyncEnabledCount = 0;
     std::string pairingCommandTemplate;
+    std::string controlsCommandTemplate;
+    std::string controlsState = "not_configured";
+    std::string controlsReason;
+    std::string controlsNextStep;
     std::string mpSyncEnvelopeCommandTemplate;
     std::string mpSyncInboxPlanCommandTemplate;
     std::string mpSyncOutboxPlanCommandTemplate;

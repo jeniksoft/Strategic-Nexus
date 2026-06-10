@@ -180,6 +180,9 @@ struct RunConfig {
     std::string sncFriendExpiresAt;
     std::string sncFriendAcceptedAt;
     std::string sncFriendLocalAlias;
+    std::string sncFriendTrustState;
+    std::string sncFriendTrustUpdatedAt;
+    bool sncFriendTrustAutoSyncEnabled = false;
     std::string sncFriendRecipientNodeId;
     std::string sncFriendRecipientDisplayName;
     std::string sncFriendRecipientSigningPublicKey;
@@ -195,6 +198,7 @@ struct RunConfig {
     std::string sncFriendMpSyncSignature;
     std::string sncFriendMpSyncCreatedAt;
     bool mpOverlayPreviousHostAvailable = true;
+    bool updateSncFriendTrustStoreEntryMode = false;
     bool sncStartWithWindowsEnabled = false;
     bool sncUseConfiguredStartWithWindowsState = false;
     bool sncUseDetectedStellarisState = true;
