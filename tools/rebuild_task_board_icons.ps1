@@ -1,8 +1,8 @@
 param(
     [string]$AssetsDirectory = "",
     [int]$EdgeThreshold = 22,
-    [int]$Padding = 10,
-    [double]$TransparentMarginRatio = 0.11
+    [int]$Padding = 0,
+    [double]$TransparentMarginRatio = 0.0
 )
 
 $ErrorActionPreference = "Stop"

@@ -2,7 +2,7 @@ param(
     [string]$SourceImagePath = "",
     [string]$IconPath = (Join-Path (Split-Path -Parent $PSScriptRoot) "resources\snc_tray_icon.ico"),
     [int]$EdgeThreshold = 18,
-    [int]$Padding = 10
+    [int]$Padding = 0
 )
 
 $ErrorActionPreference = "Stop"
