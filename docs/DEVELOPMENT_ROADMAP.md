@@ -463,7 +463,7 @@ Current progress:
 ## 1D. Entry-Point Scoped Post-Play Handoff
 
 Status:
-IN_PROGRESS
+IMPLEMENTED
 
 Goal:
 Generate safe per-entry-point inputs and rules for every save the user can actually load after a session.
@@ -481,7 +481,7 @@ Required:
 * safe fallback for missing or contradictory evidence
 
 Current progress:
-The real-session loop emits entry-point analysis, post-play package, decision-input package, and candidate-decision artifacts. Compatible/later evidence samples exist. Current-head companion, tray, and v0 pipeline verification keep `review_entry_point_ambiguity` ahead of `review_memory_recovery_status` when branch ambiguity is present, and the surfaced entry-point analysis path and anchor fields stay visible. Remaining work is to make this the production SNC default and finish branch-aware memory/rules selection rather than only exposing analysis artifacts.
+The real-session loop emits entry-point analysis, post-play package, decision-input package, and candidate-decision artifacts. Compatible/later evidence samples stay separated, and current-head companion, tray, and v0 pipeline verification keep `review_entry_point_ambiguity` ahead of `review_memory_recovery_status` when branch ambiguity is present. The surfaced entry-point analysis path and anchor fields stay visible on current head, so this slice is implemented for v0 entry-point-scoped post-play handoff.
 
 ---
 
