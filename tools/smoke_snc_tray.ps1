@@ -867,6 +867,16 @@ try {
                     [string]$json.friend_mp_sync_preflight_checklist -notlike "*automatic sync stays disabled*") {
                     throw "SNC tray status JSON did not expose friend_mp_sync_preflight_checklist."
                 }
+                if ([string]$json.mp_host_rotation_sync_state -ne "disabled_not_implemented") {
+                    throw "SNC tray status JSON did not expose disabled mp_host_rotation_sync_state."
+                }
+                if ([string]$json.mp_host_rotation_sync_reason -notlike "*host-owned automatic handoff sync for host rotation is not implemented*") {
+                    throw "SNC tray status JSON did not expose mp_host_rotation_sync_reason."
+                }
+                if ([string]$json.mp_host_rotation_sync_next_step -notlike "*manual host rotation handoff*" -or
+                    [string]$json.mp_host_rotation_sync_next_step -notlike "*signed/encrypted friend transport*") {
+                    throw "SNC tray status JSON did not expose mp_host_rotation_sync_next_step."
+                }
                 $sncTraySource = Get-Content -Raw -LiteralPath (Join-Path $RepoRoot "src/SncTrayApp.cpp")
                 if ($sncTraySource -notlike "*WM_SNC_OPEN_STATUS*" -or
                     $sncTraySource -notlike "*requestExistingInstanceStatusWindow*" -or
@@ -904,6 +914,11 @@ try {
                 if ($summaryText -notlike "*friend_mp_sync_preflight_checklist: Before a friend MP season*" -or
                     $summaryText -notlike "*run inbox/outbox plan checks with Stellaris closed*") {
                     throw "SNC tray summary text did not expose friend MP sync preflight checklist."
+                }
+                if ($summaryText -notlike "*mp_host_rotation_sync_state: Not implemented yet*" -or
+                    $summaryText -notlike "*mp_host_rotation_sync_reason: Host-owned automatic handoff sync for host rotation is not implemented yet*" -or
+                    $summaryText -notlike "*mp_host_rotation_sync_next_step: Use the current MP ZIP, strict verify/import, and manual host handoff until signed/encrypted friend transport is implemented.*") {
+                    throw "SNC tray summary text did not expose host rotation sync gap."
                 }
                 if ($summaryText -notlike "*mp_sdileni_tip: zkopiruj mp_package_zip_path a mp_package_manifest_hash; host/client kroky jsou nize.*") {
                     throw "SNC tray summary text did not expose MP export/share guidance."

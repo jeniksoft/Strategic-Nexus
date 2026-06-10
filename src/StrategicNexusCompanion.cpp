@@ -2685,6 +2685,9 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
         text << "mp_handoff_recovery_hint: " << mpOverlayPackage.handoffRecoveryHint << "\n";
     }
+    text << "mp_host_rotation_sync_state: " << mpOverlayPackage.hostRotationSyncState << "\n";
+    text << "mp_host_rotation_sync_reason: " << mpOverlayPackage.hostRotationSyncReason << "\n";
+    text << "mp_host_rotation_sync_next_step: " << mpOverlayPackage.hostRotationSyncNextStep << "\n";
     text << "post_play_pipeline: " << postPlayPipeline.state << " - " << postPlayPipeline.reason << "\n";
     if (!postPlayPipeline.entryPointAnalysisPath.empty()) {
         text << "entry_point_analysis_path: " << pathString(postPlayPipeline.entryPointAnalysisPath) << "\n";
@@ -2885,6 +2888,9 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
         text << "mp_handoff_recovery_hint: " << mpOverlayPackage.handoffRecoveryHint << "\n";
     }
+    text << "mp_host_rotation_sync_state: " << mpOverlayPackage.hostRotationSyncState << "\n";
+    text << "mp_host_rotation_sync_reason: " << mpOverlayPackage.hostRotationSyncReason << "\n";
+    text << "mp_host_rotation_sync_next_step: " << mpOverlayPackage.hostRotationSyncNextStep << "\n";
     if (!mpOverlayPackage.packageManifestHash.empty()) {
         text << "package_manifest_hash: " << mpOverlayPackage.packageManifestHash << "\n";
     }
@@ -3506,6 +3512,9 @@ void writeMpOverlayPackageJson(std::ostringstream& output, const CompanionMpOver
     output << indent << "  \"host_next_step\": " << jsonString(status.hostNextStep) << ",\n";
     output << indent << "  \"client_next_step\": " << jsonString(status.clientNextStep) << ",\n";
     output << indent << "  \"handoff_recovery_hint\": " << jsonString(status.handoffRecoveryHint) << ",\n";
+    output << indent << "  \"host_rotation_sync_state\": " << jsonString(status.hostRotationSyncState) << ",\n";
+    output << indent << "  \"host_rotation_sync_reason\": " << jsonString(status.hostRotationSyncReason) << ",\n";
+    output << indent << "  \"host_rotation_sync_next_step\": " << jsonString(status.hostRotationSyncNextStep) << ",\n";
     output << indent << "  \"package_manifest_hash\": " << jsonString(status.packageManifestHash) << ",\n";
     output << indent << "  \"provenance_state\": " << jsonString(status.provenanceState) << ",\n";
     output << indent << "  \"human_control_guard_state\": " << jsonString(status.humanControlGuardState) << ",\n";

@@ -121,6 +121,11 @@ struct CompanionMpOverlayPackageStatus {
     std::string hostNextStep;
     std::string clientNextStep;
     std::string handoffRecoveryHint;
+    std::string hostRotationSyncState = "disabled_not_implemented";
+    std::string hostRotationSyncReason =
+        "host-owned automatic handoff sync for host rotation is not implemented; manual MP package export/import remains the fallback";
+    std::string hostRotationSyncNextStep =
+        "Use the current MP package ZIP, strict verify/import, and manual host rotation handoff until signed/encrypted friend transport is implemented.";
     std::string packageManifestHash;
     std::string provenanceState;
     std::string humanControlGuardState;

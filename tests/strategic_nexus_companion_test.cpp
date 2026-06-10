@@ -659,6 +659,17 @@ int main()
         ready.nextActionPath == mpPackageRoot,
         "degraded previous-host continuity should point next-action path at the MP package");
     requireCondition(
+        ready.mpOverlayPackage.hostRotationSyncState == "disabled_not_implemented",
+        "mp overlay package should expose host rotation sync as not implemented");
+    requireCondition(
+        ready.mpOverlayPackage.hostRotationSyncReason ==
+            "host-owned automatic handoff sync for host rotation is not implemented; manual MP package export/import remains the fallback",
+        "mp overlay package should explain the host rotation sync gap");
+    requireCondition(
+        ready.mpOverlayPackage.hostRotationSyncNextStep ==
+            "Use the current MP package ZIP, strict verify/import, and manual host rotation handoff until signed/encrypted friend transport is implemented.",
+        "mp overlay package should expose the host rotation sync next step");
+    requireCondition(
         ready.localLlm.state == "no_model_installed",
         "local LLM status should default to reduced mode when no model state is configured");
     requireCondition(
@@ -1308,6 +1319,19 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("mp_previous_host_available: false") != std::string::npos,
         "status center summary should include explicit previous-host continuity state");
+    requireCondition(
+        ready.statusCenterSummaryText.find("mp_host_rotation_sync_state: disabled_not_implemented") != std::string::npos,
+        "status center summary should include host rotation sync state");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "mp_host_rotation_sync_reason: host-owned automatic handoff sync for host rotation is not implemented; manual MP package export/import remains the fallback") !=
+            std::string::npos,
+        "status center summary should include host rotation sync reason");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "mp_host_rotation_sync_next_step: Use the current MP package ZIP, strict verify/import, and manual host rotation handoff until signed/encrypted friend transport is implemented.") !=
+            std::string::npos,
+        "status center summary should include host rotation sync next step");
     const auto readyJson = strategic_nexus::serializeCompanionStatusSnapshot(ready);
     requireCondition(
         readyJson.find("\"human_control_guard_state\": \"runtime_is_ai_yes\"") != std::string::npos,
@@ -2274,6 +2298,19 @@ int main()
     requireCondition(
         json.find("\"client_next_step\": \"import package, verify package_manifest_hash, then join lobby\"") != std::string::npos,
         "JSON should include mp overlay package client next step");
+    requireCondition(
+        json.find("\"host_rotation_sync_state\": \"disabled_not_implemented\"") != std::string::npos,
+        "JSON should include host rotation sync state");
+    requireCondition(
+        json.find(
+            "\"host_rotation_sync_reason\": \"host-owned automatic handoff sync for host rotation is not implemented; manual MP package export/import remains the fallback\"") !=
+            std::string::npos,
+        "JSON should include host rotation sync reason");
+    requireCondition(
+        json.find(
+            "\"host_rotation_sync_next_step\": \"Use the current MP package ZIP, strict verify/import, and manual host rotation handoff until signed/encrypted friend transport is implemented.\"") !=
+            std::string::npos,
+        "JSON should include host rotation sync next step");
     requireCondition(json.find("\"package_manifest_hash\": \"") != std::string::npos, "JSON should include mp overlay package manifest hash");
     requireCondition(
         json.find("\"provenance_state\": \"present\"") != std::string::npos,

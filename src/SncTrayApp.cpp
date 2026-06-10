@@ -218,6 +218,9 @@ struct StatusDashboardData {
     std::wstring mpPackageHostNextStep;
     std::wstring mpPackageClientNextStep;
     std::wstring mpPackageHandoffRecoveryHint;
+    std::wstring mpPackageHostRotationSyncState;
+    std::wstring mpPackageHostRotationSyncReason;
+    std::wstring mpPackageHostRotationSyncNextStep;
     std::wstring mpPackageHostReadiness;
     std::wstring mpPackageClientReadinessGate;
     std::wstring mpPackageVerifyCommand;
@@ -954,6 +957,16 @@ std::wstring formatOwnerFacingStatusReason(const std::string& value)
     }
     if (value == "mp overlay package verified") {
         return localizedTextWide({L"MP overlay bal\u00ED\u010Dek je ov\u011B\u0159en\u00FD.", L"MP overlay package is verified."});
+    }
+    if (value == "host-owned automatic handoff sync for host rotation is not implemented; manual MP package export/import remains the fallback") {
+        return localizedTextWide({
+            L"Automatick\u00E9 p\u0159ed\u00E1n\u00ED hosta pro rotaci hosta je\u0161t\u011B nen\u00ED hotov\u00E9; fallback je ru\u010Dn\u00ED MP export/import.",
+            L"Host-owned automatic handoff sync for host rotation is not implemented yet; the fallback is manual MP export/import."});
+    }
+    if (value == "Use the current MP package ZIP, strict verify/import, and manual host rotation handoff until signed/encrypted friend transport is implemented.") {
+        return localizedTextWide({
+            L"Pou\u017Eij aktu\u00E1ln\u00ED MP ZIP, strict verify/import a ru\u010Dn\u00ED p\u0159ed\u00E1n\u00ED hosta, dokud nebude hotov\u00FD podepsan\u00FD/\u0161ifrovan\u00FD transport.",
+            L"Use the current MP ZIP, strict verify/import, and manual host handoff until signed/encrypted friend transport is implemented."});
     }
     if (value == "nacti nejnovnejsi handoff balicek pokud je k dispozici; jinak pouzij starsi overeny archiv nebo klientsky save a nech confidence snizenou") {
         return localizedTextWide({
@@ -2299,6 +2312,23 @@ StatusDashboardData loadStatusDashboardData()
     data.mpPackageHostNextStep = formatOwnerFacingStatusReason(summaryValue("mp_host_next_step"));
     data.mpPackageClientNextStep = formatOwnerFacingStatusReason(summaryValue("mp_client_next_step"));
     data.mpPackageHandoffRecoveryHint = formatOwnerFacingStatusReason(summaryValue("mp_handoff_recovery_hint"));
+    data.mpPackageHostRotationSyncState = formatOwnerFacingStatusValue(summaryValue("mp_host_rotation_sync_state"));
+    if (data.mpPackageHostRotationSyncState.empty()) {
+        data.mpPackageHostRotationSyncState = formatOwnerFacingStatusValue("disabled_not_implemented");
+    }
+    data.mpPackageHostRotationSyncReason = formatOwnerFacingStatusReason(summaryValue("mp_host_rotation_sync_reason"));
+    if (data.mpPackageHostRotationSyncReason.empty()) {
+        data.mpPackageHostRotationSyncReason =
+            formatOwnerFacingStatusReason(
+                "host-owned automatic handoff sync for host rotation is not implemented; manual MP package export/import remains the fallback");
+    }
+    data.mpPackageHostRotationSyncNextStep =
+        formatOwnerFacingStatusReason(summaryValue("mp_host_rotation_sync_next_step"));
+    if (data.mpPackageHostRotationSyncNextStep.empty()) {
+        data.mpPackageHostRotationSyncNextStep =
+            formatOwnerFacingStatusReason(
+                "Use the current MP package ZIP, strict verify/import, and manual host rotation handoff until signed/encrypted friend transport is implemented.");
+    }
     data.mpPackageHostReadiness = formatOwnerFacingStatusValue(summaryValue("mp_host_readiness"));
     data.mpPackageClientReadinessGate = formatOwnerFacingStatusValue(summaryValue("mp_client_readiness_gate"));
     data.mpPackageVerifyCommand = utf8ToWide(summaryValue("mp_verify_command"));
@@ -2369,6 +2399,12 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.friendMpSyncTransportNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportNextStep;
     text += L"\r\nSNC MP sync preflight: ";
     text += data.friendMpSyncPreflightChecklist.empty() ? kStatusEmptyValue : data.friendMpSyncPreflightChecklist;
+    text += L"\r\nMP handoff sync: ";
+    text += data.mpPackageHostRotationSyncState.empty() ? kStatusEmptyValue : data.mpPackageHostRotationSyncState;
+    text += L"\r\nMP handoff sync duvod: ";
+    text += data.mpPackageHostRotationSyncReason.empty() ? kStatusEmptyValue : data.mpPackageHostRotationSyncReason;
+    text += L"\r\nMP handoff sync dalsi krok: ";
+    text += data.mpPackageHostRotationSyncNextStep.empty() ? kStatusEmptyValue : data.mpPackageHostRotationSyncNextStep;
     text += L"\r\nHuman control guard: ";
     text += data.humanControlGuardState.empty() ? kStatusEmptyValue : data.humanControlGuardState;
     if (!data.mpPackageRefreshState.empty() || !data.mpPackageZipState.empty() || !data.mpPackageManifestHash.empty()) {
@@ -2484,6 +2520,9 @@ std::wstring buildStatusPageDetailsText(const StatusPageId page, const StatusDas
         addLine(text, L"Sync dalsi krok: ", data.friendMpSyncTransportNextStep);
         addLine(text, L"Preflight: ", data.friendMpSyncPreflightChecklist);
         addLine(text, L"MP handoff: ", data.mpPackageHandoffStatus);
+        addLine(text, L"MP handoff sync: ", data.mpPackageHostRotationSyncState);
+        addLine(text, L"MP handoff sync duvod: ", data.mpPackageHostRotationSyncReason);
+        addLine(text, L"MP handoff sync dalsi krok: ", data.mpPackageHostRotationSyncNextStep);
         addLine(text, L"MP host readiness: ", data.mpPackageHostReadiness);
         addLine(text, L"MP client gate: ", data.mpPackageClientReadinessGate);
         break;
@@ -2589,6 +2628,15 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
         if (!data.mpPackageHandoffStatus.empty()) {
             text += L"\nMP handoff: " + data.mpPackageHandoffStatus;
         }
+        if (!data.mpPackageHostRotationSyncState.empty()) {
+            text += L"\nMP handoff sync: " + data.mpPackageHostRotationSyncState;
+        }
+        if (!data.mpPackageHostRotationSyncReason.empty()) {
+            text += L"\nMP handoff sync duvod: " + data.mpPackageHostRotationSyncReason;
+        }
+        if (!data.mpPackageHostRotationSyncNextStep.empty()) {
+            text += L"\nMP handoff sync dalsi krok: " + data.mpPackageHostRotationSyncNextStep;
+        }
         if (!data.mpPackageMismatchWarningState.empty()) {
             text += L"\nMP mismatch: " + data.mpPackageMismatchWarningState;
             if (!data.mpPackageMismatchWarningReason.empty()) {
@@ -2606,6 +2654,15 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
         }
         if (!data.mpPackageHandoffRecoveryHint.empty()) {
             text += L"\nMP recovery: " + data.mpPackageHandoffRecoveryHint;
+        }
+        if (!data.mpPackageHostRotationSyncState.empty()) {
+            text += L"\nMP handoff sync: " + data.mpPackageHostRotationSyncState;
+        }
+        if (!data.mpPackageHostRotationSyncReason.empty()) {
+            text += L"\nMP handoff sync duvod: " + data.mpPackageHostRotationSyncReason;
+        }
+        if (!data.mpPackageHostRotationSyncNextStep.empty()) {
+            text += L"\nMP handoff sync dalsi krok: " + data.mpPackageHostRotationSyncNextStep;
         }
         if (!data.mpPackageZipPath.empty() || !data.mpPackageManifestHash.empty()) {
             text += L"\nMP sdileni: zkopiruj MP zip a manifest hash; host/klient kroky jsou nize.";
@@ -5650,6 +5707,18 @@ std::string buildStatusCenterSummaryText(
         friendTrustStore.mpSyncTransportNextStep);
     summary << "friend_mp_sync_preflight_checklist: "
             << friendTrustStore.mpSyncPreflightChecklist << "\n";
+    appendOwnerFacingStatusValueLine(
+        summary,
+        "mp_host_rotation_sync_state",
+        mpOverlayPackage.hostRotationSyncState);
+    appendOwnerFacingStatusReasonLine(
+        summary,
+        "mp_host_rotation_sync_reason",
+        mpOverlayPackage.hostRotationSyncReason);
+    appendOwnerFacingStatusReasonLine(
+        summary,
+        "mp_host_rotation_sync_next_step",
+        mpOverlayPackage.hostRotationSyncNextStep);
     appendMpPackageSummaryLines(summary, mpOverlayPackage, mpPackageRefreshState, mpPackageRefreshReason);
     return summary.str();
 }
@@ -6360,6 +6429,12 @@ void writeStatus(
          << jsonEscape(companionSnapshot.friendTrustStore.mpSyncTransportNextStep) << "\",\n";
     json << "  \"friend_mp_sync_preflight_checklist\": \""
          << jsonEscape(companionSnapshot.friendTrustStore.mpSyncPreflightChecklist) << "\",\n";
+    json << "  \"mp_host_rotation_sync_state\": \""
+         << jsonEscape(companionSnapshot.mpOverlayPackage.hostRotationSyncState) << "\",\n";
+    json << "  \"mp_host_rotation_sync_reason\": \""
+         << jsonEscape(companionSnapshot.mpOverlayPackage.hostRotationSyncReason) << "\",\n";
+    json << "  \"mp_host_rotation_sync_next_step\": \""
+         << jsonEscape(companionSnapshot.mpOverlayPackage.hostRotationSyncNextStep) << "\",\n";
     json << "  \"friend_pairing_guide_text\": \""
          << jsonEscape(buildFriendPairingGuideTextUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";
