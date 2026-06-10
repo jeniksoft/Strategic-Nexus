@@ -3108,6 +3108,8 @@ function Invoke-AmbiguousPostPlayCliFailClosedCase {
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_success=true"
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_readiness=ambiguous"
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_campaign_identity_state_summary=folder_alias_fallback"
+    Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_campaign_identity_state=gamma_campaign:folder_alias_fallback"
+    Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_entry_campaign_identity_state="
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_branch_ambiguity_detected=true"
     Assert-Contains -Name "ambiguous post-play cli" -Text $postPlayText -Expected "post_play_package_decision_ready_entry_count=0"
 

@@ -3700,6 +3700,16 @@ int Application::run(const RunConfig& config) const
             std::cout << "post_play_package_readiness=" << sanitizeCliValue(package.readiness) << "\n";
             std::cout << "post_play_package_campaign_identity_state_summary="
                       << sanitizeCliValue(package.campaignIdentityStateSummary) << "\n";
+            for (const auto& campaign : package.campaigns) {
+                std::cout << "post_play_package_campaign_identity_state="
+                          << sanitizeCliValue(campaign.campaignKey) << ":"
+                          << sanitizeCliValue(campaign.campaignIdentityState) << "\n";
+            }
+            for (const auto& entry : package.entries) {
+                std::cout << "post_play_package_entry_campaign_identity_state="
+                          << sanitizeCliValue(entry.entryPointId) << ":"
+                          << sanitizeCliValue(entry.campaignIdentityState) << "\n";
+            }
             std::cout << "post_play_package_entry_points=" << package.entryPointCount << "\n";
             std::cout << "post_play_package_branch_ambiguity_detected="
                       << (package.branchAmbiguityDetected ? "true" : "false") << "\n";
