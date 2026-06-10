@@ -1061,6 +1061,10 @@ try {
                 if ($mpPackageReady -and $briefText -notlike "*MP previous host availability known:*") {
                     throw "SNC tray next-steps brief did not expose MP previous host availability known."
                 }
+                if ($mpPackageReady -and $summaryText -like "*campaign_library_limit_reached: true*" -and
+                    $briefText -notlike "*campaign_library_pin_state: unavailable*") {
+                    throw "SNC tray next-steps brief did not expose the pinned-campaign placeholder state."
+                }
                 if ($mpPackageReady -and $summaryText -like "*mp_handoff_status: Degraded: previous host unavailable*" -and
                     $briefText -notlike "*MP recovery:*") {
                     throw "SNC tray next-steps brief did not expose MP recovery guidance for degraded handoff continuity."

@@ -2851,6 +2851,9 @@ std::string buildStatusCenterSummaryText(
         } else if (postPlayPipeline.campaignLibraryLimitReached) {
             text << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
             text << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
+            text << "campaign_library_pin_state: unavailable\n";
+            text << "campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
+            text << "campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
         } else {
             text << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
         }

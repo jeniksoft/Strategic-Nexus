@@ -1789,6 +1789,13 @@ int main()
             "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests") !=
             std::string::npos,
         "status center summary should explain the current pinned-exception gap");
+    requireCondition(
+        stagedPublishReady.statusCenterSummaryText.find("campaign_library_pin_state: unavailable") != std::string::npos &&
+            stagedPublishReady.statusCenterSummaryText.find("campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests") !=
+            std::string::npos &&
+            stagedPublishReady.statusCenterSummaryText.find("campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests") !=
+            std::string::npos,
+        "status center summary should expose the fail-closed pinned-campaign placeholder state");
 
     const auto stagedPublishBlocked = companion.buildStatusSnapshot({
         archiveSessionRoot,

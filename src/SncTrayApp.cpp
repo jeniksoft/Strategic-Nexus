@@ -5706,6 +5706,9 @@ std::string buildStatusCenterSummaryText(
             summary << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
         } else if (campaignLibraryLimitReached) {
             summary << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
+            summary << "campaign_library_pin_state: unavailable\n";
+            summary << "campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
+            summary << "campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
             summary << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
         } else {
             summary << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
@@ -5985,6 +5988,9 @@ void writeNextStepsBrief(
             brief << "\n";
             brief << "- Poznamka: sidecar plan knihovny kampani potrebuje pozornost; SNC nema duverovat aktivnimu coverage, dokud se plan neopravi.\n";
         } else if (campaignLibraryLimitReached) {
+            brief << "- campaign_library_pin_state: unavailable\n";
+            brief << "- campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
+            brief << "- campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
             brief << " (" << campaignLibrarySkippedDueToLimitCount << " campaign(s) skipped by limit)";
             brief << "\n";
             brief << "- Poznamka: aktivni generovana knihovna kampani je zamerne omezena; pokud v pristim testu chybi kampan, zvedni limit nebo uklid lokalni save root.\n";
