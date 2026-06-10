@@ -617,6 +617,7 @@ try {
                 $null -ne $json.memory_recovery_compatible_archived_evidence_count -and
                 $null -ne $json.memory_recovery_later_archived_evidence_count -and
                 $null -ne $json.mp_package_refresh_state -and
+                $null -ne $json.post_play_package_campaign_identity_state_summary -and
                 $null -ne $json.mp_overlay_package_directory -and
                 $null -ne $json.mp_overlay_package_state
             ) {
@@ -791,6 +792,10 @@ try {
                 $summaryText = [string]$json.status_center_summary_text
                 if ($summaryText -notlike "*startup_rationale:*") {
                     throw "SNC tray summary text did not expose startup_rationale."
+                }
+                if (-not [string]::IsNullOrWhiteSpace([string]$json.post_play_package_campaign_identity_state_summary) -and
+                    $summaryText -notlike "*post_play_package_campaign_identity_state_summary:*") {
+                    throw "SNC tray summary text did not expose the post-play campaign identity state summary."
                 }
                 if ($summaryText -notlike "*startup_start_with_windows: optional_owner_setting_default_disabled*") {
                     throw "SNC tray summary text did not expose the default-disabled startup contract."

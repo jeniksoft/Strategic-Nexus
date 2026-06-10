@@ -2029,6 +2029,8 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
         postPlayAvailable = true;
         status.postPlayPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
         status.postPlayPackageReason = common::extractJsonString(json, "reason").value_or("");
+        status.postPlayPackageCampaignIdentityStateSummary =
+            common::extractJsonString(json, "campaign_identity_state_summary").value_or("");
         status.playerCountryId = parsePostPlayPlayerCountryId(json);
         status.postPlayDecisionReadyEntryCount = extractJsonSize(json, "decision_ready_entry_count").value_or(0);
         parsePostPlayCampaignSummaries(json, status);
@@ -2834,6 +2836,10 @@ std::string buildStatusCenterSummaryText(
     }
     if (!postPlayPipeline.postPlayPackageReason.empty()) {
         text << "post_play_package_reason: " << postPlayPipeline.postPlayPackageReason << "\n";
+    }
+    if (!postPlayPipeline.postPlayPackageCampaignIdentityStateSummary.empty()) {
+        text << "post_play_package_campaign_identity_state_summary: "
+             << postPlayPipeline.postPlayPackageCampaignIdentityStateSummary << "\n";
     }
     if (!postPlayPipeline.playerCountryId.empty()) {
         text << "post_play_player_country_id: " << postPlayPipeline.playerCountryId << "\n";
@@ -3747,6 +3753,8 @@ void writePostPlayPipelineJson(
     output << indent << "  \"post_play_package_path\": " << jsonString(pathString(status.postPlayPackagePath)) << ",\n";
     output << indent << "  \"post_play_package_readiness\": " << jsonString(status.postPlayPackageReadiness) << ",\n";
     output << indent << "  \"post_play_package_reason\": " << jsonString(status.postPlayPackageReason) << ",\n";
+    output << indent << "  \"post_play_package_campaign_identity_state_summary\": "
+           << jsonString(status.postPlayPackageCampaignIdentityStateSummary) << ",\n";
     output << indent << "  \"post_play_player_country_id\": " << jsonString(status.playerCountryId) << ",\n";
     output << indent << "  \"post_play_decision_ready_entry_count\": " << status.postPlayDecisionReadyEntryCount << ",\n";
     output << indent << "  \"post_play_campaign_count\": " << status.postPlayCampaignCount << ",\n";

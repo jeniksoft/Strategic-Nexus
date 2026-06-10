@@ -5976,6 +5976,7 @@ std::string buildStatusCenterSummaryText(
     const std::string& entryPointReadiness,
     const std::filesystem::path& postPlayPackagePath,
     const std::string& postPlayPackageReadiness,
+    const std::string& postPlayPackageCampaignIdentityStateSummary,
     const std::size_t postPlayDecisionReadyEntryCount,
     const std::size_t postPlayCampaignCount,
     const std::size_t postPlayReadyCampaignCount,
@@ -6081,6 +6082,12 @@ std::string buildStatusCenterSummaryText(
     }
     if (!postPlayPackageReadiness.empty()) {
         appendOwnerFacingStatusValueLine(summary, "post_play_package_readiness", postPlayPackageReadiness);
+    }
+    if (!postPlayPackageCampaignIdentityStateSummary.empty()) {
+        appendOwnerFacingStatusValueLine(
+            summary,
+            "post_play_package_campaign_identity_state_summary",
+            postPlayPackageCampaignIdentityStateSummary);
     }
     if (!mpOverlayPackage.handoffStatus.empty()) {
         appendOwnerFacingStatusValueLine(summary, "mp_handoff_status", mpOverlayPackage.handoffStatus);
@@ -6365,6 +6372,7 @@ void writeNextStepsBrief(
     const std::string& entryPointReadiness,
     const std::filesystem::path& postPlayPackagePath,
     const std::string& postPlayPackageReadiness,
+    const std::string& postPlayPackageCampaignIdentityStateSummary,
     const std::filesystem::path& campaignLibraryPlanPath,
     const bool campaignLibraryPlanPresent,
     const bool campaignLibraryLimitReached,
@@ -6422,6 +6430,10 @@ void writeNextStepsBrief(
         brief << " (" << ownerFacingStatusValueUtf8(postPlayPackageReadiness) << ")";
     }
     brief << "\n";
+    if (!postPlayPackageCampaignIdentityStateSummary.empty()) {
+        brief << "- Post-play campaign identity state: "
+              << ownerFacingStatusValueUtf8(postPlayPackageCampaignIdentityStateSummary) << "\n";
+    }
     if (campaignLibraryPlanPresent) {
         brief << "- Campaign library plan: " << pathString(campaignLibraryPlanPath) << "\n";
         brief << "- Campaign library readiness: " << ownerFacingStatusValueUtf8(campaignLibraryPlanReadiness);
@@ -6662,6 +6674,7 @@ void writeStatus(
     const std::string& entryPointReadiness = std::string(),
     const std::filesystem::path& postPlayPackagePath = std::filesystem::path(),
     const std::string& postPlayPackageReadiness = std::string(),
+    const std::string& postPlayPackageCampaignIdentityStateSummary = std::string(),
     const std::size_t postPlayDecisionReadyEntryCount = 0,
     const std::size_t postPlayCampaignCount = 0,
     const std::size_t postPlayReadyCampaignCount = 0,
@@ -6759,6 +6772,8 @@ void writeStatus(
         choosePath(postPlayPackagePath, diskPipeline.postPlayPackagePath);
     const auto effectivePostPlayPackageReadiness =
         chooseString(postPlayPackageReadiness, diskPipeline.postPlayPackageReadiness);
+    const auto effectivePostPlayPackageCampaignIdentityStateSummary =
+        chooseString(postPlayPackageCampaignIdentityStateSummary, diskPipeline.postPlayPackageCampaignIdentityStateSummary);
     const auto effectivePostPlayDecisionReadyEntryCount =
         chooseSize(postPlayDecisionReadyEntryCount, diskPipeline.postPlayDecisionReadyEntryCount);
     const auto effectivePostPlayCampaignCount =
@@ -6887,6 +6902,7 @@ void writeStatus(
         effectiveEntryPointReadiness,
         effectivePostPlayPackagePath,
         effectivePostPlayPackageReadiness,
+        effectivePostPlayPackageCampaignIdentityStateSummary,
         effectivePostPlayDecisionReadyEntryCount,
         effectivePostPlayCampaignCount,
         effectivePostPlayReadyCampaignCount,
@@ -6935,6 +6951,7 @@ void writeStatus(
         effectiveEntryPointReadiness,
         effectivePostPlayPackagePath,
         effectivePostPlayPackageReadiness,
+        effectivePostPlayPackageCampaignIdentityStateSummary,
         effectiveCampaignLibraryPlanPath,
         effectiveCampaignLibraryPlanPresent,
         effectiveCampaignLibraryLimitReached,
@@ -7143,6 +7160,8 @@ void writeStatus(
     json << "  \"entry_point_readiness\": \"" << jsonEscape(effectiveEntryPointReadiness) << "\",\n";
     json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(effectivePostPlayPackagePath)) << "\",\n";
     json << "  \"post_play_package_readiness\": \"" << jsonEscape(effectivePostPlayPackageReadiness) << "\",\n";
+    json << "  \"post_play_package_campaign_identity_state_summary\": \""
+         << jsonEscape(effectivePostPlayPackageCampaignIdentityStateSummary) << "\",\n";
     json << "  \"post_play_decision_ready_entry_count\": " << effectivePostPlayDecisionReadyEntryCount << ",\n";
     json << "  \"post_play_campaign_count\": " << effectivePostPlayCampaignCount << ",\n";
     json << "  \"post_play_ready_campaign_count\": " << effectivePostPlayReadyCampaignCount << ",\n";
@@ -7374,6 +7393,7 @@ void workerLoop(HWND hwnd)
     std::string lastEntryPointReadiness;
     std::filesystem::path lastPostPlayPackagePath;
     std::string lastPostPlayPackageReadiness;
+    std::string lastPostPlayPackageCampaignIdentityStateSummary;
     std::size_t lastPostPlayDecisionReadyEntryCount = 0;
     std::size_t lastPostPlayCampaignCount = 0;
     std::size_t lastPostPlayReadyCampaignCount = 0;
@@ -7433,6 +7453,7 @@ void workerLoop(HWND hwnd)
             lastEntryPointReadiness.clear();
             lastPostPlayPackagePath.clear();
             lastPostPlayPackageReadiness.clear();
+            lastPostPlayPackageCampaignIdentityStateSummary.clear();
             lastPostPlayDecisionReadyEntryCount = 0;
             lastPostPlayCampaignCount = 0;
             lastPostPlayReadyCampaignCount = 0;
@@ -7600,6 +7621,7 @@ void workerLoop(HWND hwnd)
             lastEntryPointReadiness = entryPointAnalysis.readiness;
             lastPostPlayPackagePath.clear();
             lastPostPlayPackageReadiness = postPlayPackage.readiness;
+            lastPostPlayPackageCampaignIdentityStateSummary = postPlayPackage.campaignIdentityStateSummary;
             lastPostPlayDecisionReadyEntryCount = postPlayPackage.decisionReadyEntryCount;
             lastPostPlayCampaignCount = 0;
             lastPostPlayReadyCampaignCount = 0;
@@ -7722,6 +7744,7 @@ void workerLoop(HWND hwnd)
                 lastEntryPointReadiness,
                 lastPostPlayPackagePath,
                 lastPostPlayPackageReadiness,
+                lastPostPlayPackageCampaignIdentityStateSummary,
                 lastPostPlayDecisionReadyEntryCount,
                 lastPostPlayCampaignCount,
                 lastPostPlayReadyCampaignCount,
@@ -7766,6 +7789,16 @@ void workerLoop(HWND hwnd)
                 lastMpPackageRefreshState = backfillResult.mpPackageRefreshState;
                 lastMpPackageRefreshReason = backfillResult.mpPackageRefreshReason;
             }
+            if (lastPostPlayPackageCampaignIdentityStateSummary.empty()) {
+                std::string postPlayPackageJson;
+                if (strategic_nexus::common::tryReadTextFile(g_postPlayPackagePath, postPlayPackageJson)) {
+                    lastPostPlayPackageCampaignIdentityStateSummary =
+                        strategic_nexus::common::extractJsonString(
+                            postPlayPackageJson,
+                            "campaign_identity_state_summary")
+                            .value_or("");
+                }
+            }
             writeStatus(
                 hwnd,
                 "waiting_for_stellaris",
@@ -7785,6 +7818,7 @@ void workerLoop(HWND hwnd)
                 lastEntryPointReadiness,
                 lastPostPlayPackagePath,
                 lastPostPlayPackageReadiness,
+                lastPostPlayPackageCampaignIdentityStateSummary,
                 lastPostPlayDecisionReadyEntryCount,
                 lastPostPlayCampaignCount,
                 lastPostPlayReadyCampaignCount,
@@ -7837,6 +7871,7 @@ void workerLoop(HWND hwnd)
         lastEntryPointReadiness,
         lastPostPlayPackagePath,
         lastPostPlayPackageReadiness,
+        lastPostPlayPackageCampaignIdentityStateSummary,
         lastPostPlayDecisionReadyEntryCount,
         lastPostPlayCampaignCount,
         lastPostPlayReadyCampaignCount,

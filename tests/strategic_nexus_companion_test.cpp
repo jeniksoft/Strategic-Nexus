@@ -297,6 +297,7 @@ int main()
         "  \"schema_version\": 1,\n"
         "  \"reason\": \"post-play package built; some entry points need more history or parsing\",\n"
         "  \"readiness\": \"ready_partial\",\n"
+        "  \"campaign_identity_state_summary\": \"folder_alias_fallback\",\n"
         "  \"decision_ready_entry_count\": 2,\n"
         "  \"campaigns\": [\n"
         "    {\n"
@@ -1036,6 +1037,9 @@ int main()
     requireCondition(
         ready.postPlayPipeline.postPlayPackageReason == "post-play package built; some entry points need more history or parsing",
         "post-play pipeline should expose post-play package reason");
+    requireCondition(
+        ready.postPlayPipeline.postPlayPackageCampaignIdentityStateSummary == "folder_alias_fallback",
+        "post-play pipeline should expose the campaign identity state summary");
     requireCondition(ready.postPlayPipeline.postPlayCampaignCount == 2, "post-play pipeline should expose campaign count");
     requireCondition(
         ready.postPlayPipeline.postPlayReadyCampaignCount == 1,
@@ -2294,8 +2298,16 @@ int main()
             std::string::npos,
         "JSON should include post-play package reason");
     requireCondition(
+        json.find("\"post_play_package_campaign_identity_state_summary\": \"folder_alias_fallback\"") !=
+            std::string::npos,
+        "JSON should include post-play package campaign identity state summary");
+    requireCondition(
         json.find("\"post_play_campaign_summaries\": [\"alpha_campaign: ready_partial (1/2 ready)\", \"beta_campaign: ready (1/1 ready)\"]") != std::string::npos,
         "JSON should include post-play campaign summaries");
+    requireCondition(
+        ready.statusCenterSummaryText.find("post_play_package_campaign_identity_state_summary: folder_alias_fallback") !=
+            std::string::npos,
+        "status center summary should include the post-play identity summary");
     requireCondition(
         json.find("\"decision_input_package_reason\": \"decision input package built; some entries remain blocked\"") !=
             std::string::npos,
