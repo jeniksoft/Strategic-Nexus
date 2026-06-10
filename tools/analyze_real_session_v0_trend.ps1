@@ -124,6 +124,24 @@ $latestNextActionCommandHintSourceChanged = ""
 $latestNextActionPathCurrent = ""
 $latestNextActionPathPrevious = ""
 $latestNextActionPathChanged = ""
+$latestEntryPointAnalysisPathCurrent = ""
+$latestEntryPointAnalysisPathPrevious = ""
+$latestEntryPointAnalysisPathChanged = ""
+$latestEntryPointReadinessCurrent = ""
+$latestEntryPointReadinessPrevious = ""
+$latestEntryPointReadinessChanged = ""
+$latestEntryPointReasonCurrent = ""
+$latestEntryPointReasonPrevious = ""
+$latestEntryPointReasonChanged = ""
+$latestEntryPointCountCurrent = ""
+$latestEntryPointCountPrevious = ""
+$latestEntryPointCountChanged = ""
+$latestEntryPointBranchAmbiguityCurrent = ""
+$latestEntryPointBranchAmbiguityPrevious = ""
+$latestEntryPointBranchAmbiguityChanged = ""
+$latestMemoryRecoveryAnchorEntryPointIdCurrent = ""
+$latestMemoryRecoveryAnchorEntryPointIdPrevious = ""
+$latestMemoryRecoveryAnchorEntryPointIdChanged = ""
 $latestCampaignLibraryPlanPresentCurrent = ""
 $latestCampaignLibraryPlanPresentPrevious = ""
 $latestCampaignLibraryPlanPresentChanged = ""
@@ -303,6 +321,24 @@ if ($sessionCount -ge 2) {
     $compareNextActionPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_current=*" } | Select-Object -First 1
     $compareNextActionPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_previous=*" } | Select-Object -First 1
     $compareNextActionPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_changed=*" } | Select-Object -First 1
+    $compareEntryPointAnalysisPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_analysis_path_current=*" } | Select-Object -First 1
+    $compareEntryPointAnalysisPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_analysis_path_previous=*" } | Select-Object -First 1
+    $compareEntryPointAnalysisPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_analysis_path_changed=*" } | Select-Object -First 1
+    $compareEntryPointReadinessCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_readiness_current=*" } | Select-Object -First 1
+    $compareEntryPointReadinessPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_readiness_previous=*" } | Select-Object -First 1
+    $compareEntryPointReadinessChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_readiness_changed=*" } | Select-Object -First 1
+    $compareEntryPointReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_reason_current=*" } | Select-Object -First 1
+    $compareEntryPointReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_reason_previous=*" } | Select-Object -First 1
+    $compareEntryPointReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_reason_changed=*" } | Select-Object -First 1
+    $compareEntryPointCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_count_current=*" } | Select-Object -First 1
+    $compareEntryPointCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_count_previous=*" } | Select-Object -First 1
+    $compareEntryPointCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_count_changed=*" } | Select-Object -First 1
+    $compareEntryPointBranchAmbiguityCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_current=*" } | Select-Object -First 1
+    $compareEntryPointBranchAmbiguityPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_previous=*" } | Select-Object -First 1
+    $compareEntryPointBranchAmbiguityChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_changed=*" } | Select-Object -First 1
+    $compareMemoryRecoveryAnchorEntryPointIdCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=*" } | Select-Object -First 1
+    $compareMemoryRecoveryAnchorEntryPointIdPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_previous=*" } | Select-Object -First 1
+    $compareMemoryRecoveryAnchorEntryPointIdChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=*" } | Select-Object -First 1
     $compareCampaignLibraryPlanPresentCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_current=*" } | Select-Object -First 1
     $compareCampaignLibraryPlanPresentPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_previous=*" } | Select-Object -First 1
     $compareCampaignLibraryPlanPresentChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_changed=*" } | Select-Object -First 1
@@ -624,6 +660,60 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareNextActionPathChangedLine)) {
         $latestNextActionPathChanged = $compareNextActionPathChangedLine.Substring("real_session_v0_compare_next_action_path_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointAnalysisPathCurrentLine)) {
+        $latestEntryPointAnalysisPathCurrent = $compareEntryPointAnalysisPathCurrentLine.Substring("real_session_v0_compare_entry_point_analysis_path_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointAnalysisPathPreviousLine)) {
+        $latestEntryPointAnalysisPathPrevious = $compareEntryPointAnalysisPathPreviousLine.Substring("real_session_v0_compare_entry_point_analysis_path_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointAnalysisPathChangedLine)) {
+        $latestEntryPointAnalysisPathChanged = $compareEntryPointAnalysisPathChangedLine.Substring("real_session_v0_compare_entry_point_analysis_path_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointReadinessCurrentLine)) {
+        $latestEntryPointReadinessCurrent = $compareEntryPointReadinessCurrentLine.Substring("real_session_v0_compare_entry_point_readiness_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointReadinessPreviousLine)) {
+        $latestEntryPointReadinessPrevious = $compareEntryPointReadinessPreviousLine.Substring("real_session_v0_compare_entry_point_readiness_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointReadinessChangedLine)) {
+        $latestEntryPointReadinessChanged = $compareEntryPointReadinessChangedLine.Substring("real_session_v0_compare_entry_point_readiness_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointReasonCurrentLine)) {
+        $latestEntryPointReasonCurrent = $compareEntryPointReasonCurrentLine.Substring("real_session_v0_compare_entry_point_reason_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointReasonPreviousLine)) {
+        $latestEntryPointReasonPrevious = $compareEntryPointReasonPreviousLine.Substring("real_session_v0_compare_entry_point_reason_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointReasonChangedLine)) {
+        $latestEntryPointReasonChanged = $compareEntryPointReasonChangedLine.Substring("real_session_v0_compare_entry_point_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointCountCurrentLine)) {
+        $latestEntryPointCountCurrent = $compareEntryPointCountCurrentLine.Substring("real_session_v0_compare_entry_point_count_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointCountPreviousLine)) {
+        $latestEntryPointCountPrevious = $compareEntryPointCountPreviousLine.Substring("real_session_v0_compare_entry_point_count_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointCountChangedLine)) {
+        $latestEntryPointCountChanged = $compareEntryPointCountChangedLine.Substring("real_session_v0_compare_entry_point_count_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointBranchAmbiguityCurrentLine)) {
+        $latestEntryPointBranchAmbiguityCurrent = $compareEntryPointBranchAmbiguityCurrentLine.Substring("real_session_v0_compare_entry_point_branch_ambiguity_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointBranchAmbiguityPreviousLine)) {
+        $latestEntryPointBranchAmbiguityPrevious = $compareEntryPointBranchAmbiguityPreviousLine.Substring("real_session_v0_compare_entry_point_branch_ambiguity_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointBranchAmbiguityChangedLine)) {
+        $latestEntryPointBranchAmbiguityChanged = $compareEntryPointBranchAmbiguityChangedLine.Substring("real_session_v0_compare_entry_point_branch_ambiguity_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryAnchorEntryPointIdCurrentLine)) {
+        $latestMemoryRecoveryAnchorEntryPointIdCurrent = $compareMemoryRecoveryAnchorEntryPointIdCurrentLine.Substring("real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryAnchorEntryPointIdPreviousLine)) {
+        $latestMemoryRecoveryAnchorEntryPointIdPrevious = $compareMemoryRecoveryAnchorEntryPointIdPreviousLine.Substring("real_session_v0_compare_memory_recovery_anchor_entry_point_id_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryAnchorEntryPointIdChangedLine)) {
+        $latestMemoryRecoveryAnchorEntryPointIdChanged = $compareMemoryRecoveryAnchorEntryPointIdChangedLine.Substring("real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanPresentCurrentLine)) {
         $latestCampaignLibraryPlanPresentCurrent = $compareCampaignLibraryPlanPresentCurrentLine.Substring("real_session_v0_compare_campaign_library_plan_present_current=".Length)
@@ -1288,6 +1378,24 @@ Write-Host ("real_session_v0_trend_next_action_command_hint_source_changed=" + $
 Write-Host ("real_session_v0_trend_next_action_path_current=" + $latestNextActionPathCurrent)
 Write-Host ("real_session_v0_trend_next_action_path_previous=" + $latestNextActionPathPrevious)
 Write-Host ("real_session_v0_trend_next_action_path_changed=" + $latestNextActionPathChanged)
+Write-Host ("real_session_v0_trend_entry_point_analysis_path_current=" + $latestEntryPointAnalysisPathCurrent)
+Write-Host ("real_session_v0_trend_entry_point_analysis_path_previous=" + $latestEntryPointAnalysisPathPrevious)
+Write-Host ("real_session_v0_trend_entry_point_analysis_path_changed=" + $latestEntryPointAnalysisPathChanged)
+Write-Host ("real_session_v0_trend_entry_point_readiness_current=" + $latestEntryPointReadinessCurrent)
+Write-Host ("real_session_v0_trend_entry_point_readiness_previous=" + $latestEntryPointReadinessPrevious)
+Write-Host ("real_session_v0_trend_entry_point_readiness_changed=" + $latestEntryPointReadinessChanged)
+Write-Host ("real_session_v0_trend_entry_point_reason_current=" + $latestEntryPointReasonCurrent)
+Write-Host ("real_session_v0_trend_entry_point_reason_previous=" + $latestEntryPointReasonPrevious)
+Write-Host ("real_session_v0_trend_entry_point_reason_changed=" + $latestEntryPointReasonChanged)
+Write-Host ("real_session_v0_trend_entry_point_count_current=" + $latestEntryPointCountCurrent)
+Write-Host ("real_session_v0_trend_entry_point_count_previous=" + $latestEntryPointCountPrevious)
+Write-Host ("real_session_v0_trend_entry_point_count_changed=" + $latestEntryPointCountChanged)
+Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_current=" + $latestEntryPointBranchAmbiguityCurrent)
+Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_previous=" + $latestEntryPointBranchAmbiguityPrevious)
+Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_changed=" + $latestEntryPointBranchAmbiguityChanged)
+Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_current=" + $latestMemoryRecoveryAnchorEntryPointIdCurrent)
+Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_previous=" + $latestMemoryRecoveryAnchorEntryPointIdPrevious)
+Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_changed=" + $latestMemoryRecoveryAnchorEntryPointIdChanged)
 Write-Host ("real_session_v0_trend_campaign_library_plan_present_current=" + $latestCampaignLibraryPlanPresentCurrent)
 Write-Host ("real_session_v0_trend_campaign_library_plan_present_previous=" + $latestCampaignLibraryPlanPresentPrevious)
 Write-Host ("real_session_v0_trend_campaign_library_plan_present_changed=" + $latestCampaignLibraryPlanPresentChanged)

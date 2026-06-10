@@ -858,6 +858,7 @@ Required:
 
 Current progress:
 The real-session loop can auto-resolve a bounded effective campaign and empire identity for single-campaign artifacts and fails closed on multi-campaign ambiguity. Remaining work is production SNC ownership of this path and stricter entry-point identity rules for branch/reload cases.
+Real-session compare/trend/loop outputs now also forward entry-point analysis path, readiness, reason, count, branch-ambiguity, and memory-recovery anchor entry-point fields so branch/reload continuity stays visible across session comparisons instead of disappearing after the first loop run.
 
 ---
 

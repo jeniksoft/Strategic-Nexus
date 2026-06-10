@@ -170,6 +170,18 @@ $previousNextActionCommandHint = ""
 $currentNextActionCommandHint = ""
 $previousNextActionPath = ""
 $currentNextActionPath = ""
+$previousEntryPointAnalysisPath = ""
+$currentEntryPointAnalysisPath = ""
+$previousEntryPointReadiness = ""
+$currentEntryPointReadiness = ""
+$previousEntryPointReason = ""
+$currentEntryPointReason = ""
+$previousEntryPointCount = ""
+$currentEntryPointCount = ""
+$previousEntryPointBranchAmbiguity = ""
+$currentEntryPointBranchAmbiguity = ""
+$previousMemoryRecoveryAnchorEntryPointId = ""
+$currentMemoryRecoveryAnchorEntryPointId = ""
 $previousCampaignLibraryPlanPresent = "false"
 $currentCampaignLibraryPlanPresent = "false"
 $previousCampaignLibraryPlanPath = ""
@@ -231,6 +243,12 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousNextActionCommandHint = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint"
         $previousNextActionPath = Get-OptionalString -Object $previousEvidence.next_action -Property "path"
     }
+    $previousEntryPointAnalysisPath = Get-OptionalString -Object $previousEvidence -Property "entry_point_analysis_path"
+    $previousEntryPointReadiness = Get-OptionalString -Object $previousEvidence -Property "entry_point_readiness"
+    $previousEntryPointReason = Get-OptionalString -Object $previousEvidence -Property "entry_point_reason"
+    $previousEntryPointCount = Get-OptionalString -Object $previousEvidence -Property "entry_point_count"
+    $previousEntryPointBranchAmbiguity = Get-OptionalString -Object $previousEvidence -Property "entry_point_branch_ambiguity"
+    $previousMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $previousEvidence -Property "memory_recovery_anchor_entry_point_id"
     if ($null -ne $previousEvidence.campaign_library) {
         $previousCampaignLibraryPlanPresent = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_present"
         $previousCampaignLibraryPlanPath = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_path"
@@ -272,6 +290,12 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentNextActionCommandHint = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint"
         $currentNextActionPath = Get-OptionalString -Object $currentEvidence.next_action -Property "path"
     }
+    $currentEntryPointAnalysisPath = Get-OptionalString -Object $currentEvidence -Property "entry_point_analysis_path"
+    $currentEntryPointReadiness = Get-OptionalString -Object $currentEvidence -Property "entry_point_readiness"
+    $currentEntryPointReason = Get-OptionalString -Object $currentEvidence -Property "entry_point_reason"
+    $currentEntryPointCount = Get-OptionalString -Object $currentEvidence -Property "entry_point_count"
+    $currentEntryPointBranchAmbiguity = Get-OptionalString -Object $currentEvidence -Property "entry_point_branch_ambiguity"
+    $currentMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $currentEvidence -Property "memory_recovery_anchor_entry_point_id"
     if ($null -ne $currentEvidence.campaign_library) {
         $currentCampaignLibraryPlanPresent = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_present"
         $currentCampaignLibraryPlanPath = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_path"
@@ -617,6 +641,36 @@ $result = [ordered]@{
         current = $currentSaveRootAutosaveAnchorCount
         changed = ($previousSaveRootAutosaveAnchorCount -ne $currentSaveRootAutosaveAnchorCount)
     }
+    entry_point_analysis_path = [ordered]@{
+        previous = $previousEntryPointAnalysisPath
+        current = $currentEntryPointAnalysisPath
+        changed = ($previousEntryPointAnalysisPath -ne $currentEntryPointAnalysisPath)
+    }
+    entry_point_readiness = [ordered]@{
+        previous = $previousEntryPointReadiness
+        current = $currentEntryPointReadiness
+        changed = ($previousEntryPointReadiness -ne $currentEntryPointReadiness)
+    }
+    entry_point_reason = [ordered]@{
+        previous = $previousEntryPointReason
+        current = $currentEntryPointReason
+        changed = ($previousEntryPointReason -ne $currentEntryPointReason)
+    }
+    entry_point_count = [ordered]@{
+        previous = $previousEntryPointCount
+        current = $currentEntryPointCount
+        changed = ($previousEntryPointCount -ne $currentEntryPointCount)
+    }
+    entry_point_branch_ambiguity = [ordered]@{
+        previous = $previousEntryPointBranchAmbiguity
+        current = $currentEntryPointBranchAmbiguity
+        changed = ($previousEntryPointBranchAmbiguity -ne $currentEntryPointBranchAmbiguity)
+    }
+    memory_recovery_anchor_entry_point_id = [ordered]@{
+        previous = $previousMemoryRecoveryAnchorEntryPointId
+        current = $currentMemoryRecoveryAnchorEntryPointId
+        changed = ($previousMemoryRecoveryAnchorEntryPointId -ne $currentMemoryRecoveryAnchorEntryPointId)
+    }
     next_action = [ordered]@{
         previous = $previousNextAction
         current = $currentNextAction
@@ -933,6 +987,24 @@ Write-Host ("real_session_v0_compare_save_root_save_file_count_changed=" + ((($p
 Write-Host ("real_session_v0_compare_save_root_autosave_anchor_count_current=" + $currentSaveRootAutosaveAnchorCount)
 Write-Host ("real_session_v0_compare_save_root_autosave_anchor_count_previous=" + $previousSaveRootAutosaveAnchorCount)
 Write-Host ("real_session_v0_compare_save_root_autosave_anchor_count_changed=" + ((($previousSaveRootAutosaveAnchorCount -ne $currentSaveRootAutosaveAnchorCount).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_entry_point_analysis_path_current=" + $currentEntryPointAnalysisPath)
+Write-Host ("real_session_v0_compare_entry_point_analysis_path_previous=" + $previousEntryPointAnalysisPath)
+Write-Host ("real_session_v0_compare_entry_point_analysis_path_changed=" + ((($previousEntryPointAnalysisPath -ne $currentEntryPointAnalysisPath).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_entry_point_readiness_current=" + $currentEntryPointReadiness)
+Write-Host ("real_session_v0_compare_entry_point_readiness_previous=" + $previousEntryPointReadiness)
+Write-Host ("real_session_v0_compare_entry_point_readiness_changed=" + ((($previousEntryPointReadiness -ne $currentEntryPointReadiness).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_entry_point_reason_current=" + $currentEntryPointReason)
+Write-Host ("real_session_v0_compare_entry_point_reason_previous=" + $previousEntryPointReason)
+Write-Host ("real_session_v0_compare_entry_point_reason_changed=" + ((($previousEntryPointReason -ne $currentEntryPointReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_entry_point_count_current=" + $currentEntryPointCount)
+Write-Host ("real_session_v0_compare_entry_point_count_previous=" + $previousEntryPointCount)
+Write-Host ("real_session_v0_compare_entry_point_count_changed=" + ((($previousEntryPointCount -ne $currentEntryPointCount).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_current=" + $currentEntryPointBranchAmbiguity)
+Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_previous=" + $previousEntryPointBranchAmbiguity)
+Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_changed=" + ((($previousEntryPointBranchAmbiguity -ne $currentEntryPointBranchAmbiguity).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=" + $currentMemoryRecoveryAnchorEntryPointId)
+Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_previous=" + $previousMemoryRecoveryAnchorEntryPointId)
+Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=" + ((($previousMemoryRecoveryAnchorEntryPointId -ne $currentMemoryRecoveryAnchorEntryPointId).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_next_action_current=" + $currentNextAction)
 Write-Host ("real_session_v0_compare_next_action_previous=" + $previousNextAction)
 Write-Host ("real_session_v0_compare_next_action_changed=" + ((($previousNextAction -ne $currentNextAction).ToString().ToLowerInvariant())))
