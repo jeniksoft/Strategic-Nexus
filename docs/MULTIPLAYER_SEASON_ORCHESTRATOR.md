@@ -513,6 +513,7 @@ The current SNC companion and tray status surfaces also expose `friend_mp_sync_t
 The next missing product piece is still the signed/encrypted transport adapter that will eventually make automatic receive/verify/stage possible; until that exists, manual export/import remains the active path.
 Those same surfaces also expose `friend_mp_sync_outbox_plan_command_template`, so the manual no-send/no-upload fallback is copyable from the canonical multiplayer guide without opening raw JSON.
 The current SNC companion and tray status surfaces also expose `mp_host_rotation_sync_state`, `mp_host_rotation_sync_reason`, and `mp_host_rotation_sync_next_step` so host rotation handoff stays explicit while manual MP package export/import remains the active fallback.
+The current SNC companion and tray status surfaces also expose `friend_trust_store_controls_state`, `friend_trust_store_controls_reason`, `friend_trust_store_controls_next_step`, and `friend_trust_store_update_command_template` so revoke/block/disable-auto-sync flows stay explicit while manual MP package export/import remains the active fallback.
 The current SNC companion and tray status surfaces also expose `friend_mesh_update_state`, `friend_mesh_update_reason`, and `friend_mesh_update_next_step` so degraded handoff visibility stays explicit while manual MP package export/import remains the active fallback.
 
 If the intended host lacks the latest handoff:

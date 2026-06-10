@@ -6,7 +6,7 @@
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, and visible outbox-plan template action are implemented. The companion now also surfaces the explicit host-owned automatic handoff sync gap for host rotation, so the remaining 15G work stays discoverable and fail closed. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract, and the next verification step is to keep zero-history bootstrap provenance visible on current head while the remaining target-specific gameplay rule generation stays deferred.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, and visible outbox-plan template action are implemented. The companion now also surfaces the explicit host-owned automatic handoff sync gap for host rotation, so the remaining 15G work stays discoverable and fail closed. The canonical multiplayer season guide now also names the trust-store control surface, so revoke/block/disable-auto-sync guidance stays discoverable alongside the manual MP fallback. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract, and the next verification step is to keep zero-history bootstrap provenance visible on current head while the remaining target-specific gameplay rule generation stays deferred.",
   "chunks": [
     {
       "id": "v0-sprint-188-migrate-legacy-ministry-input-schema-with-compatibility-note",
@@ -2133,6 +2133,41 @@
         "dist/strategic_nexus_companion_test.exe",
         "tools/smoke_snc_tray.cmd",
         "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-195-polish-local-llm-summary-wording",
+      "title": "Polish local LLM summary wording",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "1I. SNC Owner UI And Presentation",
+      "goal": "Tighten the Czech owner-facing local LLM model-manager summary so the companion and tray surfaces read naturally without changing readiness behavior.",
+      "acceptance": [
+        "The local LLM summary uses more natural Czech wording for the no-model and ready states while preserving the existing summary fields.",
+        "The summary keeps the model state explicit and the next-action routing stays unchanged.",
+        "Companion regression coverage continues to pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-196-document-trust-store-controls-in-season-guide",
+      "title": "Document trust-store controls in season guide",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / local friend trust store controls",
+      "goal": "Document the explicit friend trust store control surface in the canonical multiplayer season guide so revoke, block, and disable-auto-sync guidance stays discoverable alongside the manual MP fallback.",
+      "acceptance": [
+        "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md names friend_trust_store_controls_state, friend_trust_store_controls_reason, friend_trust_store_controls_next_step, and friend_trust_store_update_command_template together.",
+        "The guide keeps the manual export/import fallback wording fail closed and does not imply the trust-store controls replace the signed/encrypted transport gap.",
+        "A targeted rg-based verification confirms the guide and roadmap both mention the trust-store control surface."
+      ],
+      "preferred_tests": [
+        "rg -n \"friend_trust_store_controls_state|friend_trust_store_controls_reason|friend_trust_store_controls_next_step|friend_trust_store_update_command_template\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md docs/DEVELOPMENT_ROADMAP.md"
       ],
       "dependencies": []
     }

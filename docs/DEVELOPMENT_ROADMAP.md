@@ -603,7 +603,7 @@ Required:
 * documented SNC UI style contract
 
 Current progress:
-The native SNC window exists, uses a branded icon, and has TB-inspired styling. `SNC_UI_STYLE_GUIDE.md` exists. Visible MP package affordances now use Czech diacritics in the status window and tray menu. The status dashboard action bar now wraps into two rows when the visible action set would otherwise overflow the minimum owner-facing window width. Custom status scrollbars now also use hover highlighting. The local LLM model-manager page wording was tightened for clearer Czech owner-facing labels; remaining work is wording polish.
+The native SNC window exists, uses a branded icon, and has TB-inspired styling. `SNC_UI_STYLE_GUIDE.md` exists. Visible MP package affordances now use Czech diacritics in the status window and tray menu. The status dashboard action bar now wraps into two rows when the visible action set would otherwise overflow the minimum owner-facing window width. Custom status scrollbars now also use hover highlighting. The local LLM model-manager page and summary wording were tightened for clearer Czech owner-facing labels; remaining work is wording polish.
 
 ---
 
@@ -2117,6 +2117,7 @@ The existing manual MP package path is legacy fallback/dev evidence. Keep it tes
 The canonical multiplayer season guide now names `friend_mp_sync_outbox_plan_command_template` alongside `friend_mp_sync_transport_next_step`, so the manual no-send/no-upload fallback stays discoverable without reopening raw status JSON.
 The canonical multiplayer season guide now also names `mp_host_rotation_sync_state`, `mp_host_rotation_sync_reason`, and `mp_host_rotation_sync_next_step` alongside the manual host-rotation fallback.
 The friend trust store now also exposes explicit revoke/block/disable-auto-sync update controls through `friend_trust_store_controls_state`, `friend_trust_store_controls_reason`, `friend_trust_store_controls_next_step`, and the update command template across companion, tray, and CLI status surfaces.
+The canonical multiplayer season guide now also names those friend trust store control fields alongside the manual export/import fallback, so revoke/block/disable-auto-sync guidance stays discoverable without opening raw status JSON.
 Current-head verification confirms the outbox-plan template and transport-next-step wording stay aligned across companion, tray, and dashboard surfaces.
 Current-head verification also confirms `friend_mesh_update_state`, `friend_mesh_update_reason`, and `friend_mesh_update_next_step` are surfaced across companion, tray, and Status Center views for degraded handoff visibility.
 Current-head verification also confirms `friend_mp_sync_outbox_plan_command_template` is exposed consistently across companion, tray, and Status Center surfaces with the explicit no-send/no-upload/no-staging wording.
