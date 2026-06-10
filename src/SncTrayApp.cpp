@@ -358,6 +358,9 @@ StatusPageId g_statusActivePage = StatusPageId::Overview;
 StatusScrollTargetKind g_statusScrollDragTargetKind = StatusScrollTargetKind::None;
 std::size_t g_statusScrollDragFieldIndex = 0;
 int g_statusScrollDragOffsetY = 0;
+StatusScrollTargetKind g_statusScrollHoverTargetKind = StatusScrollTargetKind::None;
+std::size_t g_statusScrollHoverFieldIndex = 0;
+bool g_statusScrollHoverTracking = false;
 HFONT g_statusHeaderFont = nullptr;
 HFONT g_statusSectionFont = nullptr;
 HFONT g_statusFieldFont = nullptr;
@@ -485,6 +488,7 @@ constexpr COLORREF kStatusButtonTextColor = RGB(211, 228, 221);
 constexpr COLORREF kStatusButtonDisabledTextColor = RGB(92, 102, 100);
 constexpr COLORREF kStatusScrollTrackColor = RGB(10, 28, 34);
 constexpr COLORREF kStatusScrollThumbColor = RGB(83, 123, 116);
+constexpr COLORREF kStatusScrollThumbHoverColor = RGB(96, 140, 133);
 constexpr COLORREF kStatusScrollThumbDragColor = RGB(115, 156, 148);
 constexpr const wchar_t* kStatusEmptyValue = L"\u2014";
 constexpr wchar_t kStatusWindowClassName[] = L"StrategicNexusCompanionStatusWindow";
@@ -563,6 +567,8 @@ HWND statusScrollTargetWindow(StatusScrollTargetKind kind, std::size_t fieldInde
 StatusCustomScrollbar* statusScrollTargetScrollbar(StatusScrollTargetKind kind, std::size_t fieldIndex);
 bool statusPointHitsCustomScrollbar(POINT point, StatusScrollTargetKind* kind, std::size_t* fieldIndex);
 void clearStatusScrollDrag();
+void clearStatusScrollHover(HWND hwnd);
+bool updateStatusScrollHover(HWND hwnd, POINT point);
 void scrollStatusTargetByLines(StatusScrollTargetKind kind, std::size_t fieldIndex, int lineDelta);
 void scrollStatusTargetByPage(StatusScrollTargetKind kind, std::size_t fieldIndex, bool forward);
 void dragStatusScrollbarThumb(HWND hwnd, POINT point);
@@ -1769,6 +1775,22 @@ void invalidateStatusScrollbarTransition(HWND hwnd, const StatusCustomScrollbar&
     invalidateStatusScrollbarRect(hwnd, invalidateRect);
 }
 
+void invalidateStatusScrollbarHover(HWND hwnd, const StatusCustomScrollbar& previous, const StatusCustomScrollbar& current)
+{
+    if (IsRectEmpty(&previous.trackRect)) {
+        invalidateStatusScrollbarRect(hwnd, current.trackRect);
+        return;
+    }
+    if (IsRectEmpty(&current.trackRect)) {
+        invalidateStatusScrollbarRect(hwnd, previous.trackRect);
+        return;
+    }
+
+    RECT invalidateRect = previous.trackRect;
+    UnionRect(&invalidateRect, &invalidateRect, &current.trackRect);
+    invalidateStatusScrollbarRect(hwnd, invalidateRect);
+}
+
 void invalidateStatusCustomScrollbarAreas(HWND hwnd)
 {
     for (const auto& scrollbar : g_statusFieldScrollbars) {
@@ -1814,6 +1836,65 @@ void syncStatusCustomScrollbars(HWND hwnd, const bool forceInvalidate)
 
 }
 
+void clearStatusScrollHover(HWND hwnd)
+{
+    const auto previousKind = g_statusScrollHoverTargetKind;
+    const auto previousFieldIndex = g_statusScrollHoverFieldIndex;
+    g_statusScrollHoverTargetKind = StatusScrollTargetKind::None;
+    g_statusScrollHoverFieldIndex = 0;
+
+    if (previousKind == StatusScrollTargetKind::None) {
+        return;
+    }
+
+    if (auto* previousScrollbar = statusScrollTargetScrollbar(previousKind, previousFieldIndex)) {
+        invalidateStatusScrollbarHover(hwnd, *previousScrollbar, {});
+    }
+}
+
+bool updateStatusScrollHover(HWND hwnd, const POINT point)
+{
+    StatusScrollTargetKind hoverKind = StatusScrollTargetKind::None;
+    std::size_t hoverFieldIndex = 0;
+    if (!statusPointHitsCustomScrollbar(point, &hoverKind, &hoverFieldIndex)) {
+        if (g_statusScrollHoverTargetKind != StatusScrollTargetKind::None) {
+            clearStatusScrollHover(hwnd);
+            return true;
+        }
+        return false;
+    }
+
+    if (g_statusScrollHoverTargetKind == hoverKind && g_statusScrollHoverFieldIndex == hoverFieldIndex) {
+        return false;
+    }
+
+    const auto previousKind = g_statusScrollHoverTargetKind;
+    const auto previousFieldIndex = g_statusScrollHoverFieldIndex;
+    g_statusScrollHoverTargetKind = hoverKind;
+    g_statusScrollHoverFieldIndex = hoverFieldIndex;
+
+    if (previousKind == StatusScrollTargetKind::None) {
+        if (auto* currentScrollbar = statusScrollTargetScrollbar(hoverKind, hoverFieldIndex)) {
+            invalidateStatusScrollbarRect(hwnd, currentScrollbar->trackRect);
+        }
+        return true;
+    }
+
+    if (auto* previousScrollbar = statusScrollTargetScrollbar(previousKind, previousFieldIndex)) {
+        if (auto* currentScrollbar = statusScrollTargetScrollbar(hoverKind, hoverFieldIndex)) {
+            invalidateStatusScrollbarHover(hwnd, *previousScrollbar, *currentScrollbar);
+            return true;
+        }
+        invalidateStatusScrollbarRect(hwnd, previousScrollbar->trackRect);
+    }
+
+    if (auto* currentScrollbar = statusScrollTargetScrollbar(hoverKind, hoverFieldIndex)) {
+        invalidateStatusScrollbarRect(hwnd, currentScrollbar->trackRect);
+    }
+
+    return true;
+}
+
 void paintStatusCustomScrollbars(HDC hdc)
 {
     if (hdc == nullptr) {
@@ -1824,7 +1905,7 @@ void paintStatusCustomScrollbars(HDC hdc)
     const HBRUSH borderBrush = CreateSolidBrush(kStatusValueBorderColor);
     const HBRUSH trackBrush = CreateSolidBrush(kStatusScrollTrackColor);
 
-    const auto paintScrollbar = [&](const StatusCustomScrollbar& scrollbar, const bool dragged) {
+    const auto paintScrollbar = [&](const StatusCustomScrollbar& scrollbar, const bool dragged, const bool hovered) {
         if (!scrollbar.reserved) {
             return;
         }
@@ -1839,7 +1920,9 @@ void paintStatusCustomScrollbars(HDC hdc)
         }
 
         if (!IsRectEmpty(&scrollbar.thumbRect)) {
-            const HBRUSH activeThumbBrush = CreateSolidBrush(dragged ? kStatusScrollThumbDragColor : kStatusScrollThumbColor);
+            const COLORREF thumbColor =
+                dragged ? kStatusScrollThumbDragColor : hovered ? kStatusScrollThumbHoverColor : kStatusScrollThumbColor;
+            const HBRUSH activeThumbBrush = CreateSolidBrush(thumbColor);
             FillRect(hdc, &scrollbar.thumbRect, activeThumbBrush);
             DeleteObject(activeThumbBrush);
         }
@@ -1848,9 +1931,13 @@ void paintStatusCustomScrollbars(HDC hdc)
     for (std::size_t index = 0; index < g_statusFieldScrollbars.size(); ++index) {
         paintScrollbar(
             g_statusFieldScrollbars[index],
-            g_statusScrollDragTargetKind == StatusScrollTargetKind::Field && g_statusScrollDragFieldIndex == index);
+            g_statusScrollDragTargetKind == StatusScrollTargetKind::Field && g_statusScrollDragFieldIndex == index,
+            g_statusScrollHoverTargetKind == StatusScrollTargetKind::Field && g_statusScrollHoverFieldIndex == index);
     }
-    paintScrollbar(g_statusDetailsScrollbar, g_statusScrollDragTargetKind == StatusScrollTargetKind::Details);
+    paintScrollbar(
+        g_statusDetailsScrollbar,
+        g_statusScrollDragTargetKind == StatusScrollTargetKind::Details,
+        g_statusScrollHoverTargetKind == StatusScrollTargetKind::Details);
 
     DeleteObject(trackBrush);
     DeleteObject(borderBrush);
@@ -3983,7 +4070,32 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             dragStatusScrollbarThumb(hwnd, point);
             return 0;
         }
-        break;
+        {
+            POINT point{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            const bool hoverChanged = updateStatusScrollHover(hwnd, point);
+            if (hoverChanged && !g_statusScrollHoverTracking) {
+                TRACKMOUSEEVENT trackMouseEvent{};
+                trackMouseEvent.cbSize = sizeof(trackMouseEvent);
+                trackMouseEvent.dwFlags = TME_LEAVE;
+                trackMouseEvent.hwndTrack = hwnd;
+                if (TrackMouseEvent(&trackMouseEvent)) {
+                    g_statusScrollHoverTracking = true;
+                }
+            } else if (!g_statusScrollHoverTracking) {
+                TRACKMOUSEEVENT trackMouseEvent{};
+                trackMouseEvent.cbSize = sizeof(trackMouseEvent);
+                trackMouseEvent.dwFlags = TME_LEAVE;
+                trackMouseEvent.hwndTrack = hwnd;
+                if (TrackMouseEvent(&trackMouseEvent)) {
+                    g_statusScrollHoverTracking = true;
+                }
+            }
+        }
+        return 0;
+    case WM_MOUSELEAVE:
+        g_statusScrollHoverTracking = false;
+        clearStatusScrollHover(hwnd);
+        return 0;
     case WM_LBUTTONUP:
         if (g_statusScrollDragTargetKind != StatusScrollTargetKind::None && GetCapture() == hwnd) {
             ReleaseCapture();
@@ -3994,6 +4106,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         break;
     case WM_CAPTURECHANGED:
         clearStatusScrollDrag();
+        g_statusScrollHoverTracking = false;
+        clearStatusScrollHover(hwnd);
         syncStatusCustomScrollbars(hwnd, true);
         return 0;
     case WM_CLOSE:
@@ -4007,6 +4121,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusWindowCanPersistPlacement = false;
         KillTimer(hwnd, kStatusScrollSyncTimerId);
         clearStatusScrollDrag();
+        g_statusScrollHoverTracking = false;
+        clearStatusScrollHover(hwnd);
         if (g_statusWindow == hwnd) {
             g_statusWindow = nullptr;
         }

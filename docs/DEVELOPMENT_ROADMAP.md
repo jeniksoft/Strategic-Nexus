@@ -94,6 +94,12 @@ Until that path is robust enough to feel like a real product spine, new strategi
 Task Board work remains allowed when it fixes bugs, reliability, owner visibility, or repeated friction.
 Otherwise, prefer product/runtime roadmap progress over additional meta-tooling.
 
+MP priority override:
+
+The active MP product direction is automatic package update/synchronization through the SNC friend mesh after explicit user-approved pairing.
+The existing manual MP export/import/ZIP handoff flow is now legacy fallback and development evidence infrastructure: keep it safe, verified, and available for recovery, but do not expand it as the primary user experience.
+New MP work should preferentially move 15G toward trusted friends, signed/encrypted transport adapters, automatic download/verify/stage, and host-rotation handoff sync.
+
 When v0 Sprint Mode is active, background Free Work should select from `tools/dev_attention/v0_sprint_chunk_queue.json` before inventing new worker-ready chunks.
 The sprint queue must remain subordinate to this roadmap and the master architecture index; if it becomes stale, update the queue rather than following stale work.
 The sprint queue must not become a reason to stop work: if the queue is exhausted while this roadmap still has unblocked `IN_PROGRESS` or `NOT_STARTED` work, Codex must derive the next bounded chunk from the roadmap instead of ending with `no_safe_task`.
@@ -597,7 +603,7 @@ Required:
 * documented SNC UI style contract
 
 Current progress:
-The native SNC window exists, uses a branded icon, and has TB-inspired styling. `SNC_UI_STYLE_GUIDE.md` exists. Visible MP package affordances now use Czech diacritics in the status window and tray menu. The status dashboard action bar now wraps into two rows when the visible action set would otherwise overflow the minimum owner-facing window width. Remaining work is polish around custom scroll styling and owner-facing wording.
+The native SNC window exists, uses a branded icon, and has TB-inspired styling. `SNC_UI_STYLE_GUIDE.md` exists. Visible MP package affordances now use Czech diacritics in the status window and tray menu. The status dashboard action bar now wraps into two rows when the visible action set would otherwise overflow the minimum owner-facing window width. Custom status scrollbars now also use hover highlighting; remaining work is wording polish.
 
 ---
 
@@ -1768,6 +1774,7 @@ Required:
 * support players joining later without predeclaring them in Strategic Nexus
 * support normal Steam friends / Stellaris lobby communication instead of IP-address workflows
 * provide Status Center copyable package/invite status text
+* prioritize SNC friend-mesh update/sync as the release MP package delivery path
 * export/import MP handoff packages so host role can change between seasons
 * support the previous host being absent from the next season entirely
 * treat client-provided manual saves as recovery anchors when host autosave archive or handoff is missing
@@ -1780,9 +1787,12 @@ Required:
 Notes:
 This is mandatory before generated overlays are used for multiplayer campaigns.
 Until this exists, multiplayer generated overlays remain a private host-side planning artifact or must be manually packaged and verified.
+Manual MP package export/import remains legacy fallback and recovery infrastructure. It must stay safe and verifiable, but it is not the forward product UX.
+The forward product UX is an SNC friend mesh: approved friends, signed/encrypted package announcements, automatic package download/verify/stage, and host-rotation handoff updates before the normal Stellaris/Steam join flow.
 
 Current progress:
 `MULTIPLAYER_SEASON_ORCHESTRATOR.md` defines the host-coordinated package model, low-friction join assumptions, host rotation handoff packages, client manual save recovery fallback, checksum-gated hotjoin assumptions, and save-persisted MP markers.
+The roadmap now treats the existing manual MP export/import and ZIP handoff path as legacy fallback/dev evidence, while 15G is the active product path for automatic updates over the SNC friend mesh.
 The local harness now has a minimal MP generated-overlay package exporter/verifier.
 It writes a package manifest with campaign id, overlay version, game version, Strategic Nexus mod version, checksum-sensitive generated gameplay files, a local-only diagnostic manifest entry, and degraded handoff status when the previous host is unavailable.
 The verifier fails closed on file drift and unexpected package files.
@@ -2064,10 +2074,18 @@ Status:
 IN_PROGRESS
 
 Goal:
-Make MP package export/import/verify usable by ordinary host and client users from the companion app.
+Make MP package updates usable by ordinary host and client users through the SNC friend mesh, with manual package export/import retained only as legacy fallback and recovery tooling.
 
 Required:
 
+* user-approved SNC friend request / acceptance workflow
+* local friend trust store with revoke/block/disable-auto-sync controls
+* encrypted and signed MP package sync between accepted SNC friends
+* automatic download/verify/stage of trusted friend MP packages before launch
+* fail-closed package apply gate that never publishes gameplay-affecting files while Stellaris is running
+* host-owned automatic handoff sync for host rotation
+* owner-facing mesh update state for waiting, ready, blocked, mismatch, and degraded handoff conditions
+* transport adapters that do not require IP-address workflows or active-game network hooks
 * owner-facing export action
 * owner-facing import action
 * copyable package/share instructions
@@ -2076,15 +2094,16 @@ Required:
 * host-rotation handoff workflow
 * recovery flow for missing previous host
 * no IP-address workflow dependency
-* user-approved SNC friend request / acceptance workflow
-* local friend trust store with revoke/block/disable-auto-sync controls
-* encrypted and signed MP package sync between accepted SNC friends
-* automatic download/verify/stage of trusted friend MP packages before launch
-* fail-closed package apply gate that never publishes gameplay-affecting files while Stellaris is running
-* host-owned automatic handoff sync for host rotation
+
+Legacy fallback:
+
+* manual MP package export/import, copyable command hints, open-directory buttons, and ZIP handoff remain supported for debugging, recovery, and unpaired users
+* new owner-facing MP UX should not make the manual ZIP path feel like the primary release workflow
 
 Current progress:
 Command/status surfaces exist, and the companion copy payload plus tray menu and status window now expose MP package handoff details plus direct open-directory actions. The visible status dashboard now also exposes quick-copy MP verify/import actions for the current package commands plus an explicit MP import handoff action that copies the preferred strict import command and opens the package directory while keeping the target overlay placeholder manual. The tray smoke now also regresses the MP export dashboard action and the copyable MP export/share guidance from the status summary so the owner-facing export handoff stays visible on current head. `docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md` records both the owner-facing real-season validation checklist and the target SNC friend mesh for automatic MP preparation. The first manual SNC friend pairing CLI fallback exists: `--create-snc-friend-request`, `--create-snc-friend-acceptance`, and `--import-snc-friend-acceptance` can exercise request/acceptance/trust-store import before UI or transport adapters exist, with auto-sync disabled by default. The visible status dashboard can open the local SNC friend trust-store artifact when it exists, exposes a copyable manual friend-pairing request/accept/import command template, and now copies/displays a concise friend-pairing guide that explains request -> acceptance -> trust-store import while keeping automatic sync explicitly disabled until signed/encrypted transport exists. Tray status JSON exposes top-level friend trust-store state/path/counts plus `friend_pairing_command_template` and `friend_pairing_guide_text` for release-companion consumers. The stable companion snapshot/status surfaces now also expose the same manual friend-pairing template through `friend_trust_store_status.pairing_command_template`, status-center summary text, and `--snc-status-snapshot` stdout. The first local SNC friend MP sync envelope contract now parses only schema_version 1 `snc_friend_mp_package_sync` envelopes with bounded sender/recipient identities, approved signing/encryption algorithm labels, package hashes, encrypted payload hash, signature, and byte count metadata; unsupported algorithms, unsafe identities, missing hashes/signatures, self-recipient envelopes, and missing `mp_package_sync` capability fail closed without enabling transport or automatic sync. `Strategic Nexus.exe --create-snc-friend-mp-sync-envelope` and `--verify-snc-friend-mp-sync-envelope` now provide a manual create/verify fallback for explicit friend MP sync envelope metadata without generating signatures, encrypting payloads, enabling transport, downloading packages, or staging gameplay files. The verify command now also emits a stable apply-gate contract: valid envelopes remain `manual_metadata_only` with `apply_allowed=false`, and the gate reports `blocked_stellaris_running` when Stellaris is active so future automatic sync cannot publish or stage gameplay-affecting packages during play. Companion snapshot/status summary and tray JSON now expose the same manual friend MP sync envelope command template for release-companion consumers, including the `[stellaris_running:true|false]` apply-gate input, and the visible SNC dashboard has a `SNC MP sync` action that copies that manual create/verify template with explicit metadata-only safety wording. `Strategic Nexus.exe --plan-snc-friend-mp-sync-inbox` now adds a local inbox/staging plan gate for received friend MP sync envelopes: invalid envelopes, missing encrypted payloads, running Stellaris, disabled friend auto-sync, and payload-present metadata-only states are all explicit, with `automatic_download_enabled=false` and `package_staging_allowed=false` until real signed/encrypted transport and decrypt/verify staging are implemented. `Strategic Nexus.exe --plan-snc-friend-mp-sync-outbox` now mirrors the guarded contract for outgoing friend MP sync: invalid envelopes, missing encrypted payloads, running Stellaris, disabled friend auto-sync, and payload-present metadata-only states are explicit, with `transport_enabled=false` and `send_allowed=false` until a real signed/encrypted transport adapter exists. Companion/tray status now expose `friend_mp_sync_inbox_plan_command_template`, and the visible dashboard has a `SNC inbox` action that copies the command with no-download/no-decrypt/no-staging safety wording. `v0-sprint-153-verify-friend-trust-store-visibility-and-auto-sync-controls` is now verified on current HEAD: trusted/revoked/blocked/auto-sync counts, auto-sync availability, manual pairing, friend MP sync envelope, inbox-plan, outbox-plan, and transport next-step visibility are all exposed on the companion/Status Center surfaces, and the regression tests confirm the contract on current HEAD. The post-action dashboard validation debt is closed on current HEAD: `tools/build_snc_tray.ps1`, `tools/smoke_snc_tray.ps1`, `dist/strategic_nexus_companion_test.exe`, `dist/mp_overlay_package_verifier_test.exe`, and `tools/run_v0_pipeline_tests.ps1` pass after stopping the stale local tray process that held the executable lock. The status window also now persists its active page and normal window placement to `dist/private_reports/snc_ui_state.json`, then restores that placement on reopen so the owner does not lose the dashboard context between launches. Release-grade companion UI for MP package exchange still needs the actual in-game season validation itself plus the signed/encrypted package sync transport adapter and end-to-end season validation.
+Roadmap priority is now the friend-mesh update path: implement signed/encrypted transport adapters, automatic receive/verify/stage, and host-rotation handoff sync before further expanding the manual ZIP/export/import UX.
+The existing manual MP package path is legacy fallback/dev evidence. Keep it tested because it is the safety net, but treat new owner-facing manual affordances as compatibility/recovery work rather than primary product progress.
 The canonical multiplayer season guide now names `friend_mp_sync_outbox_plan_command_template` alongside `friend_mp_sync_transport_next_step`, so the manual no-send/no-upload fallback stays discoverable without reopening raw status JSON.
 Current-head verification confirms the outbox-plan template and transport-next-step wording stay aligned across companion, tray, and dashboard surfaces.
 

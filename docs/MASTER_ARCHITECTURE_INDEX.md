@@ -47,6 +47,7 @@ Verified:
 * sequence replay protection
 * first deterministic v0 `X -> Y -> U -> payload -> effect batch` local pipeline test
 * production companion tray app (`StrategicNexusCompanionTray.exe`)
+* local owner Task Board / tray helper for Codex coordination
 
 In progress:
 
@@ -55,12 +56,11 @@ In progress:
 * schema evolution rules
 * host-authoritative multiplayer architecture
 * offline campaign analysis architecture for autosave archiving and next-session mod refresh
-* local owner Task Board / tray helper for Codex coordination
+* full save parser production pipeline beyond the implemented narrow headline parser and archive-summary slice
 
 Not started:
 
 * real LLM integration
-* full save parser production pipeline beyond the existing narrow headline parser
 * ministerial reasoning pipeline implementation
 * strategic memory library implementation
 * real gameplay balancing effects
