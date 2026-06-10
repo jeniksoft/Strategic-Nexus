@@ -2060,6 +2060,25 @@
         "rg -n \"friend_mesh_update_state|friend_mesh_update_reason|friend_mesh_update_next_step\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-191-verify-generated-overlay-publish-gate-current-head",
+      "title": "Verify generated overlay publish gate on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "1F. Generated Overlay Publish Gate And Status Center",
+      "goal": "Verify that current-head companion, tray, and Status Center surfaces keep the generated overlay publish gate explicit and fail closed without reopening the full publish workflow.",
+      "acceptance": [
+        "Companion, tray, and status-center outputs expose generated_overlay_publish_gate_status, generated_overlay_publish_allowed, generated_overlay_publish_gate_owner_approval_required, and the publish command hint.",
+        "The publish gate remains fail closed on current head, including refusal while Stellaris is running and refusal without owner approval.",
+        "dist/snc_generated_overlay_publish_gate_test.exe plus the relevant SNC tray and v0 pipeline tests pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/snc_generated_overlay_publish_gate_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
