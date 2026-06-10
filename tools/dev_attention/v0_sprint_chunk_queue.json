@@ -1918,6 +1918,25 @@
       "dependencies": [
         "v0-sprint-176-regress-missing-entry-point-analysis-fallback"
       ]
+    },
+    {
+      "id": "v0-sprint-183-surface-friend-mesh-update-state",
+      "title": "Surface friend mesh update state",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / owner-facing mesh update state",
+      "goal": "Expose a top-level friend mesh update state, reason, and next-step across companion and tray status surfaces so waiting, ready, blocked, mismatch, and degraded handoff conditions are visible without reading the raw friend trust store and package fields separately.",
+      "acceptance": [
+        "Companion snapshot JSON and Status Center summary expose friend_mesh_update_state, friend_mesh_update_reason, and friend_mesh_update_next_step.",
+        "Tray status JSON and summary text expose the same friend mesh aggregate and remain fail-closed for missing or invalid friend trust store/package data.",
+        "Targeted companion and tray regression tests cover the aggregate on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.ps1",
+        "tools/run_v0_pipeline_tests.ps1"
+      ],
+      "dependencies": []
     }
   ]
 }

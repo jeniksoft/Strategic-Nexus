@@ -333,6 +333,17 @@ struct CompanionFriendTrustStoreStatus {
     bool autoSyncAvailable = false;
 };
 
+struct CompanionFriendMeshUpdateStatus {
+    std::string state = "waiting";
+    std::string reason = "waiting for trusted friend mesh prerequisites";
+    std::string nextStep =
+        "Use manual MP package export/import and strict verification until signed/encrypted friend transport is implemented.";
+};
+
+CompanionFriendMeshUpdateStatus buildFriendMeshUpdateStatus(
+    const CompanionFriendTrustStoreStatus& friendTrustStore,
+    const CompanionMpOverlayPackageStatus& mpOverlayPackage);
+
 struct CompanionStatusSnapshot {
     std::string appName = "Strategic Nexus Companion";
     std::string abbreviation = "SNC";

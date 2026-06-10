@@ -5622,6 +5622,10 @@ std::string buildStatusCenterSummaryText(
     if (!mpOverlayPackage.handoffRecoveryHint.empty()) {
         appendOwnerFacingStatusReasonLine(summary, "mp_handoff_recovery_hint", mpOverlayPackage.handoffRecoveryHint);
     }
+    const auto friendMeshUpdate = strategic_nexus::buildFriendMeshUpdateStatus(friendTrustStore, mpOverlayPackage);
+    summary << "friend_mesh_update_state: " << friendMeshUpdate.state << "\n";
+    summary << "friend_mesh_update_reason: " << friendMeshUpdate.reason << "\n";
+    appendOwnerFacingStatusReasonLine(summary, "friend_mesh_update_next_step", friendMeshUpdate.nextStep);
     summary << "post_play_decision_ready_entry_count: " << postPlayDecisionReadyEntryCount << "\n";
     summary << "post_play_campaign_count: " << postPlayCampaignCount << "\n";
     summary << "post_play_ready_campaign_count: " << postPlayReadyCampaignCount << "\n";
@@ -6553,6 +6557,11 @@ void writeStatus(
          << jsonEscape(companionSnapshot.mpOverlayPackage.hostRotationSyncReason) << "\",\n";
     json << "  \"mp_host_rotation_sync_next_step\": \""
          << jsonEscape(companionSnapshot.mpOverlayPackage.hostRotationSyncNextStep) << "\",\n";
+    const auto friendMeshUpdate =
+        strategic_nexus::buildFriendMeshUpdateStatus(companionSnapshot.friendTrustStore, companionSnapshot.mpOverlayPackage);
+    json << "  \"friend_mesh_update_state\": \"" << jsonEscape(friendMeshUpdate.state) << "\",\n";
+    json << "  \"friend_mesh_update_reason\": \"" << jsonEscape(friendMeshUpdate.reason) << "\",\n";
+    json << "  \"friend_mesh_update_next_step\": \"" << jsonEscape(friendMeshUpdate.nextStep) << "\",\n";
     json << "  \"friend_pairing_guide_text\": \""
          << jsonEscape(buildFriendPairingGuideTextUtf8()) << "\",\n";
     json << "  \"stellaris_running\": " << (stellarisRunning ? "true" : "false") << ",\n";

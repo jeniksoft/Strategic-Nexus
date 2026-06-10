@@ -877,6 +877,21 @@ try {
                     [string]$json.mp_host_rotation_sync_next_step -notlike "*signed/encrypted friend transport*") {
                     throw "SNC tray status JSON did not expose mp_host_rotation_sync_next_step."
                 }
+                if (-not [string]::IsNullOrWhiteSpace([string]$json.friend_mesh_update_state)) {
+                    if (-not ($ReadyOwnerTestFixture -or $PostPlayBackfillFixture -or $MemoryRecoveryFixture)) {
+                        if ([string]$json.friend_mesh_update_state -ne "degraded_handoff") {
+                            throw "SNC tray status JSON did not expose friend_mesh_update_state."
+                        }
+                        if ([string]$json.friend_mesh_update_reason -notlike "*previous host unavailable*" -or
+                            [string]$json.friend_mesh_update_reason -notlike "*handoff continuity is degraded*") {
+                            throw "SNC tray status JSON did not expose friend_mesh_update_reason."
+                        }
+                        if ([string]$json.friend_mesh_update_next_step -notlike "*nacti nejnovnejsi handoff balicek*" -or
+                            [string]$json.friend_mesh_update_next_step -notlike "*confidence snizenou*") {
+                            throw "SNC tray status JSON did not expose friend_mesh_update_next_step."
+                        }
+                    }
+                }
                 $sncTraySource = Get-Content -Raw -LiteralPath (Join-Path $RepoRoot "src/SncTrayApp.cpp")
                 if ($sncTraySource -notlike "*WM_SNC_OPEN_STATUS*" -or
                     $sncTraySource -notlike "*requestExistingInstanceStatusWindow*" -or
@@ -919,6 +934,14 @@ try {
                     $summaryText -notlike "*mp_host_rotation_sync_reason: Host-owned automatic handoff sync for host rotation is not implemented yet*" -or
                     $summaryText -notlike "*mp_host_rotation_sync_next_step: Use the current MP ZIP, strict verify/import, and manual host handoff until signed/encrypted friend transport is implemented.*") {
                     throw "SNC tray summary text did not expose host rotation sync gap."
+                }
+                if ($summaryText -like "*friend_mesh_update_state:*" -and
+                    -not ($ReadyOwnerTestFixture -or $PostPlayBackfillFixture -or $MemoryRecoveryFixture)) {
+                    if ($summaryText -notlike "*friend_mesh_update_state: degraded_handoff*" -or
+                        $summaryText -notlike "*friend_mesh_update_reason: previous host unavailable; handoff continuity is degraded*" -or
+                        $summaryText -notlike "*friend_mesh_update_next_step: Load the newest handoff package if available; otherwise use an older verified archive or client save and keep confidence reduced.*") {
+                        throw "SNC tray summary text did not expose friend mesh update state."
+                    }
                 }
                 if ($summaryText -notlike "*mp_sdileni_tip: zkopiruj mp_package_zip_path a mp_package_manifest_hash; host/client kroky jsou nize.*") {
                     throw "SNC tray summary text did not expose MP export/share guidance."

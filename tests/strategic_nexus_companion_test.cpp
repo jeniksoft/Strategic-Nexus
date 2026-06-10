@@ -593,6 +593,18 @@ int main()
         ready.statusCenterSummaryText.find("friend_mp_sync_preflight_checklist: Before a friend MP season") != std::string::npos &&
             ready.statusCenterSummaryText.find("run inbox/outbox plan checks with Stellaris closed") != std::string::npos,
         "status center summary should expose friend MP sync preflight checklist");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mesh_update_state: degraded_handoff") != std::string::npos,
+        "status center summary should expose friend mesh update state");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "friend_mesh_update_reason: previous host unavailable; handoff continuity is degraded") !=
+            std::string::npos,
+        "status center summary should expose friend mesh update reason");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mesh_update_next_step: nacti nejnovnejsi handoff balicek") !=
+            std::string::npos,
+        "status center summary should expose friend mesh update next step");
     auto brokenFriendConfig = readyConfig;
     brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
     const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);
@@ -611,6 +623,14 @@ int main()
     requireCondition(
         brokenFriendTrustStore.statusCenter.path == brokenFriendTrustStorePath,
         "status center should point to invalid friend trust store");
+    requireCondition(
+        brokenFriendTrustStore.statusCenterSummaryText.find("friend_mesh_update_state: blocked") !=
+            std::string::npos,
+        "status center summary should block friend mesh updates when trust store is invalid");
+    requireCondition(
+        brokenFriendTrustStore.statusCenterSummaryText.find("friend_mesh_update_reason: unsupported friend trust store schema") !=
+            std::string::npos,
+        "status center summary should report the invalid trust-store reason in the friend mesh aggregate");
     requireCondition(ready.lifecycle.windowCloseBehavior == "minimize_to_tray", "window close should minimize to tray");
     requireCondition(ready.lifecycle.explicitExitBehavior == "stop_without_restart", "explicit exit should stop without restart");
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");
@@ -1336,6 +1356,14 @@ int main()
     requireCondition(
         readyJson.find("\"human_control_guard_state\": \"runtime_is_ai_yes\"") != std::string::npos,
         "snapshot JSON should expose the runtime human-control guard state");
+    requireCondition(
+        readyJson.find("\"friend_mesh_update_state\": \"degraded_handoff\"") != std::string::npos,
+        "snapshot JSON should expose the friend mesh update state");
+    requireCondition(
+        readyJson.find(
+            "\"friend_mesh_update_reason\": \"previous host unavailable; handoff continuity is degraded\"") !=
+            std::string::npos,
+        "snapshot JSON should expose the friend mesh update reason");
     requireCondition(
         readyJson.find("\"post_play_player_country_id\": \"0\"") != std::string::npos,
         "snapshot JSON should expose the post-play player-country marker");

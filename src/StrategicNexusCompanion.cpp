@@ -2486,6 +2486,58 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
     return status;
 }
 
+CompanionFriendMeshUpdateStatus buildFriendMeshUpdateStatusImpl(
+    const CompanionFriendTrustStoreStatus& friendTrustStore,
+    const CompanionMpOverlayPackageStatus& mpOverlayPackage)
+{
+    CompanionFriendMeshUpdateStatus status;
+
+    if (friendTrustStore.state == "needs_attention") {
+        status.state = "blocked";
+        status.reason = friendTrustStore.reason.empty()
+            ? "friend trust store needs attention"
+            : friendTrustStore.reason;
+        status.nextStep = "Fix or recreate the friend trust store before relying on friend mesh sync.";
+        return status;
+    }
+
+    if (mpOverlayPackage.identityMismatchWarning || mpOverlayPackage.mismatchWarningState != "no_mismatch") {
+        status.state = "mismatch";
+        status.reason = mpOverlayPackage.mismatchWarningReason.empty()
+            ? "package identity mismatch detected"
+            : mpOverlayPackage.mismatchWarningReason;
+        status.nextStep = "Run strict verify/import before any friend mesh update.";
+        return status;
+    }
+
+    if (mpOverlayPackage.handoffStatus == "degraded_previous_host_unavailable") {
+        status.state = "degraded_handoff";
+        status.reason = "previous host unavailable; handoff continuity is degraded";
+        status.nextStep = mpOverlayPackage.handoffRecoveryHint.empty()
+            ? "Use a verified archive or manual host rotation handoff until continuity is restored."
+            : mpOverlayPackage.handoffRecoveryHint;
+        return status;
+    }
+
+    if (friendTrustStore.autoSyncAvailable) {
+        status.state = "ready";
+        status.reason = "trusted friends available for future explicit package sync";
+        status.nextStep = friendTrustStore.mpSyncTransportNextStep.empty()
+            ? "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented."
+            : friendTrustStore.mpSyncTransportNextStep;
+        return status;
+    }
+
+    status.state = "waiting";
+    status.reason = friendTrustStore.reason.empty()
+        ? "friend trust store parsed; waiting for trusted friend mesh prerequisites"
+        : friendTrustStore.reason;
+    status.nextStep = friendTrustStore.mpSyncTransportNextStep.empty()
+        ? "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented."
+        : friendTrustStore.mpSyncTransportNextStep;
+    return status;
+}
+
 std::string buildStatusCenterSummaryText(
     const std::string& generatedAtLocal,
     const CompanionLifecycleStatus& lifecycle,
@@ -2688,6 +2740,10 @@ std::string buildStatusCenterSummaryText(
     text << "mp_host_rotation_sync_state: " << mpOverlayPackage.hostRotationSyncState << "\n";
     text << "mp_host_rotation_sync_reason: " << mpOverlayPackage.hostRotationSyncReason << "\n";
     text << "mp_host_rotation_sync_next_step: " << mpOverlayPackage.hostRotationSyncNextStep << "\n";
+    const auto friendMeshUpdate = buildFriendMeshUpdateStatus(friendTrustStore, mpOverlayPackage);
+    text << "friend_mesh_update_state: " << friendMeshUpdate.state << "\n";
+    text << "friend_mesh_update_reason: " << friendMeshUpdate.reason << "\n";
+    text << "friend_mesh_update_next_step: " << friendMeshUpdate.nextStep << "\n";
     text << "post_play_pipeline: " << postPlayPipeline.state << " - " << postPlayPipeline.reason << "\n";
     if (!postPlayPipeline.entryPointAnalysisPath.empty()) {
         text << "entry_point_analysis_path: " << pathString(postPlayPipeline.entryPointAnalysisPath) << "\n";
@@ -3673,6 +3729,13 @@ void writePostPlayPipelineJson(
 
 } // namespace
 
+CompanionFriendMeshUpdateStatus buildFriendMeshUpdateStatus(
+    const CompanionFriendTrustStoreStatus& friendTrustStore,
+    const CompanionMpOverlayPackageStatus& mpOverlayPackage)
+{
+    return buildFriendMeshUpdateStatusImpl(friendTrustStore, mpOverlayPackage);
+}
+
 CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const CompanionStatusConfig& config) const
 {
     CompanionStatusSnapshot snapshot;
@@ -3892,6 +3955,10 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"friend_trust_store_status\": ";
     writeFriendTrustStoreJson(output, snapshot.friendTrustStore, "  ");
     output << ",\n";
+    const auto friendMeshUpdate = buildFriendMeshUpdateStatus(snapshot.friendTrustStore, snapshot.mpOverlayPackage);
+    output << "  \"friend_mesh_update_state\": " << jsonString(friendMeshUpdate.state) << ",\n";
+    output << "  \"friend_mesh_update_reason\": " << jsonString(friendMeshUpdate.reason) << ",\n";
+    output << "  \"friend_mesh_update_next_step\": " << jsonString(friendMeshUpdate.nextStep) << ",\n";
     output << "  \"crash_recovery\": ";
     writeCrashRecoveryJson(output, snapshot.crashRecovery, "  ");
     output << ",\n";
