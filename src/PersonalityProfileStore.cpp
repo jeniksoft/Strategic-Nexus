@@ -104,9 +104,41 @@ bool extractJsonDouble(const std::string& json, const char* key, double& value)
     return std::isfinite(value);
 }
 
+bool extractJsonInt(const std::string& json, const char* key, int& value)
+{
+    const std::regex pattern("\\\"" + std::string(key) + "\\\"\\s*:\\s*(-?\\d+)");
+    std::smatch match;
+    if (!std::regex_search(json, match, pattern)) {
+        return false;
+    }
+
+    try {
+        value = std::stoi(match[1].str());
+    } catch (...) {
+        return false;
+    }
+
+    return true;
+}
+
 bool isBoundedPersonalityValue(const double value)
 {
     return std::isfinite(value) && value >= 0.0 && value <= 1.0;
+}
+
+bool isCompatibilityStateConsistent(const PersonalityProfileRecord& record)
+{
+    if (record.sourceSchemaVersion == 1) {
+        return record.schemaCompatibilityState == "current" && record.schemaCompatibilityNote.empty();
+    }
+
+    if (record.sourceSchemaVersion == 0) {
+        return record.schemaCompatibilityState == "partial_compatibility"
+            && record.schemaCompatibilityNote
+                == "migrated legacy personality profile schema_version 0 to current schema_version 1";
+    }
+
+    return false;
 }
 
 bool isValidRecordForSave(const PersonalityProfileRecord& record)
@@ -125,6 +157,14 @@ bool isValidRecordForSave(const PersonalityProfileRecord& record)
         return false;
     }
 
+    if (record.sourceSchemaVersion != 0 && record.sourceSchemaVersion != 1) {
+        return false;
+    }
+
+    if (!isCompatibilityStateConsistent(record)) {
+        return false;
+    }
+
     return isBoundedPersonalityValue(record.personality.boldness)
         && isBoundedPersonalityValue(record.personality.paranoia)
         && isBoundedPersonalityValue(record.personality.honor)
@@ -139,7 +179,7 @@ PersonalityProfileRecord parseProfileRecord(const std::string& json)
         return record;
     }
 
-    double schemaVersion = 0.0;
+    int schemaVersion = 0;
     bool ok = false;
     bool zeroHistoryBootstrap = false;
     double confidence = 0.0;
@@ -147,6 +187,8 @@ PersonalityProfileRecord parseProfileRecord(const std::string& json)
     double paranoia = 0.0;
     double honor = 0.0;
     double opportunism = 0.0;
+    int sourceSchemaVersion = 0;
+    bool hasSourceSchemaVersion = false;
 
     const auto reason = common::extractJsonString(json, "reason");
     const auto campaignId = common::extractJsonString(json, "campaign_id");
@@ -156,8 +198,8 @@ PersonalityProfileRecord parseProfileRecord(const std::string& json)
     const auto validatedUpdateSummary = common::extractJsonString(json, "validated_update_summary");
     const auto storedProfileKey = common::extractJsonString(json, "profile_key");
 
-    if (!extractJsonDouble(json, "schema_version", schemaVersion)
-        || schemaVersion != 1.0
+    if (!extractJsonInt(json, "schema_version", schemaVersion)
+        || (schemaVersion != 0 && schemaVersion != 1)
         || !extractJsonBool(json, "ok", ok)
         || !reason.has_value()
         || !campaignId.has_value()
@@ -176,6 +218,21 @@ PersonalityProfileRecord parseProfileRecord(const std::string& json)
         return record;
     }
 
+    if (extractJsonInt(json, "source_schema_version", sourceSchemaVersion)) {
+        hasSourceSchemaVersion = true;
+        if (sourceSchemaVersion != 0 && sourceSchemaVersion != 1) {
+            record.reason = "unsupported personality profile schema";
+            return record;
+        }
+    } else {
+        sourceSchemaVersion = schemaVersion;
+    }
+
+    if (schemaVersion == 0 && hasSourceSchemaVersion && sourceSchemaVersion != 0) {
+        record.reason = "malformed personality profile record";
+        return record;
+    }
+
     if (storedProfileKey.value() != profileKey(campaignId.value(), empireId.value())) {
         record.reason = "malformed personality profile record";
         return record;
@@ -183,6 +240,15 @@ PersonalityProfileRecord parseProfileRecord(const std::string& json)
 
     record.ok = ok;
     record.reason = reason.value();
+    record.sourceSchemaVersion = sourceSchemaVersion;
+    if (record.sourceSchemaVersion == 0) {
+        record.schemaCompatibilityState = "partial_compatibility";
+        record.schemaCompatibilityNote =
+            "migrated legacy personality profile schema_version 0 to current schema_version 1";
+    } else {
+        record.schemaCompatibilityState = "current";
+        record.schemaCompatibilityNote.clear();
+    }
     record.campaignId = campaignId.value();
     record.empireId = empireId.value();
     record.sourceSaveDate = sourceSaveDate.value();
@@ -243,6 +309,9 @@ std::string serializePersonalityProfileRecord(const PersonalityProfileRecord& re
     std::ostringstream json;
     json << "{\n";
     json << "  \"schema_version\": 1,\n";
+    json << "  \"source_schema_version\": " << record.sourceSchemaVersion << ",\n";
+    json << "  \"schema_compatibility_state\": \"" << jsonEscape(record.schemaCompatibilityState) << "\",\n";
+    json << "  \"schema_compatibility_note\": \"" << jsonEscape(record.schemaCompatibilityNote) << "\",\n";
     json << "  \"ok\": " << (record.ok ? "true" : "false") << ",\n";
     json << "  \"reason\": \"" << jsonEscape(record.reason) << "\",\n";
     json << "  \"profile_key\": \"" << jsonEscape(profileKey(record.campaignId, record.empireId)) << "\",\n";

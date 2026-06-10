@@ -13,6 +13,9 @@ namespace strategic_nexus {
 struct PersonalityProfileRecord {
     bool ok = false;
     std::string reason;
+    int sourceSchemaVersion = 1;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
     std::string campaignId;
     std::string empireId;
     std::string sourceSaveDate;

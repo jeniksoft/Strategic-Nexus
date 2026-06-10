@@ -1711,6 +1711,7 @@ Required:
 Current progress:
 No full migration registry exists yet.
 The v0 ministry-input reader now accepts a bounded schema_version 0 legacy fixture as partial compatibility, normalizes it to the current internal schema, and surfaces the schema compatibility state plus migration note in CLI and audit output.
+The durable personality profile store now also records source schema version plus compatibility state/note metadata and accepts legacy schema_version 0 profile records as partial compatibility instead of silent malformed blobs.
 The next bounded slice should extend the same explicit degraded-state pattern to the remaining long-lived artifact readers so old campaigns do not rely on silent compatibility assumptions.
 
 ---
