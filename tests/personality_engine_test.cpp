@@ -107,6 +107,31 @@ int main()
         downgradedNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "downgrade note should expose the personality bias");
 
+    strategic_nexus::StrategicSummary severePressureSummary = quietSummary;
+    severePressureSummary.instability = 0.08;
+
+    const auto rejectedDecision = engine.refineDoctrineDecision(fearfulEmpire, severePressureSummary, proposedExpansion);
+    requireCondition(
+        rejectedDecision.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "severely contradictory opportunistic expansion should still resolve to defense");
+    requireCondition(
+        rejectedDecision.rationale ==
+            "Rejected opportunistic expansion: capability, fear, and low pressure do not support it yet.",
+        "severe contradiction should use the explicit reject rationale");
+    requireCondition(
+        rejectedDecision.confidence == 0.41,
+        "severe contradiction reject path should clamp confidence lower than the downgrade path");
+    const auto rejectedNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedExpansion,
+        rejectedDecision);
+    requireCondition(
+        rejectedNote.find("rejected opportunistic_expansion in favor of defensive_posture") != std::string::npos,
+        "reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        rejectedNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState capabilityConstrainedEmpire;
     capabilityConstrainedEmpire.id = "empire_capability_constrained";
     capabilityConstrainedEmpire.power.fleetPower = 34;

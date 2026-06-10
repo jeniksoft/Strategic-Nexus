@@ -46,7 +46,11 @@ std::string PersonalityEngine::buildDoctrineAlignmentNote(
         note += "upgraded from consolidate to opportunistic_expansion";
     } else if (proposedDecision.type == DoctrineType::OpportunisticExpansion &&
                refinedDecision.type == DoctrineType::DefensivePosture) {
-        note += "downgraded from opportunistic_expansion to defensive_posture";
+        if (refinedDecision.rationale.rfind("Rejected opportunistic expansion:", 0) == 0) {
+            note += "rejected opportunistic_expansion in favor of defensive_posture";
+        } else {
+            note += "downgraded from opportunistic_expansion to defensive_posture";
+        }
     } else {
         note += "adjusted from ";
         note += toString(proposedDecision.type);
@@ -75,6 +79,13 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
     const bool fearful = empire.personality.paranoia > 0.65 || empire.adaptiveState.fearOfPlayer > 0.65;
     const bool boldAndOpportunistic = empire.personality.boldness > 0.7 && empire.personality.opportunism > 0.6;
     const bool pressureIsLow = !summary.hegemonyDetected && summary.instability < 0.45;
+
+    if (decision.type == DoctrineType::OpportunisticExpansion && weakCapability && fearful && summary.instability < 0.15) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale = "Rejected opportunistic expansion: capability, fear, and low pressure do not support it yet.";
+        decision.confidence = 0.41;
+        return decision;
+    }
 
     if (decision.type == DoctrineType::OpportunisticExpansion && (weakCapability || fearful)) {
         decision.type = DoctrineType::DefensivePosture;
