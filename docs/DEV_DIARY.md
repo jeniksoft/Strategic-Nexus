@@ -64,6 +64,39 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-10
+
+Dnesni commitova vlna se soustredi na presnejsi owner-facing stav, drobne UI dorovnani a dalsi zpevnitelne hranice kolem handoffu, model state a MP synchronizace. Nejvice viditelny je commit `Surface MP host rotation sync gap`; navazujici commity `Add entry-point handoff verification chunk`, `Route local LLM attention to model state path`, `Fix memory recovery next action precedence`, `Regress missing entry-point fallback`, `Surface post-play campaign identity state`, `Add personality profile store scaffold` a `Add hover highlight to SNC custom scrollbars` spis zpevnuji integracni povrch nez rozsirujou runtime schopnosti.
+
+Co pribylo v repozitari:
+
+* Tray a companion povrch ted explicitneji ukazuji MP host rotation sync gap, aby byl viditelny rozdil mezi pripravenym stavem a skutecne doladenou synchronizaci.
+* Entry-point handoff verification chunk a regresni fallback opravy zpevnuji ohraniceni predani mezi krokem, ktery uz jen potvrzuje stav, a krokem, ktery teprve pripravuje dalsi navazani.
+* Routing local LLM attention to model state path zmensuje riziko, ze se dalsi doporuceni odpoji od skutecneho model state a od post-play kampanove identity.
+* Personality profile store scaffold je zatim jen zaklad pro udrzeni profiloveho stavu, ne nove pravomoci v runtime.
+* Hover highlight na custom scrollbarech je ergonomicke zlepseni status vrstvy, ktere ma pomoci cteni stavu, ne menit logiku.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt dal zpresnuje integration boundary mezi offline analyzou, host-authoritative modelem a scripted event/effect path.
+* Presun pozornosti na model state path a post-play kampanovou identitu pomaha tomu, aby dalsi krok vychazel z overeneho kontextu, ne z volne interpretace stavu.
+* MP host rotation sync gap je dulezity signal pro runtime reverse engineering a interoperabilitu, protoze ukazuje, kde je jeste treba doladit konzistentni predani mezi hostem, companion vrstvou a dalsi session.
+
+Testy a stav overeni:
+
+* Pro aktualni lokalni head neni k dispozici verejny GitHub Actions signal, protoze je stale `ahead 9` oproti `origin/master`.
+* Dnesni zapis nespousti novy plny lokalni test run; vychazi z posledni commit historie a z aktualniho stavu pracovního stromu.
+
+Blokery a rizika:
+
+* MP host rotation sync gap zustava otevreny a je potreba ho potvrdit regression coverage i dalsi end-to-end kontrolou.
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi ucastniky.
+* Status povrch je citelnejsi, ale sam o sobe jeste neuzavira finalni export/import contract ani konzistentni doruceni pres integration boundary.
+
+Doporuceny dalsi krok:
+
+* Dodelat nebo overit host rotation sync cestu na regression testech, potom zverejnit aktualni head a nechat probehnout verejni CI kontrolu.
+
 ## 2026-06-09
 
 Dnesni commitova vlna byla hlavne o zpresneni owner-facing MP sync povrchu a dalsim fail-closed ohraniceni post-play rozhodovani, ne o nove runtime schopnosti. Na verejnem headu `b331c40` (`Verify friend MP sync outbox surface`) se jen potvrzuje a zprehlednuje uz existujici friend MP sync outbox-plan template a disabled transport surface; navazujici commity `Regress ambiguous post-play CLI fail-closed` a `Fail closed SNC branch ambiguity status` drzi branch-aware post-play cestu konzervativni.
