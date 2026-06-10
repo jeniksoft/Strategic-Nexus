@@ -5868,6 +5868,7 @@ void writeNextStepsBrief(
     const bool generatedOverlayPublishAllowed,
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const strategic_nexus::CompanionFriendTrustStoreStatus& friendTrustStore,
     const strategic_nexus::CompanionLifecycleStatus& lifecycle,
     const strategic_nexus::CompanionSupportReportStatus& supportReport,
     const strategic_nexus::CompanionCrashRecoveryStatus& crashRecovery,
@@ -6000,6 +6001,14 @@ void writeNextStepsBrief(
     if (!supportReport.dataCategories.empty()) {
         brief << "- Support report data categories: " << joinStrings(supportReport.dataCategories, ",") << "\n";
     }
+    const auto friendMeshUpdate = strategic_nexus::buildFriendMeshUpdateStatus(friendTrustStore, mpOverlayPackage);
+    brief << "- Friend mesh update state: " << ownerFacingStatusValueUtf8(friendMeshUpdate.state) << "\n";
+    if (!friendMeshUpdate.reason.empty()) {
+        brief << "- Friend mesh update reason: "
+              << ownerFacingStatusReasonUtf8(friendMeshUpdate.reason) << "\n";
+    }
+    brief << "- Friend mesh update next step: "
+          << ownerFacingStatusReasonUtf8(friendMeshUpdate.nextStep) << "\n";
     brief << "- Crash recovery state: " << ownerFacingStatusValueUtf8(crashRecovery.state);
     if (!crashRecovery.reason.empty()) {
         brief << " (" << ownerFacingStatusReasonUtf8(crashRecovery.reason) << ")";
@@ -6421,6 +6430,7 @@ void writeStatus(
         effectiveGeneratedOverlayPublishAllowed,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
+        companionSnapshot.friendTrustStore,
         companionSnapshot.lifecycle,
         companionSnapshot.supportReport,
         companionSnapshot.crashRecovery,

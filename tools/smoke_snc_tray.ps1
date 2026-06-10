@@ -1043,6 +1043,15 @@ try {
                 if ($briefText -notlike "*Support report prepare command: powershell -NoProfile -ExecutionPolicy Bypass -File tools\prepare_snc_support_report.ps1*") {
                     throw "SNC tray next-steps brief did not expose support report prepare command."
                 }
+                if ($briefText -notlike "*Friend mesh update state:*") {
+                    throw "SNC tray next-steps brief did not expose friend mesh update state."
+                }
+                if ($briefText -notlike "*Friend mesh update reason:*") {
+                    throw "SNC tray next-steps brief did not expose friend mesh update reason."
+                }
+                if ($briefText -notlike "*Friend mesh update next step:*") {
+                    throw "SNC tray next-steps brief did not expose friend mesh update next step."
+                }
                 if ($briefText -notlike "*SNC friend pairing command template:*--create-snc-friend-request*" -or
                     $briefText -notlike "*--create-snc-friend-acceptance*" -or
                     $briefText -notlike "*--import-snc-friend-acceptance*") {
