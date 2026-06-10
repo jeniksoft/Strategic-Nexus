@@ -512,6 +512,7 @@ produce copyable invite/package status text
 The current SNC companion and tray status surfaces also expose `friend_mp_sync_transport_state`, `friend_mp_sync_transport_reason`, and `friend_mp_sync_transport_next_step` so the signed/encrypted transport gap stays explicit while manual export/import remains the active fallback.
 Those same surfaces also expose `friend_mp_sync_outbox_plan_command_template`, so the manual no-send/no-upload fallback is copyable from the canonical multiplayer guide without opening raw JSON.
 The current SNC companion and tray status surfaces also expose `mp_host_rotation_sync_state`, `mp_host_rotation_sync_reason`, and `mp_host_rotation_sync_next_step` so host rotation handoff stays explicit while manual MP package export/import remains the active fallback.
+The current SNC companion and tray status surfaces also expose `friend_mesh_update_state`, `friend_mesh_update_reason`, and `friend_mesh_update_next_step` so degraded handoff visibility stays explicit while manual MP package export/import remains the active fallback.
 
 If the intended host lacks the latest handoff:
 
@@ -730,6 +731,7 @@ Owner-facing minimum test:
 * run one ordinary MP handoff or join flow using the current package guidance
 * if the client reports the wrong overlay or a mismatch warning, keep the warning text and switch to manual export/import or a freshly verified package before retrying
 * expect `friend_mp_sync_transport_state` to stay disabled for now; manual MP export/import is still the active fallback
+* if the friend mesh reports degraded handoff, keep the `friend_mesh_update_state` warning visible and do not treat the handoff as resolved until the trust-store/package evidence changes
 * keep any observed warning text or blocked state unchanged until Codex inspects the resulting evidence
 
 What Codex will inspect after the run:
