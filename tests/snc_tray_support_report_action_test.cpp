@@ -27,11 +27,11 @@ int main()
             "unconfigured support report path should disable action");
         requireCondition(
             strategic_nexus::buildSncTraySupportReportActionMenuLabel(status) ==
-                L"Support report nedostupny",
+                L"Diagnosticka zprava neni dostupna",
             "unconfigured support report path should expose unavailable menu label");
         requireCondition(
             strategic_nexus::buildSncTraySupportReportActionButtonLabel(status) ==
-                L"Report neni",
+                L"Zprava neni dostupna",
             "unconfigured support report path should expose unavailable button label");
     }
 
@@ -46,11 +46,11 @@ int main()
             "configured support report path should enable action");
         requireCondition(
             strategic_nexus::buildSncTraySupportReportActionMenuLabel(status) ==
-                L"Pripravit support report",
+                L"Pripravit diagnostickou zpravu",
             "missing preview should expose prepare menu label");
         requireCondition(
             strategic_nexus::buildSncTraySupportReportActionButtonLabel(status) ==
-                L"Pripravit report",
+                L"Pripravit zpravu",
             "missing preview should expose prepare button label");
     }
 
@@ -65,11 +65,11 @@ int main()
             "prepared support report preview should keep action enabled");
         requireCondition(
             strategic_nexus::buildSncTraySupportReportActionMenuLabel(status) ==
-                L"Otevrit support report",
+                L"Otevrit diagnostickou zpravu",
             "prepared preview should expose open menu label");
         requireCondition(
             strategic_nexus::buildSncTraySupportReportActionButtonLabel(status) ==
-                L"Otevrit report",
+                L"Otevrit zpravu",
             "prepared preview should expose open button label");
     }
 

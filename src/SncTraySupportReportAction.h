@@ -20,18 +20,18 @@ inline std::wstring buildSncTraySupportReportActionMenuLabel(
     const SncTraySupportReportActionStatus& status)
 {
     if (!sncTraySupportReportActionAvailable(status)) {
-        return L"Support report nedostupny";
+        return L"Diagnosticka zprava neni dostupna";
     }
-    return status.previewReady ? L"Otevrit support report" : L"Pripravit support report";
+    return status.previewReady ? L"Otevrit diagnostickou zpravu" : L"Pripravit diagnostickou zpravu";
 }
 
 inline std::wstring buildSncTraySupportReportActionButtonLabel(
     const SncTraySupportReportActionStatus& status)
 {
     if (!sncTraySupportReportActionAvailable(status)) {
-        return L"Report neni";
+        return L"Zprava neni dostupna";
     }
-    return status.previewReady ? L"Otevrit report" : L"Pripravit report";
+    return status.previewReady ? L"Otevrit zpravu" : L"Pripravit zpravu";
 }
 
 } // namespace strategic_nexus
