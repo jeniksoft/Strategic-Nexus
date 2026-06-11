@@ -2718,6 +2718,24 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-251-surface-metadata-verified-transport-state-in-owner-facing-summaries",
+      "title": "Surface metadata verified transport state in owner-facing summaries",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / owner-facing transport status wording",
+      "goal": "Make the companion owner-facing summary text render metadata_verified_transport_not_implemented with the same clear Czech/English wording used by the tray UI, so payload-present outbox/inbox states stay readable when the transport adapter is still disabled.",
+      "acceptance": [
+        "StrategicNexusCompanion owner-facing summary text renders metadata_verified_transport_not_implemented with a human-friendly translation instead of exposing a raw internal enum.",
+        "The tray and companion wording stay aligned for the transport-adapter disabled path and still fail closed on payload-present outbox/inbox states.",
+        "The targeted companion/tray regression passes on current head after the wording update."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
