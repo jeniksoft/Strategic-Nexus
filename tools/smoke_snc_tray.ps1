@@ -937,6 +937,12 @@ try {
                     [string]$json.friend_mp_sync_transport_next_step -notlike "*strict verify*") {
                     throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_next_step."
                 }
+                if ([string]$json.friend_mp_sync_transport_adapter_kind -ne "shared-folder/cloud-folder") {
+                    throw "SNC tray status JSON did not expose friend_mp_sync_transport_adapter_kind."
+                }
+                if ([string]::IsNullOrWhiteSpace([string]$json.friend_mp_sync_transport_adapter_path)) {
+                    throw "SNC tray status JSON did not expose friend_mp_sync_transport_adapter_path."
+                }
                 if ([string]$json.friend_mp_sync_transport_adapter_state -ne "disabled_not_implemented") {
                     throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_adapter_state."
                 }
@@ -1014,6 +1020,8 @@ try {
                     throw "SNC tray summary text did not expose disabled friend MP sync transport status."
                 }
                 if ($summaryText -notlike "*friend_mp_sync_transport_adapter_state: Not implemented yet*" -or
+                    $summaryText -notlike "*friend_mp_sync_transport_adapter_kind: shared-folder/cloud-folder*" -or
+                    $summaryText -notlike "*friend_mp_sync_transport_adapter_path:*" -or
                     $summaryText -notlike "*friend_mp_sync_transport_adapter_reason: Signed and encrypted friend transport is not implemented yet; automatic upload, download, and staging are disabled.*" -or
                     $summaryText -notlike "*friend_mp_sync_transport_adapter_next_step: Use manual MP export/import and strict verification until secure friend transport is implemented.*") {
                     throw "SNC tray summary text did not expose friend MP sync transport adapter seam."

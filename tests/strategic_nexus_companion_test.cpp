@@ -624,6 +624,10 @@ int main()
         ready.statusCenterSummaryText.find("friend_mp_sync_transport_next_step: Use manual MP package export/import and strict verify") != std::string::npos,
         "status center summary should expose disabled friend MP sync transport next step");
     requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_kind: shared-folder/cloud-folder") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_path: " + mpPackageRoot.generic_string()) != std::string::npos,
+        "status center summary should expose the shared-folder/cloud-folder adapter selection path");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_state: disabled_not_implemented") != std::string::npos &&
             ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_reason: signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") != std::string::npos &&
             ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_next_step: Use manual MP package export/import and strict verify") != std::string::npos,
@@ -635,6 +639,10 @@ int main()
         missingFriendTrustStore.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_state: not_configured") !=
             std::string::npos,
         "status center summary should report the adapter boundary as not configured when the trust store is missing");
+    requireCondition(
+        missingFriendTrustStore.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_kind: shared-folder/cloud-folder") !=
+            std::string::npos,
+        "status center summary should keep the adapter kind visible when the trust store is missing");
     requireCondition(
         missingFriendTrustStore.statusCenterSummaryText.find(
             "friend_mp_sync_transport_adapter_reason: friend trust store not present; automatic friend sync disabled") !=

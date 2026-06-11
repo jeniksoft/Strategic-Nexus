@@ -2461,6 +2461,7 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
 {
     CompanionFriendTrustStoreStatus status;
     status.path = config.friendTrustStorePath;
+    status.mpSyncTransportAdapterPath = config.mpOverlayPackageDirectory;
     status.pairingCommandTemplate =
         "Strategic Nexus.exe --create-snc-friend-request "
         "\"dist/private_reports/snc_friend_request.snc-friend-request\" "
@@ -2603,6 +2604,10 @@ CompanionFriendMpSyncTransportAdapterStatus buildFriendMpSyncTransportAdapterSta
     const CompanionFriendTrustStoreStatus& friendTrustStore)
 {
     CompanionFriendMpSyncTransportAdapterStatus status;
+    if (!friendTrustStore.mpSyncTransportAdapterKind.empty()) {
+        status.kind = friendTrustStore.mpSyncTransportAdapterKind;
+    }
+    status.path = friendTrustStore.mpSyncTransportAdapterPath;
 
     if (friendTrustStore.state == "needs_attention") {
         status.state = "needs_attention";
@@ -2612,6 +2617,32 @@ CompanionFriendMpSyncTransportAdapterStatus buildFriendMpSyncTransportAdapterSta
         status.nextStep = friendTrustStore.controlsNextStep.empty()
             ? "Repair or recreate the friend trust store before relying on transport adapters."
             : friendTrustStore.controlsNextStep;
+        return status;
+    }
+
+    if (status.path.empty()) {
+        status.state = "not_configured";
+        status.reason =
+            "shared-folder/cloud-folder transport adapter path not configured; manual MP package export/import remains the fallback";
+        status.nextStep =
+            "Choose a synced folder path in a future adapter settings flow, then keep manual export/import and strict verify until signed/encrypted friend transport is implemented.";
+        return status;
+    }
+
+    std::error_code error;
+    if (!std::filesystem::exists(status.path, error) || error) {
+        status.state = "needs_attention";
+        status.reason = "selected shared-folder/cloud-folder transport adapter path is missing";
+        status.nextStep =
+            "Point SNC at a readable synced folder or use manual MP package export/import and strict verify.";
+        return status;
+    }
+
+    if (!std::filesystem::is_directory(status.path, error) || error) {
+        status.state = "needs_attention";
+        status.reason = "selected shared-folder/cloud-folder transport adapter path is not a folder";
+        status.nextStep =
+            "Point SNC at a readable synced folder or use manual MP package export/import and strict verify.";
         return status;
     }
 
@@ -3287,6 +3318,10 @@ std::string buildStatusCenterSummaryText(
          << friendMpSyncTransport.reason << "\n";
     text << "friend_mp_sync_transport_next_step: "
          << friendMpSyncTransport.nextStep << "\n";
+    text << "friend_mp_sync_transport_adapter_kind: "
+         << friendTrustStore.mpSyncTransportAdapterKind << "\n";
+    text << "friend_mp_sync_transport_adapter_path: "
+         << pathString(friendTrustStore.mpSyncTransportAdapterPath) << "\n";
     const auto friendMpSyncTransportAdapter = buildFriendMpSyncTransportAdapterStatus(friendTrustStore);
     text << "friend_mp_sync_transport_adapter_state: "
          << friendMpSyncTransportAdapter.state << "\n";
@@ -3719,6 +3754,10 @@ void writeFriendTrustStoreJson(
            << jsonString(status.controlsCommandTemplate) << ",\n";
     output << indent << "  \"pairing_command_template\": "
            << jsonString(status.pairingCommandTemplate) << ",\n";
+    output << indent << "  \"mp_sync_transport_adapter_kind\": "
+           << jsonString(status.mpSyncTransportAdapterKind) << ",\n";
+    output << indent << "  \"mp_sync_transport_adapter_path\": "
+           << jsonString(pathString(status.mpSyncTransportAdapterPath)) << ",\n";
     output << indent << "  \"mp_sync_envelope_command_template\": "
            << jsonString(status.mpSyncEnvelopeCommandTemplate) << ",\n";
     output << indent << "  \"mp_sync_inbox_plan_command_template\": "

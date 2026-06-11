@@ -326,6 +326,8 @@ struct CompanionFriendTrustStoreStatus {
     std::string state = "not_configured";
     std::string reason = "friend trust store not present; automatic friend sync disabled";
     std::filesystem::path path;
+    std::string mpSyncTransportAdapterKind = "shared-folder/cloud-folder";
+    std::filesystem::path mpSyncTransportAdapterPath;
     std::size_t trustedFriendCount = 0;
     std::size_t revokedFriendCount = 0;
     std::size_t blockedFriendCount = 0;
@@ -365,6 +367,8 @@ CompanionFriendMpSyncTransportStatus buildFriendMpSyncTransportStatus(
     const CompanionFriendTrustStoreStatus& friendTrustStore);
 
 struct CompanionFriendMpSyncTransportAdapterStatus {
+    std::string kind = "shared-folder/cloud-folder";
+    std::filesystem::path path;
     std::string state = "disabled_not_implemented";
     std::string reason =
         "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-11T19:46:44.8514679+02:00",
+  "updated_at": "2026-06-11T20:54:20.7583708+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining 15G gap is the actual signed/encrypted transport adapter plus deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing real-session evidence chunk from 15G before broader release-companion work.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2740,7 +2740,7 @@
     {
       "id": "v0-sprint-252-surface-shared-folder-cloud-folder-transport-adapter-selection",
       "title": "Surface shared-folder/cloud-folder transport adapter selection",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "15G. Release Companion MP Package UX / pluggable transport adapters",
       "goal": "Add the first bounded shared-folder/cloud-folder transport adapter slice so SNC can point at a user-selected synced folder without IP-sharing or active-game network hooks, while keeping manual export/import and the disabled transport boundary fail closed.",

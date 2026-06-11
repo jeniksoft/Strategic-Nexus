@@ -219,6 +219,8 @@ struct StatusDashboardData {
     std::wstring friendMpSyncTransportState;
     std::wstring friendMpSyncTransportReason;
     std::wstring friendMpSyncTransportNextStep;
+    std::wstring friendMpSyncTransportAdapterKind;
+    std::wstring friendMpSyncTransportAdapterPath;
     std::wstring friendMpSyncTransportAdapterState;
     std::wstring friendMpSyncTransportAdapterReason;
     std::wstring friendMpSyncTransportAdapterNextStep;
@@ -2885,6 +2887,13 @@ StatusDashboardData loadStatusDashboardData()
             formatOwnerFacingStatusReason(
                 "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.");
     }
+    data.friendMpSyncTransportAdapterKind =
+        formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_adapter_kind").value_or(""));
+    if (data.friendMpSyncTransportAdapterKind.empty()) {
+        data.friendMpSyncTransportAdapterKind = formatOwnerFacingStatusValue("shared-folder/cloud-folder");
+    }
+    data.friendMpSyncTransportAdapterPath =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_adapter_path").value_or(""));
     data.friendMpSyncTransportAdapterState =
         formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_adapter_state").value_or(""));
     if (data.friendMpSyncTransportAdapterState.empty()) {
@@ -3033,6 +3042,10 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.friendMpSyncTransportReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportReason;
     text += L"\r\nSNC MP sync transport dalsi krok: ";
     text += data.friendMpSyncTransportNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportNextStep;
+    text += L"\r\nSNC MP sync transport adapter kind: ";
+    text += data.friendMpSyncTransportAdapterKind.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterKind;
+    text += L"\r\nSNC MP sync transport adapter path: ";
+    text += data.friendMpSyncTransportAdapterPath.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterPath;
     text += L"\r\nSNC MP sync transport adapter: ";
     text += data.friendMpSyncTransportAdapterState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterState;
     text += L"\r\nSNC MP sync transport adapter duvod: ";
@@ -6510,6 +6523,10 @@ std::string buildStatusCenterSummaryText(
         summary,
         "friend_mp_sync_transport_next_step",
         friendTrustStore.mpSyncTransportNextStep);
+    summary << "friend_mp_sync_transport_adapter_kind: "
+            << friendTrustStore.mpSyncTransportAdapterKind << "\n";
+    summary << "friend_mp_sync_transport_adapter_path: "
+            << pathString(friendTrustStore.mpSyncTransportAdapterPath) << "\n";
     appendOwnerFacingStatusValueLine(
         summary,
         "friend_mp_sync_transport_adapter_state",
@@ -7324,6 +7341,8 @@ void writeStatus(
     json << "  \"friend_mp_sync_transport_state\": \"" << jsonEscape(friendMpSyncTransport.state) << "\",\n";
     json << "  \"friend_mp_sync_transport_reason\": \"" << jsonEscape(friendMpSyncTransport.reason) << "\",\n";
     json << "  \"friend_mp_sync_transport_next_step\": \"" << jsonEscape(friendMpSyncTransport.nextStep) << "\",\n";
+    json << "  \"friend_mp_sync_transport_adapter_kind\": \"" << jsonEscape(companionSnapshot.friendTrustStore.mpSyncTransportAdapterKind) << "\",\n";
+    json << "  \"friend_mp_sync_transport_adapter_path\": \"" << jsonEscape(pathString(companionSnapshot.friendTrustStore.mpSyncTransportAdapterPath)) << "\",\n";
     json << "  \"friend_mp_sync_transport_adapter_state\": \""
          << jsonEscape(friendMpSyncTransportAdapter.state) << "\",\n";
     json << "  \"friend_mp_sync_transport_adapter_reason\": \""
