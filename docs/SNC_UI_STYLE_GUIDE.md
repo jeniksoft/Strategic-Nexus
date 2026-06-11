@@ -42,6 +42,19 @@ SNC should share the Task Board palette and tone:
 
 The tray icon should be the branded 3D SNC icon, not a generic Windows symbol.
 
+## WDUi Catalog And Skins
+
+SNC UI styling should be routed through the WDUi-style catalog layer instead of hard-coded one-off colors inside the window procedure.
+
+Current skins:
+
+* `Starlance` is the default gaming / 3D skin: deep navy shell, sapphire/cyan edges, amber action accents, gradient surfaces, glow, shadow, and subtle noise.
+* `Classic` is the conservative fallback based on the original teal/gold SNC family.
+
+New controls, dialog surfaces, scrollbars, and action buttons should receive a catalog style id or be mapped to the active SNC catalog. Do not add new fixed SNC-only color constants unless they are only a temporary bridge into the catalog.
+
+Skin choice is user UI state and should persist locally with the rest of the SNC window state.
+
 ## Canonical Palette
 
 Use the same family as the Task Board unless a document says otherwise.

@@ -321,7 +321,7 @@ Status:
 
 * rules exist
 * narrow player-empire save headline parser exists
-* full production parser/filter integration into the archive-to-brief pipeline is not started; the narrow headline parser and bounded ledger handoff already exist
+* broader production parser/filter integration into the archive-to-brief pipeline is still pending; the narrow headline parser, archive summaries, and bounded ledger handoff already exist
 
 ---
 
