@@ -306,6 +306,19 @@ bool memoryRecoveryNeedsAttention(const CompanionStatusSnapshot& snapshot)
            snapshot.postPlayPipeline.memoryRecovery.state == "needs_attention";
 }
 
+bool archiveNeedsAttention(const CompanionStatusSnapshot& snapshot)
+{
+    return snapshot.archive.state == "needs_setup" || snapshot.archive.state == "needs_attention";
+}
+
+std::filesystem::path archiveAttentionPath(const CompanionStatusSnapshot& snapshot)
+{
+    if (snapshot.archive.state == "needs_setup" && !snapshot.saveDiscovery.path.empty()) {
+        return snapshot.saveDiscovery.path;
+    }
+    return snapshot.archive.path;
+}
+
 bool tryParseStatusTextBoolField(const std::string& statusText, const std::string& key, bool& value)
 {
     const auto rawValue = trimWhitespace(readStatusTextField(statusText, key));
@@ -3195,6 +3208,9 @@ std::string buildCompanionNextAction(const CompanionStatusSnapshot& snapshot)
     if (memoryRecoveryNeedsAttention(snapshot)) {
         return "review_memory_recovery_status";
     }
+    if (archiveNeedsAttention(snapshot)) {
+        return "review_archive_status";
+    }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         return "review_mp_handoff_continuity";
     }
@@ -3253,6 +3269,9 @@ std::string buildCompanionNextActionReason(const CompanionStatusSnapshot& snapsh
     }
     if (memoryRecoveryNeedsAttention(snapshot)) {
         return "entry_point_analysis_unavailable";
+    }
+    if (archiveNeedsAttention(snapshot)) {
+        return snapshot.archive.reason.empty() ? snapshot.archive.state : snapshot.archive.reason;
     }
     if (hasDegradedMpHandoffContinuity(snapshot)) {
         return "mp_handoff_degraded_previous_host_unavailable";
@@ -3333,6 +3352,9 @@ std::string buildCompanionNextActionCommandHint(const CompanionStatusSnapshot& s
             return snapshot.supportReport.prepareCommandHint;
         }
     }
+    if (buildCompanionNextAction(snapshot) == "review_archive_status" && !archiveAttentionPath(snapshot).empty()) {
+        return "open " + pathString(archiveAttentionPath(snapshot));
+    }
     if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
         return snapshot.mpOverlayPackage.verifyCommand;
     }
@@ -3377,6 +3399,9 @@ std::string buildCompanionNextActionCommandHintSource(const CompanionStatusSnaps
             return "support_report_prepare_command";
         }
     }
+    if (buildCompanionNextAction(snapshot) == "review_archive_status") {
+        return "archive_root_path";
+    }
     if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
         return "mp_overlay_package_verify_command";
     }
@@ -3402,6 +3427,9 @@ std::filesystem::path buildCompanionNextActionPath(const CompanionStatusSnapshot
     }
     if (memoryRecoveryNeedsAttention(snapshot) && !snapshot.postPlayPipeline.entryPointAnalysisPath.empty()) {
         return snapshot.postPlayPipeline.entryPointAnalysisPath;
+    }
+    if (archiveNeedsAttention(snapshot) && !archiveAttentionPath(snapshot).empty()) {
+        return archiveAttentionPath(snapshot);
     }
     if (hasDegradedMpHandoffContinuity(snapshot) || snapshot.mpOverlayPackage.state == "needs_attention") {
         return snapshot.mpOverlayPackage.path;

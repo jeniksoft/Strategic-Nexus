@@ -88,6 +88,7 @@ int main()
     const auto crashRecoveryStatePath = root / "snc_crash_recovery_state.json";
     const auto friendTrustStorePath = root / "snc_friend_trust_store.json";
     const auto brokenFriendTrustStorePath = root / "snc_friend_trust_store_broken.json";
+    const auto brokenArchiveRoot = root / "missing_archive_root";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(archiveRoot);
     std::filesystem::create_directories(overlayRoot);
@@ -654,6 +655,35 @@ int main()
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");
     requireCondition(ready.saveDiscovery.state == "ready", "save discovery should find at least one save root in fixture");
     requireCondition(ready.archive.state == "starting", "archive should start when archive root exists but has no sessions");
+    auto archiveAttentionConfig = readyConfig;
+    archiveAttentionConfig.archiveRoot = brokenArchiveRoot;
+    archiveAttentionConfig.mpOverlayPackageDirectory = mpPackageCompleteRoot;
+    const auto archiveAttention = companion.buildStatusSnapshot(archiveAttentionConfig);
+    requireCondition(
+        archiveAttention.archive.state == "needs_attention",
+        "missing archive root should need attention");
+    requireCondition(
+        archiveAttention.archive.reason == "archive root missing",
+        "missing archive root should expose a missing-root reason");
+    requireCondition(
+        archiveAttention.nextAction == "review_archive_status",
+        "missing archive root should route the owner to archive review");
+    requireCondition(
+        archiveAttention.nextActionReason == "archive root missing",
+        "missing archive root should expose a stable next-action reason");
+    requireCondition(
+        archiveAttention.nextActionCommandHint == "open " + brokenArchiveRoot.generic_string(),
+        "missing archive root should expose an archive-root open command hint");
+    requireCondition(
+        archiveAttention.nextActionCommandHintSource == "archive_root_path",
+        "missing archive root should expose an archive-root command hint source");
+    requireCondition(
+        archiveAttention.nextActionPath == brokenArchiveRoot,
+        "missing archive root should point the next-action path at the archive root");
+    requireCondition(
+        archiveAttention.statusCenterSummaryText.find("archiv: needs_attention - archive root missing") !=
+            std::string::npos,
+        "status center summary should surface archive attention");
     requireCondition(ready.generatedOverlay.state == "ready", "overlay should be ready when manifest verifies");
     requireCondition(!ready.generatedOverlay.manifestHash.empty(), "overlay status should expose generated overlay manifest hash");
     requireCondition(

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-11T00:10:33.1555788+02:00",
+  "updated_at": "2026-06-11T01:53:15.6634036+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2209,7 +2209,7 @@
     {
       "id": "v0-sprint-199-surface-post-play-campaign-identity-summary-in-owner-facing-status",
       "title": "Surface post-play campaign identity summary",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "6E. Final Campaign Identity Binding",
       "goal": "Expose the post-play campaign identity state summary in companion and tray owner-facing status surfaces so save-content vs folder-alias fallback is visible without opening the raw post-play package JSON.",
@@ -2217,6 +2217,25 @@
         "Companion post-play pipeline JSON exposes post_play_package_campaign_identity_state_summary.",
         "Tray status JSON and status-center summary text expose the same campaign identity state summary when a post-play package is present.",
         "The companion regression plus tray smoke and v0 pipeline tests cover the new owner-facing field on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-200-surface-archive-status-next-action-on-current-head",
+      "title": "Surface archive status next action on current head",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "1J. Release Companion Orchestrator UX / archive status action",
+      "goal": "Expose archive setup/accessibility attention as a top-level companion and tray next action so the owner can jump directly to archive-root recovery when archive state is missing or degraded.",
+      "acceptance": [
+        "Companion snapshot JSON and Status Center summary surface review_archive_status when archive setup or accessibility needs attention.",
+        "Tray next-action routing and path selection open the archive root for archive attention states while keeping archive-ready and archive-starting states fail closed.",
+        "The companion regression plus tray smoke and v0 pipeline tests cover the archive-status next-action contract on current head."
       ],
       "preferred_tests": [
         "dist/strategic_nexus_companion_test.exe",

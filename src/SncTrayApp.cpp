@@ -1293,6 +1293,7 @@ std::wstring formatOwnerFacingStatusValue(const std::string& value)
         {"review_staged_overlay_status", {L"Zkontrolovat stav overlaye", L"Review overlay status"}},
         {"review_dsl_draft", {L"Zkontrolovat DSL draft", L"Review DSL draft"}},
         {"review_candidate_decision_package", {L"Zkontrolovat kandid\u00E1tn\u00ED rozhodnut\u00ED", L"Review candidate decisions"}},
+        {"review_archive_status", {L"Zkontrolovat stav archivu", L"Review archive status"}},
         {"review_local_llm_model_manager", {L"Zkontrolovat spr\u00E1vu lok\u00E1ln\u00EDho LLM modelu", L"Review local LLM model manager"}},
         {"review_entry_point_ambiguity", {L"Vy\u0159e\u0161it nejednozna\u010Dn\u00FD vstupn\u00ED bod", L"Resolve ambiguous entry point"}},
         {"review_entry_point_analysis_failure", {L"Zkontrolovat anal\u00FDzu vstupn\u00EDch bod\u016F", L"Review entry point analysis"}},
@@ -5770,6 +5771,9 @@ std::string buildNextAction(
     if (companionNextAction == "review_crash_recovery_status") {
         return companionNextAction;
     }
+    if (companionNextAction == "review_archive_status") {
+        return companionNextAction;
+    }
     if (generatedOverlayPublishAllowed || generatedOverlayPublishGateCanPublish) {
         return "review_staged_overlay_and_publish_if_desired";
     }
@@ -5824,6 +5828,9 @@ std::string buildNextActionReason(
     if (companionNextAction == "review_crash_recovery_status") {
         return companionNextActionReason;
     }
+    if (companionNextAction == "review_archive_status") {
+        return companionNextActionReason;
+    }
     if (generatedOverlayPublishAllowed || generatedOverlayPublishGateCanPublish) {
         return "staged_overlay_ready_owner_gate_available";
     }
@@ -5873,6 +5880,9 @@ std::string buildNextActionCommandHint(
     if (nextAction == "review_local_llm_model_manager" && !localLlmModelStatePath.empty()) {
         return "open " + pathString(localLlmModelStatePath);
     }
+    if (nextAction == "review_archive_status" && !g_archiveRoot.empty()) {
+        return "open " + pathString(g_archiveRoot);
+    }
     if (nextAction == "review_staged_overlay_and_publish_if_desired" && !publishCommand.empty()) {
         return publishCommand;
     }
@@ -5880,6 +5890,7 @@ std::string buildNextActionCommandHint(
         nextAction == "review_staged_overlay_status" ||
         nextAction == "review_dsl_draft" ||
         nextAction == "review_candidate_decision_package" ||
+        nextAction == "review_archive_status" ||
         nextAction == "review_local_llm_model_manager" ||
         nextAction == "review_entry_point_ambiguity" ||
         nextAction == "review_entry_point_analysis_failure" ||
@@ -5899,6 +5910,9 @@ std::string buildNextActionCommandHintSource(
         }
         if (nextAction == "review_staged_overlay_and_publish_if_desired") {
             return "generated_overlay_publish_gate_publish_command";
+        }
+        if (nextAction == "review_archive_status") {
+            return "archive_root_path";
         }
         if (nextAction == "review_local_llm_model_manager") {
             return "local_llm_model_state_path";
@@ -5929,6 +5943,9 @@ std::filesystem::path buildNextActionPath(
     }
     if (isCompanionRecoveryNextAction(nextAction) && !companionNextActionPath.empty()) {
         return companionNextActionPath;
+    }
+    if (nextAction == "review_archive_status" && !g_archiveRoot.empty()) {
+        return g_archiveRoot;
     }
     if (nextAction == "review_staged_overlay_and_publish_if_desired") {
         return generatedOverlayPublishGate.stagingStatusPath.empty()
