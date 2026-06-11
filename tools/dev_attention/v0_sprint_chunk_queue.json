@@ -2357,5 +2357,23 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-231-verify-task-board-hygiene-progress-and-report-replace",
+      "title": "Verify task-board hygiene progress and report replace",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "0. Task Board And Owner Report Log",
+      "goal": "Verify that task-board hygiene removes completed active tasks and replaces same-id report entries instead of duplicating daily summaries.",
+      "acceptance": [
+        "update_user_task_progress removes a task when progress reaches 100 and task-board list mode no longer shows it as active.",
+        "add_user_report with ReplaceExisting keeps only one row for the same report id and updates the stored summary on replacement.",
+        "The targeted task-board hygiene regression passes on current head without touching unrelated task-board state."
+      ],
+      "preferred_tests": [
+        "tools/dev_attention/test_task_board_hygiene.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }
