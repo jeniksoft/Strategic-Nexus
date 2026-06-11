@@ -558,6 +558,14 @@ int main()
             ready.friendTrustStore.mpSyncInboxPlanCommandTemplate.find("[friend_auto_sync_enabled:true|false]") != std::string::npos,
         "friend trust store status should expose the manual friend MP sync inbox-plan command template");
     requireCondition(
+        ready.friendTrustStore.mpSyncInboxPlanState == "disabled_not_implemented" &&
+            ready.friendTrustStore.mpSyncInboxAutomaticDownloadEnabled == false &&
+            ready.friendTrustStore.mpSyncInboxPackageStagingAllowed == false,
+        "friend trust store status should expose the disabled inbox-plan gate state");
+    requireCondition(
+        ready.friendTrustStore.mpSyncInboxPlanReason.find("automatic download and package staging disabled") != std::string::npos,
+        "friend trust store status should explain the disabled inbox-plan gate");
+    requireCondition(
         ready.friendTrustStore.mpSyncOutboxPlanCommandTemplate.find("--plan-snc-friend-mp-sync-outbox") != std::string::npos &&
             ready.friendTrustStore.mpSyncOutboxPlanCommandTemplate.find("<encrypted_payload_path>") != std::string::npos &&
             ready.friendTrustStore.mpSyncOutboxPlanCommandTemplate.find("[friend_auto_sync_enabled:true|false]") != std::string::npos,
@@ -577,7 +585,8 @@ int main()
         ready.friendTrustStore.mpSyncPreflightChecklist.find("current MP package ZIP") != std::string::npos &&
             ready.friendTrustStore.mpSyncPreflightChecklist.find("friend MP sync envelope metadata") != std::string::npos &&
             ready.friendTrustStore.mpSyncPreflightChecklist.find("inbox/outbox plan checks") != std::string::npos &&
-            ready.friendTrustStore.mpSyncPreflightChecklist.find("automatic sync stays disabled") != std::string::npos,
+            ready.friendTrustStore.mpSyncPreflightChecklist.find("automatic sync stays disabled") != std::string::npos &&
+            ready.friendTrustStore.mpSyncPreflightChecklist.find("automatic download and package staging stay disabled") != std::string::npos,
         "friend trust store status should expose a friend MP sync preflight checklist");
     requireCondition(
         ready.statusCenterSummaryText.find("friend_trust_store_auto_sync_enabled_count: 1") != std::string::npos,
@@ -596,6 +605,12 @@ int main()
     requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_inbox_plan_command_template: Strategic Nexus.exe --plan-snc-friend-mp-sync-inbox ") != std::string::npos,
         "status center summary should expose the manual friend MP sync inbox-plan command template");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_inbox_plan_state: disabled_not_implemented") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_mp_sync_inbox_plan_reason: signed/encrypted friend MP sync transport adapter is not implemented; automatic download and package staging disabled") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_mp_sync_inbox_plan_automatic_download_enabled: false") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_mp_sync_inbox_plan_package_staging_allowed: false") != std::string::npos,
+        "status center summary should expose the inbox-plan gate state");
     requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_outbox_plan_command_template: Strategic Nexus.exe --plan-snc-friend-mp-sync-outbox ") != std::string::npos,
         "status center summary should expose the manual friend MP sync outbox-plan command template");
@@ -2986,6 +3001,12 @@ int main()
         requireCondition(
             content.find("\"mp_sync_inbox_plan_command_template\": \"Strategic Nexus.exe --plan-snc-friend-mp-sync-inbox ") != std::string::npos,
             "status snapshot should include friend MP sync inbox-plan command template");
+        requireCondition(
+            content.find("\"mp_sync_inbox_plan_state\": \"disabled_not_implemented\"") != std::string::npos &&
+                content.find("\"mp_sync_inbox_plan_reason\": \"signed/encrypted friend MP sync transport adapter is not implemented; automatic download and package staging disabled\"") != std::string::npos &&
+                content.find("\"mp_sync_inbox_plan_automatic_download_enabled\": false") != std::string::npos &&
+                content.find("\"mp_sync_inbox_plan_package_staging_allowed\": false") != std::string::npos,
+            "status snapshot should include the inbox-plan gate state");
         requireCondition(
             content.find("\"mp_sync_outbox_plan_command_template\": \"Strategic Nexus.exe --plan-snc-friend-mp-sync-outbox ") != std::string::npos,
             "status snapshot should include friend MP sync outbox-plan command template");

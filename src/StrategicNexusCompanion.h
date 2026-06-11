@@ -338,13 +338,18 @@ struct CompanionFriendTrustStoreStatus {
     std::string mpSyncEnvelopeCommandTemplate;
     std::string mpSyncInboxPlanCommandTemplate;
     std::string mpSyncOutboxPlanCommandTemplate;
+    std::string mpSyncInboxPlanState = "disabled_not_implemented";
+    std::string mpSyncInboxPlanReason =
+        "signed/encrypted friend MP sync transport adapter is not implemented; automatic download and package staging disabled";
+    bool mpSyncInboxAutomaticDownloadEnabled = false;
+    bool mpSyncInboxPackageStagingAllowed = false;
     std::string mpSyncTransportState = "disabled_not_implemented";
     std::string mpSyncTransportReason =
         "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
     std::string mpSyncTransportNextStep =
         "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.";
     std::string mpSyncPreflightChecklist =
-        "Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled.";
+        "Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled and automatic download and package staging stay disabled until signed/encrypted transport exists.";
     bool autoSyncAvailable = false;
 };
 

@@ -2244,5 +2244,25 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-225-surface-friend-mp-sync-inbox-plan-gate-state",
+      "title": "Surface friend MP sync inbox-plan gate state",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / automatic receive-verify-stage visibility",
+      "goal": "Expose the default fail-closed inbox-plan gate state, reason, and automatic download/package staging booleans in companion, tray, and snapshot JSON so owners can see the disabled receive/stage path without opening raw CLI output.",
+      "acceptance": [
+        "Companion status summary exposes mp_sync_inbox_plan_state, mp_sync_inbox_plan_reason, mp_sync_inbox_plan_automatic_download_enabled, and mp_sync_inbox_plan_package_staging_allowed.",
+        "Tray status JSON and the tray details view expose friend_mp_sync_inbox_plan_state, friend_mp_sync_inbox_plan_reason, friend_mp_sync_inbox_plan_automatic_download_enabled, and friend_mp_sync_inbox_plan_package_staging_allowed.",
+        "dist/strategic_nexus_companion_test.exe, tools/smoke_snc_tray.cmd, and tools/run_v0_pipeline_tests.cmd pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }

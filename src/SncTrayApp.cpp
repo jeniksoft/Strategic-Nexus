@@ -209,6 +209,10 @@ struct StatusDashboardData {
     std::wstring friendMpSyncEnvelopeCommandTemplate;
     std::wstring friendMpSyncInboxPlanCommandTemplate;
     std::wstring friendMpSyncOutboxPlanCommandTemplate;
+    std::wstring friendMpSyncInboxPlanState;
+    std::wstring friendMpSyncInboxPlanReason;
+    bool friendMpSyncInboxAutomaticDownloadEnabled = false;
+    bool friendMpSyncInboxPackageStagingAllowed = false;
     std::wstring friendMpSyncTransportState;
     std::wstring friendMpSyncTransportReason;
     std::wstring friendMpSyncTransportNextStep;
@@ -2660,7 +2664,7 @@ StatusDashboardData loadStatusDashboardData()
     data.friendMpSyncPreflightChecklist =
         localizedTextWide({
             L"P\u0159ed friend MP sezonou pou\u017Eij aktu\u00E1ln\u00ED MP ZIP, vytvo\u0159/ov\u011B\u0159 metadata friend MP sync envelope, spus\u0165 inbox/outbox pl\u00E1ny se zav\u0159en\u00FDm Stellaris a potom sd\u00EDlej/importuj ru\u010Dn\u011B; automatick\u00FD sync z\u016Fst\u00E1v\u00E1 vypnut\u00FD.",
-            L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled."});
+            L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled and automatic download and package staging stay disabled until signed/encrypted transport exists."});
     data.humanControlGuardState = L"\u2014";
 
     std::string json;
@@ -2821,6 +2825,22 @@ StatusDashboardData loadStatusDashboardData()
     if (data.friendMpSyncInboxPlanCommandTemplate.empty()) {
         data.friendMpSyncInboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8());
     }
+    data.friendMpSyncInboxPlanState =
+        formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_inbox_plan_state").value_or(""));
+    if (data.friendMpSyncInboxPlanState.empty()) {
+        data.friendMpSyncInboxPlanState = formatOwnerFacingStatusValue("disabled_not_implemented");
+    }
+    data.friendMpSyncInboxPlanReason =
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_inbox_plan_reason").value_or(""));
+    if (data.friendMpSyncInboxPlanReason.empty()) {
+        data.friendMpSyncInboxPlanReason =
+            formatOwnerFacingStatusReason(
+                "signed/encrypted friend MP sync transport adapter is not implemented; automatic download and package staging disabled");
+    }
+    data.friendMpSyncInboxAutomaticDownloadEnabled =
+        extractJsonBool(json, "friend_mp_sync_inbox_plan_automatic_download_enabled").value_or(false);
+    data.friendMpSyncInboxPackageStagingAllowed =
+        extractJsonBool(json, "friend_mp_sync_inbox_plan_package_staging_allowed").value_or(false);
     data.friendMpSyncOutboxPlanCommandTemplate =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_outbox_plan_command_template").value_or(""));
     if (data.friendMpSyncOutboxPlanCommandTemplate.empty()) {
@@ -2851,7 +2871,7 @@ StatusDashboardData loadStatusDashboardData()
         data.friendMpSyncPreflightChecklist =
             localizedTextWide({
                 L"P\u0159ed friend MP sezonou pou\u017Eij aktu\u00E1ln\u00ED MP ZIP, vytvo\u0159/ov\u011B\u0159 metadata friend MP sync envelope, spus\u0165 inbox/outbox pl\u00E1ny se zav\u0159en\u00FDm Stellaris a potom sd\u00EDlej/importuj ru\u010Dn\u011B; automatick\u00FD sync z\u016Fst\u00E1v\u00E1 vypnut\u00FD.",
-                L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled."});
+                L"Before a friend MP season, use the current MP package ZIP, create/verify the friend MP sync envelope metadata, run inbox/outbox plan checks with Stellaris closed, then share/import manually; automatic sync stays disabled and automatic download and package staging stay disabled until signed/encrypted transport exists."});
     }
     const std::string humanControlGuardState = summaryValue("human_control_guard_state");
     if (!humanControlGuardState.empty()) {
@@ -2955,6 +2975,14 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
         L"\r\nSNC MP sync inbox plan: fail-closed status plan; no download, decrypt, staging, or apply."});
     text += L"\r\nSNC MP sync inbox plan template: ";
     text += data.friendMpSyncInboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanCommandTemplate;
+    text += L"\r\nSNC MP sync inbox plan stav: ";
+    text += data.friendMpSyncInboxPlanState.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanState;
+    text += L"\r\nSNC MP sync inbox plan duvod: ";
+    text += data.friendMpSyncInboxPlanReason.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanReason;
+    text += L"\r\nSNC MP sync inbox plan automatic download: ";
+    text += data.friendMpSyncInboxAutomaticDownloadEnabled ? L"true" : L"false";
+    text += L"\r\nSNC MP sync inbox plan package staging: ";
+    text += data.friendMpSyncInboxPackageStagingAllowed ? L"true" : L"false";
     text += localizedTextWide({
         L"\r\nSNC MP sync outbox plan: bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n; bez uploadu, odesl\u00E1n\u00ED, sta\u017Een\u00ED, de\u0161ifrov\u00E1n\u00ED, stagingu nebo aplikace.",
         L"\r\nSNC MP sync outbox plan: fail-closed status plan; no upload, send, download, decrypt, staging, or apply."});
@@ -3160,6 +3188,14 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
         L"\nSNC MP sync inbox plan: fail-closed status plan; no download, decrypt, staging, or apply."});
     text += L"\nSNC MP sync inbox plan template: ";
     text += data.friendMpSyncInboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanCommandTemplate;
+    text += L"\nSNC MP sync inbox plan state: ";
+    text += data.friendMpSyncInboxPlanState.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanState;
+    text += L"\nSNC MP sync inbox plan reason: ";
+    text += data.friendMpSyncInboxPlanReason.empty() ? kStatusEmptyValue : data.friendMpSyncInboxPlanReason;
+    text += L"\nSNC MP sync inbox plan automatic download: ";
+    text += data.friendMpSyncInboxAutomaticDownloadEnabled ? L"true" : L"false";
+    text += L"\nSNC MP sync inbox plan package staging: ";
+    text += data.friendMpSyncInboxPackageStagingAllowed ? L"true" : L"false";
     text += localizedTextWide({
         L"\nSNC MP sync outbox plan: bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n; bez uploadu, odesl\u00E1n\u00ED, sta\u017Een\u00ED, de\u0161ifrov\u00E1n\u00ED, stagingu nebo aplikace.",
         L"\nSNC MP sync outbox plan: fail-closed status plan; no upload, send, download, decrypt, staging, or apply."});
@@ -7164,6 +7200,13 @@ void writeStatus(
          << jsonEscape(buildFriendMpSyncEnvelopeCommandTemplateUtf8()) << "\",\n";
     json << "  \"friend_mp_sync_inbox_plan_command_template\": \""
          << jsonEscape(buildFriendMpSyncInboxPlanCommandTemplateUtf8()) << "\",\n";
+    json << "  \"friend_mp_sync_inbox_plan_state\": \"disabled_not_implemented\",\n";
+    json << "  \"friend_mp_sync_inbox_plan_reason\": \""
+         << jsonEscape(
+                "signed/encrypted friend MP sync transport adapter is not implemented; automatic download and package staging disabled")
+         << "\",\n";
+    json << "  \"friend_mp_sync_inbox_plan_automatic_download_enabled\": false,\n";
+    json << "  \"friend_mp_sync_inbox_plan_package_staging_allowed\": false,\n";
     json << "  \"friend_mp_sync_outbox_plan_command_template\": \""
          << jsonEscape(buildFriendMpSyncOutboxPlanCommandTemplateUtf8()) << "\",\n";
     json << "  \"friend_mp_sync_transport_state\": \"disabled_not_implemented\",\n";

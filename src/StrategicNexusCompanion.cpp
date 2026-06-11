@@ -2502,6 +2502,11 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         "\"<friend_mp_sync_envelope_path>\" "
         "\"<encrypted_payload_path>\" "
         "[stellaris_running:true|false] [friend_auto_sync_enabled:true|false]";
+    status.mpSyncInboxPlanState = "disabled_not_implemented";
+    status.mpSyncInboxPlanReason =
+        "signed/encrypted friend MP sync transport adapter is not implemented; automatic download and package staging disabled";
+    status.mpSyncInboxAutomaticDownloadEnabled = false;
+    status.mpSyncInboxPackageStagingAllowed = false;
     if (status.path.empty()) {
         status.reason = "friend trust store path not configured; automatic friend sync disabled";
         return status;
@@ -3196,6 +3201,18 @@ std::string buildStatusCenterSummaryText(
         text << "friend_mp_sync_outbox_plan_command_template: "
              << friendTrustStore.mpSyncOutboxPlanCommandTemplate << "\n";
     }
+    if (!friendTrustStore.mpSyncInboxPlanState.empty()) {
+        text << "friend_mp_sync_inbox_plan_state: "
+             << friendTrustStore.mpSyncInboxPlanState << "\n";
+    }
+    if (!friendTrustStore.mpSyncInboxPlanReason.empty()) {
+        text << "friend_mp_sync_inbox_plan_reason: "
+             << friendTrustStore.mpSyncInboxPlanReason << "\n";
+    }
+    text << "friend_mp_sync_inbox_plan_automatic_download_enabled: "
+         << (friendTrustStore.mpSyncInboxAutomaticDownloadEnabled ? "true" : "false") << "\n";
+    text << "friend_mp_sync_inbox_plan_package_staging_allowed: "
+         << (friendTrustStore.mpSyncInboxPackageStagingAllowed ? "true" : "false") << "\n";
     if (!friendTrustStore.mpSyncTransportState.empty()) {
         text << "friend_mp_sync_transport_state: "
              << friendTrustStore.mpSyncTransportState << "\n";
@@ -3639,6 +3656,14 @@ void writeFriendTrustStoreJson(
            << jsonString(status.mpSyncInboxPlanCommandTemplate) << ",\n";
     output << indent << "  \"mp_sync_outbox_plan_command_template\": "
            << jsonString(status.mpSyncOutboxPlanCommandTemplate) << ",\n";
+    output << indent << "  \"mp_sync_inbox_plan_state\": "
+           << jsonString(status.mpSyncInboxPlanState) << ",\n";
+    output << indent << "  \"mp_sync_inbox_plan_reason\": "
+           << jsonString(status.mpSyncInboxPlanReason) << ",\n";
+    output << indent << "  \"mp_sync_inbox_plan_automatic_download_enabled\": "
+           << (status.mpSyncInboxAutomaticDownloadEnabled ? "true" : "false") << ",\n";
+    output << indent << "  \"mp_sync_inbox_plan_package_staging_allowed\": "
+           << (status.mpSyncInboxPackageStagingAllowed ? "true" : "false") << ",\n";
     output << indent << "  \"mp_sync_transport_state\": "
            << jsonString(status.mpSyncTransportState) << ",\n";
     output << indent << "  \"mp_sync_transport_reason\": "
