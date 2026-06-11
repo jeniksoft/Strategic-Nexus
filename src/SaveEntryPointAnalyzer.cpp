@@ -608,7 +608,10 @@ std::string serializeSaveEntryPointAnalysis(const SaveEntryPointAnalysis& analys
 {
     std::ostringstream json;
     json << "{\n";
-    json << "  \"schema_version\": 1,\n";
+    json << "  \"schema_version\": " << analysis.schemaVersion << ",\n";
+    json << "  \"source_schema_version\": " << analysis.sourceSchemaVersion << ",\n";
+    json << "  \"schema_compatibility_state\": \"" << jsonEscape(analysis.schemaCompatibilityState) << "\",\n";
+    json << "  \"schema_compatibility_note\": \"" << jsonEscape(analysis.schemaCompatibilityNote) << "\",\n";
     json << "  \"ok\": " << (analysis.ok ? "true" : "false") << ",\n";
     json << "  \"reason\": \"" << jsonEscape(analysis.reason) << "\",\n";
     json << "  \"readiness\": \"" << jsonEscape(analysis.readiness) << "\",\n";

@@ -92,6 +92,16 @@ int main()
     requireCondition(foundEvidenceSamples, "analysis should keep bounded evidence samples for conservative entry points");
 
     const auto json = strategic_nexus::serializeSaveEntryPointAnalysis(analysis);
+    requireCondition(json.find("\"schema_version\": 1") != std::string::npos, "JSON should expose schema version");
+    requireCondition(
+        json.find("\"source_schema_version\": 1") != std::string::npos,
+        "JSON should expose source schema version");
+    requireCondition(
+        json.find("\"schema_compatibility_state\": \"current\"") != std::string::npos,
+        "JSON should expose current schema compatibility state");
+    requireCondition(
+        json.find("\"schema_compatibility_note\": \"\"") != std::string::npos,
+        "JSON should expose an empty compatibility note for current records");
     requireCondition(json.find("\"branch_ambiguity_detected\": true") != std::string::npos, "JSON should expose branch ambiguity");
     requireCondition(json.find("\"entry_point_count\": 3") != std::string::npos, "JSON should expose entry point count");
     requireCondition(json.find("\"later_archived_evidence_count\":") != std::string::npos, "JSON should expose later evidence counts");

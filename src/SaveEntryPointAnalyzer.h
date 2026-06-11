@@ -79,6 +79,10 @@ struct SaveEntryPointCampaignAnalysis {
 struct SaveEntryPointAnalysis {
     bool ok = false;
     std::string reason;
+    int schemaVersion = 1;
+    int sourceSchemaVersion = 1;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
     bool archiveVerified = false;
     std::filesystem::path sessionArchiveDirectory;
     std::vector<std::filesystem::path> saveRoots;
