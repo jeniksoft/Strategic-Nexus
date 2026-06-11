@@ -199,7 +199,7 @@ The architecture must be additive and extensible.
 ## 0. Task Board And Owner Report Log
 
 Status:
-IMPLEMENTED
+IN_PROGRESS
 
 Goal:
 Make the task board the reliable owner-facing coordination surface for manual decisions, progress visibility, and important work reports.
@@ -1332,7 +1332,7 @@ The active library has anchor fingerprints and local continuity signals, and pos
 ## 6F. Pinned Campaign And Library Override UX
 
 Status:
-NOT_STARTED
+IN_PROGRESS
 
 Goal:
 Allow the user to keep specific campaign rules available even when a save folder is temporarily absent.
@@ -1346,9 +1346,7 @@ Required:
 * no deletion of durable campaign memory when active rules are removed
 
 Current progress:
-No owner-facing pinned-campaign override exists yet.
-Status and next-steps surfaces now explicitly call out that user-pinned campaign exceptions are still unavailable when the active generated library is truncated, so the current fallback remains local save-root availability or cleanup.
-Status and next-steps surfaces now also expose a fail-closed `campaign_library_pin_state` placeholder plus reason/next-step text for the unavailable pinned-campaign path.
+The companion and tray status surfaces now expose pinned-campaign state, the copyable `--toggle-campaign-library-pin` command template, and fail-closed guidance for unavailable or degraded pinned coverage. Local pin-manifest updates remain bounded to the explicit pin/unpin command and keep the active library size handling and durable campaign memory separation intact. The remaining campaign-library maintenance work is broader library synchronization, not the owner-facing pin toggle surface itself.
 
 ---
 

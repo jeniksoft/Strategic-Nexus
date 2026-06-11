@@ -97,7 +97,8 @@ constexpr UINT ID_STATUS_COPY_FRIEND_PAIRING = 224;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE = 225;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN = 226;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN = 227;
-constexpr UINT ID_STATUS_SWITCH_SKIN = 228;
+constexpr UINT ID_STATUS_COPY_CAMPAIGN_LIBRARY_PIN = 228;
+constexpr UINT ID_STATUS_SWITCH_SKIN = 229;
 constexpr UINT ID_STATUS_PAGE_OVERVIEW = 240;
 constexpr UINT ID_STATUS_PAGE_GAMEPLAY = 241;
 constexpr UINT ID_STATUS_PAGE_ARCHIVE = 242;
@@ -193,6 +194,7 @@ struct StatusDashboardData {
     std::wstring nextPlaybook;
     std::wstring nextActionPath;
     std::wstring campaignLibraryPlanPath;
+    std::wstring campaignLibraryPinCommandTemplate;
     std::wstring supportReportState;
     std::wstring supportReportPath;
     std::wstring crashRecoveryState;
@@ -381,6 +383,7 @@ HWND g_statusCopyFriendPairingButton = nullptr;
 HWND g_statusCopyFriendMpSyncEnvelopeButton = nullptr;
 HWND g_statusCopyFriendMpSyncInboxPlanButton = nullptr;
 HWND g_statusCopyFriendMpSyncOutboxPlanButton = nullptr;
+HWND g_statusCopyCampaignLibraryPinButton = nullptr;
 HWND g_statusExportMpPackageButton = nullptr;
 HWND g_statusMpImportHandoffButton = nullptr;
 HWND g_statusCopyMpVerifyButton = nullptr;
@@ -434,7 +437,7 @@ const std::array<DashboardSectionSpec, kStatusSectionCount> kStatusSections = {
     DashboardSectionSpec{{L"\u00DAdr\u017Eba", L"Maintenance"}, {StatusFieldId::SupportReportState, StatusFieldId::HumanControlGuardState}},
 };
 
-const std::array<StatusActionSpec, 24> kStatusActionSpecs = {
+const std::array<StatusActionSpec, 25> kStatusActionSpecs = {
     StatusActionSpec{ID_STATUS_REFRESH, {L"Obnovit", L"Refresh"}, {L"Znovu na\u010Dte stav z lok\u00E1ln\u00EDch SNC soubor\u016F a p\u0159ekresl\u00ED otev\u0159en\u00E9 okno.", L"Reloads status from local SNC files and redraws the open window."}},
     StatusActionSpec{ID_STATUS_COPY, {L"Kop\u00EDrovat", L"Copy"}, {L"Zkop\u00EDruje kr\u00E1tk\u00FD p\u0159ehled cel\u00E9ho dashboardu do schr\u00E1nky pro posl\u00E1n\u00ED nebo archivaci.", L"Copies a short dashboard overview to the clipboard for sharing or archiving."}},
     StatusActionSpec{ID_STATUS_OPEN_ARCHIVE, {L"Archiv", L"Archive"}, {L"Otev\u0159e slo\u017Eku s autosave archivem a souvisej\u00EDc\u00EDmi v\u00FDstupy.", L"Opens the autosave archive folder and related outputs."}},
@@ -450,6 +453,7 @@ const std::array<StatusActionSpec, 24> kStatusActionSpecs = {
     StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE, {L"SNC MP sync", L"SNC MP sync"}, {L"Zkop\u00EDruje ru\u010Dn\u00ED metadata envelope pro friend MP sync; nic automaticky nestahuje ani neaplikuje.", L"Copies the manual metadata envelope for friend MP sync; it does not download or apply anything automatically."}},
     StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, {L"SNC inbox", L"SNC inbox"}, {L"Zkop\u00EDruje bezpe\u010Dn\u00FD inbox pl\u00E1n pro p\u0159\u00EDjem metadata bal\u00ED\u010Dku od p\u0159\u00EDtele.", L"Copies the safe inbox plan for receiving friend package metadata."}},
     StatusActionSpec{ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, {L"SNC outbox", L"SNC outbox"}, {L"Zkop\u00EDruje bezpe\u010Dn\u00FD outbox pl\u00E1n pro p\u0159\u00EDpravu metadata bal\u00ED\u010Dku pro p\u0159\u00EDtele.", L"Copies the safe outbox plan for preparing package metadata for a friend."}},
+    StatusActionSpec{ID_STATUS_COPY_CAMPAIGN_LIBRARY_PIN, {L"Pin v\u00FDjimky", L"Pin exceptions"}, {L"Zkop\u00EDruje p\u0159\u00EDkaz pro p\u0159ipnut\u00ED nebo odepnut\u00ED campaign-library v\u00FDjimek.", L"Copies the command for pinning or unpinning campaign-library exceptions."}},
     StatusActionSpec{ID_STATUS_EXPORT_MP_PACKAGE, {L"MP export", L"MP export"}, {L"Znovu p\u0159iprav\u00ED multiplayer overlay package z validovan\u00FDch lok\u00E1ln\u00EDch artefakt\u016F.", L"Rebuilds the multiplayer overlay package from validated local artifacts."}},
     StatusActionSpec{ID_STATUS_MP_IMPORT_HANDOFF, {L"MP import n\u00E1vod", L"MP import guide"}, {L"Zkop\u00EDruje import p\u0159\u00EDkaz a otev\u0159e bal\u00ED\u010Dek, aby ho \u0161lo bezpe\u010Dn\u011B p\u0159edat klientovi nebo dal\u0161\u00EDmu hostovi.", L"Copies the import command and opens the package for safe handoff to a client or next host."}},
     StatusActionSpec{ID_STATUS_COPY_MP_VERIFY, {L"MP verify", L"MP verify"}, {L"Zkop\u00EDruje z\u00E1kladn\u00ED p\u0159\u00EDkaz pro ov\u011B\u0159en\u00ED MP bal\u00ED\u010Dku p\u0159ed importem.", L"Copies the basic command for verifying an MP package before import."}},
@@ -477,7 +481,7 @@ const std::array<StatusPageSpec, kStatusPageCount> kStatusPages = {
         {L"Hran\u00ED a rozhodnut\u00ED", L"Gameplay and Decisions"},
         {L"V\u011Bci kolem pr\u00E1v\u011B spu\u0161t\u011Bn\u00E9 hry, dal\u0161\u00EDho kroku a kontrol, kter\u00E9 chr\u00E1n\u00ED kampa\u0148.", L"Current game context, next action, and safety checks that protect the campaign."},
         {0, 1},
-        {ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, ID_STATUS_OPEN_NEXT_ACTION_PATH}},
+        {ID_STATUS_OPEN_GAMEPLAY_ACCEPTANCE_REPORT, ID_STATUS_OPEN_CRASH_RECOVERY_STATE, ID_STATUS_OPEN_CAMPAIGN_LIBRARY_PLAN, ID_STATUS_COPY_CAMPAIGN_LIBRARY_PIN, ID_STATUS_OPEN_NEXT_ACTION_PATH}},
     StatusPageSpec{
         StatusPageId::Archive,
         ID_STATUS_PAGE_ARCHIVE,
@@ -1851,6 +1855,7 @@ HWND statusActionButton(const UINT commandId)
     case ID_STATUS_COPY_FRIEND_MP_SYNC_ENVELOPE: return g_statusCopyFriendMpSyncEnvelopeButton;
     case ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN: return g_statusCopyFriendMpSyncInboxPlanButton;
     case ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN: return g_statusCopyFriendMpSyncOutboxPlanButton;
+    case ID_STATUS_COPY_CAMPAIGN_LIBRARY_PIN: return g_statusCopyCampaignLibraryPinButton;
     case ID_STATUS_EXPORT_MP_PACKAGE: return g_statusExportMpPackageButton;
     case ID_STATUS_MP_IMPORT_HANDOFF: return g_statusMpImportHandoffButton;
     case ID_STATUS_COPY_MP_VERIFY: return g_statusCopyMpVerifyButton;
@@ -2785,6 +2790,12 @@ StatusDashboardData loadStatusDashboardData()
     data.nextActionPath = utf8ToWide(strategic_nexus::common::extractJsonString(json, "next_action_path").value_or(""));
     data.campaignLibraryPlanPath =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "campaign_library_plan_path").value_or(""));
+    data.campaignLibraryPinCommandTemplate =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "campaign_library_pin_command_template").value_or(""));
+    if (data.campaignLibraryPinCommandTemplate.empty()) {
+        data.campaignLibraryPinCommandTemplate =
+            utf8ToWide("Strategic Nexus.exe --toggle-campaign-library-pin <manifest> <campaign_key> pin|unpin");
+    }
     data.supportReportState =
         formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "support_report_state").value_or(""));
     data.supportReportPath =
@@ -3559,6 +3570,11 @@ void refreshStatusWindowContent()
             g_statusCopyFriendMpSyncOutboxPlanButton,
             data.friendMpSyncOutboxPlanCommandTemplate.empty() ? FALSE : TRUE);
     }
+    if (g_statusCopyCampaignLibraryPinButton != nullptr) {
+        EnableWindow(
+            g_statusCopyCampaignLibraryPinButton,
+            data.campaignLibraryPinCommandTemplate.empty() ? FALSE : TRUE);
+    }
     if (g_statusExportMpPackageButton != nullptr) {
         EnableWindow(g_statusExportMpPackageButton, canRefreshMpPackageExport() ? TRUE : FALSE);
     }
@@ -4064,6 +4080,8 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN, statusActionLabel(ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN).c_str());
         g_statusCopyFriendMpSyncOutboxPlanButton =
             createStatusButton(hwnd, ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN, statusActionLabel(ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN).c_str());
+        g_statusCopyCampaignLibraryPinButton =
+            createStatusButton(hwnd, ID_STATUS_COPY_CAMPAIGN_LIBRARY_PIN, statusActionLabel(ID_STATUS_COPY_CAMPAIGN_LIBRARY_PIN).c_str());
         g_statusExportMpPackageButton = createStatusButton(hwnd, ID_STATUS_EXPORT_MP_PACKAGE, statusActionLabel(ID_STATUS_EXPORT_MP_PACKAGE).c_str());
         g_statusMpImportHandoffButton = createStatusButton(hwnd, ID_STATUS_MP_IMPORT_HANDOFF, statusActionLabel(ID_STATUS_MP_IMPORT_HANDOFF).c_str());
         g_statusCopyMpVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_VERIFY, statusActionLabel(ID_STATUS_COPY_MP_VERIFY).c_str());
@@ -4339,6 +4357,23 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     L"Je to jen bezpe\u010Dn\u011B uzav\u0159en\u00FD stavov\u00FD pl\u00E1n. Neuploaduje, nepos\u00EDl\u00E1, nestahuje ani nestageuje gameplay soubory.",
                     L"SNC friend MP sync outbox-plan template was copied to the clipboard.\n\n"
                     L"This is a fail-closed status plan only. It does not upload, send, download, or stage gameplay files."}),
+                L"Strategic Nexus Companion",
+                MB_OK | MB_ICONINFORMATION);
+            return 0;
+        }
+        case ID_STATUS_COPY_CAMPAIGN_LIBRARY_PIN:
+        {
+            const auto data = loadStatusDashboardData();
+            const auto& commandTemplate = data.campaignLibraryPinCommandTemplate;
+            if (commandTemplate.empty() || !copyTextToClipboard(hwnd, commandTemplate)) {
+                MessageBeep(MB_ICONWARNING);
+                return 0;
+            }
+            MessageBoxW(
+                hwnd,
+                L"Pin exception CLI sablona je zkopirovana do schr\u00E1nky.\n\n"
+                L"Pouzij ji pro pin/unpin campaign-library v\u00FDjimek podle aktualniho pl\u00E1nu. "
+                L"Kdyz je sablona prazdna, nejprve vygeneruj campaign library plan.",
                 L"Strategic Nexus Companion",
                 MB_OK | MB_ICONINFORMATION);
             return 0;
@@ -4670,6 +4705,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyFriendMpSyncEnvelopeButton = nullptr;
         g_statusCopyFriendMpSyncInboxPlanButton = nullptr;
         g_statusCopyFriendMpSyncOutboxPlanButton = nullptr;
+        g_statusCopyCampaignLibraryPinButton = nullptr;
         g_statusExportMpPackageButton = nullptr;
         g_statusMpImportHandoffButton = nullptr;
         g_statusCopyMpVerifyButton = nullptr;
