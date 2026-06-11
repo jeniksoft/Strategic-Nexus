@@ -768,6 +768,7 @@ $postPlayPackageText = Get-Content -Raw -LiteralPath $postPlayPackagePath
 $postPlayPackageJson = $postPlayPackageText | ConvertFrom-Json
 $postPlayPackageReadiness = [string]$postPlayPackageJson.readiness
 $postPlayPackageReason = [string]$postPlayPackageJson.reason
+$postPlayPackageCampaignIdentityStateSummary = [string]$postPlayPackageJson.campaign_identity_state_summary
 $postPlayDecisionReadyEntryCount = [string]$postPlayPackageJson.decision_ready_entry_count
 $postPlayCampaignCount = [string]$postPlayPackageJson.campaigns.Count
 $postPlayReadyCampaignCount = [string](@($postPlayPackageJson.campaigns | Where-Object { $_.readiness -eq "ready" }).Count)
@@ -1313,6 +1314,7 @@ Write-Host ("real_session_v0_loop_memory_recovery_anchor_archived_path=" + $memo
 Write-Host ("real_session_v0_loop_post_play_package_path=" + $postPlayPackagePath)
 Write-Host ("real_session_v0_loop_post_play_package_readiness=" + $postPlayPackageReadiness)
 Write-Host ("real_session_v0_loop_post_play_package_reason=" + $postPlayPackageReason)
+Write-Host ("real_session_v0_loop_post_play_package_campaign_identity_state_summary=" + $postPlayPackageCampaignIdentityStateSummary)
 Write-Host ("real_session_v0_loop_post_play_decision_ready_entry_count=" + $postPlayDecisionReadyEntryCount)
 Write-Host ("real_session_v0_loop_post_play_campaign_count=" + $postPlayCampaignCount)
 Write-Host ("real_session_v0_loop_post_play_ready_campaign_count=" + $postPlayReadyCampaignCount)
@@ -2674,6 +2676,7 @@ $sessionBriefLines = @(
     "- Entry point readiness: $entryPointReadiness"
     "- Post-play package: $postPlayPackagePath"
     "- Post-play readiness: $postPlayPackageReadiness"
+    "- Post-play campaign identity state summary: $postPlayPackageCampaignIdentityStateSummary"
     "- Decision input package: $decisionInputPackagePath"
     "- Decision input readiness: $decisionInputPackageReadiness"
     "- Candidate decision package: $candidateDecisionPackagePath"
@@ -2847,6 +2850,7 @@ $sessionEvidence = [ordered]@{
         post_play_package_path = $postPlayPackagePath
         post_play_package_readiness = $postPlayPackageReadiness
         post_play_package_reason = $postPlayPackageReason
+        post_play_package_campaign_identity_state_summary = $postPlayPackageCampaignIdentityStateSummary
         post_play_decision_ready_entry_count = $postPlayDecisionReadyEntryCount
         post_play_campaign_count = $postPlayCampaignCount
         post_play_ready_campaign_count = $postPlayReadyCampaignCount

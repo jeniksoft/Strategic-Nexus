@@ -1325,7 +1325,7 @@ Required:
 * compatibility with renamed/restored campaign folders
 
 Current progress:
-The active library has anchor fingerprints and local continuity signals, and post-play package output now surfaces campaign identity source-state plus save-content vs folder-alias fallback summaries. Companion and tray status surfaces now also expose `post_play_package_campaign_identity_state_summary` in the post-play pipeline JSON, status-center summary text, and next-steps brief. Final campaign identity assignment is still incomplete for broader owner-facing surfaces and renamed/restored campaign compatibility.
+The active library has anchor fingerprints and local continuity signals, and post-play package output now surfaces campaign identity source-state plus save-content vs folder-alias fallback summaries. Companion and tray status surfaces now also expose `post_play_package_campaign_identity_state_summary` in the post-play pipeline JSON, status-center summary text, and next-steps brief. The real-session loop now forwards the same summary into `real_session_v0_next_steps.md` and evidence JSON so the owner-facing handoff stays aligned with the post-play package. Final campaign identity assignment is still incomplete for broader owner-facing surfaces and renamed/restored campaign compatibility.
 
 ---
 
