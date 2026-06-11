@@ -81,6 +81,21 @@ std::optional<std::uintmax_t> extractSizeFromObject(const std::string& objectTex
     }
 }
 
+std::optional<std::size_t> extractSchemaVersion(const std::string& manifestText)
+{
+    const std::regex pattern("\"schema_version\"\\s*:\\s*([0-9]+)");
+    std::smatch match;
+    if (!std::regex_search(manifestText, match, pattern)) {
+        return std::nullopt;
+    }
+
+    try {
+        return static_cast<std::size_t>(std::stoull(match[1].str()));
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
 std::vector<std::string> extractEntryObjects(const std::string& manifestText)
 {
     std::vector<std::string> objects;
@@ -191,6 +206,22 @@ AutosaveArchiveVerificationResult AutosaveArchiveVerifier::verify(
     if (!common::hasBalancedJsonDelimiters(manifestText)) {
         result.reason = "malformed autosave archive manifest";
         return result;
+    }
+
+    const auto schemaVersion = extractSchemaVersion(manifestText);
+    if (!schemaVersion.has_value()) {
+        result.reason = "missing autosave archive schema_version";
+        return result;
+    }
+    result.schemaVersion = *schemaVersion;
+    if (result.schemaVersion > 1) {
+        result.reason = "unsupported autosave archive schema_version";
+        return result;
+    }
+    if (result.schemaVersion == 0) {
+        result.schemaCompatibilityState = "partial_compatibility";
+        result.schemaCompatibilityNote =
+            "migrated legacy autosave archive schema_version 0 to current schema_version 1";
     }
 
     const auto objects = extractEntryObjects(manifestText);
@@ -310,7 +341,13 @@ AutosaveArchiveVerificationResult AutosaveArchiveVerifier::verify(
     }
 
     result.ok = allOk;
-    result.reason = allOk ? "accepted" : "autosave archive files do not match manifest";
+    if (allOk) {
+        result.reason = result.schemaVersion == 0
+            ? "accepted_degraded_legacy_schema_version_0"
+            : "accepted";
+    } else {
+        result.reason = "autosave archive files do not match manifest";
+    }
     return result;
 }
 

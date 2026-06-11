@@ -42,6 +42,9 @@ AutosaveArchiveSummary AutosaveArchiveSummarizer::summarize(
 
     const AutosaveArchiveVerifier verifier;
     const auto verification = verifier.verify(sessionArchiveDirectory);
+    summary.schemaVersion = verification.schemaVersion;
+    summary.schemaCompatibilityState = verification.schemaCompatibilityState;
+    summary.schemaCompatibilityNote = verification.schemaCompatibilityNote;
     if (!verification.ok) {
         summary.reason = verification.reason;
         return summary;
@@ -73,6 +76,9 @@ std::string serializeAutosaveArchiveSummary(const AutosaveArchiveSummary& summar
     json << "  \"schema_version\": 1,\n";
     json << "  \"ok\": " << (summary.ok ? "true" : "false") << ",\n";
     json << "  \"reason\": \"" << jsonEscape(summary.reason) << "\",\n";
+    json << "  \"source_schema_version\": " << summary.schemaVersion << ",\n";
+    json << "  \"schema_compatibility_state\": \"" << jsonEscape(summary.schemaCompatibilityState) << "\",\n";
+    json << "  \"schema_compatibility_note\": \"" << jsonEscape(summary.schemaCompatibilityNote) << "\",\n";
     json << "  \"session_archive_directory\": \"" << jsonEscape(summary.sessionArchiveDirectory.generic_string()) << "\",\n";
     json << "  \"copied_save_count\": " << summary.copiedSaveCount << ",\n";
     json << "  \"total_byte_count\": " << summary.totalByteCount << ",\n";

@@ -45,6 +45,8 @@ int main()
     const strategic_nexus::AutosaveArchiveVerifier verifier;
     const auto accepted = verifier.verify(archiveRoot / "session_001");
     requireCondition(accepted.ok, "verifier should accept intact archive");
+    requireCondition(accepted.schemaVersion == 1, "verifier should expose current schema version");
+    requireCondition(accepted.schemaCompatibilityState == "current", "current archive should report current compatibility state");
     requireCondition(accepted.files.size() == 1, "verifier should inspect copied save");
 
     const auto manifestPath = archiveRoot / "session_001" / "manifest.json";
@@ -67,6 +69,40 @@ int main()
     writeFile(manifestPath, savesRelativeManifest);
     const auto savesRelativeAccepted = verifier.verify(archiveRoot / "session_001");
     requireCondition(savesRelativeAccepted.ok, "verifier should resolve saves-relative copied save filenames");
+
+    const auto legacyManifest = std::regex_replace(
+        originalManifest,
+        std::regex("\"schema_version\"\\s*:\\s*1"),
+        "\"schema_version\": 0");
+    writeFile(manifestPath, legacyManifest);
+    const auto legacyAccepted = verifier.verify(archiveRoot / "session_001");
+    requireCondition(legacyAccepted.ok, "verifier should accept legacy schema_version 0 manifest");
+    requireCondition(
+        legacyAccepted.reason == "accepted_degraded_legacy_schema_version_0",
+        "legacy schema should report degraded acceptance");
+    requireCondition(
+        legacyAccepted.schemaVersion == 0,
+        "legacy schema should expose schema_version 0");
+    requireCondition(
+        legacyAccepted.schemaCompatibilityState == "partial_compatibility",
+        "legacy schema should expose partial compatibility state");
+    requireCondition(
+        legacyAccepted.schemaCompatibilityNote ==
+            "migrated legacy autosave archive schema_version 0 to current schema_version 1",
+        "legacy schema should expose a migration note");
+
+    const auto futureManifest = std::regex_replace(
+        originalManifest,
+        std::regex("\"schema_version\"\\s*:\\s*1"),
+        "\"schema_version\": 2");
+    writeFile(manifestPath, futureManifest);
+    const auto futureRejected = verifier.verify(archiveRoot / "session_001");
+    requireCondition(!futureRejected.ok, "verifier should reject unsupported future schema_version");
+    requireCondition(
+        futureRejected.reason == "unsupported autosave archive schema_version",
+        "verifier should explain unsupported schema rejection");
+
+    writeFile(manifestPath, portableManifest);
 
     writeFile(archiveRoot / "session_001" / "saves" / "unexpected.sav", "fixture");
     const auto extraFileRejected = verifier.verify(archiveRoot / "session_001");

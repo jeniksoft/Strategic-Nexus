@@ -11,6 +11,9 @@ namespace strategic_nexus {
 struct AutosaveArchiveSummary {
     bool ok = false;
     std::string reason;
+    std::size_t schemaVersion = 1;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
     std::filesystem::path sessionArchiveDirectory;
     std::size_t copiedSaveCount = 0;
     std::uintmax_t totalByteCount = 0;

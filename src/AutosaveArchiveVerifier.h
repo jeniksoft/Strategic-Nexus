@@ -23,6 +23,9 @@ struct AutosaveArchiveFileVerification {
 struct AutosaveArchiveVerificationResult {
     bool ok = false;
     std::string reason;
+    std::size_t schemaVersion = 1;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
     std::vector<AutosaveArchiveFileVerification> files;
 };
 

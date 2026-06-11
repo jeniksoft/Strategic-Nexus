@@ -1724,7 +1724,8 @@ The v0 ministry-input reader now accepts a bounded schema_version 0 legacy fixtu
 The durable personality profile store now also records source schema version plus compatibility state/note metadata and accepts legacy schema_version 0 profile records as partial compatibility instead of silent malformed blobs.
 The campaign library plan reader now also accepts legacy schema_version 0 as a degraded state and surfaces an owner-visible regeneration note in companion and tray status output.
 The campaign library pin manifest reader now also accepts legacy schema_version 0 as degraded compatibility and surfaces an owner-visible regeneration note in companion and tray status output.
-The next bounded slice should extend the same explicit degraded-state pattern to the remaining long-lived artifact readers so old campaigns do not rely on silent compatibility assumptions.
+The autosave archive verifier and summarizer now also accept legacy schema_version 0 manifests as partial compatibility, surface explicit schema compatibility state/note fields in summary JSON, and keep unsupported future archive schemas fail-closed.
+The next bounded slice should extend the same explicit degraded-state pattern to any remaining long-lived artifact readers so old campaigns do not rely on silent compatibility assumptions.
 
 ---
 
