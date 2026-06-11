@@ -535,6 +535,9 @@ signed/encrypted friend transport is still not implemented, so automatic receive
 manual export/import is still the active fallback.
 ```
 
+This is now owner-ready for a manual real-season Stellaris MP validation pass.
+Use the fallback path above and keep the evidence list below so Codex can verify the run afterward without reopening raw JSON.
+
 The current SNC companion and tray status surfaces also expose `friend_mp_sync_transport_state`, `friend_mp_sync_transport_reason`, and `friend_mp_sync_transport_next_step` so the signed/encrypted transport gap stays explicit while manual export/import remains the active fallback.
 The next missing product piece is still the signed/encrypted transport adapter that will eventually make automatic receive/verify/stage possible; until that exists, manual export/import remains the active path.
 The same friend-pairing guide also repeats the manual MP package export/import fallback and strict verify/import path so the transport-disabled state stays visible without opening raw JSON.
