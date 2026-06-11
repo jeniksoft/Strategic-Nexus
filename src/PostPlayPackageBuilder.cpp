@@ -13,6 +13,20 @@
 namespace strategic_nexus {
 namespace {
 
+std::string buildCampaignIdentityOwnerNote(const std::string& campaignIdentityStateSummary)
+{
+    if (campaignIdentityStateSummary == "ambiguous_save_identity") {
+        return "save-content identity is ambiguous; keep generated rules conservative until identity resolves";
+    }
+    if (campaignIdentityStateSummary == "mixed_save_identity_resolution") {
+        return "save-content identity is mixed between resolved and fallback entries; keep generated rules conservative until identity fully resolves";
+    }
+    if (campaignIdentityStateSummary == "folder_alias_fallback") {
+        return "save-content identity fell back to folder alias; keep generated rules conservative until identity resolves from save contents";
+    }
+    return {};
+}
+
 std::string jsonEscape(const std::string& value)
 {
     std::ostringstream output;
@@ -363,6 +377,7 @@ PostPlayPackage PostPlayPackageBuilder::build(
     } else {
         package.campaignIdentityStateSummary = "resolved_from_save_contents";
     }
+    package.campaignIdentityOwnerNote = buildCampaignIdentityOwnerNote(package.campaignIdentityStateSummary);
     if (anyCampaignIdentityAmbiguous) {
         package.reason = "entry point package built but save-content identity ambiguity blocks some decision input";
         package.readiness = anyReady ? "ready_partial_ambiguous" : "ambiguous";
@@ -394,6 +409,7 @@ std::string serializePostPlayPackage(const PostPlayPackage& package)
     json << "  \"reason\": \"" << jsonEscape(package.reason) << "\",\n";
     json << "  \"readiness\": \"" << jsonEscape(package.readiness) << "\",\n";
     json << "  \"campaign_identity_state_summary\": \"" << jsonEscape(package.campaignIdentityStateSummary) << "\",\n";
+    json << "  \"campaign_identity_owner_note\": \"" << jsonEscape(package.campaignIdentityOwnerNote) << "\",\n";
     json << "  \"dry_run_only\": " << (package.dryRunOnly ? "true" : "false") << ",\n";
     json << "  \"publishes_overlay\": " << (package.publishesOverlay ? "true" : "false") << ",\n";
     json << "  \"session_archive_directory\": \"" << jsonEscape(package.sessionArchiveDirectory.generic_string()) << "\",\n";

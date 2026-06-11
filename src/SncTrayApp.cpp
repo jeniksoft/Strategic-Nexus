@@ -6177,6 +6177,13 @@ std::string buildStatusCenterSummaryText(
             summary,
             "post_play_package_campaign_identity_state_summary",
             postPlayPackageCampaignIdentityStateSummary);
+        if (postPlayPackageCampaignIdentityStateSummary == "ambiguous_save_identity") {
+            summary << "post_play_package_campaign_identity_owner_note: save-content identity is ambiguous; keep generated rules conservative until identity resolves\n";
+        } else if (postPlayPackageCampaignIdentityStateSummary == "mixed_save_identity_resolution") {
+            summary << "post_play_package_campaign_identity_owner_note: save-content identity is mixed between resolved and fallback entries; keep generated rules conservative until identity fully resolves\n";
+        } else if (postPlayPackageCampaignIdentityStateSummary == "folder_alias_fallback") {
+            summary << "post_play_package_campaign_identity_owner_note: save-content identity fell back to folder alias; keep generated rules conservative until identity resolves from save contents\n";
+        }
     }
     if (!mpOverlayPackage.handoffStatus.empty()) {
         appendOwnerFacingStatusValueLine(summary, "mp_handoff_status", mpOverlayPackage.handoffStatus);

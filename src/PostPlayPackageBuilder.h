@@ -57,6 +57,7 @@ struct PostPlayPackage {
     std::string reason;
     std::string readiness;
     std::string campaignIdentityStateSummary;
+    std::string campaignIdentityOwnerNote;
     bool dryRunOnly = true;
     bool publishesOverlay = false;
     std::filesystem::path sessionArchiveDirectory;

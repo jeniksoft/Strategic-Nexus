@@ -3769,6 +3769,10 @@ int Application::run(const RunConfig& config) const
             std::cout << "post_play_package_readiness=" << sanitizeCliValue(package.readiness) << "\n";
             std::cout << "post_play_package_campaign_identity_state_summary="
                       << sanitizeCliValue(package.campaignIdentityStateSummary) << "\n";
+            if (!package.campaignIdentityOwnerNote.empty()) {
+                std::cout << "post_play_package_campaign_identity_owner_note="
+                          << sanitizeCliValue(package.campaignIdentityOwnerNote) << "\n";
+            }
             for (const auto& campaign : package.campaigns) {
                 std::cout << "post_play_package_campaign_identity_state="
                           << sanitizeCliValue(campaign.campaignKey) << ":"

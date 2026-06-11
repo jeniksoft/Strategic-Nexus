@@ -797,6 +797,10 @@ try {
                     $summaryText -notlike "*post_play_package_campaign_identity_state_summary:*") {
                     throw "SNC tray summary text did not expose the post-play campaign identity state summary."
                 }
+                if ([string]$json.post_play_package_campaign_identity_state_summary -eq "folder_alias_fallback" -and
+                    $summaryText -notlike "*post_play_package_campaign_identity_owner_note:*") {
+                    throw "SNC tray summary text did not expose the campaign identity owner note for folder alias fallback."
+                }
                 if ($summaryText -notlike "*startup_start_with_windows: optional_owner_setting_default_disabled*") {
                     throw "SNC tray summary text did not expose the default-disabled startup contract."
                 }

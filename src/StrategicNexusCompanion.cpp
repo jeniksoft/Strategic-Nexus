@@ -2896,6 +2896,13 @@ std::string buildStatusCenterSummaryText(
     if (!postPlayPipeline.postPlayPackageCampaignIdentityStateSummary.empty()) {
         text << "post_play_package_campaign_identity_state_summary: "
              << postPlayPipeline.postPlayPackageCampaignIdentityStateSummary << "\n";
+        if (postPlayPipeline.postPlayPackageCampaignIdentityStateSummary == "ambiguous_save_identity") {
+            text << "post_play_package_campaign_identity_owner_note: save-content identity is ambiguous; keep generated rules conservative until identity resolves\n";
+        } else if (postPlayPipeline.postPlayPackageCampaignIdentityStateSummary == "mixed_save_identity_resolution") {
+            text << "post_play_package_campaign_identity_owner_note: save-content identity is mixed between resolved and fallback entries; keep generated rules conservative until identity fully resolves\n";
+        } else if (postPlayPipeline.postPlayPackageCampaignIdentityStateSummary == "folder_alias_fallback") {
+            text << "post_play_package_campaign_identity_owner_note: save-content identity fell back to folder alias; keep generated rules conservative until identity resolves from save contents\n";
+        }
     }
     if (!postPlayPipeline.playerCountryId.empty()) {
         text << "post_play_player_country_id: " << postPlayPipeline.playerCountryId << "\n";
