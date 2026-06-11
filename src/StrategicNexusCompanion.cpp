@@ -1939,6 +1939,9 @@ void populateCampaignLibraryPlanStatus(
         status.campaignLibraryPinCommandTemplate = buildCampaignLibraryPinCommandTemplate(pinPath);
 
         const auto pinSet = loadCampaignLibraryPins(pinPath);
+        const bool legacyPinManifest =
+            pinSet.present && pinSet.schemaSupported &&
+            pinSet.reason == "pinned campaign exception manifest loaded from legacy schema_version 0";
         if (pinSet.present) {
             status.campaignLibraryPinPresent = true;
             status.campaignLibraryPinnedCount = pinSet.pinnedCount;
@@ -1948,13 +1951,13 @@ void populateCampaignLibraryPlanStatus(
             status.campaignLibraryPinReason = pinSet.reason;
             status.campaignLibraryPinNextStep = pinSet.nextStep;
 
-            if (pinSet.schemaSupported && status.campaignLibraryPinnedMissingLocalSaveCount > 0) {
+            if (pinSet.schemaSupported && !legacyPinManifest && status.campaignLibraryPinnedMissingLocalSaveCount > 0) {
                 status.campaignLibraryPinState = "degraded";
                 status.campaignLibraryPinReason =
                     "pinned campaign exceptions are available, but some pinned campaigns are not locally playable";
                 status.campaignLibraryPinNextStep =
                     "Use the pin toggle command to trim unreachable pinned campaigns or restore the missing local save root.";
-            } else if (pinSet.schemaSupported && status.campaignLibraryLimitReached && status.campaignLibraryPinnedCount > 0) {
+            } else if (pinSet.schemaSupported && !legacyPinManifest && status.campaignLibraryLimitReached && status.campaignLibraryPinnedCount > 0) {
                 status.campaignLibraryPinState = "degraded";
                 status.campaignLibraryPinReason =
                     "pinned campaign exceptions are available, but the active library is still truncated by the configured limit";
@@ -2941,6 +2944,10 @@ std::string buildStatusCenterSummaryText(
             text << "campaign_library_owner_note: campaign library plan is loaded from legacy schema_version 0; regenerate it before SNC trusts active campaign coverage\n";
         } else if (postPlayPipeline.campaignLibraryPlanReadiness == "needs_attention") {
             text << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
+        } else if (postPlayPipeline.campaignLibraryPinState == "degraded"
+            && postPlayPipeline.campaignLibraryPinReason ==
+                "pinned campaign exception manifest loaded from legacy schema_version 0") {
+            text << "campaign_library_owner_note: pinned campaign exception manifest is loaded from legacy schema_version 0; regenerate it before SNC trusts pinned coverage\n";
         } else if (postPlayPipeline.campaignLibraryPinState == "needs_attention") {
             text << "campaign_library_owner_note: pinned campaign exception manifest needs attention before SNC should trust pinned coverage\n";
         } else if (postPlayPipeline.campaignLibraryPinState == "degraded") {

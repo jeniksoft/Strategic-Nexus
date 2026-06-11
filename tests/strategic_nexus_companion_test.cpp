@@ -1902,6 +1902,50 @@ int main()
             std::string::npos,
         "status center summary should expose the pin toggle command template");
 
+    writeTextFileAtomically(
+        root / "strategic_nexus_campaign_library_pins.json",
+        "{\n"
+        "  \"schema_version\": 0,\n"
+        "  \"pinned_campaign_keys\": [\n"
+        "    \"alpha_campaign\"\n"
+        "  ]\n"
+        "}\n");
+    const auto stagedPublishLegacyPins = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        activeOverlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport,
+        stagedOverlayStatusPath,
+        activeOverlayRoot,
+        publishStatusPath,
+        publishBackupRoot,
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        dslDraftAuditPath,
+        stagedOverlayStatusPath
+    });
+    requireCondition(
+        stagedPublishLegacyPins.campaignLibraryPinPresent,
+        "legacy pinned campaign manifest should still be detected");
+    requireCondition(
+        stagedPublishLegacyPins.campaignLibraryPinState == "degraded",
+        "legacy pinned campaign manifest should surface degraded compatibility");
+    requireCondition(
+        stagedPublishLegacyPins.campaignLibraryPinReason ==
+            "pinned campaign exception manifest loaded from legacy schema_version 0",
+        "legacy pinned campaign manifest should explain the compatibility state");
+    requireCondition(
+        stagedPublishLegacyPins.statusCenterSummaryText.find(
+            "campaign_library_owner_note: pinned campaign exception manifest is loaded from legacy schema_version 0; regenerate it before SNC trusts pinned coverage") !=
+            std::string::npos,
+        "status center summary should explain the legacy pinned campaign manifest");
+
     const auto stagedPublishBlocked = companion.buildStatusSnapshot({
         archiveSessionRoot,
         activeOverlayRoot,

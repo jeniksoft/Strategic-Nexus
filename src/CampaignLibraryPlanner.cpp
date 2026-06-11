@@ -193,24 +193,36 @@ CampaignLibraryPinSet loadCampaignLibraryPins(const std::filesystem::path& path)
 
     pins.present = true;
     const auto schemaVersion = extractJsonSizeValue(json, "schema_version").value_or(1);
-    if (schemaVersion != 1) {
+    if (schemaVersion == 0) {
+        pins.schemaSupported = true;
+        pins.state = "degraded";
+        pins.reason = "pinned campaign exception manifest loaded from legacy schema_version 0";
+        pins.nextStep =
+            "Recreate the pin manifest with Strategic Nexus.exe --toggle-campaign-library-pin and a schema_version 1 manifest.";
+    } else if (schemaVersion != 1) {
         pins.schemaSupported = false;
         pins.state = "needs_attention";
         pins.reason = "pinned campaign exception manifest schema unsupported";
         pins.nextStep =
             "Recreate the pin manifest with Strategic Nexus.exe --toggle-campaign-library-pin and a schema_version 1 manifest.";
         return pins;
+    } else {
+        pins.schemaSupported = true;
     }
 
-    pins.schemaSupported = true;
     pins.pinnedCampaignKeys = normalizePinnedKeys(common::extractJsonStringArray(json, "pinned_campaign_keys"));
     pins.pinnedCount = pins.pinnedCampaignKeys.size();
     if (pins.pinnedCampaignKeys.empty()) {
-        pins.state = "ready";
-        pins.reason = "pinned campaign exceptions configured but no campaigns are currently pinned";
-        pins.nextStep =
-            "Use Strategic Nexus.exe --toggle-campaign-library-pin <manifest> <campaign_key> pin to keep a campaign available when the local save root disappears.";
-    } else {
+        if (schemaVersion == 1) {
+            pins.state = "ready";
+            pins.reason = "pinned campaign exceptions configured but no campaigns are currently pinned";
+            pins.nextStep =
+                "Use Strategic Nexus.exe --toggle-campaign-library-pin <manifest> <campaign_key> pin to keep a campaign available when the local save root disappears.";
+        } else {
+            pins.nextStep =
+                "Recreate the pin manifest with Strategic Nexus.exe --toggle-campaign-library-pin and a schema_version 1 manifest before SNC trusts pinned coverage.";
+        }
+    } else if (schemaVersion == 1) {
         pins.state = "ready";
         pins.reason = "pinned campaign exceptions available for " + std::to_string(pins.pinnedCount) + " campaign(s)";
         pins.nextStep =

@@ -6270,6 +6270,10 @@ std::string buildStatusCenterSummaryText(
             summary << "campaign_library_owner_note: campaign library plan is loaded from legacy schema_version 0; regenerate it before SNC trusts active campaign coverage\n";
         } else if (campaignLibraryPlanReadiness == "needs_attention") {
             summary << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
+        } else if (postPlayPipeline.campaignLibraryPinState == "degraded"
+            && postPlayPipeline.campaignLibraryPinReason ==
+                "pinned campaign exception manifest loaded from legacy schema_version 0") {
+            summary << "campaign_library_owner_note: pinned campaign exception manifest is loaded from legacy schema_version 0; regenerate it before SNC trusts pinned coverage\n";
         } else if (postPlayPipeline.campaignLibraryPinState == "needs_attention") {
             summary << "campaign_library_owner_note: pinned campaign exception manifest needs attention before SNC should trust pinned coverage\n";
         } else if (postPlayPipeline.campaignLibraryPinState == "degraded") {

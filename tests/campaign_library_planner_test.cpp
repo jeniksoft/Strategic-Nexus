@@ -3,6 +3,8 @@
 
 #include "CampaignLibraryPlanner.h"
 
+#include "common/FileUtil.h"
+
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -107,8 +109,34 @@ int main()
         pinnedJson.find("\"status\": \"included_pinned_missing_local_save\"") != std::string::npos,
         "pinned plan JSON should include synthetic pinned status");
 
+    const auto legacyPinManifestPath = std::filesystem::temp_directory_path() / "strategic_nexus_campaign_library_pins_legacy_test.json";
+    requireCondition(
+        strategic_nexus::writeCampaignLibraryPins(legacyPinManifestPath, {"legacy_alpha", "legacy_beta"}),
+        "legacy pin manifest fixture should be writable");
+    std::string legacyPinJson = strategic_nexus::common::readTextFile(legacyPinManifestPath);
+    requireCondition(
+        strategic_nexus::common::writeTextFileAtomically(
+            legacyPinManifestPath,
+            legacyPinJson.replace(
+                legacyPinJson.find("\"schema_version\": 1"),
+                std::string("\"schema_version\": 1").size(),
+                "\"schema_version\": 0")),
+        "legacy pin manifest fixture should be rewritten to schema_version 0");
+    const auto legacyPinSet = strategic_nexus::loadCampaignLibraryPins(legacyPinManifestPath);
+    requireCondition(legacyPinSet.present, "legacy pin manifest should still be detected as present");
+    requireCondition(legacyPinSet.schemaSupported, "legacy pin manifest should be treated as degraded compatibility");
+    requireCondition(legacyPinSet.state == "degraded", "legacy pin manifest should surface degraded state");
+    requireCondition(
+        legacyPinSet.reason == "pinned campaign exception manifest loaded from legacy schema_version 0",
+        "legacy pin manifest should explain the degraded compatibility");
+    requireCondition(
+        legacyPinSet.nextStep.find("schema_version 1 manifest") != std::string::npos,
+        "legacy pin manifest should recommend regeneration");
+    requireCondition(legacyPinSet.pinnedCount == 2, "legacy pin manifest should still preserve pinned keys");
+
     std::error_code cleanupError;
     std::filesystem::remove(pinManifestPath, cleanupError);
+    std::filesystem::remove(legacyPinManifestPath, cleanupError);
 
     strategic_nexus::CampaignSaveInventory missingRootInventory;
     const auto missingRootPlan = planner.build(missingRootInventory, 2);

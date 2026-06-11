@@ -2374,6 +2374,24 @@
         "tools/dev_attention/test_task_board_hygiene.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-232-surface-legacy-campaign-library-pin-manifest-degraded-compatibility",
+      "title": "Surface legacy campaign-library pin manifest degraded compatibility",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "12C. Backward Migration Rules",
+      "goal": "Teach the campaign-library pin manifest reader to accept legacy schema_version 0 as degraded compatibility and surface an owner-visible regeneration note in companion and tray status output.",
+      "acceptance": [
+        "loadCampaignLibraryPins accepts schema_version 0 as degraded compatibility instead of failing as unsupported schema.",
+        "Companion and tray status surfaces expose an explicit owner note for legacy pin manifests without weakening the fail-closed path for unknown schemas.",
+        "A targeted campaign-library planner regression and the relevant SNC status regression pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/campaign_library_planner_test.exe",
+        "dist/strategic_nexus_companion_test.exe"
+      ],
+      "dependencies": []
     }
   ]
 }
