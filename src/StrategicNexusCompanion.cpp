@@ -4,6 +4,7 @@
 #include "StrategicNexusCompanion.h"
 
 #include "AutosaveArchiver.h"
+#include "CampaignLibraryPlanner.h"
 #include "common/FileUtil.h"
 #include "common/JsonExtract.h"
 #include "generated_overlay/ManifestVerifier.h"
@@ -31,6 +32,9 @@
 #include <vector>
 
 namespace strategic_nexus {
+
+std::string buildCampaignLibraryPinCommandTemplate(const std::filesystem::path& pinPath);
+
 namespace {
 
 std::string escapeJson(const std::string& value)
@@ -1924,6 +1928,35 @@ void populateCampaignLibraryPlanStatus(
         status.campaignLibraryLimitReached = *limitReached;
         status.campaignLibrarySkippedDueToLimitCount =
             extractJsonSize(json, "skipped_due_to_limit_count").value_or(0);
+
+        const auto pinPath = planPath.parent_path() / "strategic_nexus_campaign_library_pins.json";
+        status.campaignLibraryPinPath = pinPath;
+        status.campaignLibraryPinCommandTemplate = buildCampaignLibraryPinCommandTemplate(pinPath);
+
+        const auto pinSet = loadCampaignLibraryPins(pinPath);
+        if (pinSet.present) {
+            status.campaignLibraryPinPresent = true;
+            status.campaignLibraryPinnedCount = pinSet.pinnedCount;
+            status.campaignLibraryPinnedMissingLocalSaveCount =
+                extractJsonSize(json, "pinned_missing_local_save_count").value_or(0);
+            status.campaignLibraryPinState = pinSet.state;
+            status.campaignLibraryPinReason = pinSet.reason;
+            status.campaignLibraryPinNextStep = pinSet.nextStep;
+
+            if (pinSet.schemaSupported && status.campaignLibraryPinnedMissingLocalSaveCount > 0) {
+                status.campaignLibraryPinState = "degraded";
+                status.campaignLibraryPinReason =
+                    "pinned campaign exceptions are available, but some pinned campaigns are not locally playable";
+                status.campaignLibraryPinNextStep =
+                    "Use the pin toggle command to trim unreachable pinned campaigns or restore the missing local save root.";
+            } else if (pinSet.schemaSupported && status.campaignLibraryLimitReached && status.campaignLibraryPinnedCount > 0) {
+                status.campaignLibraryPinState = "degraded";
+                status.campaignLibraryPinReason =
+                    "pinned campaign exceptions are available, but the active library is still truncated by the configured limit";
+                status.campaignLibraryPinNextStep =
+                    "Raise the max-campaign cap or remove unused local campaigns before adding more pinned exceptions.";
+            }
+        }
         return true;
     };
 
@@ -2874,14 +2907,30 @@ std::string buildStatusCenterSummaryText(
              << (postPlayPipeline.campaignLibraryLimitReached ? "true" : "false") << "\n";
         text << "campaign_library_skipped_due_to_limit_count: "
              << postPlayPipeline.campaignLibrarySkippedDueToLimitCount << "\n";
+        text << "campaign_library_pinned_count: " << postPlayPipeline.campaignLibraryPinnedCount << "\n";
+        text << "campaign_library_pinned_missing_local_save_count: "
+             << postPlayPipeline.campaignLibraryPinnedMissingLocalSaveCount << "\n";
+        if (!postPlayPipeline.campaignLibraryPinPath.empty()) {
+            text << "campaign_library_pin_path: " << pathString(postPlayPipeline.campaignLibraryPinPath) << "\n";
+        }
+        text << "campaign_library_pin_state: " << postPlayPipeline.campaignLibraryPinState << "\n";
+        text << "campaign_library_pin_reason: " << postPlayPipeline.campaignLibraryPinReason << "\n";
+        text << "campaign_library_pin_next_step: " << postPlayPipeline.campaignLibraryPinNextStep << "\n";
+        if (!postPlayPipeline.campaignLibraryPinCommandTemplate.empty()) {
+            text << "campaign_library_pin_command_template: "
+                 << postPlayPipeline.campaignLibraryPinCommandTemplate << "\n";
+        }
         if (postPlayPipeline.campaignLibraryPlanReadiness == "needs_attention") {
             text << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
+        } else if (postPlayPipeline.campaignLibraryPinState == "needs_attention") {
+            text << "campaign_library_owner_note: pinned campaign exception manifest needs attention before SNC should trust pinned coverage\n";
+        } else if (postPlayPipeline.campaignLibraryPinState == "degraded") {
+            text << "campaign_library_owner_note: pinned campaign exceptions are available, but some pinned campaigns are not locally playable\n";
         } else if (postPlayPipeline.campaignLibraryLimitReached) {
             text << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
-            text << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
-            text << "campaign_library_pin_state: unavailable\n";
-            text << "campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
-            text << "campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
+            if (postPlayPipeline.campaignLibraryPinState == "unavailable") {
+                text << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
+            }
         } else {
             text << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
         }
@@ -3797,6 +3846,21 @@ void writePostPlayPipelineJson(
            << (status.campaignLibraryLimitReached ? "true" : "false") << ",\n";
     output << indent << "  \"campaign_library_skipped_due_to_limit_count\": "
            << status.campaignLibrarySkippedDueToLimitCount << ",\n";
+    output << indent << "  \"campaign_library_pinned_count\": " << status.campaignLibraryPinnedCount << ",\n";
+    output << indent << "  \"campaign_library_pinned_missing_local_save_count\": "
+           << status.campaignLibraryPinnedMissingLocalSaveCount << ",\n";
+    output << indent << "  \"campaign_library_pin_path\": "
+           << jsonString(pathString(status.campaignLibraryPinPath)) << ",\n";
+    output << indent << "  \"campaign_library_pin_present\": "
+           << (status.campaignLibraryPinPresent ? "true" : "false") << ",\n";
+    output << indent << "  \"campaign_library_pin_state\": "
+           << jsonString(status.campaignLibraryPinState) << ",\n";
+    output << indent << "  \"campaign_library_pin_reason\": "
+           << jsonString(status.campaignLibraryPinReason) << ",\n";
+    output << indent << "  \"campaign_library_pin_next_step\": "
+           << jsonString(status.campaignLibraryPinNextStep) << ",\n";
+    output << indent << "  \"campaign_library_pin_command_template\": "
+           << jsonString(status.campaignLibraryPinCommandTemplate) << ",\n";
     output << indent << "  \"campaign_library_plan_source\": "
            << jsonString(status.campaignLibraryPlanSource) << ",\n";
     output << indent << "  \"campaign_library_plan_readiness\": "
@@ -3860,6 +3924,16 @@ CompanionFriendMeshUpdateStatus buildFriendMeshUpdateStatus(
     return buildFriendMeshUpdateStatusImpl(friendTrustStore, mpOverlayPackage);
 }
 
+std::string buildCampaignLibraryPinCommandTemplate(const std::filesystem::path& pinPath)
+{
+    if (pinPath.empty()) {
+        return "Strategic Nexus.exe --toggle-campaign-library-pin <manifest> <campaign_key> pin|unpin";
+    }
+
+    return "Strategic Nexus.exe --toggle-campaign-library-pin \"" + pathString(pinPath) +
+        "\" <campaign_key> pin|unpin";
+}
+
 CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const CompanionStatusConfig& config) const
 {
     CompanionStatusSnapshot snapshot;
@@ -3896,6 +3970,15 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
         populateMpOverlayPackageZipStatus(snapshot.mpOverlayPackage, effectiveMpPackageZipPath);
     }
     snapshot.postPlayPipeline = buildPostPlayPipelineStatus(config);
+    snapshot.campaignLibraryPinnedCount = snapshot.postPlayPipeline.campaignLibraryPinnedCount;
+    snapshot.campaignLibraryPinnedMissingLocalSaveCount =
+        snapshot.postPlayPipeline.campaignLibraryPinnedMissingLocalSaveCount;
+    snapshot.campaignLibraryPinPath = snapshot.postPlayPipeline.campaignLibraryPinPath;
+    snapshot.campaignLibraryPinPresent = snapshot.postPlayPipeline.campaignLibraryPinPresent;
+    snapshot.campaignLibraryPinState = snapshot.postPlayPipeline.campaignLibraryPinState;
+    snapshot.campaignLibraryPinReason = snapshot.postPlayPipeline.campaignLibraryPinReason;
+    snapshot.campaignLibraryPinNextStep = snapshot.postPlayPipeline.campaignLibraryPinNextStep;
+    snapshot.campaignLibraryPinCommandTemplate = snapshot.postPlayPipeline.campaignLibraryPinCommandTemplate;
     snapshot.gameplayAcceptance = buildGameplayAcceptanceStatus(config.gameplayAcceptanceReportPath);
     snapshot.localLlm = buildLocalLlmStatus(config);
     snapshot.friendTrustStore = buildFriendTrustStoreStatus(config);
@@ -4071,6 +4154,17 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"post_play_pipeline_status\": ";
     writePostPlayPipelineJson(output, snapshot.postPlayPipeline, "  ");
     output << ",\n";
+    output << "  \"campaign_library_pinned_count\": " << snapshot.campaignLibraryPinnedCount << ",\n";
+    output << "  \"campaign_library_pinned_missing_local_save_count\": "
+           << snapshot.campaignLibraryPinnedMissingLocalSaveCount << ",\n";
+    output << "  \"campaign_library_pin_path\": " << jsonString(pathString(snapshot.campaignLibraryPinPath)) << ",\n";
+    output << "  \"campaign_library_pin_present\": "
+           << (snapshot.campaignLibraryPinPresent ? "true" : "false") << ",\n";
+    output << "  \"campaign_library_pin_state\": " << jsonString(snapshot.campaignLibraryPinState) << ",\n";
+    output << "  \"campaign_library_pin_reason\": " << jsonString(snapshot.campaignLibraryPinReason) << ",\n";
+    output << "  \"campaign_library_pin_next_step\": " << jsonString(snapshot.campaignLibraryPinNextStep) << ",\n";
+    output << "  \"campaign_library_pin_command_template\": "
+           << jsonString(snapshot.campaignLibraryPinCommandTemplate) << ",\n";
     output << "  \"gameplay_acceptance_status\": ";
     writeSubsystemJson(output, snapshot.gameplayAcceptance, "  ");
     output << ",\n";

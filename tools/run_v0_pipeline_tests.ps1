@@ -222,7 +222,9 @@ $campaignSaveScannerSourceFiles = @(
 $campaignLibraryPlannerExePath = Join-Path $repoRoot "dist/campaign_library_planner_test.exe"
 $campaignLibraryPlannerSourceFiles = @(
     (Join-Path $repoRoot "tests/campaign_library_planner_test.cpp"),
-    (Join-Path $repoRoot "src/CampaignLibraryPlanner.cpp")
+    (Join-Path $repoRoot "src/CampaignLibraryPlanner.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp")
 )
 $stellarisSavePathResolverExePath = Join-Path $repoRoot "dist/stellaris_save_path_resolver_test.exe"
 $stellarisSavePathResolverSourceFiles = @(
@@ -373,6 +375,7 @@ $strategicNexusCompanionSourceFiles = @(
     (Join-Path $repoRoot "tests/strategic_nexus_companion_test.cpp"),
     (Join-Path $repoRoot "src/LocalLlmModelManager.cpp"),
     (Join-Path $repoRoot "src/LocalLlmRuntimeAdapter.cpp"),
+    (Join-Path $repoRoot "src/CampaignLibraryPlanner.cpp"),
     (Join-Path $repoRoot "src/StrategicNexusCompanion.cpp"),
     (Join-Path $repoRoot "src/SncFriendPackage.cpp"),
     (Join-Path $repoRoot "src/AutosaveArchiver.cpp"),

@@ -1837,6 +1837,56 @@ int main()
             std::string::npos,
         "status center summary should expose the fail-closed pinned-campaign placeholder state");
 
+    writeTextFileAtomically(
+        root / "strategic_nexus_campaign_library_pins.json",
+        "{\n"
+        "  \"schema_version\": 1,\n"
+        "  \"pinned_campaign_keys\": [\n"
+        "    \"alpha_campaign\"\n"
+        "  ]\n"
+        "}\n");
+    const auto stagedPublishPinned = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        activeOverlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport,
+        stagedOverlayStatusPath,
+        activeOverlayRoot,
+        publishStatusPath,
+        publishBackupRoot,
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        dslDraftAuditPath,
+        stagedOverlayStatusPath
+    });
+    requireCondition(stagedPublishPinned.campaignLibraryPinPresent, "pinned campaign manifest should be detected");
+    requireCondition(
+        stagedPublishPinned.campaignLibraryPinState == "degraded",
+        "pinned campaign state should degrade while the active library stays truncated");
+    requireCondition(
+        stagedPublishPinned.campaignLibraryPinReason ==
+            "pinned campaign exceptions are available, but the active library is still truncated by the configured limit",
+        "pinned campaign state should explain the limit interaction");
+    requireCondition(
+        stagedPublishPinned.campaignLibraryPinCommandTemplate.find("--toggle-campaign-library-pin") !=
+            std::string::npos,
+        "pinned campaign state should expose the toggle command template");
+    requireCondition(
+        stagedPublishPinned.statusCenterSummaryText.find("campaign_library_pin_state: degraded") !=
+            std::string::npos,
+        "status center summary should expose the pinned campaign manifest state");
+    requireCondition(
+        stagedPublishPinned.statusCenterSummaryText.find(
+            "campaign_library_pin_command_template: Strategic Nexus.exe --toggle-campaign-library-pin ") !=
+            std::string::npos,
+        "status center summary should expose the pin toggle command template");
+
     const auto stagedPublishBlocked = companion.buildStatusSnapshot({
         archiveSessionRoot,
         activeOverlayRoot,

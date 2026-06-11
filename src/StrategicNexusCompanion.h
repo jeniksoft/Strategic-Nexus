@@ -237,6 +237,16 @@ struct CompanionPostPlayPipelineStatus {
     bool campaignLibraryPlanPresent = false;
     bool campaignLibraryLimitReached = false;
     std::size_t campaignLibrarySkippedDueToLimitCount = 0;
+    std::size_t campaignLibraryPinnedCount = 0;
+    std::size_t campaignLibraryPinnedMissingLocalSaveCount = 0;
+    std::filesystem::path campaignLibraryPinPath;
+    bool campaignLibraryPinPresent = false;
+    std::string campaignLibraryPinState = "unavailable";
+    std::string campaignLibraryPinReason =
+        "user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests";
+    std::string campaignLibraryPinNextStep =
+        "keep the local save root present or restore it before broader coverage tests";
+    std::string campaignLibraryPinCommandTemplate;
     std::string campaignLibraryPlanSource;
     std::string campaignLibraryPlanReadiness;
     std::string campaignLibraryPlanReason;
@@ -362,6 +372,16 @@ struct CompanionStatusSnapshot {
     CompanionGeneratedOverlayPublishGateStatus generatedOverlayPublishGate;
     CompanionMpOverlayPackageStatus mpOverlayPackage;
     CompanionPostPlayPipelineStatus postPlayPipeline;
+    std::size_t campaignLibraryPinnedCount = 0;
+    std::size_t campaignLibraryPinnedMissingLocalSaveCount = 0;
+    std::filesystem::path campaignLibraryPinPath;
+    bool campaignLibraryPinPresent = false;
+    std::string campaignLibraryPinState = "unavailable";
+    std::string campaignLibraryPinReason =
+        "pinned campaign exceptions are unavailable until a campaign library plan is generated";
+    std::string campaignLibraryPinNextStep =
+        "Generate a campaign library plan, then inspect or toggle pinned campaign exceptions.";
+    std::string campaignLibraryPinCommandTemplate;
     CompanionSubsystemStatus gameplayAcceptance;
     CompanionLocalLlmStatus localLlm;
     CompanionFriendTrustStoreStatus friendTrustStore;

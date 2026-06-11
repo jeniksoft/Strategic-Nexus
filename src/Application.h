@@ -32,6 +32,7 @@ struct RunConfig {
     bool diffSaveCampaignsMode = false;
     bool planCampaignLibraryMode = false;
     bool compileCampaignLibraryOverlayMode = false;
+    bool toggleCampaignLibraryPinMode = false;
     bool discoverStellarisSaveRootsMode = false;
     bool detectStellarisRunningMode = false;
     bool exportMpOverlayPackageMode = false;
@@ -105,6 +106,7 @@ struct RunConfig {
     std::filesystem::path saveCampaignDiffOutputPath;
     std::filesystem::path campaignLibraryPlanRoot;
     std::filesystem::path campaignLibraryPlanOutputPath;
+    std::filesystem::path campaignLibraryPinManifestPath;
     std::filesystem::path campaignLibraryOverlayDslInputPath;
     std::filesystem::path campaignLibraryOverlaySaveRoot;
     std::filesystem::path campaignLibraryOverlayOutputDirectory;
@@ -220,6 +222,8 @@ struct RunConfig {
     std::int64_t v0TtlMs = 30000;
     std::int64_t campaignLibraryMaxCampaigns = 16;
     std::int64_t campaignLibraryOverlayMaxCampaigns = 16;
+    std::string campaignLibraryPinCampaignKey;
+    std::string campaignLibraryPinTargetState;
     std::int64_t autosaveArchiveStabilityDelayMs = 250;
     std::int64_t sncLiveAutosavePollIntervalMs = 1000;
     std::int64_t sncLiveAutosaveStabilityDelayMs = 250;

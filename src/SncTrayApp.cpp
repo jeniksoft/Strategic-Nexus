@@ -6173,14 +6173,31 @@ std::string buildStatusCenterSummaryText(
         appendOwnerFacingStatusReasonLine(summary, "campaign_library_plan_reason", campaignLibraryPlanReason);
         summary << "campaign_library_limit_reached: " << (campaignLibraryLimitReached ? "true" : "false") << "\n";
         summary << "campaign_library_skipped_due_to_limit_count: " << campaignLibrarySkippedDueToLimitCount << "\n";
+        summary << "campaign_library_pinned_count: " << postPlayPipeline.campaignLibraryPinnedCount << "\n";
+        summary << "campaign_library_pinned_missing_local_save_count: "
+                << postPlayPipeline.campaignLibraryPinnedMissingLocalSaveCount << "\n";
+        if (!postPlayPipeline.campaignLibraryPinPath.empty()) {
+            summary << "campaign_library_pin_path: "
+                    << pathString(postPlayPipeline.campaignLibraryPinPath) << "\n";
+        }
+        summary << "campaign_library_pin_state: " << postPlayPipeline.campaignLibraryPinState << "\n";
+        summary << "campaign_library_pin_reason: " << postPlayPipeline.campaignLibraryPinReason << "\n";
+        summary << "campaign_library_pin_next_step: " << postPlayPipeline.campaignLibraryPinNextStep << "\n";
+        if (!postPlayPipeline.campaignLibraryPinCommandTemplate.empty()) {
+            summary << "campaign_library_pin_command_template: "
+                    << postPlayPipeline.campaignLibraryPinCommandTemplate << "\n";
+        }
         if (campaignLibraryPlanReadiness == "needs_attention") {
             summary << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
+        } else if (postPlayPipeline.campaignLibraryPinState == "needs_attention") {
+            summary << "campaign_library_owner_note: pinned campaign exception manifest needs attention before SNC should trust pinned coverage\n";
+        } else if (postPlayPipeline.campaignLibraryPinState == "degraded") {
+            summary << "campaign_library_owner_note: pinned campaign exceptions are available, but some pinned campaigns are not locally playable\n";
         } else if (campaignLibraryLimitReached) {
             summary << "campaign_library_owner_note: active generated campaign library is truncated by the configured limit; raise the cap or clean local campaigns before broader coverage tests\n";
-            summary << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
-            summary << "campaign_library_pin_state: unavailable\n";
-            summary << "campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
-            summary << "campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
+            if (postPlayPipeline.campaignLibraryPinState == "unavailable") {
+                summary << "campaign_library_owner_note: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
+            }
         } else {
             summary << "campaign_library_owner_note: active generated campaign library fits within the configured limit\n";
         }
@@ -6396,6 +6413,13 @@ void writeNextStepsBrief(
     const std::size_t campaignLibrarySkippedDueToLimitCount,
     const std::string& campaignLibraryPlanReadiness,
     const std::string& campaignLibraryPlanReason,
+    const std::size_t campaignLibraryPinnedCount,
+    const std::size_t campaignLibraryPinnedMissingLocalSaveCount,
+    const std::filesystem::path& campaignLibraryPinPath,
+    const std::string& campaignLibraryPinState,
+    const std::string& campaignLibraryPinReason,
+    const std::string& campaignLibraryPinNextStep,
+    const std::string& campaignLibraryPinCommandTemplate,
     const std::filesystem::path& decisionInputPackagePath,
     const std::string& decisionInputPackageReadiness,
     const std::filesystem::path& candidateDecisionPackagePath,
@@ -6460,17 +6484,34 @@ void writeNextStepsBrief(
         brief << "\n";
         brief << "- Campaign library saturation: "
               << (campaignLibraryLimitReached ? "truncated_by_limit" : "within_limit");
+        brief << "\n";
+        brief << "- campaign_library_pinned_count: " << campaignLibraryPinnedCount << "\n";
+        brief << "- campaign_library_pinned_missing_local_save_count: "
+              << campaignLibraryPinnedMissingLocalSaveCount << "\n";
+        if (!campaignLibraryPinPath.empty()) {
+            brief << "- campaign_library_pin_path: " << pathString(campaignLibraryPinPath) << "\n";
+        }
+        brief << "- campaign_library_pin_state: " << campaignLibraryPinState << "\n";
+        brief << "- campaign_library_pin_reason: " << campaignLibraryPinReason << "\n";
+        brief << "- campaign_library_pin_next_step: " << campaignLibraryPinNextStep << "\n";
+        if (!campaignLibraryPinCommandTemplate.empty()) {
+            brief << "- campaign_library_pin_command_template: "
+                  << campaignLibraryPinCommandTemplate << "\n";
+        }
         if (campaignLibraryPlanReadiness == "needs_attention") {
             brief << "\n";
             brief << "- Poznamka: sidecar plan knihovny kampani potrebuje pozornost; SNC nema duverovat aktivnimu coverage, dokud se plan neopravi.\n";
+        } else if (campaignLibraryPinState == "needs_attention") {
+            brief << "- Poznamka: pin manifest knihovny kampani potrebuje pozornost, nez budeme spolehat na pinned coverage.\n";
+        } else if (campaignLibraryPinState == "degraded") {
+            brief << "- Poznamka: pinned campaign exceptions jsou aktivni, ale cast pinned kampani neni lokalne hratelna.\n";
         } else if (campaignLibraryLimitReached) {
             brief << " (" << campaignLibrarySkippedDueToLimitCount << " campaign(s) skipped by limit)";
             brief << "\n";
             brief << "- Poznamka: aktivni generovana knihovna kampani je zamerne omezena; pokud v pristim testu chybi kampan, zvedni limit nebo uklid lokalni save root.\n";
-            brief << "- Poznamka: user-pinned campaign exceptions zatim nejsou k dispozici; pro sirsi coverage nech local save root dostupny nebo jej obnov.\n";
-            brief << "- campaign_library_pin_state: unavailable\n";
-            brief << "- campaign_library_pin_reason: user-pinned campaign exceptions are not yet available; keep the local save root present or restore it before broader coverage tests\n";
-            brief << "- campaign_library_pin_next_step: keep the local save root present or restore it before broader coverage tests\n";
+            if (campaignLibraryPinState == "unavailable") {
+                brief << "- Poznamka: user-pinned campaign exceptions zatim nejsou k dispozici; pro sirsi coverage nech local save root dostupny nebo jej obnov.\n";
+            }
         } else {
             brief << "\n";
             brief << "- Poznamka: aktivni generovana knihovna kampani se vejde do nastaveneho limitu.\n";
@@ -6975,6 +7016,13 @@ void writeStatus(
         effectiveCampaignLibrarySkippedDueToLimitCount,
         effectiveCampaignLibraryPlanReadiness,
         effectiveCampaignLibraryPlanReason,
+        companionSnapshot.campaignLibraryPinnedCount,
+        companionSnapshot.campaignLibraryPinnedMissingLocalSaveCount,
+        companionSnapshot.campaignLibraryPinPath,
+        companionSnapshot.campaignLibraryPinState,
+        companionSnapshot.campaignLibraryPinReason,
+        companionSnapshot.campaignLibraryPinNextStep,
+        companionSnapshot.campaignLibraryPinCommandTemplate,
         effectiveDecisionInputPackagePath,
         effectiveDecisionInputPackageReadiness,
         effectiveCandidateDecisionPackagePath,

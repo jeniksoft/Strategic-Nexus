@@ -3,6 +3,7 @@
 
 #include "CampaignLibraryPlanner.h"
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -62,6 +63,52 @@ int main()
     requireCondition(json.find("\"skipped_due_to_limit_count\": 1") != std::string::npos, "plan JSON should include skipped-due-to-limit count");
     requireCondition(json.find("\"reason\": \"active_library_limit\"") != std::string::npos, "plan JSON should include limit reason");
     requireCondition(json.find("\"reason\": \"missing_anchor_fingerprint\"") != std::string::npos, "plan JSON should include fingerprint reason");
+
+    const auto pinManifestPath = std::filesystem::temp_directory_path() / "strategic_nexus_campaign_library_pins_test.json";
+    requireCondition(
+        strategic_nexus::writeCampaignLibraryPins(pinManifestPath, {"gamma", "delta", "gamma"}),
+        "pin manifest should be writable");
+    const auto pinSet = strategic_nexus::loadCampaignLibraryPins(pinManifestPath);
+    requireCondition(pinSet.present, "pin manifest should be detected as present");
+    requireCondition(pinSet.schemaSupported, "pin manifest should use schema version 1");
+    requireCondition(pinSet.pinnedCount == 2, "pin manifest should deduplicate campaign keys");
+    requireCondition(pinSet.state == "ready", "pin manifest should surface ready state");
+
+    strategic_nexus::CampaignSaveInventory pinnedInventory;
+    pinnedInventory.rootExists = false;
+    pinnedInventory.entries.push_back(makeEntry("alpha", "hash_alpha"));
+    pinnedInventory.entries.push_back(makeEntry("beta", "hash_beta"));
+
+    const auto pinnedPlan = planner.build(pinnedInventory, 3, pinSet);
+    requireCondition(pinnedPlan.pinnedCount == 2, "pinned plan should count included pinned campaigns");
+    requireCondition(pinnedPlan.pinnedMissingLocalSaveCount == 2, "pinned plan should count synthetic pinned campaigns");
+    requireCondition(pinnedPlan.includedCount == 3, "pinned plan should include pinned campaigns ahead of unpinned campaigns");
+    requireCondition(pinnedPlan.limitReached, "pinned plan should still respect the active library limit");
+    requireCondition(pinnedPlan.skippedDueToLimitCount == 1, "pinned plan should still count overflow skipped by the limit");
+    requireCondition(
+        pinnedPlan.entries[0].status == "included_pinned_missing_local_save",
+        "missing pinned campaigns should stay available as synthetic included entries");
+    requireCondition(
+        pinnedPlan.entries[0].pinned,
+        "missing pinned campaigns should be marked pinned");
+    requireCondition(
+        pinnedPlan.entries[2].status == "included",
+        "unpinned local campaigns should still be included when capacity remains");
+    requireCondition(
+        pinnedPlan.entries[3].reason == "active_library_limit",
+        "overflow local campaigns should still be skipped by the limit");
+
+    const auto pinnedJson = strategic_nexus::serializeCampaignLibraryPlan(pinnedPlan);
+    requireCondition(pinnedJson.find("\"pinned_count\": 2") != std::string::npos, "pinned plan JSON should include pinned count");
+    requireCondition(
+        pinnedJson.find("\"pinned_missing_local_save_count\": 2") != std::string::npos,
+        "pinned plan JSON should include missing local save count");
+    requireCondition(
+        pinnedJson.find("\"status\": \"included_pinned_missing_local_save\"") != std::string::npos,
+        "pinned plan JSON should include synthetic pinned status");
+
+    std::error_code cleanupError;
+    std::filesystem::remove(pinManifestPath, cleanupError);
 
     strategic_nexus::CampaignSaveInventory missingRootInventory;
     const auto missingRootPlan = planner.build(missingRootInventory, 2);

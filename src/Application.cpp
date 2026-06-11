@@ -41,6 +41,7 @@
 #include "strategic_pipeline/V0StrategicPipeline.h"
 
 #include <chrono>
+#include <algorithm>
 #include <cstdint>
 #include <ctime>
 #include <exception>
@@ -1156,6 +1157,24 @@ RunConfig parseRunConfig(int argc, char* argv[])
 
         if (argc > 5) {
             config.campaignLibraryOverlayOutputDirectory = argv[5];
+        }
+
+        return config;
+    }
+
+    if (argc > 1 && std::string(argv[1]) == "--toggle-campaign-library-pin") {
+        config.toggleCampaignLibraryPinMode = true;
+
+        if (argc > 2) {
+            config.campaignLibraryPinManifestPath = argv[2];
+        }
+
+        if (argc > 3) {
+            config.campaignLibraryPinCampaignKey = argv[3];
+        }
+
+        if (argc > 4) {
+            config.campaignLibraryPinTargetState = argv[4];
         }
 
         return config;
@@ -3404,7 +3423,10 @@ int Application::run(const RunConfig& config) const
             const CampaignSaveScanner scanner;
             const CampaignLibraryPlanner planner;
             const auto inventory = scanner.scan(config.campaignLibraryPlanRoot);
-            const auto plan = planner.build(inventory, maxCampaigns);
+            const auto pinManifestPath = config.campaignLibraryPlanOutputPath.parent_path() /
+                "strategic_nexus_campaign_library_pins.json";
+            const auto pinSet = loadCampaignLibraryPins(pinManifestPath);
+            const auto plan = planner.build(inventory, maxCampaigns, pinSet);
             const bool written = common::writeTextFileAtomically(
                 config.campaignLibraryPlanOutputPath,
                 serializeCampaignLibraryPlan(plan));
@@ -3415,6 +3437,9 @@ int Application::run(const RunConfig& config) const
             std::cout << "campaign_library_plan_included=" << plan.includedCount << "\n";
             std::cout << "campaign_library_plan_skipped=" << plan.skippedCount << "\n";
             std::cout << "campaign_library_plan_skipped_due_to_limit=" << plan.skippedDueToLimitCount << "\n";
+            std::cout << "campaign_library_plan_pinned=" << plan.pinnedCount << "\n";
+            std::cout << "campaign_library_plan_pinned_missing_local_save=" << plan.pinnedMissingLocalSaveCount << "\n";
+            std::cout << "campaign_library_plan_pin_manifest_state=" << pinSet.state << "\n";
             std::cout << "campaign_library_plan_output_written=" << (written ? "true" : "false") << "\n";
             if (!written) {
                 std::cout << "campaign_library_plan_reason=failed to write campaign library plan\n";
@@ -3472,10 +3497,13 @@ int Application::run(const RunConfig& config) const
                 std::cout << "campaign_library_overlay_reason=save root unavailable\n";
                 return 1;
             }
-            const auto plan = planner.build(inventory, maxCampaigns);
+            const auto pinManifestPath = config.campaignLibraryOverlayOutputDirectory.parent_path() /
+                "strategic_nexus_campaign_library_pins.json";
+            const auto pinSet = loadCampaignLibraryPins(pinManifestPath);
+            const auto plan = planner.build(inventory, maxCampaigns, pinSet);
             std::set<std::string> includedCampaignKeys;
             for (const auto& entry : plan.entries) {
-                if (entry.status == "included") {
+                if (entry.status.rfind("included", 0) == 0) {
                     includedCampaignKeys.insert(entry.campaignKey);
                 }
             }
@@ -3554,6 +3582,8 @@ int Application::run(const RunConfig& config) const
             std::cout << "campaign_library_overlay_limit_reached=" << (plan.limitReached ? "true" : "false") << "\n";
             std::cout << "campaign_library_overlay_campaigns_included=" << plan.includedCount << "\n";
             std::cout << "campaign_library_overlay_campaigns_skipped_due_to_limit=" << plan.skippedDueToLimitCount << "\n";
+            std::cout << "campaign_library_overlay_campaigns_pinned=" << plan.pinnedCount << "\n";
+            std::cout << "campaign_library_overlay_campaigns_pinned_missing_local_save=" << plan.pinnedMissingLocalSaveCount << "\n";
             std::cout << "campaign_library_overlay_plan_written=" << (planWritten ? "true" : "false") << "\n";
             if (!success) {
                 std::cout << "campaign_library_overlay_reason=failed to write campaign library overlay files\n";
@@ -3623,6 +3653,45 @@ int Application::run(const RunConfig& config) const
             std::cout << "stellaris_save_parse_save_date=" << sanitizeCliValue(summary.saveDate) << "\n";
             std::cout << "stellaris_save_parse_output_written=" << (written ? "true" : "false") << "\n";
             return success ? 0 : 1;
+        }
+
+        if (config.toggleCampaignLibraryPinMode) {
+            if (config.campaignLibraryPinManifestPath.empty() ||
+                config.campaignLibraryPinCampaignKey.empty() ||
+                config.campaignLibraryPinTargetState.empty()) {
+                std::cout << "campaign_library_pin_update_success=false\n";
+                std::cout << "campaign_library_pin_update_reason=missing pin manifest, campaign key, or target state\n";
+                return 1;
+            }
+
+            const auto pinSet = loadCampaignLibraryPins(config.campaignLibraryPinManifestPath);
+            std::vector<std::string> pinnedCampaignKeys = pinSet.pinnedCampaignKeys;
+            const auto it = std::find(pinnedCampaignKeys.begin(), pinnedCampaignKeys.end(), config.campaignLibraryPinCampaignKey);
+            const auto targetState = config.campaignLibraryPinTargetState;
+            const bool shouldPin = targetState == "pin";
+            const bool shouldUnpin = targetState == "unpin";
+            if (!shouldPin && !shouldUnpin) {
+                std::cout << "campaign_library_pin_update_success=false\n";
+                std::cout << "campaign_library_pin_update_reason=target state must be pin or unpin\n";
+                return 1;
+            }
+
+            if (shouldPin) {
+                if (it == pinnedCampaignKeys.end()) {
+                    pinnedCampaignKeys.push_back(config.campaignLibraryPinCampaignKey);
+                }
+            } else if (it != pinnedCampaignKeys.end()) {
+                pinnedCampaignKeys.erase(it);
+            }
+
+            const bool written = writeCampaignLibraryPins(config.campaignLibraryPinManifestPath, pinnedCampaignKeys);
+            const auto updatedPins = loadCampaignLibraryPins(config.campaignLibraryPinManifestPath);
+            std::cout << "campaign_library_pin_update_success=" << (written ? "true" : "false") << "\n";
+            std::cout << "campaign_library_pin_update_state=" << updatedPins.state << "\n";
+            std::cout << "campaign_library_pin_update_reason=" << updatedPins.reason << "\n";
+            std::cout << "campaign_library_pin_update_count=" << updatedPins.pinnedCount << "\n";
+            std::cout << "campaign_library_pin_update_written=" << (written ? "true" : "false") << "\n";
+            return written ? 0 : 1;
         }
 
         if (config.analyzeSaveEntryPointsMode) {

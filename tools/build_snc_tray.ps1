@@ -94,6 +94,7 @@ $sourceFiles = @(
     (Join-Path $repoRoot "src\AutosaveArchiver.cpp"),
     (Join-Path $repoRoot "src\AutosaveArchiveVerifier.cpp"),
     (Join-Path $repoRoot "src\AutosaveArchiveSummarizer.cpp"),
+    (Join-Path $repoRoot "src\CampaignLibraryPlanner.cpp"),
     (Join-Path $repoRoot "src\PostPlayPackageBuilder.cpp"),
     (Join-Path $repoRoot "src\SaveEntryPointAnalyzer.cpp"),
     (Join-Path $repoRoot "src\SaveParser.cpp"),
