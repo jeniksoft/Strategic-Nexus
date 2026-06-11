@@ -3,6 +3,7 @@
 
 #include "ObserverTargetProfileBuilder.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <sstream>
@@ -243,6 +244,27 @@ ObserverTargetProfile ObserverTargetProfileBuilder::build(
     profile.targetMemorySummaryConfidence = confidence;
     profile.targetMemorySummaryConfidenceBand = confidenceBandFor(confidence);
     profile.targetMemorySummary = buildTargetMemorySummary(profile, profile.evidenceReferences.size());
+    const std::size_t evidenceCount = profile.evidenceReferences.size();
+    const double evidenceBonus = static_cast<double>(std::min<std::size_t>(evidenceCount, 4)) * 0.03;
+    const double sourceQualityBonus =
+        observerBrief.sourceLedgerQuality == "metadata_plus_save_headline" ? 0.04 : 0.01;
+    profile.relationshipDelta.generalTrust = std::clamp(
+        0.08 + confidence * 0.28 + evidenceBonus + sourceQualityBonus,
+        0.0,
+        1.0);
+    profile.relationshipDelta.predictedFutureBehavior = std::clamp(
+        0.06 + confidence * 0.24 + (evidenceBonus * 0.9) + sourceQualityBonus,
+        0.0,
+        1.0);
+    profile.relationshipDelta.generalTrustSummary =
+        "summary_only general trust signal; confidence_band=" + profile.targetMemorySummaryConfidenceBand +
+        "; evidence_count=" + std::to_string(evidenceCount) +
+        "; source_quality=" + profile.sourceBriefQuality;
+    profile.relationshipDelta.predictedFutureBehaviorSummary =
+        "summary_only predicted future behavior signal; confidence_band=" +
+        profile.targetMemorySummaryConfidenceBand +
+        "; evidence_count=" + std::to_string(evidenceCount) +
+        "; gameplay_rule_candidates=blocked";
     profile.missingInformation = observerBrief.missingInformation;
     profile.missingInformation.push_back("observer_target_relationship_delta_not_generated_yet");
     profile.missingInformation.push_back("target_specific_rule_generation_not_implemented_yet");

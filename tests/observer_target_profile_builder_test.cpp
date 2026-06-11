@@ -60,8 +60,25 @@ int main()
         requireCondition(profile.fieldAvailability.size() == 10, "profile should expose a bounded field availability map");
         requireCondition(profile.missingInformation.size() == 10, "profile should carry brief missing information plus contract gaps");
         requireCondition(profile.compressionNotes.size() == 4, "profile should carry brief compression notes plus contract notes");
-        requireCondition(profile.relationshipDelta.generalTrust == 0.0, "profile should not invent trust delta values");
-        requireCondition(profile.relationshipDelta.predictedFutureBehavior == 0.0, "profile should not invent predictive delta values");
+        requireCondition(
+            profile.relationshipDelta.generalTrust > 0.0 && profile.relationshipDelta.generalTrust < 1.0,
+            "profile should populate a bounded general trust delta");
+        requireCondition(
+            profile.relationshipDelta.predictedFutureBehavior > 0.0 &&
+                profile.relationshipDelta.predictedFutureBehavior < 1.0,
+            "profile should populate a bounded predictive behavior delta");
+        requireCondition(
+            profile.relationshipDelta.generalTrustSummary.find("summary_only general trust signal") != std::string::npos,
+            "profile should summarize the general trust signal");
+        requireCondition(
+            profile.relationshipDelta.generalTrustSummary.find("confidence_band=low") != std::string::npos,
+            "profile should describe the trust confidence band");
+        requireCondition(
+            profile.relationshipDelta.predictedFutureBehaviorSummary.find("summary_only predicted future behavior signal") != std::string::npos,
+            "profile should summarize the predictive behavior signal");
+        requireCondition(
+            profile.relationshipDelta.predictedFutureBehaviorSummary.find("gameplay_rule_candidates=blocked") != std::string::npos,
+            "profile should keep gameplay rule candidates blocked");
 
         const auto json = strategic_nexus::serializeObserverTargetProfile(profile);
         requireCondition(json.find("\"observer_empire_id\": \"observer_empire_001\"") != std::string::npos, "profile JSON should include observer empire id");
@@ -70,6 +87,9 @@ int main()
         requireCondition(json.find("\"target_memory_summary\": \"summary_only target memory for target_empire_002") != std::string::npos, "profile JSON should include target memory summary");
         requireCondition(json.find("\"target_memory_summary_confidence\": 0.42") != std::string::npos, "profile JSON should include target memory summary confidence");
         requireCondition(json.find("\"target_memory_summary_confidence_band\": \"low\"") != std::string::npos, "profile JSON should include target memory summary confidence band");
+        requireCondition(json.find("\"relationship_delta\": {") != std::string::npos, "profile JSON should include relationship delta");
+        requireCondition(json.find("\"general_trust\": ") != std::string::npos, "profile JSON should include general trust");
+        requireCondition(json.find("\"predicted_future_behavior\": ") != std::string::npos, "profile JSON should include predicted future behavior");
         requireCondition(json.find("\"field_availability\": [") != std::string::npos, "profile JSON should include field availability");
         requireCondition(json.find("\"internal_pressure\"") != std::string::npos, "profile JSON should include internal pressure availability");
         requireCondition(json.find("\"strategic_reputation\"") != std::string::npos, "profile JSON should include strategic reputation availability");
