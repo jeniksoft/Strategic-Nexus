@@ -111,7 +111,11 @@ $integratedEmpireStateBuilderExePath = Join-Path $repoRoot "dist/integrated_empi
 $integratedEmpireStateBuilderSourceFiles = @(
     (Join-Path $repoRoot "tests/integrated_empire_state_builder_test.cpp"),
     (Join-Path $repoRoot "src/IntegratedEmpireStateBuilder.cpp"),
-    (Join-Path $repoRoot "src/SeasonEmpireBriefBuilder.cpp")
+    (Join-Path $repoRoot "src/PersonalityProfileStore.cpp"),
+    (Join-Path $repoRoot "src/SeasonEmpireBriefBuilder.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
 $personalityProfileStoreExePath = Join-Path $repoRoot "dist/personality_profile_store_test.exe"
 $personalityProfileStoreSourceFiles = @(

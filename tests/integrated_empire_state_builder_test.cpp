@@ -2,8 +2,10 @@
 // Copyright (c) 2026 Antonin Jenik
 
 #include "IntegratedEmpireStateBuilder.h"
+#include "PersonalityProfileStore.h"
 #include "SeasonEmpireBriefBuilder.h"
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -70,11 +72,43 @@ strategic_nexus::EmpireState makeEmpireBeta()
     return empire;
 }
 
+strategic_nexus::PersonalityProfileRecord makeStoredProfile()
+{
+    strategic_nexus::PersonalityProfileRecord record;
+    record.ok = true;
+    record.reason = "accepted validated personality profile";
+    record.sourceSchemaVersion = 1;
+    record.schemaCompatibilityState = "current";
+    record.schemaCompatibilityNote.clear();
+    record.campaignId = "campaign_001";
+    record.empireId = "empire_alpha";
+    record.sourceSaveDate = "2026-06-10";
+    record.sourceSavePath = "dist/private_reports/personality_profile_source.sav";
+    record.validatedUpdateSummary = "profile-backed defensive caution";
+    record.confidence = 0.91;
+    record.zeroHistoryBootstrap = false;
+    record.personality.boldness = 0.18;
+    record.personality.paranoia = 0.94;
+    record.personality.honor = 0.12;
+    record.personality.opportunism = 0.21;
+    return record;
+}
+
 } // namespace
 
 int main()
 {
-    const strategic_nexus::IntegratedEmpireStateBuilder builder;
+    const auto root = std::filesystem::path("dist/integrated_empire_state_builder_fixture");
+    const auto emptyProfileRoot = root / "empty_profile_root";
+    const auto storedProfileRoot = root / "stored_profile_root";
+    std::filesystem::remove_all(root);
+
+    const strategic_nexus::PersonalityProfileStore store;
+    const auto storedProfile = makeStoredProfile();
+    requireCondition(store.save(storedProfileRoot, storedProfile), "stored profile fixture should be writable");
+
+    const strategic_nexus::IntegratedEmpireStateBuilder builder(emptyProfileRoot);
+    const strategic_nexus::IntegratedEmpireStateBuilder profileBackedBuilder(storedProfileRoot);
     const auto alphaBrief = makeBrief("empire_alpha");
     const auto betaBrief = makeBrief("empire_beta");
     const auto alpha = makeEmpireAlpha();
@@ -125,6 +159,18 @@ int main()
         const auto alphaJson = strategic_nexus::serializeIntegratedEmpireState(alphaState);
         const auto betaJson = strategic_nexus::serializeIntegratedEmpireState(state);
         requireCondition(alphaJson != betaJson, "same evidence should still serialize differently for different empires");
+    }
+
+    {
+        const auto baselineState = builder.build(alphaBrief, alpha, 0.58);
+        const auto profileBackedState = profileBackedBuilder.build(alphaBrief, alpha, 0.58);
+        requireCondition(profileBackedState.ok, "profile-backed integrated state should still build successfully");
+        requireCondition(
+            profileBackedState.internalPressure.securityAnxiety > baselineState.internalPressure.securityAnxiety,
+            "loaded personality profile should increase security anxiety for the stored empire");
+        requireCondition(
+            profileBackedState.strategicReputation.privateSelfImage < baselineState.strategicReputation.privateSelfImage,
+            "loaded personality profile should reduce private self-image for the stored empire");
     }
 
     {

@@ -3,9 +3,12 @@
 
 #include "IntegratedEmpireStateBuilder.h"
 
+#include "PersonalityProfileStore.h"
+
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include <utility>
 
 namespace strategic_nexus {
 namespace {
@@ -137,14 +140,29 @@ std::string describeInertiaBand(const std::string& label, const double value)
 
 } // namespace
 
+IntegratedEmpireStateBuilder::IntegratedEmpireStateBuilder(
+    std::filesystem::path personalityProfileRoot)
+    : personalityProfileRoot_(std::move(personalityProfileRoot))
+{
+}
+
 IntegratedEmpireState IntegratedEmpireStateBuilder::build(
     const SeasonEmpireBrief& brief,
     const EmpireState& empire,
     const double confidence) const
 {
+    EmpireState effectiveEmpire = empire;
+    if (!personalityProfileRoot_.empty() && hasNonWhitespace(brief.campaignId) && hasNonWhitespace(empire.id)) {
+        const PersonalityProfileStore store;
+        const PersonalityProfileRecord storedProfile = store.load(personalityProfileRoot_, brief.campaignId, empire.id);
+        if (storedProfile.ok) {
+            effectiveEmpire.personality = storedProfile.personality;
+        }
+    }
+
     IntegratedEmpireState state;
     state.campaignId = brief.campaignId;
-    state.empireId = empire.id;
+    state.empireId = effectiveEmpire.id;
     state.sourceBriefQuality = brief.sourceLedgerQuality;
     state.sourceEmpireStateQuality = "summary_only_empire_state_contract";
     state.confidence = confidence;
@@ -163,11 +181,11 @@ IntegratedEmpireState IntegratedEmpireStateBuilder::build(
         state.reason = "missing campaign id";
         return state;
     }
-    if (!hasNonWhitespace(empire.id)) {
+    if (!hasNonWhitespace(effectiveEmpire.id)) {
         state.reason = "missing empire id";
         return state;
     }
-    if (brief.empireId != empire.id) {
+    if (brief.empireId != effectiveEmpire.id) {
         state.reason = "mismatched empire id";
         return state;
     }
@@ -180,17 +198,17 @@ IntegratedEmpireState IntegratedEmpireStateBuilder::build(
         return state;
     }
 
-    const double fleetScore = normalizedPower(empire.power.fleetPower);
-    const double economicScore = normalizedRank(empire.power.economicRank);
-    const double techScore = normalizedRank(empire.power.technologyRank);
-    const double diplomaticScore = normalizedPower(empire.power.diplomaticInfluence);
-    const double paranoia = clamp01(empire.personality.paranoia);
-    const double honor = clamp01(empire.personality.honor);
-    const double boldness = clamp01(empire.personality.boldness);
-    const double opportunism = clamp01(empire.personality.opportunism);
-    const double fear = clamp01(empire.adaptiveState.fearOfPlayer);
-    const double trauma = clamp01(empire.adaptiveState.warTrauma);
-    const double federationTrust = clamp01(empire.adaptiveState.trustInFederations);
+    const double fleetScore = normalizedPower(effectiveEmpire.power.fleetPower);
+    const double economicScore = normalizedRank(effectiveEmpire.power.economicRank);
+    const double techScore = normalizedRank(effectiveEmpire.power.technologyRank);
+    const double diplomaticScore = normalizedPower(effectiveEmpire.power.diplomaticInfluence);
+    const double paranoia = clamp01(effectiveEmpire.personality.paranoia);
+    const double honor = clamp01(effectiveEmpire.personality.honor);
+    const double boldness = clamp01(effectiveEmpire.personality.boldness);
+    const double opportunism = clamp01(effectiveEmpire.personality.opportunism);
+    const double fear = clamp01(effectiveEmpire.adaptiveState.fearOfPlayer);
+    const double trauma = clamp01(effectiveEmpire.adaptiveState.warTrauma);
+    const double federationTrust = clamp01(effectiveEmpire.adaptiveState.trustInFederations);
 
     state.internalPressure.securityAnxiety = clamp01(
         0.18 + paranoia * 0.40 + fear * 0.35 + (fleetScore < 0.25 ? 0.10 : 0.0));

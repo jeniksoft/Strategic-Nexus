@@ -141,7 +141,13 @@
     <ClCompile Include="src\ModIntegration.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\IntegratedEmpireStateBuilder.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="src\PersonalityEngine.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PersonalityProfileStore.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
     <ClCompile Include="src\RequestFileReader.cpp">
@@ -332,7 +338,13 @@
     <ClInclude Include="src\ModIntegration.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
+    <ClInclude Include="src\IntegratedEmpireStateBuilder.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
     <ClInclude Include="src\PersonalityEngine.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PersonalityProfileStore.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\RequestFileReader.h">

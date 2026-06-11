@@ -188,6 +188,7 @@
     <ClCompile Include="src\ModIntegration.cpp" />
     <ClCompile Include="src\IntegratedEmpireStateBuilder.cpp" />
     <ClCompile Include="src\PersonalityEngine.cpp" />
+    <ClCompile Include="src\PersonalityProfileStore.cpp" />
     <ClCompile Include="src\RequestFileReader.cpp" />
     <ClCompile Include="src\PostPlayPackageBuilder.cpp" />
     <ClCompile Include="src\SaveParser.cpp" />
@@ -254,6 +255,7 @@
     <ClInclude Include="src\ModIntegration.h" />
     <ClInclude Include="src\IntegratedEmpireStateBuilder.h" />
     <ClInclude Include="src\PersonalityEngine.h" />
+    <ClInclude Include="src\PersonalityProfileStore.h" />
     <ClInclude Include="src\RequestFileReader.h" />
     <ClInclude Include="src\PostPlayPackageBuilder.h" />
     <ClInclude Include="src\SaveParser.h" />

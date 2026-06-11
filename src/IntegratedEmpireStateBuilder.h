@@ -6,6 +6,7 @@
 #include "CoreTypes.h"
 #include "SeasonEmpireBriefBuilder.h"
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -63,10 +64,16 @@ struct IntegratedEmpireState {
 
 class IntegratedEmpireStateBuilder {
 public:
+    explicit IntegratedEmpireStateBuilder(
+        std::filesystem::path personalityProfileRoot = "dist/private_reports/personality_profiles");
+
     IntegratedEmpireState build(
         const SeasonEmpireBrief& brief,
         const EmpireState& empire,
         double confidence) const;
+
+private:
+    std::filesystem::path personalityProfileRoot_;
 };
 
 std::string serializeIntegratedEmpireState(const IntegratedEmpireState& state);
