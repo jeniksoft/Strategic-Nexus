@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-11T13:05:00.0000000+02:00",
+  "updated_at": "2026-06-11T13:09:33.1818272+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2542,7 +2542,7 @@
   {
     "id": "v0-sprint-241-introduce-friend-mp-sync-transport-adapter-seam",
     "title": "Introduce friend MP sync transport adapter seam",
-    "status": "ready",
+    "status": "done",
     "lane": "implementation",
     "roadmap_anchor": "15G. Release Companion MP Package UX / transport adapters",
     "goal": "Factor the current disabled friend MP sync transport state into a small replaceable adapter seam so companion, tray, and status surfaces keep the fail-closed wording while future signed/encrypted transport work has a single ownership boundary.",
