@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-11T11:10:06.8304626+02:00",
+  "updated_at": "2026-06-11T11:26:09.5328002+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2449,7 +2449,7 @@
     {
       "id": "v0-sprint-236-verify-local-llm-model-manager-surface-on-current-head",
       "title": "Verify local LLM model-manager surface on current head",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "1G. Local LLM Model Manager / reduced-mode guidance visibility",
       "goal": "Verify that the current-head companion, tray, and Status Center surfaces still expose the local LLM reduced-mode guidance, accepted model readiness, supported-model catalog summary, and fail-closed attention routing without reopening the handoff path.",
