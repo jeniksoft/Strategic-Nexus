@@ -2863,5 +2863,23 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-259-polish-local-llm-owner-facing-copy",
+      "title": "Polish local LLM owner-facing copy",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "1G. Local LLM Model Manager",
+      "goal": "Tighten the owner-facing Czech copy for reduced-mode and ready local LLM states so the model manager reads naturally without changing readiness behavior or the fail-closed contract.",
+      "acceptance": [
+        "The reduced-mode local LLM summary and install guidance use natural Czech wording with diacritics in companion-facing output.",
+        "The ready local LLM summary keeps the same readiness fields visible while using the polished Czech wording.",
+        "The local LLM companion regression still passes after the copy polish."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe"
+      ],
+      "dependencies": []
+    }
   ]
 }

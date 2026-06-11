@@ -807,11 +807,15 @@ int main()
             std::string::npos,
         "reduced local LLM state should expose install guidance based on the prepare command hint");
     requireCondition(
+        ready.localLlm.installGuidance.find("Doporučený model:") != std::string::npos ||
+            ready.localLlm.installGuidance.find("Připrav model přes:") != std::string::npos,
+        "reduced local LLM state should expose polished Czech install guidance");
+    requireCondition(
         ready.statusCenterSummaryText.find("local_llm_install_guidance: ") != std::string::npos,
         "status center summary should expose local LLM install guidance");
     requireCondition(
-        ready.localLlm.summary.find("Vybrany model") != std::string::npos ||
-            ready.localLlm.summary.find("Neni vybran zadny podporovany lokalni model") != std::string::npos,
+        ready.localLlm.summary.find("Vybraný model") != std::string::npos ||
+            ready.localLlm.summary.find("Není vybraný žádný podporovaný lokální model") != std::string::npos,
         "local LLM status should expose an owner-facing model-manager summary");
     requireCondition(
         ready.localLlm.summary.find("stav modelu: no_model_installed") != std::string::npos,
@@ -861,13 +865,13 @@ int main()
         !readyWithModel.localLlm.reducedMode,
         "accepted supported local LLM state should leave reduced mode");
     requireCondition(
-        readyWithModel.localLlm.summary.find("Vybrany model: ") != std::string::npos,
+        readyWithModel.localLlm.summary.find("Vybraný model: ") != std::string::npos,
         "accepted supported local LLM state should expose the selected model in the summary");
     requireCondition(
         readyWithModel.localLlm.summary.find("stav modelu: model_ready") != std::string::npos,
         "accepted supported local LLM state should expose the model state in the summary");
     requireCondition(
-        readyWithModel.localLlm.summary.find("redukovany rezim: false") != std::string::npos,
+        readyWithModel.localLlm.summary.find("redukovaný režim: false") != std::string::npos,
         "accepted supported local LLM state should expose reduced mode in the summary");
     requireCondition(
         readyWithModel.localLlm.supportedModelCatalogCount == 2,

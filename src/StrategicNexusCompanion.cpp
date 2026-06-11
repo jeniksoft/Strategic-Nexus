@@ -2209,20 +2209,20 @@ CompanionLocalLlmStatus buildLocalLlmStatus(const CompanionStatusConfig& config)
     {
         std::ostringstream summary;
         if (status.selectedModelId.empty()) {
-            summary << "Neni vybran zadny podporovany lokalni model";
+            summary << "Není vybraný žádný podporovaný lokální model";
         } else if (!status.selectedDisplayName.empty()) {
-            summary << "Vybrany model: " << status.selectedDisplayName << " (" << status.selectedModelId << ")";
+            summary << "Vybraný model: " << status.selectedDisplayName << " (" << status.selectedModelId << ")";
         } else {
-            summary << "Vybrany model ID: " << status.selectedModelId;
+            summary << "Vybraný model ID: " << status.selectedModelId;
         }
         summary << "; stav modelu: " << status.state;
-        summary << "; redukovany rezim: " << (status.reducedMode ? "true" : "false");
+        summary << "; redukovaný režim: " << (status.reducedMode ? "true" : "false");
         if (status.canRunInference) {
-            summary << "; dalsi krok: zadny";
+            summary << "; další krok: žádný";
         } else if (!status.installGuidance.empty()) {
-            summary << "; dalsi krok: " << status.installGuidance;
+            summary << "; další krok: " << status.installGuidance;
         } else if (!status.reason.empty()) {
-            summary << "; dalsi krok: " << status.reason;
+            summary << "; další krok: " << status.reason;
         }
         status.summary = summary.str();
     }

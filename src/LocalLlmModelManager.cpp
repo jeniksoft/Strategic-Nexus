@@ -279,17 +279,17 @@ std::string buildLocalLlmInstallGuidance(
 
     std::ostringstream output;
     if (!readiness.recommendedDisplayName.empty()) {
-        output << "Doporuceny model: " << readiness.recommendedDisplayName << ". ";
+        output << "Doporučený model: " << readiness.recommendedDisplayName << ". ";
     } else if (!readiness.recommendedModelId.empty()) {
-        output << "Doporuceny model: " << readiness.recommendedModelId << ". ";
+        output << "Doporučený model: " << readiness.recommendedModelId << ". ";
     }
     if (!readiness.recommendedRuntime.empty()) {
-        output << "Doporuceny runtime: " << readiness.recommendedRuntime << ". ";
+        output << "Doporučený runtime: " << readiness.recommendedRuntime << ". ";
     }
     if (!prepareCommandHint.empty()) {
-        output << "Priprav model pres: " << prepareCommandHint;
+        output << "Připrav model přes: " << prepareCommandHint;
     } else if (!readiness.recommendedRuntime.empty()) {
-        output << "Priprav model v podporovanem runtime a znovu over pripravenost.";
+        output << "Připrav model v podporovaném runtime a znovu ověř připravenost.";
     }
     return output.str();
 }
@@ -303,7 +303,7 @@ LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     if (state.selectedModelId.empty()) {
         return reducedStatus(
             "no_model_installed",
-            "neni vybran zadny podporovany lokalni model; SNC muze stale uchovat save a overovat deterministicke artefakty, ale nova LLM interpretace je vypnuta",
+            "není vybraný žádný podporovaný lokální model; SNC může stále uchovat save a ověřovat deterministické artefakty, ale nová LLM interpretace je vypnutá",
             recommended);
     }
 
@@ -311,7 +311,7 @@ LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     if (entry == nullptr) {
         auto status = reducedStatus(
             "model_license_not_supported",
-            "vybrany lokalni model neni v podporovanem katalogu; SNC pres nej nebude vest herne ovlivnujici rozhodnuti",
+            "vybraný lokální model není v podporovaném katalogu; SNC přes něj nebude vést herně ovlivňující rozhodnutí",
             recommended);
         status.selectedModelId = state.selectedModelId;
         status.runtime = state.runtime;
