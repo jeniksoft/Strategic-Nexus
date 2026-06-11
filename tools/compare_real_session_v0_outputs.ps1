@@ -249,6 +249,11 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
     $previousEntryPointCount = Get-OptionalString -Object $previousEvidence -Property "entry_point_count"
     $previousEntryPointBranchAmbiguity = Get-OptionalString -Object $previousEvidence -Property "entry_point_branch_ambiguity"
     $previousMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $previousEvidence -Property "memory_recovery_anchor_entry_point_id"
+    $previousPostPlayPackageCampaignIdentityStateSummary = ""
+    if ($null -ne $previousEvidence.entry_point_post_play) {
+        $previousPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $previousEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
+    }
+    $previousGeneratedOverlayPublishAllowed = Get-OptionalString -Object $previousEvidence -Property "generated_overlay_publish_allowed"
     if ($null -ne $previousEvidence.campaign_library) {
         $previousCampaignLibraryPlanPresent = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_present"
         $previousCampaignLibraryPlanPath = Get-OptionalString -Object $previousEvidence.campaign_library -Property "plan_path"
@@ -296,6 +301,11 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
     $currentEntryPointCount = Get-OptionalString -Object $currentEvidence -Property "entry_point_count"
     $currentEntryPointBranchAmbiguity = Get-OptionalString -Object $currentEvidence -Property "entry_point_branch_ambiguity"
     $currentMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $currentEvidence -Property "memory_recovery_anchor_entry_point_id"
+    $currentPostPlayPackageCampaignIdentityStateSummary = ""
+    if ($null -ne $currentEvidence.entry_point_post_play) {
+        $currentPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $currentEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
+    }
+    $currentGeneratedOverlayPublishAllowed = Get-OptionalString -Object $currentEvidence -Property "generated_overlay_publish_allowed"
     if ($null -ne $currentEvidence.campaign_library) {
         $currentCampaignLibraryPlanPresent = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_present"
         $currentCampaignLibraryPlanPath = Get-OptionalString -Object $currentEvidence.campaign_library -Property "plan_path"
@@ -666,6 +676,16 @@ $result = [ordered]@{
         current = $currentEntryPointBranchAmbiguity
         changed = ($previousEntryPointBranchAmbiguity -ne $currentEntryPointBranchAmbiguity)
     }
+    post_play_package_campaign_identity_state_summary = [ordered]@{
+        previous = $previousPostPlayPackageCampaignIdentityStateSummary
+        current = $currentPostPlayPackageCampaignIdentityStateSummary
+        changed = ($previousPostPlayPackageCampaignIdentityStateSummary -ne $currentPostPlayPackageCampaignIdentityStateSummary)
+    }
+    generated_overlay_publish_allowed = [ordered]@{
+        previous = $previousGeneratedOverlayPublishAllowed
+        current = $currentGeneratedOverlayPublishAllowed
+        changed = ($previousGeneratedOverlayPublishAllowed -ne $currentGeneratedOverlayPublishAllowed)
+    }
     memory_recovery_anchor_entry_point_id = [ordered]@{
         previous = $previousMemoryRecoveryAnchorEntryPointId
         current = $currentMemoryRecoveryAnchorEntryPointId
@@ -1002,6 +1022,12 @@ Write-Host ("real_session_v0_compare_entry_point_count_changed=" + ((($previousE
 Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_current=" + $currentEntryPointBranchAmbiguity)
 Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_previous=" + $previousEntryPointBranchAmbiguity)
 Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_changed=" + ((($previousEntryPointBranchAmbiguity -ne $currentEntryPointBranchAmbiguity).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_current=" + $currentPostPlayPackageCampaignIdentityStateSummary)
+Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_previous=" + $previousPostPlayPackageCampaignIdentityStateSummary)
+Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed=" + ((($previousPostPlayPackageCampaignIdentityStateSummary -ne $currentPostPlayPackageCampaignIdentityStateSummary).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_generated_overlay_publish_allowed_current=" + $currentGeneratedOverlayPublishAllowed)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_allowed_previous=" + $previousGeneratedOverlayPublishAllowed)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_allowed_changed=" + ((($previousGeneratedOverlayPublishAllowed -ne $currentGeneratedOverlayPublishAllowed).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=" + $currentMemoryRecoveryAnchorEntryPointId)
 Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_previous=" + $previousMemoryRecoveryAnchorEntryPointId)
 Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=" + ((($previousMemoryRecoveryAnchorEntryPointId -ne $currentMemoryRecoveryAnchorEntryPointId).ToString().ToLowerInvariant())))

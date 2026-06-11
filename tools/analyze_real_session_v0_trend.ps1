@@ -336,6 +336,12 @@ if ($sessionCount -ge 2) {
     $compareEntryPointBranchAmbiguityCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_current=*" } | Select-Object -First 1
     $compareEntryPointBranchAmbiguityPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_previous=*" } | Select-Object -First 1
     $compareEntryPointBranchAmbiguityChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_changed=*" } | Select-Object -First 1
+    $comparePostPlayPackageCampaignIdentityStateSummaryCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_current=*" } | Select-Object -First 1
+    $comparePostPlayPackageCampaignIdentityStateSummaryPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_previous=*" } | Select-Object -First 1
+    $comparePostPlayPackageCampaignIdentityStateSummaryChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishAllowedCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_current=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishAllowedPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_previous=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishAllowedChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_changed=*" } | Select-Object -First 1
     $compareMemoryRecoveryAnchorEntryPointIdCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=*" } | Select-Object -First 1
     $compareMemoryRecoveryAnchorEntryPointIdPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_previous=*" } | Select-Object -First 1
     $compareMemoryRecoveryAnchorEntryPointIdChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=*" } | Select-Object -First 1
@@ -705,6 +711,24 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareEntryPointBranchAmbiguityChangedLine)) {
         $latestEntryPointBranchAmbiguityChanged = $compareEntryPointBranchAmbiguityChangedLine.Substring("real_session_v0_compare_entry_point_branch_ambiguity_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPackageCampaignIdentityStateSummaryCurrentLine)) {
+        $latestPostPlayPackageCampaignIdentityStateSummaryCurrent = $comparePostPlayPackageCampaignIdentityStateSummaryCurrentLine.Substring("real_session_v0_compare_post_play_package_campaign_identity_state_summary_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPackageCampaignIdentityStateSummaryPreviousLine)) {
+        $latestPostPlayPackageCampaignIdentityStateSummaryPrevious = $comparePostPlayPackageCampaignIdentityStateSummaryPreviousLine.Substring("real_session_v0_compare_post_play_package_campaign_identity_state_summary_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPackageCampaignIdentityStateSummaryChangedLine)) {
+        $latestPostPlayPackageCampaignIdentityStateSummaryChanged = $comparePostPlayPackageCampaignIdentityStateSummaryChangedLine.Substring("real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishAllowedCurrentLine)) {
+        $latestGeneratedOverlayPublishAllowedCurrent = $compareGeneratedOverlayPublishAllowedCurrentLine.Substring("real_session_v0_compare_generated_overlay_publish_allowed_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishAllowedPreviousLine)) {
+        $latestGeneratedOverlayPublishAllowedPrevious = $compareGeneratedOverlayPublishAllowedPreviousLine.Substring("real_session_v0_compare_generated_overlay_publish_allowed_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishAllowedChangedLine)) {
+        $latestGeneratedOverlayPublishAllowedChanged = $compareGeneratedOverlayPublishAllowedChangedLine.Substring("real_session_v0_compare_generated_overlay_publish_allowed_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryAnchorEntryPointIdCurrentLine)) {
         $latestMemoryRecoveryAnchorEntryPointIdCurrent = $compareMemoryRecoveryAnchorEntryPointIdCurrentLine.Substring("real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=".Length)
@@ -1130,6 +1154,16 @@ $result = [ordered]@{
         reason_previous = $latestGameplayAcceptanceReasonPrevious
         reason_changed = $latestGameplayAcceptanceReasonChanged
     }
+    latest_post_play_package_campaign_identity_state_summary = [ordered]@{
+        current = $latestPostPlayPackageCampaignIdentityStateSummaryCurrent
+        previous = $latestPostPlayPackageCampaignIdentityStateSummaryPrevious
+        changed = $latestPostPlayPackageCampaignIdentityStateSummaryChanged
+    }
+    latest_generated_overlay_publish_allowed = [ordered]@{
+        current = $latestGeneratedOverlayPublishAllowedCurrent
+        previous = $latestGeneratedOverlayPublishAllowedPrevious
+        changed = $latestGeneratedOverlayPublishAllowedChanged
+    }
     latest_status_center = [ordered]@{
         state_current = $latestStatusCenterStateCurrent
         state_previous = $latestStatusCenterStatePrevious
@@ -1393,6 +1427,12 @@ Write-Host ("real_session_v0_trend_entry_point_count_changed=" + $latestEntryPoi
 Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_current=" + $latestEntryPointBranchAmbiguityCurrent)
 Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_previous=" + $latestEntryPointBranchAmbiguityPrevious)
 Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_changed=" + $latestEntryPointBranchAmbiguityChanged)
+Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_current=" + $latestPostPlayPackageCampaignIdentityStateSummaryCurrent)
+Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_previous=" + $latestPostPlayPackageCampaignIdentityStateSummaryPrevious)
+Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_changed=" + $latestPostPlayPackageCampaignIdentityStateSummaryChanged)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_current=" + $latestGeneratedOverlayPublishAllowedCurrent)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_previous=" + $latestGeneratedOverlayPublishAllowedPrevious)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_changed=" + $latestGeneratedOverlayPublishAllowedChanged)
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_current=" + $latestMemoryRecoveryAnchorEntryPointIdCurrent)
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_previous=" + $latestMemoryRecoveryAnchorEntryPointIdPrevious)
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_changed=" + $latestMemoryRecoveryAnchorEntryPointIdChanged)

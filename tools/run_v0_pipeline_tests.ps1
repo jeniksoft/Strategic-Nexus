@@ -3041,6 +3041,24 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"candidate_decision_blocked_source_entry_count"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"dsl_draft_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"dsl_draft_eligible_candidate_count"'
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_previous="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_previous="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_previous="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_previous="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_previous"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_previous"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_changed"'
     if ($evidenceJson.entry_point_post_play.post_play_package_campaign_identity_state_summary -ne "folder_alias_fallback") {
         throw "real session loop mismatch forwarding evidence expected entry_point_post_play.post_play_package_campaign_identity_state_summary=folder_alias_fallback."
     }

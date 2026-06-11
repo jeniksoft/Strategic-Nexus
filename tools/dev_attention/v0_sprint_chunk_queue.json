@@ -2264,5 +2264,23 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-226-surface-generated-overlay-publish-allowance-drift-in-real-session-outputs",
+      "title": "Surface generated overlay publish allowance drift",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "1F. Generated Overlay Publish Gate And Status Center",
+      "goal": "Forward generated_overlay_publish_allowed through real-session compare/trend/loop outputs so publish readiness stays visible across session deltas instead of only in the live status snapshot.",
+      "acceptance": [
+        "Compare output exposes generated_overlay_publish_allowed current/previous/changed fields.",
+        "Trend output exposes generated_overlay_publish_allowed current/previous/changed fields.",
+        "real_session_v0_loop forwards the same generated_overlay_publish_allowed drift into compare/trend console output and evidence JSON, and the v0 pipeline regression covers it."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }
