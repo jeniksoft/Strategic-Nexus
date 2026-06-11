@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-11T08:02:07.0779392+02:00",
+  "updated_at": "2026-06-11T08:34:21.0183861+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2305,7 +2305,7 @@
     {
       "id": "v0-sprint-228-surface-publish-gate-details-in-real-session-compare-trend",
       "title": "Surface publish gate details in real-session compare/trend",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "1F. Generated Overlay Publish Gate And Status Center",
       "goal": "Forward generated_overlay_publish_gate_state, reason, can_publish, and publish command context through real-session compare/trend outputs so the publish path is visible in session deltas, not just in the live status snapshot.",
