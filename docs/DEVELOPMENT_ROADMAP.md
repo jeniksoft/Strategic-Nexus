@@ -1523,7 +1523,7 @@ Required:
 * no raw LLM conversation persisted as trusted state
 
 Current progress:
-A durable campaign-empire personality profile store now exists as a bounded JSON store keyed by campaign and empire. It persists validated update summaries, confidence, source save/date provenance, and zero-history bootstrap state while failing closed on malformed or missing records. The remaining work is wiring this store into the broader personality generation path so future sessions can reuse validated profiles instead of treating every campaign as fresh state.
+A durable campaign-empire personality profile store now exists as a bounded JSON store keyed by campaign and empire. It persists validated update summaries, confidence, source save/date provenance, and zero-history bootstrap state while failing closed on malformed or missing records. `dist/personality_profile_store_test.exe` and `dist/integrated_empire_state_builder_test.exe` pass on current head, and `IntegratedEmpireStateBuilder` already reloads validated profiles for matching campaign/empire pairs. The remaining work is wiring this store into the broader personality generation and prompt-output path so future sessions reuse validated profiles more widely instead of treating every campaign as fresh state.
 
 ---
 
