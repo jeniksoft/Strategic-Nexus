@@ -136,6 +136,15 @@ $latestNextActionCommandHintSourceChanged = ""
 $latestNextActionPathCurrent = ""
 $latestNextActionPathPrevious = ""
 $latestNextActionPathChanged = ""
+$latestFriendTrustStoreControlsStateCurrent = ""
+$latestFriendTrustStoreControlsStatePrevious = ""
+$latestFriendTrustStoreControlsStateChanged = ""
+$latestFriendTrustStoreControlsReasonCurrent = ""
+$latestFriendTrustStoreControlsReasonPrevious = ""
+$latestFriendTrustStoreControlsReasonChanged = ""
+$latestFriendTrustStoreControlsNextStepCurrent = ""
+$latestFriendTrustStoreControlsNextStepPrevious = ""
+$latestFriendTrustStoreControlsNextStepChanged = ""
 $latestFriendMpSyncTransportAdapterStateCurrent = ""
 $latestFriendMpSyncTransportAdapterStatePrevious = ""
 $latestFriendMpSyncTransportAdapterStateChanged = ""
@@ -342,6 +351,15 @@ if ($sessionCount -ge 2) {
     $compareNextActionPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_current=*" } | Select-Object -First 1
     $compareNextActionPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_previous=*" } | Select-Object -First 1
     $compareNextActionPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_changed=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_state_current=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_state_previous=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_state_changed=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_reason_current=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_reason_previous=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_reason_changed=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsNextStepCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_next_step_current=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsNextStepPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_next_step_previous=*" } | Select-Object -First 1
+    $compareFriendTrustStoreControlsNextStepChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_next_step_changed=*" } | Select-Object -First 1
     $compareFriendMpSyncTransportAdapterStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_state_current=*" } | Select-Object -First 1
     $compareFriendMpSyncTransportAdapterStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_state_previous=*" } | Select-Object -First 1
     $compareFriendMpSyncTransportAdapterStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_state_changed=*" } | Select-Object -First 1
@@ -708,6 +726,33 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareNextActionPathChangedLine)) {
         $latestNextActionPathChanged = $compareNextActionPathChangedLine.Substring("real_session_v0_compare_next_action_path_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsStateCurrentLine)) {
+        $latestFriendTrustStoreControlsStateCurrent = $compareFriendTrustStoreControlsStateCurrentLine.Substring("real_session_v0_compare_friend_trust_store_controls_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsStatePreviousLine)) {
+        $latestFriendTrustStoreControlsStatePrevious = $compareFriendTrustStoreControlsStatePreviousLine.Substring("real_session_v0_compare_friend_trust_store_controls_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsStateChangedLine)) {
+        $latestFriendTrustStoreControlsStateChanged = $compareFriendTrustStoreControlsStateChangedLine.Substring("real_session_v0_compare_friend_trust_store_controls_state_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsReasonCurrentLine)) {
+        $latestFriendTrustStoreControlsReasonCurrent = $compareFriendTrustStoreControlsReasonCurrentLine.Substring("real_session_v0_compare_friend_trust_store_controls_reason_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsReasonPreviousLine)) {
+        $latestFriendTrustStoreControlsReasonPrevious = $compareFriendTrustStoreControlsReasonPreviousLine.Substring("real_session_v0_compare_friend_trust_store_controls_reason_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsReasonChangedLine)) {
+        $latestFriendTrustStoreControlsReasonChanged = $compareFriendTrustStoreControlsReasonChangedLine.Substring("real_session_v0_compare_friend_trust_store_controls_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsNextStepCurrentLine)) {
+        $latestFriendTrustStoreControlsNextStepCurrent = $compareFriendTrustStoreControlsNextStepCurrentLine.Substring("real_session_v0_compare_friend_trust_store_controls_next_step_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsNextStepPreviousLine)) {
+        $latestFriendTrustStoreControlsNextStepPrevious = $compareFriendTrustStoreControlsNextStepPreviousLine.Substring("real_session_v0_compare_friend_trust_store_controls_next_step_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsNextStepChangedLine)) {
+        $latestFriendTrustStoreControlsNextStepChanged = $compareFriendTrustStoreControlsNextStepChangedLine.Substring("real_session_v0_compare_friend_trust_store_controls_next_step_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterStateCurrentLine)) {
         $latestFriendMpSyncTransportAdapterStateCurrent = $compareFriendMpSyncTransportAdapterStateCurrentLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_state_current=".Length)
@@ -1331,6 +1376,17 @@ $result = [ordered]@{
         path_previous = $latestNextActionPathPrevious
         path_changed = $latestNextActionPathChanged
     }
+    latest_friend_trust_store_controls = [ordered]@{
+        state_current = $latestFriendTrustStoreControlsStateCurrent
+        state_previous = $latestFriendTrustStoreControlsStatePrevious
+        state_changed = $latestFriendTrustStoreControlsStateChanged
+        reason_current = $latestFriendTrustStoreControlsReasonCurrent
+        reason_previous = $latestFriendTrustStoreControlsReasonPrevious
+        reason_changed = $latestFriendTrustStoreControlsReasonChanged
+        next_step_current = $latestFriendTrustStoreControlsNextStepCurrent
+        next_step_previous = $latestFriendTrustStoreControlsNextStepPrevious
+        next_step_changed = $latestFriendTrustStoreControlsNextStepChanged
+    }
     latest_friend_mp_sync_transport_adapter = [ordered]@{
         state_current = $latestFriendMpSyncTransportAdapterStateCurrent
         state_previous = $latestFriendMpSyncTransportAdapterStatePrevious
@@ -1542,6 +1598,15 @@ Write-Host ("real_session_v0_trend_next_action_command_hint_source_changed=" + $
 Write-Host ("real_session_v0_trend_next_action_path_current=" + $latestNextActionPathCurrent)
 Write-Host ("real_session_v0_trend_next_action_path_previous=" + $latestNextActionPathPrevious)
 Write-Host ("real_session_v0_trend_next_action_path_changed=" + $latestNextActionPathChanged)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_state_current=" + $latestFriendTrustStoreControlsStateCurrent)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_state_previous=" + $latestFriendTrustStoreControlsStatePrevious)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_state_changed=" + $latestFriendTrustStoreControlsStateChanged)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_reason_current=" + $latestFriendTrustStoreControlsReasonCurrent)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_reason_previous=" + $latestFriendTrustStoreControlsReasonPrevious)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_reason_changed=" + $latestFriendTrustStoreControlsReasonChanged)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_next_step_current=" + $latestFriendTrustStoreControlsNextStepCurrent)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_next_step_previous=" + $latestFriendTrustStoreControlsNextStepPrevious)
+Write-Host ("real_session_v0_trend_friend_trust_store_controls_next_step_changed=" + $latestFriendTrustStoreControlsNextStepChanged)
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_state_current=" + $latestFriendMpSyncTransportAdapterStateCurrent)
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_state_previous=" + $latestFriendMpSyncTransportAdapterStatePrevious)
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_state_changed=" + $latestFriendMpSyncTransportAdapterStateChanged)

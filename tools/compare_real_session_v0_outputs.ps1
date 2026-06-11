@@ -192,6 +192,12 @@ $previousNextActionCommandHint = ""
 $currentNextActionCommandHint = ""
 $previousNextActionPath = ""
 $currentNextActionPath = ""
+$previousFriendTrustStoreControlsState = ""
+$currentFriendTrustStoreControlsState = ""
+$previousFriendTrustStoreControlsReason = ""
+$currentFriendTrustStoreControlsReason = ""
+$previousFriendTrustStoreControlsNextStep = ""
+$currentFriendTrustStoreControlsNextStep = ""
 $previousFriendMpSyncTransportAdapterState = ""
 $currentFriendMpSyncTransportAdapterState = ""
 $previousFriendMpSyncTransportAdapterReason = ""
@@ -271,6 +277,11 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousNextActionCommandHint = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint"
         $previousNextActionPath = Get-OptionalString -Object $previousEvidence.next_action -Property "path"
     }
+    if ($null -ne $previousEvidence.friend_trust_store_controls) {
+        $previousFriendTrustStoreControlsState = Get-OptionalString -Object $previousEvidence.friend_trust_store_controls -Property "state"
+        $previousFriendTrustStoreControlsReason = Get-OptionalString -Object $previousEvidence.friend_trust_store_controls -Property "reason"
+        $previousFriendTrustStoreControlsNextStep = Get-OptionalString -Object $previousEvidence.friend_trust_store_controls -Property "next_step"
+    }
     if ($null -ne $previousEvidence.friend_mp_sync_transport_adapter) {
         $previousFriendMpSyncTransportAdapterState = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "state"
         $previousFriendMpSyncTransportAdapterReason = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "reason"
@@ -327,6 +338,11 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentNextActionCommandHintSource = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint_source"
         $currentNextActionCommandHint = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint"
         $currentNextActionPath = Get-OptionalString -Object $currentEvidence.next_action -Property "path"
+    }
+    if ($null -ne $currentEvidence.friend_trust_store_controls) {
+        $currentFriendTrustStoreControlsState = Get-OptionalString -Object $currentEvidence.friend_trust_store_controls -Property "state"
+        $currentFriendTrustStoreControlsReason = Get-OptionalString -Object $currentEvidence.friend_trust_store_controls -Property "reason"
+        $currentFriendTrustStoreControlsNextStep = Get-OptionalString -Object $currentEvidence.friend_trust_store_controls -Property "next_step"
     }
     if ($null -ne $currentEvidence.friend_mp_sync_transport_adapter) {
         $currentFriendMpSyncTransportAdapterState = Get-OptionalString -Object $currentEvidence.friend_mp_sync_transport_adapter -Property "state"
@@ -774,6 +790,21 @@ $result = [ordered]@{
         current = $currentNextActionPath
         changed = ($previousNextActionPath -ne $currentNextActionPath)
     }
+    friend_trust_store_controls_state = [ordered]@{
+        previous = $previousFriendTrustStoreControlsState
+        current = $currentFriendTrustStoreControlsState
+        changed = ($previousFriendTrustStoreControlsState -ne $currentFriendTrustStoreControlsState)
+    }
+    friend_trust_store_controls_reason = [ordered]@{
+        previous = $previousFriendTrustStoreControlsReason
+        current = $currentFriendTrustStoreControlsReason
+        changed = ($previousFriendTrustStoreControlsReason -ne $currentFriendTrustStoreControlsReason)
+    }
+    friend_trust_store_controls_next_step = [ordered]@{
+        previous = $previousFriendTrustStoreControlsNextStep
+        current = $currentFriendTrustStoreControlsNextStep
+        changed = ($previousFriendTrustStoreControlsNextStep -ne $currentFriendTrustStoreControlsNextStep)
+    }
     friend_mp_sync_transport_adapter_state = [ordered]@{
         previous = $previousFriendMpSyncTransportAdapterState
         current = $currentFriendMpSyncTransportAdapterState
@@ -1131,6 +1162,15 @@ Write-Host ("real_session_v0_compare_next_action_command_hint_changed=" + ((($pr
 Write-Host ("real_session_v0_compare_next_action_path_current=" + $currentNextActionPath)
 Write-Host ("real_session_v0_compare_next_action_path_previous=" + $previousNextActionPath)
 Write-Host ("real_session_v0_compare_next_action_path_changed=" + ((($previousNextActionPath -ne $currentNextActionPath).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_state_current=" + $currentFriendTrustStoreControlsState)
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_state_previous=" + $previousFriendTrustStoreControlsState)
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_state_changed=" + ((($previousFriendTrustStoreControlsState -ne $currentFriendTrustStoreControlsState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_reason_current=" + $currentFriendTrustStoreControlsReason)
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_reason_previous=" + $previousFriendTrustStoreControlsReason)
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_reason_changed=" + ((($previousFriendTrustStoreControlsReason -ne $currentFriendTrustStoreControlsReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_next_step_current=" + $currentFriendTrustStoreControlsNextStep)
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_next_step_previous=" + $previousFriendTrustStoreControlsNextStep)
+Write-Host ("real_session_v0_compare_friend_trust_store_controls_next_step_changed=" + ((($previousFriendTrustStoreControlsNextStep -ne $currentFriendTrustStoreControlsNextStep).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_state_current=" + $currentFriendMpSyncTransportAdapterState)
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_state_previous=" + $previousFriendMpSyncTransportAdapterState)
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_state_changed=" + ((($previousFriendMpSyncTransportAdapterState -ne $currentFriendMpSyncTransportAdapterState).ToString().ToLowerInvariant())))
