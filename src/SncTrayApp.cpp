@@ -99,6 +99,7 @@ constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_INBOX_PLAN = 226;
 constexpr UINT ID_STATUS_COPY_FRIEND_MP_SYNC_OUTBOX_PLAN = 227;
 constexpr UINT ID_STATUS_COPY_CAMPAIGN_LIBRARY_PIN = 228;
 constexpr UINT ID_STATUS_SWITCH_SKIN = 229;
+constexpr UINT ID_STATUS_OPEN_LLM_MODEL_STATE = 230;
 constexpr UINT ID_STATUS_PAGE_OVERVIEW = 240;
 constexpr UINT ID_STATUS_PAGE_GAMEPLAY = 241;
 constexpr UINT ID_STATUS_PAGE_ARCHIVE = 242;
@@ -397,6 +398,7 @@ HWND g_statusCopyMpImportButton = nullptr;
 HWND g_statusCopyMpStrictVerifyButton = nullptr;
 HWND g_statusCopyMpStrictImportButton = nullptr;
 HWND g_statusCopyLlmPrepareButton = nullptr;
+HWND g_statusOpenLlmModelStateButton = nullptr;
 HWND g_statusSupportReportButton = nullptr;
 HWND g_statusToggleStartupButton = nullptr;
 HWND g_statusCloseButton = nullptr;
@@ -443,7 +445,7 @@ const std::array<DashboardSectionSpec, kStatusSectionCount> kStatusSections = {
     DashboardSectionSpec{{L"\u00DAdr\u017Eba", L"Maintenance"}, {StatusFieldId::SupportReportState, StatusFieldId::HumanControlGuardState}},
 };
 
-const std::array<StatusActionSpec, 25> kStatusActionSpecs = {
+const std::array<StatusActionSpec, 26> kStatusActionSpecs = {
     StatusActionSpec{ID_STATUS_REFRESH, {L"Obnovit", L"Refresh"}, {L"Znovu na\u010Dte stav z lok\u00E1ln\u00EDch SNC soubor\u016F a p\u0159ekresl\u00ED otev\u0159en\u00E9 okno.", L"Reloads status from local SNC files and redraws the open window."}},
     StatusActionSpec{ID_STATUS_COPY, {L"Kop\u00EDrovat", L"Copy"}, {L"Zkop\u00EDruje kr\u00E1tk\u00FD p\u0159ehled cel\u00E9ho dashboardu do schr\u00E1nky pro posl\u00E1n\u00ED nebo archivaci.", L"Copies a short dashboard overview to the clipboard for sharing or archiving."}},
     StatusActionSpec{ID_STATUS_OPEN_ARCHIVE, {L"Archiv", L"Archive"}, {L"Otev\u0159e slo\u017Eku s autosave archivem a souvisej\u00EDc\u00EDmi v\u00FDstupy.", L"Opens the autosave archive folder and related outputs."}},
@@ -467,6 +469,7 @@ const std::array<StatusActionSpec, 25> kStatusActionSpecs = {
     StatusActionSpec{ID_STATUS_COPY_MP_STRICT_VERIFY, {L"MP strict verify", L"MP strict verify"}, {L"Zkop\u00EDruje p\u0159\u00EDsn\u00E9 ov\u011B\u0159en\u00ED MP bal\u00ED\u010Dku s ochranou proti mismatch\u016Fm.", L"Copies strict MP package verification with mismatch protection."}},
     StatusActionSpec{ID_STATUS_COPY_MP_STRICT_IMPORT, {L"MP strict import", L"MP strict import"}, {L"Zkop\u00EDruje p\u0159\u00EDsn\u00FD import p\u0159\u00EDkaz; nejbezpe\u010Dn\u011Bj\u0161\u00ED cesta pro MP pou\u017Eit\u00ED.", L"Copies the strict import command, the safest path for MP use."}},
     StatusActionSpec{ID_STATUS_COPY_LLM_PREPARE, {L"LLM p\u0159\u00EDprava", L"LLM setup"}, {L"Zkop\u00EDruje p\u0159\u00EDkaz/\u0161ablonu pro p\u0159\u00EDpravu doporu\u010Den\u00E9ho lok\u00E1ln\u00EDho LLM runtime.", L"Copies the command/template for preparing the recommended local LLM runtime."}},
+    StatusActionSpec{ID_STATUS_OPEN_LLM_MODEL_STATE, {L"LLM stav", L"LLM state"}, {L"Otev\u0159e lok\u00E1ln\u00ED stavov\u00FD soubor modelu a jeho doporu\u010Den\u00ED.", L"Opens the local model state file and recommendation."}},
     StatusActionSpec{ID_STATUS_SUPPORT_REPORT, {L"Report", L"Diagnostic report"}, {L"P\u0159iprav\u00ED nebo otev\u0159e diagnostick\u00FD support report pro stav SNC.", L"Prepares or opens the diagnostic support report for SNC status."}},
     StatusActionSpec{ID_STATUS_TOGGLE_STARTUP, {L"Start", L"Startup"}, {L"Zapne nebo vypne spou\u0161t\u011Bn\u00ED SNC Companionu p\u0159i startu Windows.", L"Enables or disables SNC Companion startup with Windows."}},
 };
@@ -519,7 +522,7 @@ const std::array<StatusPageSpec, kStatusPageCount> kStatusPages = {
         {L"Lok\u00E1ln\u00ED LLM", L"Local LLM"},
         {L"Modely, runtime a p\u0159\u00EDprava lok\u00E1ln\u00ED inference. Sem pat\u0159\u00ED jen akce kolem modelu.", L"Models, runtime, and local inference preparation. Model actions belong here."},
         {5},
-        {ID_STATUS_COPY_LLM_PREPARE}},
+        {ID_STATUS_COPY_LLM_PREPARE, ID_STATUS_OPEN_LLM_MODEL_STATE}},
     StatusPageSpec{
         StatusPageId::Maintenance,
         ID_STATUS_PAGE_MAINTENANCE,
@@ -1874,6 +1877,7 @@ HWND statusActionButton(const UINT commandId)
     case ID_STATUS_COPY_MP_STRICT_VERIFY: return g_statusCopyMpStrictVerifyButton;
     case ID_STATUS_COPY_MP_STRICT_IMPORT: return g_statusCopyMpStrictImportButton;
     case ID_STATUS_COPY_LLM_PREPARE: return g_statusCopyLlmPrepareButton;
+    case ID_STATUS_OPEN_LLM_MODEL_STATE: return g_statusOpenLlmModelStateButton;
     case ID_STATUS_SUPPORT_REPORT: return g_statusSupportReportButton;
     case ID_STATUS_TOGGLE_STARTUP: return g_statusToggleStartupButton;
     default: return nullptr;
@@ -2472,6 +2476,18 @@ void openCrashRecoveryStatePath(HWND hwnd)
 {
     const auto data = loadStatusDashboardData();
     const auto path = resolveDashboardPath(data.crashRecoveryPath);
+    if (path.empty()) {
+        MessageBeep(MB_ICONWARNING);
+        return;
+    }
+
+    openPathWithShell(hwnd, path);
+}
+
+void openLocalLlmModelStatePath(HWND hwnd)
+{
+    const auto data = loadStatusDashboardData();
+    const auto path = resolveDashboardPath(data.modelStatePath);
     if (path.empty()) {
         MessageBeep(MB_ICONWARNING);
         return;
@@ -3658,6 +3674,9 @@ void refreshStatusWindowContent()
     if (g_statusCopyLlmPrepareButton != nullptr) {
         EnableWindow(g_statusCopyLlmPrepareButton, data.modelPrepareCommand.empty() ? FALSE : TRUE);
     }
+    if (g_statusOpenLlmModelStateButton != nullptr) {
+        EnableWindow(g_statusOpenLlmModelStateButton, data.modelStatePath.empty() ? FALSE : TRUE);
+    }
     if (g_statusCloseButton != nullptr) {
         EnableWindow(g_statusCloseButton, TRUE);
     }
@@ -4146,6 +4165,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyMpStrictVerifyButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_VERIFY, statusActionLabel(ID_STATUS_COPY_MP_STRICT_VERIFY).c_str());
         g_statusCopyMpStrictImportButton = createStatusButton(hwnd, ID_STATUS_COPY_MP_STRICT_IMPORT, statusActionLabel(ID_STATUS_COPY_MP_STRICT_IMPORT).c_str());
         g_statusCopyLlmPrepareButton = createStatusButton(hwnd, ID_STATUS_COPY_LLM_PREPARE, statusActionLabel(ID_STATUS_COPY_LLM_PREPARE).c_str());
+        g_statusOpenLlmModelStateButton = createStatusButton(hwnd, ID_STATUS_OPEN_LLM_MODEL_STATE, statusActionLabel(ID_STATUS_OPEN_LLM_MODEL_STATE).c_str());
         g_statusSupportReportButton = createStatusButton(hwnd, ID_STATUS_SUPPORT_REPORT, statusActionLabel(ID_STATUS_SUPPORT_REPORT).c_str());
         g_statusToggleStartupButton = createStatusButton(hwnd, ID_STATUS_TOGGLE_STARTUP, statusActionLabel(ID_STATUS_TOGGLE_STARTUP).c_str());
         g_statusSkinButton = createStatusButton(hwnd, ID_STATUS_SWITCH_SKIN, statusSkinButtonLabel().c_str());
@@ -4210,6 +4230,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         setWindowFont(g_statusCopyMpStrictVerifyButton, g_statusFieldFont);
         setWindowFont(g_statusCopyMpStrictImportButton, g_statusFieldFont);
         setWindowFont(g_statusCopyLlmPrepareButton, g_statusFieldFont);
+        setWindowFont(g_statusOpenLlmModelStateButton, g_statusFieldFont);
         setWindowFont(g_statusSupportReportButton, g_statusFieldFont);
         setWindowFont(g_statusToggleStartupButton, g_statusFieldFont);
         setWindowFont(g_statusSkinButton, g_statusFieldFont);
@@ -4483,6 +4504,9 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             }
             return 0;
         }
+        case ID_STATUS_OPEN_LLM_MODEL_STATE:
+            openLocalLlmModelStatePath(hwnd);
+            return 0;
         case ID_STATUS_SUPPORT_REPORT:
             prepareOrOpenSupportReport(hwnd);
             return 0;
@@ -4770,6 +4794,7 @@ LRESULT CALLBACK statusWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         g_statusCopyMpStrictVerifyButton = nullptr;
         g_statusCopyMpStrictImportButton = nullptr;
         g_statusCopyLlmPrepareButton = nullptr;
+        g_statusOpenLlmModelStateButton = nullptr;
         g_statusSupportReportButton = nullptr;
         g_statusToggleStartupButton = nullptr;
         g_statusCloseButton = nullptr;
