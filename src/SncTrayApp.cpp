@@ -453,7 +453,7 @@ const std::array<StatusActionSpec, 24> kStatusActionSpecs = {
     StatusActionSpec{ID_STATUS_COPY_MP_STRICT_VERIFY, {L"MP strict verify", L"MP strict verify"}, {L"Zkop\u00EDruje p\u0159\u00EDsn\u00E9 ov\u011B\u0159en\u00ED MP bal\u00ED\u010Dku s ochranou proti mismatch\u016Fm.", L"Copies strict MP package verification with mismatch protection."}},
     StatusActionSpec{ID_STATUS_COPY_MP_STRICT_IMPORT, {L"MP strict import", L"MP strict import"}, {L"Zkop\u00EDruje p\u0159\u00EDsn\u00FD import p\u0159\u00EDkaz; nejbezpe\u010Dn\u011Bj\u0161\u00ED cesta pro MP pou\u017Eit\u00ED.", L"Copies the strict import command, the safest path for MP use."}},
     StatusActionSpec{ID_STATUS_COPY_LLM_PREPARE, {L"LLM p\u0159\u00EDprava", L"LLM setup"}, {L"Zkop\u00EDruje p\u0159\u00EDkaz/\u0161ablonu pro p\u0159\u00EDpravu doporu\u010Den\u00E9ho lok\u00E1ln\u00EDho LLM runtime.", L"Copies the command/template for preparing the recommended local LLM runtime."}},
-    StatusActionSpec{ID_STATUS_SUPPORT_REPORT, {L"Report", L"Report"}, {L"P\u0159iprav\u00ED nebo otev\u0159e support report pro diagnostiku SNC stavu.", L"Prepares or opens a support report for SNC diagnostics."}},
+    StatusActionSpec{ID_STATUS_SUPPORT_REPORT, {L"Report", L"Diagnostic report"}, {L"P\u0159iprav\u00ED nebo otev\u0159e diagnostick\u00FD support report pro stav SNC.", L"Prepares or opens the diagnostic support report for SNC status."}},
     StatusActionSpec{ID_STATUS_TOGGLE_STARTUP, {L"Start", L"Startup"}, {L"Zapne nebo vypne spou\u0161t\u011Bn\u00ED SNC Companionu p\u0159i startu Windows.", L"Enables or disables SNC Companion startup with Windows."}},
 };
 
@@ -1294,7 +1294,7 @@ std::wstring formatOwnerFacingStatusValue(const std::string& value)
         {"review_dsl_draft", {L"Zkontrolovat DSL draft", L"Review DSL draft"}},
         {"review_candidate_decision_package", {L"Zkontrolovat kandid\u00E1tn\u00ED rozhodnut\u00ED", L"Review candidate decisions"}},
         {"review_archive_status", {L"Zkontrolovat stav archivu", L"Review archive status"}},
-        {"review_local_llm_model_manager", {L"Zkontrolovat spr\u00E1vu lok\u00E1ln\u00EDho LLM modelu", L"Review local LLM model manager"}},
+        {"review_local_llm_model_manager", {L"Otev\u0159\u00EDt spr\u00E1vu lok\u00E1ln\u00EDho LLM modelu", L"Open local LLM model manager"}},
         {"review_entry_point_ambiguity", {L"Vy\u0159e\u0161it nejednozna\u010Dn\u00FD vstupn\u00ED bod", L"Resolve ambiguous entry point"}},
         {"review_entry_point_analysis_failure", {L"Zkontrolovat anal\u00FDzu vstupn\u00EDch bod\u016F", L"Review entry point analysis"}},
         {"review_tray_status", {L"Zkontrolovat stav SNC", L"Review SNC status"}},
@@ -1402,10 +1402,10 @@ std::wstring formatOwnerFacingStatusReason(const std::string& value)
             L"Na\u010Dti nejnov\u011Bj\u0161\u00ED handoff bal\u00ED\u010Dek, pokud je k dispozici; jinak pou\u017Eij star\u0161\u00ED ov\u011B\u0159en\u00FD archiv nebo klientsk\u00FD save a nech confidence sn\u00ED\u017Eenou.",
             L"Load the newest handoff package if available; otherwise use an older verified archive or client save and keep confidence reduced."});
     }
-    if (value == "prepare local support report preview before manual review or send") {
+    if (value == "prepare the local support report preview before manual review or sending it") {
         return localizedTextWide({
             L"P\u0159ed ru\u010Dn\u00ED kontrolou nebo odesl\u00E1n\u00EDm p\u0159iprav lok\u00E1ln\u00ED n\u00E1hled support reportu.",
-            L"Prepare the local support report preview before manual review or send."});
+            L"Prepare the local support report preview before manual review or sending it."});
     }
     if (value == "no supported local model is selected; SNC can preserve saves and validate deterministic artifacts but new LLM interpretation is disabled") {
         return localizedTextWide({
@@ -1578,7 +1578,7 @@ const wchar_t* statusFieldTooltip(const StatusFieldId id)
     case StatusFieldId::NextHint:
         return localizedText({L"Praktick\u00E1 n\u00E1pov\u011Bda pro dal\u0161\u00ED krok bez \u010Dten\u00ED cel\u00E9ho reportu.", L"Practical next-step hint without reading the full report."});
     case StatusFieldId::SupportReportState:
-        return localizedText({L"Stav diagnostick\u00E9ho support reportu.", L"Diagnostic support report status."});
+        return localizedText({L"Stav diagnostick\u00E9ho reportu SNC.", L"SNC diagnostic report status."});
     case StatusFieldId::CrashRecoveryState:
         return localizedText({L"Stav ochrany proti \u0161patn\u00E9 obnov\u011B po crashi nebo b\u011Bhem hry.", L"Guard status against unsafe recovery after a crash or during gameplay."});
     case StatusFieldId::FriendTrustStoreState:

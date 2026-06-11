@@ -1503,7 +1503,7 @@ function Invoke-SncStatusSnapshotCase {
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_abbreviation=SNC"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_startup_lifecycle_state=owner_enabled_start_with_windows"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_state=not_prepared"
-    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_reason=prepare local support report preview before manual review or send"
+    Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_reason=prepare the local support report preview before manual review or sending it"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_contact_email=support@jeniksoft.cz"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_send_requires_approval=true"
     Assert-Contains -Name "snc_status_snapshot app" -Text $sncText -Expected "snc_support_report_raw_saves_included=false"

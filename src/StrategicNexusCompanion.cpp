@@ -566,7 +566,7 @@ CompanionSupportReportStatus buildSupportReportStatus(const CompanionStatusConfi
 
     if (!previewExists) {
         status.state = "not_prepared";
-        status.reason = "prepare local support report preview before manual review or send";
+        status.reason = "prepare the local support report preview before manual review or sending it";
         return status;
     }
 
@@ -577,7 +577,7 @@ CompanionSupportReportStatus buildSupportReportStatus(const CompanionStatusConfi
     }
 
     status.state = "ready_for_review";
-    status.reason = "local support report preview prepared; explicit approval required before sending";
+    status.reason = "local support report preview is prepared; explicit owner approval is required before sending";
     status.openCommandHint = buildOpenSncSupportReportCommandHint(status.previewPath);
     return status;
 }

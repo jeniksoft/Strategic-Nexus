@@ -677,7 +677,7 @@ try {
                     throw "SNC tray status JSON did not expose support_report_state=not_prepared before preview generation."
                 }
                 if ([string]$json.support_report_reason -ne
-                    "prepare local support report preview before manual review or send") {
+                    "prepare the local support report preview before manual review or sending it") {
                     throw "SNC tray status JSON did not expose the expected support_report_reason before preview generation."
                 }
                 if ([string]$json.support_report_preview_path -ne $expectedSupportReportPreviewPathText) {

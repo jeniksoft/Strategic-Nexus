@@ -476,7 +476,7 @@ int main()
         ready.supportReport.state == "not_prepared",
         "support report should start as not prepared when preview file is missing");
     requireCondition(
-        ready.supportReport.reason == "prepare local support report preview before manual review or send",
+        ready.supportReport.reason == "prepare the local support report preview before manual review or sending it",
         "support report should explain missing preview state");
     requireCondition(
         ready.supportReport.previewPath == readyConfig.supportReportPreviewPath,
@@ -2535,7 +2535,7 @@ int main()
         json.find("\"support_report_state\": \"not_prepared\"") != std::string::npos,
         "JSON should include support report state");
     requireCondition(
-        json.find("\"support_report_reason\": \"prepare local support report preview before manual review or send\"") !=
+        json.find("\"support_report_reason\": \"prepare the local support report preview before manual review or sending it\"") !=
             std::string::npos,
         "JSON should include support report reason");
     requireCondition(
@@ -2694,7 +2694,7 @@ int main()
         "support report attention fixture should route the top-level next action to support report review (actual: " +
             supportReportAttention.nextAction + ")");
     requireCondition(
-        supportReportAttention.nextActionReason == "prepare local support report preview before manual review or send",
+        supportReportAttention.nextActionReason == "prepare the local support report preview before manual review or sending it",
         "support report attention fixture should expose the support report reason");
     requireCondition(
         supportReportAttention.nextActionCommandHint ==
