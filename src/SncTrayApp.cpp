@@ -6259,7 +6259,9 @@ std::string buildStatusCenterSummaryText(
             summary << "campaign_library_pin_command_template: "
                     << postPlayPipeline.campaignLibraryPinCommandTemplate << "\n";
         }
-        if (campaignLibraryPlanReadiness == "needs_attention") {
+        if (campaignLibraryPlanReadiness == "degraded") {
+            summary << "campaign_library_owner_note: campaign library plan is loaded from legacy schema_version 0; regenerate it before SNC trusts active campaign coverage\n";
+        } else if (campaignLibraryPlanReadiness == "needs_attention") {
             summary << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
         } else if (postPlayPipeline.campaignLibraryPinState == "needs_attention") {
             summary << "campaign_library_owner_note: pinned campaign exception manifest needs attention before SNC should trust pinned coverage\n";
@@ -6570,7 +6572,10 @@ void writeNextStepsBrief(
             brief << "- campaign_library_pin_command_template: "
                   << campaignLibraryPinCommandTemplate << "\n";
         }
-        if (campaignLibraryPlanReadiness == "needs_attention") {
+        if (campaignLibraryPlanReadiness == "degraded") {
+            brief << "\n";
+            brief << "- Poznamka: plan knihovny kampani je nacten z legacy schema_version 0; pred duverou coverage ho regeneruj.\n";
+        } else if (campaignLibraryPlanReadiness == "needs_attention") {
             brief << "\n";
             brief << "- Poznamka: sidecar plan knihovny kampani potrebuje pozornost; SNC nema duverovat aktivnimu coverage, dokud se plan neopravi.\n";
         } else if (campaignLibraryPinState == "needs_attention") {

@@ -2760,6 +2760,57 @@ int main()
     writeTextFileAtomically(
         root / "strategic_nexus_campaign_library_plan.json",
         "{\n"
+        "  \"schema_version\": 0,\n"
+        "  \"save_root_available\": true,\n"
+        "  \"limit_reached\": true,\n"
+        "  \"max_included_campaigns\": 1,\n"
+        "  \"included_count\": 1,\n"
+        "  \"skipped_count\": 2,\n"
+        "  \"skipped_due_to_limit_count\": 2,\n"
+        "  \"campaigns\": []\n"
+        "}\n");
+    const auto legacyCampaignLibraryPlan = companion.buildStatusSnapshot({
+        archiveSessionRoot,
+        activeOverlayRoot,
+        std::filesystem::path(),
+        true,
+        false,
+        false,
+        missingGameplayAcceptanceReport,
+        stagedOverlayStatusPath,
+        activeOverlayRoot,
+        publishStatusPath,
+        publishBackupRoot,
+        entryPointAnalysisPath,
+        postPlayPackagePath,
+        decisionInputPackagePath,
+        candidateDecisionPackagePath,
+        dslDraftPath,
+        dslDraftAuditPath,
+        stagedOverlayStatusPath
+    });
+    requireCondition(
+        legacyCampaignLibraryPlan.postPlayPipeline.campaignLibraryPlanReadiness == "degraded",
+        "legacy campaign library plan should surface degraded readiness");
+    requireCondition(
+        legacyCampaignLibraryPlan.postPlayPipeline.reason ==
+            "campaign library plan loaded from legacy schema_version 0",
+        "legacy campaign library plan should expose a migration reason");
+    requireCondition(
+        legacyCampaignLibraryPlan.postPlayPipeline.state == "needs_attention",
+        "legacy campaign library plan should still require attention");
+    requireCondition(
+        legacyCampaignLibraryPlan.statusCenterSummaryText.find(
+            "campaign_library_plan_readiness: degraded") != std::string::npos,
+        "status center summary should expose legacy campaign library plan readiness");
+    requireCondition(
+        legacyCampaignLibraryPlan.statusCenterSummaryText.find(
+            "campaign_library_owner_note: campaign library plan is loaded from legacy schema_version 0; regenerate it before SNC trusts active campaign coverage") != std::string::npos,
+        "status center summary should explain the legacy campaign library plan warning");
+
+    writeTextFileAtomically(
+        root / "strategic_nexus_campaign_library_plan.json",
+        "{\n"
         "  \"schema_version\": 2,\n"
         "  \"limit_reached\": true,\n"
         "  \"skipped_due_to_limit_count\": 3,\n"

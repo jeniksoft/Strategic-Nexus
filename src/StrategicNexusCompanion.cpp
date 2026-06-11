@@ -1910,7 +1910,14 @@ void populateCampaignLibraryPlanStatus(
         }
 
         const auto schemaVersion = extractJsonSize(json, "schema_version").value_or(0);
-        if (schemaVersion != 1) {
+        if (schemaVersion == 1) {
+            status.campaignLibraryPlanReadiness = "ready";
+            status.campaignLibraryPlanReason = "campaign library plan loaded";
+        } else if (schemaVersion == 0) {
+            status.campaignLibraryPlanReadiness = "degraded";
+            status.campaignLibraryPlanReason =
+                "campaign library plan loaded from legacy schema_version 0";
+        } else {
             status.campaignLibraryPlanReadiness = "needs_attention";
             status.campaignLibraryPlanReason = "campaign library plan schema unsupported";
             return false;
@@ -1923,8 +1930,6 @@ void populateCampaignLibraryPlanStatus(
             return false;
         }
 
-        status.campaignLibraryPlanReadiness = "ready";
-        status.campaignLibraryPlanReason = "campaign library plan loaded";
         status.campaignLibraryLimitReached = *limitReached;
         status.campaignLibrarySkippedDueToLimitCount =
             extractJsonSize(json, "skipped_due_to_limit_count").value_or(0);
@@ -2102,7 +2107,7 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
     status.memoryRecovery = buildMemoryRecoveryStatus(entryPointAnalysisJson);
 
     populateCampaignLibraryPlanStatus(status, config);
-    if (status.campaignLibraryPlanPresent && status.campaignLibraryPlanReadiness == "needs_attention") {
+    if (status.campaignLibraryPlanPresent && status.campaignLibraryPlanReadiness != "ready") {
         status.state = "needs_attention";
         status.reason = status.campaignLibraryPlanReason.empty()
             ? "campaign library plan needs attention"
@@ -2925,7 +2930,9 @@ std::string buildStatusCenterSummaryText(
             text << "campaign_library_pin_command_template: "
                  << postPlayPipeline.campaignLibraryPinCommandTemplate << "\n";
         }
-        if (postPlayPipeline.campaignLibraryPlanReadiness == "needs_attention") {
+        if (postPlayPipeline.campaignLibraryPlanReadiness == "degraded") {
+            text << "campaign_library_owner_note: campaign library plan is loaded from legacy schema_version 0; regenerate it before SNC trusts active campaign coverage\n";
+        } else if (postPlayPipeline.campaignLibraryPlanReadiness == "needs_attention") {
             text << "campaign_library_owner_note: campaign library plan needs attention before SNC should trust active campaign coverage\n";
         } else if (postPlayPipeline.campaignLibraryPinState == "needs_attention") {
             text << "campaign_library_owner_note: pinned campaign exception manifest needs attention before SNC should trust pinned coverage\n";
