@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-12T00:05:25.0222610+02:00",
+  "updated_at": "2026-06-12T00:15:47.5147447+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining 15G gap is the actual signed/encrypted transport adapter plus deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing real-session evidence chunk from 15G before broader release-companion work, including the transport-adapter readiness probe when it is the next visible missing step.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2849,7 +2849,7 @@
     {
       "id": "v0-sprint-258-verify-generated-overlay-publish-gate-on-current-head",
       "title": "Verify generated-overlay publish gate on current head",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "1F. Generated Overlay Publish Gate And Status Center",
       "goal": "Verify the current-head generated-overlay publish gate state, reason, can_publish, and publish-command surfaces remain visible across companion, tray, and real-session outputs so 1F stays grounded in a real-session validation path instead of only the live status snapshot.",
