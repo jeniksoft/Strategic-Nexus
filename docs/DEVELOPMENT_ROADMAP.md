@@ -2129,6 +2129,7 @@ Current-head verification confirms the outbox-plan template and transport-next-s
 Current-head verification also confirms `friend_mesh_update_state`, `friend_mesh_update_reason`, and `friend_mesh_update_next_step` are surfaced across companion, tray, and Status Center views for degraded handoff visibility.
 Current-head verification also confirms `friend_mp_sync_outbox_plan_command_template` is exposed consistently across companion, tray, and Status Center surfaces with the explicit no-send/no-upload/no-staging wording.
 The canonical multiplayer season guide now also includes a compact first real-season validation checklist with the expected evidence and the current transport limitation called out explicitly.
+Current-head verification confirms that `friend_mp_sync_outbox_plan_command_template`, `friend_mp_sync_transport_next_step`, `mp_host_rotation_sync_state`, `mp_host_rotation_sync_reason`, `mp_host_rotation_sync_next_step`, and `friend_mesh_update_state/reason/next_step` are already surfaced across companion, tray, and Status Center views; the remaining 15G work is the actual signed/encrypted transport adapter and end-to-end season validation.
 
 ---
 

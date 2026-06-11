@@ -2518,5 +2518,25 @@
     ],
     "dependencies": []
   }
+  ,
+  {
+    "id": "v0-sprint-240-verify-friend-mp-outbox-plan-and-host-rotation-signals-on-current-head",
+    "title": "Verify friend MP outbox-plan and host-rotation signals on current head",
+    "status": "ready",
+    "lane": "verification",
+    "roadmap_anchor": "15G. Release Companion MP Package UX",
+    "goal": "Verify that the current-head companion, tray, and Status Center surfaces keep friend_mp_sync_outbox_plan_command_template, friend_mp_sync_transport_next_step, mp_host_rotation_sync_state, mp_host_rotation_sync_reason, mp_host_rotation_sync_next_step, and friend_mesh_update_state visible and fail closed, with the manual no-send/no-upload fallback wording intact.",
+    "acceptance": [
+      "Companion status surfaces expose friend_mp_sync_outbox_plan_command_template with the stable --plan-snc-friend-mp-sync-outbox command template and no-send/no-upload/no-staging wording.",
+      "Tray status JSON and Status Center summary expose friend_mp_sync_transport_next_step, mp_host_rotation_sync_state, mp_host_rotation_sync_reason, mp_host_rotation_sync_next_step, and friend_mesh_update_state/reason/next_step on current head.",
+      "dist/strategic_nexus_companion_test.exe, tools/smoke_snc_tray.cmd, and tools/run_v0_pipeline_tests.cmd pass on current head."
+    ],
+    "preferred_tests": [
+      "dist/strategic_nexus_companion_test.exe",
+      "tools/smoke_snc_tray.cmd",
+      "tools/run_v0_pipeline_tests.cmd"
+    ],
+    "dependencies": []
+  }
 ]
 }
