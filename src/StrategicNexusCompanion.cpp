@@ -2599,6 +2599,15 @@ CompanionFriendMpSyncTransportStatus buildFriendMpSyncTransportStatusImpl(
     return status;
 }
 
+CompanionFriendMpSyncTransportAdapterStatus buildFriendMpSyncTransportAdapterStatusImpl(
+    const CompanionFriendTrustStoreStatus& friendTrustStore)
+{
+    static_cast<void>(friendTrustStore);
+
+    CompanionFriendMpSyncTransportAdapterStatus status;
+    return status;
+}
+
 CompanionFriendMeshUpdateStatus buildFriendMeshUpdateStatusImpl(
     const CompanionFriendTrustStoreStatus& friendTrustStore,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage)
@@ -3257,6 +3266,13 @@ std::string buildStatusCenterSummaryText(
          << friendMpSyncTransport.reason << "\n";
     text << "friend_mp_sync_transport_next_step: "
          << friendMpSyncTransport.nextStep << "\n";
+    const auto friendMpSyncTransportAdapter = buildFriendMpSyncTransportAdapterStatus(friendTrustStore);
+    text << "friend_mp_sync_transport_adapter_state: "
+         << friendMpSyncTransportAdapter.state << "\n";
+    text << "friend_mp_sync_transport_adapter_reason: "
+         << friendMpSyncTransportAdapter.reason << "\n";
+    text << "friend_mp_sync_transport_adapter_next_step: "
+         << friendMpSyncTransportAdapter.nextStep << "\n";
     if (!friendTrustStore.mpSyncPreflightChecklist.empty()) {
         text << "friend_mp_sync_preflight_checklist: "
              << friendTrustStore.mpSyncPreflightChecklist << "\n";
@@ -3703,6 +3719,13 @@ void writeFriendTrustStoreJson(
            << jsonString(friendMpSyncTransport.reason) << ",\n";
     output << indent << "  \"mp_sync_transport_next_step\": "
            << jsonString(friendMpSyncTransport.nextStep) << ",\n";
+    const auto friendMpSyncTransportAdapter = buildFriendMpSyncTransportAdapterStatus(status);
+    output << indent << "  \"mp_sync_transport_adapter_state\": "
+           << jsonString(friendMpSyncTransportAdapter.state) << ",\n";
+    output << indent << "  \"mp_sync_transport_adapter_reason\": "
+           << jsonString(friendMpSyncTransportAdapter.reason) << ",\n";
+    output << indent << "  \"mp_sync_transport_adapter_next_step\": "
+           << jsonString(friendMpSyncTransportAdapter.nextStep) << ",\n";
     output << indent << "  \"mp_sync_preflight_checklist\": "
            << jsonString(status.mpSyncPreflightChecklist) << ",\n";
     output << indent << "  \"auto_sync_available\": "
@@ -3979,6 +4002,12 @@ CompanionFriendMpSyncTransportStatus buildFriendMpSyncTransportStatus(
     const CompanionFriendTrustStoreStatus& friendTrustStore)
 {
     return buildFriendMpSyncTransportStatusImpl(friendTrustStore);
+}
+
+CompanionFriendMpSyncTransportAdapterStatus buildFriendMpSyncTransportAdapterStatus(
+    const CompanionFriendTrustStoreStatus& friendTrustStore)
+{
+    return buildFriendMpSyncTransportAdapterStatusImpl(friendTrustStore);
 }
 
 CompanionFriendMeshUpdateStatus buildFriendMeshUpdateStatus(

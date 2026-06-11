@@ -143,6 +143,7 @@ enum class StatusFieldId : std::size_t {
     CrashRecoveryState,
     FriendTrustStoreState,
     FriendMpSyncTransportState,
+    FriendMpSyncTransportAdapterState,
     HumanControlGuardState,
     MpPackageRefreshState,
     MpPackageZipState,
@@ -218,6 +219,9 @@ struct StatusDashboardData {
     std::wstring friendMpSyncTransportState;
     std::wstring friendMpSyncTransportReason;
     std::wstring friendMpSyncTransportNextStep;
+    std::wstring friendMpSyncTransportAdapterState;
+    std::wstring friendMpSyncTransportAdapterReason;
+    std::wstring friendMpSyncTransportAdapterNextStep;
     std::wstring friendMpSyncPreflightChecklist;
     std::wstring humanControlGuardState;
     std::wstring mpPackageRefreshState;
@@ -432,7 +436,7 @@ const std::array<DashboardSectionSpec, kStatusSectionCount> kStatusSections = {
     DashboardSectionSpec{{L"Dal\u0161\u00ED krok", L"Next Step"}, {StatusFieldId::NextAction, StatusFieldId::NextReason, StatusFieldId::NextHint, StatusFieldId::CrashRecoveryState}},
     DashboardSectionSpec{{L"Archiv", L"Archive"}, {StatusFieldId::ArchivePath, StatusFieldId::ArchiveVerified, StatusFieldId::ArchiveCopied, StatusFieldId::ArchiveSkipped}},
     DashboardSectionSpec{{L"Overlay", L"Overlay"}, {StatusFieldId::OverlayStaging, StatusFieldId::OverlayGate, StatusFieldId::OverlayAllowed, StatusFieldId::OverlayActive}},
-    DashboardSectionSpec{{L"Multiplayer", L"Multiplayer"}, {StatusFieldId::FriendTrustStoreState, StatusFieldId::FriendMpSyncTransportState, StatusFieldId::MpPackageRefreshState, StatusFieldId::MpPackageHandoffStatus}},
+    DashboardSectionSpec{{L"Multiplayer", L"Multiplayer"}, {StatusFieldId::FriendTrustStoreState, StatusFieldId::FriendMpSyncTransportState, StatusFieldId::FriendMpSyncTransportAdapterState, StatusFieldId::MpPackageRefreshState, StatusFieldId::MpPackageHandoffStatus}},
     DashboardSectionSpec{{L"Lok\u00E1ln\u00ED LLM", L"Local LLM"}, {StatusFieldId::ModelState, StatusFieldId::ModelRuntime, StatusFieldId::ModelRecommendation, StatusFieldId::ModelMode, StatusFieldId::ModelInstallGuidance}},
     DashboardSectionSpec{{L"\u00DAdr\u017Eba", L"Maintenance"}, {StatusFieldId::SupportReportState, StatusFieldId::HumanControlGuardState}},
 };
@@ -1533,6 +1537,7 @@ const wchar_t* statusFieldLabel(const StatusFieldId id)
     case StatusFieldId::CrashRecoveryState: return localizedText({L"Crash", L"Crash"});
     case StatusFieldId::FriendTrustStoreState: return localizedText({L"Trust store", L"Trust store"});
     case StatusFieldId::FriendMpSyncTransportState: return localizedText({L"Sync transport", L"Sync transport"});
+    case StatusFieldId::FriendMpSyncTransportAdapterState: return localizedText({L"Transport adapter", L"Transport adapter"});
     case StatusFieldId::HumanControlGuardState: return localizedText({L"Ru\u010Dn\u00ED kontrola", L"Manual guard"});
     case StatusFieldId::MpPackageRefreshState: return localizedText({L"MP export", L"MP export"});
     case StatusFieldId::MpPackageZipState: return localizedText({L"ZIP", L"ZIP"});
@@ -1593,6 +1598,8 @@ const wchar_t* statusFieldTooltip(const StatusFieldId id)
         return localizedText({L"Stav seznamu d\u016Fv\u011Bryhodn\u00FDch SNC p\u0159\u00E1tel a jejich identit.", L"Status of trusted SNC friends and their identities."});
     case StatusFieldId::FriendMpSyncTransportState:
         return localizedText({L"Stav friend MP sync transportu. Dokud nen\u00ED bezpe\u010Dn\u00FD, sync z\u016Fst\u00E1v\u00E1 bezpe\u010Dn\u011B zav\u0159en\u00FD.", L"Friend MP sync transport status. Until it is safe, sync stays fail-closed."});
+    case StatusFieldId::FriendMpSyncTransportAdapterState:
+        return localizedText({L"Seam adapteru transportu friend MP sync. Tohle je explicitn\u00ED hranice pro budouc\u00ED signed/encrypted adapter.", L"Friend MP sync transport adapter seam. This is the explicit boundary for the future signed/encrypted adapter."});
     case StatusFieldId::HumanControlGuardState:
         return localizedText({L"Ochrana, kter\u00E1 vy\u017Eaduje ru\u010Dn\u00ED kontrolu p\u0159ed rizikovou zm\u011Bnou.", L"Guard that requires manual review before risky changes."});
     case StatusFieldId::MpPackageRefreshState:
@@ -1622,6 +1629,7 @@ bool statusFieldUsesMultiline(const StatusFieldId id)
     case StatusFieldId::NextHint:
     case StatusFieldId::CrashRecoveryState:
     case StatusFieldId::FriendMpSyncTransportState:
+    case StatusFieldId::FriendMpSyncTransportAdapterState:
     case StatusFieldId::MpPackageHandoffStatus:
         return true;
     case StatusFieldId::LiveStellaris:
@@ -2876,6 +2884,25 @@ StatusDashboardData loadStatusDashboardData()
             formatOwnerFacingStatusReason(
                 "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.");
     }
+    data.friendMpSyncTransportAdapterState =
+        formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_adapter_state").value_or(""));
+    if (data.friendMpSyncTransportAdapterState.empty()) {
+        data.friendMpSyncTransportAdapterState = formatOwnerFacingStatusValue("disabled_not_implemented");
+    }
+    data.friendMpSyncTransportAdapterReason =
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_adapter_reason").value_or(""));
+    if (data.friendMpSyncTransportAdapterReason.empty()) {
+        data.friendMpSyncTransportAdapterReason =
+            formatOwnerFacingStatusReason(
+                "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled");
+    }
+    data.friendMpSyncTransportAdapterNextStep =
+        formatOwnerFacingStatusReason(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_adapter_next_step").value_or(""));
+    if (data.friendMpSyncTransportAdapterNextStep.empty()) {
+        data.friendMpSyncTransportAdapterNextStep =
+            formatOwnerFacingStatusReason(
+                "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.");
+    }
     data.friendMpSyncPreflightChecklist =
         utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_preflight_checklist").value_or(""));
     if (data.friendMpSyncPreflightChecklist.empty()) {
@@ -3005,6 +3032,12 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
     text += data.friendMpSyncTransportReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportReason;
     text += L"\r\nSNC MP sync transport dalsi krok: ";
     text += data.friendMpSyncTransportNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportNextStep;
+    text += L"\r\nSNC MP sync transport adapter: ";
+    text += data.friendMpSyncTransportAdapterState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterState;
+    text += L"\r\nSNC MP sync transport adapter duvod: ";
+    text += data.friendMpSyncTransportAdapterReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterReason;
+    text += L"\r\nSNC MP sync transport adapter dalsi krok: ";
+    text += data.friendMpSyncTransportAdapterNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterNextStep;
     text += L"\r\nSNC MP sync preflight: ";
     text += data.friendMpSyncPreflightChecklist.empty() ? kStatusEmptyValue : data.friendMpSyncPreflightChecklist;
     text += L"\r\nMP handoff sync: ";
@@ -3126,6 +3159,9 @@ std::wstring buildStatusPageDetailsText(const StatusPageId page, const StatusDas
         addLine(text, L"Sync transport: ", data.friendMpSyncTransportState);
         addLine(text, L"Sync transport duvod: ", data.friendMpSyncTransportReason);
         addLine(text, L"Sync dalsi krok: ", data.friendMpSyncTransportNextStep);
+        addLine(text, L"Sync adapter: ", data.friendMpSyncTransportAdapterState);
+        addLine(text, L"Sync adapter duvod: ", data.friendMpSyncTransportAdapterReason);
+        addLine(text, L"Sync adapter dalsi krok: ", data.friendMpSyncTransportAdapterNextStep);
         addLine(text, L"Preflight: ", data.friendMpSyncPreflightChecklist);
         addLine(text, L"MP handoff: ", data.mpPackageHandoffStatus);
         addLine(text, L"MP handoff sync: ", data.mpPackageHostRotationSyncState);
@@ -3218,6 +3254,12 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
     text += data.friendMpSyncTransportReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportReason;
     text += L"\nSNC MP sync transport dalsi krok: ";
     text += data.friendMpSyncTransportNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportNextStep;
+    text += L"\nSNC MP sync transport adapter: ";
+    text += data.friendMpSyncTransportAdapterState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterState;
+    text += L"\nSNC MP sync transport adapter duvod: ";
+    text += data.friendMpSyncTransportAdapterReason.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterReason;
+    text += L"\nSNC MP sync transport adapter dalsi krok: ";
+    text += data.friendMpSyncTransportAdapterNextStep.empty() ? kStatusEmptyValue : data.friendMpSyncTransportAdapterNextStep;
     text += L"\nSNC MP sync preflight: ";
     text += data.friendMpSyncPreflightChecklist.empty() ? kStatusEmptyValue : data.friendMpSyncPreflightChecklist;
     text += L"\nHuman control guard: ";
@@ -3477,6 +3519,7 @@ void refreshStatusWindowContent()
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::CrashRecoveryState)], data.crashRecoveryState);
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::FriendTrustStoreState)], data.friendTrustStoreState);
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::FriendMpSyncTransportState)], data.friendMpSyncTransportState);
+    setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::FriendMpSyncTransportAdapterState)], data.friendMpSyncTransportAdapterState);
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::HumanControlGuardState)], data.humanControlGuardState);
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::MpPackageRefreshState)], data.mpPackageRefreshState);
     setField(g_statusFieldValues[static_cast<std::size_t>(StatusFieldId::MpPackageZipState)], data.mpPackageZipState);
@@ -6466,6 +6509,18 @@ std::string buildStatusCenterSummaryText(
         summary,
         "friend_mp_sync_transport_next_step",
         friendTrustStore.mpSyncTransportNextStep);
+    appendOwnerFacingStatusValueLine(
+        summary,
+        "friend_mp_sync_transport_adapter_state",
+        "disabled_not_implemented");
+    appendOwnerFacingStatusReasonLine(
+        summary,
+        "friend_mp_sync_transport_adapter_reason",
+        "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled");
+    appendOwnerFacingStatusReasonLine(
+        summary,
+        "friend_mp_sync_transport_adapter_next_step",
+        "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.");
     summary << "friend_mp_sync_preflight_checklist: "
             << friendTrustStore.mpSyncPreflightChecklist << "\n";
     appendOwnerFacingStatusValueLine(
@@ -7263,9 +7318,17 @@ void writeStatus(
          << jsonEscape(buildFriendMpSyncOutboxPlanCommandTemplateUtf8()) << "\",\n";
     const auto friendMpSyncTransport =
         strategic_nexus::buildFriendMpSyncTransportStatus(companionSnapshot.friendTrustStore);
+    const auto friendMpSyncTransportAdapter =
+        strategic_nexus::buildFriendMpSyncTransportAdapterStatus(companionSnapshot.friendTrustStore);
     json << "  \"friend_mp_sync_transport_state\": \"" << jsonEscape(friendMpSyncTransport.state) << "\",\n";
     json << "  \"friend_mp_sync_transport_reason\": \"" << jsonEscape(friendMpSyncTransport.reason) << "\",\n";
     json << "  \"friend_mp_sync_transport_next_step\": \"" << jsonEscape(friendMpSyncTransport.nextStep) << "\",\n";
+    json << "  \"friend_mp_sync_transport_adapter_state\": \""
+         << jsonEscape(friendMpSyncTransportAdapter.state) << "\",\n";
+    json << "  \"friend_mp_sync_transport_adapter_reason\": \""
+         << jsonEscape(friendMpSyncTransportAdapter.reason) << "\",\n";
+    json << "  \"friend_mp_sync_transport_adapter_next_step\": \""
+         << jsonEscape(friendMpSyncTransportAdapter.nextStep) << "\",\n";
     json << "  \"friend_mp_sync_preflight_checklist\": \""
          << jsonEscape(companionSnapshot.friendTrustStore.mpSyncPreflightChecklist) << "\",\n";
     json << "  \"mp_host_rotation_sync_state\": \""

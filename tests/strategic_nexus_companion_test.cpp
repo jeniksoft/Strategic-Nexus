@@ -624,6 +624,11 @@ int main()
         ready.statusCenterSummaryText.find("friend_mp_sync_transport_next_step: Use manual MP package export/import and strict verify") != std::string::npos,
         "status center summary should expose disabled friend MP sync transport next step");
     requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_state: disabled_not_implemented") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_reason: signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_next_step: Use manual MP package export/import and strict verify") != std::string::npos,
+        "status center summary should expose the friend MP sync transport adapter seam");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_preflight_checklist: Before a friend MP season") != std::string::npos &&
             ready.statusCenterSummaryText.find("run inbox/outbox plan checks with Stellaris closed") != std::string::npos,
         "status center summary should expose friend MP sync preflight checklist");
