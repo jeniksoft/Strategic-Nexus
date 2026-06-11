@@ -2365,7 +2365,7 @@ CompanionSubsystemStatus buildStatusCenterStatus(
             return status;
         }
         if (localLlmNeedsAttention) {
-            status.reason = "local LLM model manager needs attention";
+            status.reason = "sprava lokalniho LLM modelu vyzaduje pozornost";
             status.path = localLlm.localPath;
             return status;
         }

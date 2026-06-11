@@ -289,7 +289,7 @@ std::string buildLocalLlmInstallGuidance(
     if (!prepareCommandHint.empty()) {
         output << "Priprav model pres: " << prepareCommandHint;
     } else if (!readiness.recommendedRuntime.empty()) {
-        output << "Priprav model v podporovanem runtime a znovu over readiness.";
+        output << "Priprav model v podporovanem runtime a znovu over pripravenost.";
     }
     return output.str();
 }
@@ -303,7 +303,7 @@ LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     if (state.selectedModelId.empty()) {
         return reducedStatus(
             "no_model_installed",
-            "no supported local model is selected; SNC can preserve saves and validate deterministic artifacts but new LLM interpretation is disabled",
+            "neni vybran zadny podporovany lokalni model; SNC muze stale uchovat save a overovat deterministicke artefakty, ale nova LLM interpretace je vypnuta",
             recommended);
     }
 
@@ -311,7 +311,7 @@ LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     if (entry == nullptr) {
         auto status = reducedStatus(
             "model_license_not_supported",
-            "selected local model is not in the supported catalog; SNC will not route gameplay-affecting decisions through it",
+            "vybrany lokalni model neni v podporovanem katalogu; SNC pres nej nebude vest herne ovlivnujici rozhodnuti",
             recommended);
         status.selectedModelId = state.selectedModelId;
         status.runtime = state.runtime;
@@ -335,47 +335,47 @@ LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     const auto catalogStatus = lowerAscii(entry->status);
     if (catalogStatus == "unsupported" || catalogStatus == "restricted") {
         status.state = "model_license_not_supported";
-        status.reason = "selected model catalog status is " + entry->status + "; SNC will stay in reduced mode";
+        status.reason = "stav katalogu zvoleneho modelu je " + entry->status + "; SNC zustane v redukovanem rezimu";
         status.userActionRequired = true;
         return status;
     }
 
     if (entry->requiresLoginOrGatedAccess) {
         status.state = "model_license_requires_user_action";
-        status.reason = "selected model requires gated access or login approval before SNC can install or use it";
+        status.reason = "zvoleny model vyzaduje schvaleny pristup nebo login, nez ho SNC muze nainstalovat nebo pouzit";
         status.userActionRequired = true;
         return status;
     }
 
     if (entry->requiresUserLicenseAcceptance && !state.userLicenseAccepted) {
         status.state = "model_license_requires_user_action";
-        status.reason = "selected model requires explicit user license and use-policy acceptance before install or inference";
+        status.reason = "zvoleny model vyzaduje explicitni schvaleni licence a podminek pouziti pred instalaci nebo inferenci";
         status.userActionRequired = true;
         return status;
     }
 
     if (!hardwareMeetsMinimum(*entry, hardware)) {
         status.state = "model_incompatible_with_hardware";
-        status.reason = "selected model exceeds the detected hardware recommendation";
+        status.reason = "zvoleny model presahuje zjistene doporuceni hardware";
         status.userActionRequired = true;
         return status;
     }
 
     if (!fileExistsIfConfigured(state.localPath)) {
         status.state = "model_missing";
-        status.reason = "selected model local path is configured but missing";
+        status.reason = "lokalni cesta zvoleneho modelu je nastavena, ale chybi";
         return status;
     }
 
     if (!state.runtimeAvailable) {
         status.state = "model_runtime_failed";
-        status.reason = "selected model runtime is not available";
+        status.reason = "runtime zvoleneho modelu neni dostupny";
         return status;
     }
 
     if (!state.runtimeModelPresent) {
         status.state = "model_missing";
-        status.reason = "selected runtime does not report the selected model as installed";
+        status.reason = "runtime zvoleneho modelu nehlasi, ze je model nainstalovany";
         status.downloadAllowed = true;
         return status;
     }
@@ -383,12 +383,12 @@ LocalLlmReadinessStatus evaluateLocalLlmReadiness(
     const bool stateClaimsReady = state.status.empty() || state.status == "model_ready";
     if (!stateClaimsReady) {
         status.state = "model_changed_revalidation_needed";
-        status.reason = "selected model state is " + state.status + "; SNC requires revalidation before inference";
+        status.reason = "stav zvoleneho modelu je " + state.status + "; SNC pred inferenci vyzaduje znovu overeni";
         return status;
     }
 
     status.state = "model_ready";
-    status.reason = "selected local model runtime and catalog policy are ready; model output remains untrusted until validators accept it";
+    status.reason = "zvoleny lokalni model i katalogova pravidla jsou pripravene; vystup modelu zustava neduveryhodny, dokud ho validatory nepotvrdi";
     status.canRunInference = true;
     status.reducedMode = false;
     status.downloadAllowed = false;
