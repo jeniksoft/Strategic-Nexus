@@ -130,6 +130,14 @@ $previousStatusCenterReason = ""
 $currentStatusCenterReason = ""
 $previousStatusCenterSummaryText = ""
 $currentStatusCenterSummaryText = ""
+$previousGeneratedOverlayPublishGateState = ""
+$currentGeneratedOverlayPublishGateState = ""
+$previousGeneratedOverlayPublishGateReason = ""
+$currentGeneratedOverlayPublishGateReason = ""
+$previousGeneratedOverlayPublishGateCanPublish = ""
+$currentGeneratedOverlayPublishGateCanPublish = ""
+$previousGeneratedOverlayPublishGatePublishCommand = ""
+$currentGeneratedOverlayPublishGatePublishCommand = ""
 if ($null -ne $previousStatus.gameplay_acceptance_status -and $null -ne $previousStatus.gameplay_acceptance_status.state) {
     $previousGameplayStatus = [string]$previousStatus.gameplay_acceptance_status.state
 }
@@ -159,6 +167,20 @@ if ($null -ne $previousStatus.status_center_summary_text) {
 }
 if ($null -ne $currentStatus.status_center_summary_text) {
     $currentStatusCenterSummaryText = [string]$currentStatus.status_center_summary_text
+}
+if ($null -ne $previousStatus.generated_overlay_publish_gate_status) {
+    $previousGeneratedOverlayPublishGateState = Get-OptionalString -Object $previousStatus.generated_overlay_publish_gate_status -Property "state"
+    $previousGeneratedOverlayPublishGateReason = Get-OptionalString -Object $previousStatus.generated_overlay_publish_gate_status -Property "reason"
+    $previousGeneratedOverlayPublishGateCanPublish = Get-OptionalString -Object $previousStatus.generated_overlay_publish_gate_status -Property "can_publish"
+    $previousGeneratedOverlayPublishGatePublishCommand =
+        Get-OptionalString -Object $previousStatus.generated_overlay_publish_gate_status -Property "publish_command"
+}
+if ($null -ne $currentStatus.generated_overlay_publish_gate_status) {
+    $currentGeneratedOverlayPublishGateState = Get-OptionalString -Object $currentStatus.generated_overlay_publish_gate_status -Property "state"
+    $currentGeneratedOverlayPublishGateReason = Get-OptionalString -Object $currentStatus.generated_overlay_publish_gate_status -Property "reason"
+    $currentGeneratedOverlayPublishGateCanPublish = Get-OptionalString -Object $currentStatus.generated_overlay_publish_gate_status -Property "can_publish"
+    $currentGeneratedOverlayPublishGatePublishCommand =
+        Get-OptionalString -Object $currentStatus.generated_overlay_publish_gate_status -Property "publish_command"
 }
 $previousNextAction = ""
 $currentNextAction = ""
@@ -621,6 +643,26 @@ $result = [ordered]@{
         current = $currentStatusCenterSummaryText
         changed = ($previousStatusCenterSummaryText -ne $currentStatusCenterSummaryText)
     }
+    generated_overlay_publish_gate_state = [ordered]@{
+        previous = $previousGeneratedOverlayPublishGateState
+        current = $currentGeneratedOverlayPublishGateState
+        changed = ($previousGeneratedOverlayPublishGateState -ne $currentGeneratedOverlayPublishGateState)
+    }
+    generated_overlay_publish_gate_reason = [ordered]@{
+        previous = $previousGeneratedOverlayPublishGateReason
+        current = $currentGeneratedOverlayPublishGateReason
+        changed = ($previousGeneratedOverlayPublishGateReason -ne $currentGeneratedOverlayPublishGateReason)
+    }
+    generated_overlay_publish_gate_can_publish = [ordered]@{
+        previous = $previousGeneratedOverlayPublishGateCanPublish
+        current = $currentGeneratedOverlayPublishGateCanPublish
+        changed = ($previousGeneratedOverlayPublishGateCanPublish -ne $currentGeneratedOverlayPublishGateCanPublish)
+    }
+    generated_overlay_publish_gate_publish_command = [ordered]@{
+        previous = $previousGeneratedOverlayPublishGatePublishCommand
+        current = $currentGeneratedOverlayPublishGatePublishCommand
+        changed = ($previousGeneratedOverlayPublishGatePublishCommand -ne $currentGeneratedOverlayPublishGatePublishCommand)
+    }
     save_root_resolution = [ordered]@{
         previous = $previousSaveRootResolution
         current = $currentSaveRootResolution
@@ -989,6 +1031,18 @@ Write-Host ("real_session_v0_compare_status_center_reason_changed=" + ((($previo
 Write-Host ("real_session_v0_compare_status_center_summary_text_current=" + $currentStatusCenterSummaryText)
 Write-Host ("real_session_v0_compare_status_center_summary_text_previous=" + $previousStatusCenterSummaryText)
 Write-Host ("real_session_v0_compare_status_center_summary_text_changed=" + ((($previousStatusCenterSummaryText -ne $currentStatusCenterSummaryText).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_state_current=" + $currentGeneratedOverlayPublishGateState)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_state_previous=" + $previousGeneratedOverlayPublishGateState)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_state_changed=" + ((($previousGeneratedOverlayPublishGateState -ne $currentGeneratedOverlayPublishGateState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_reason_current=" + $currentGeneratedOverlayPublishGateReason)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_reason_previous=" + $previousGeneratedOverlayPublishGateReason)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_reason_changed=" + ((($previousGeneratedOverlayPublishGateReason -ne $currentGeneratedOverlayPublishGateReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_can_publish_current=" + $currentGeneratedOverlayPublishGateCanPublish)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_can_publish_previous=" + $previousGeneratedOverlayPublishGateCanPublish)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_can_publish_changed=" + ((($previousGeneratedOverlayPublishGateCanPublish -ne $currentGeneratedOverlayPublishGateCanPublish).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_publish_command_current=" + $currentGeneratedOverlayPublishGatePublishCommand)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_publish_command_previous=" + $previousGeneratedOverlayPublishGatePublishCommand)
+Write-Host ("real_session_v0_compare_generated_overlay_publish_gate_publish_command_changed=" + ((($previousGeneratedOverlayPublishGatePublishCommand -ne $currentGeneratedOverlayPublishGatePublishCommand).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_save_root_resolution_current=" + $currentSaveRootResolution)
 Write-Host ("real_session_v0_compare_save_root_resolution_previous=" + $previousSaveRootResolution)
 Write-Host ("real_session_v0_compare_save_root_resolution_changed=" + ((($previousSaveRootResolution -ne $currentSaveRootResolution).ToString().ToLowerInvariant())))

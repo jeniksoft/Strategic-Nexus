@@ -109,6 +109,18 @@ $latestStatusCenterReasonChanged = ""
 $latestStatusCenterSummaryTextCurrent = ""
 $latestStatusCenterSummaryTextPrevious = ""
 $latestStatusCenterSummaryTextChanged = ""
+$latestGeneratedOverlayPublishGateStateCurrent = ""
+$latestGeneratedOverlayPublishGateStatePrevious = ""
+$latestGeneratedOverlayPublishGateStateChanged = ""
+$latestGeneratedOverlayPublishGateReasonCurrent = ""
+$latestGeneratedOverlayPublishGateReasonPrevious = ""
+$latestGeneratedOverlayPublishGateReasonChanged = ""
+$latestGeneratedOverlayPublishGateCanPublishCurrent = ""
+$latestGeneratedOverlayPublishGateCanPublishPrevious = ""
+$latestGeneratedOverlayPublishGateCanPublishChanged = ""
+$latestGeneratedOverlayPublishGatePublishCommandCurrent = ""
+$latestGeneratedOverlayPublishGatePublishCommandPrevious = ""
+$latestGeneratedOverlayPublishGatePublishCommandChanged = ""
 $latestNextActionCurrent = ""
 $latestNextActionPrevious = ""
 $latestNextActionChanged = ""
@@ -342,6 +354,18 @@ if ($sessionCount -ge 2) {
     $compareGeneratedOverlayPublishAllowedCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_current=*" } | Select-Object -First 1
     $compareGeneratedOverlayPublishAllowedPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_previous=*" } | Select-Object -First 1
     $compareGeneratedOverlayPublishAllowedChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_changed=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_state_current=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_state_previous=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_state_changed=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_reason_current=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_reason_previous=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_reason_changed=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateCanPublishCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_can_publish_current=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateCanPublishPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_can_publish_previous=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGateCanPublishChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_can_publish_changed=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGatePublishCommandCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_publish_command_current=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGatePublishCommandPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_publish_command_previous=*" } | Select-Object -First 1
+    $compareGeneratedOverlayPublishGatePublishCommandChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_gate_publish_command_changed=*" } | Select-Object -First 1
     $compareMemoryRecoveryAnchorEntryPointIdCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=*" } | Select-Object -First 1
     $compareMemoryRecoveryAnchorEntryPointIdPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_previous=*" } | Select-Object -First 1
     $compareMemoryRecoveryAnchorEntryPointIdChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=*" } | Select-Object -First 1
@@ -729,6 +753,42 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishAllowedChangedLine)) {
         $latestGeneratedOverlayPublishAllowedChanged = $compareGeneratedOverlayPublishAllowedChangedLine.Substring("real_session_v0_compare_generated_overlay_publish_allowed_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateStateCurrentLine)) {
+        $latestGeneratedOverlayPublishGateStateCurrent = $compareGeneratedOverlayPublishGateStateCurrentLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateStatePreviousLine)) {
+        $latestGeneratedOverlayPublishGateStatePrevious = $compareGeneratedOverlayPublishGateStatePreviousLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateStateChangedLine)) {
+        $latestGeneratedOverlayPublishGateStateChanged = $compareGeneratedOverlayPublishGateStateChangedLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_state_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateReasonCurrentLine)) {
+        $latestGeneratedOverlayPublishGateReasonCurrent = $compareGeneratedOverlayPublishGateReasonCurrentLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_reason_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateReasonPreviousLine)) {
+        $latestGeneratedOverlayPublishGateReasonPrevious = $compareGeneratedOverlayPublishGateReasonPreviousLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_reason_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateReasonChangedLine)) {
+        $latestGeneratedOverlayPublishGateReasonChanged = $compareGeneratedOverlayPublishGateReasonChangedLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateCanPublishCurrentLine)) {
+        $latestGeneratedOverlayPublishGateCanPublishCurrent = $compareGeneratedOverlayPublishGateCanPublishCurrentLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_can_publish_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateCanPublishPreviousLine)) {
+        $latestGeneratedOverlayPublishGateCanPublishPrevious = $compareGeneratedOverlayPublishGateCanPublishPreviousLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_can_publish_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGateCanPublishChangedLine)) {
+        $latestGeneratedOverlayPublishGateCanPublishChanged = $compareGeneratedOverlayPublishGateCanPublishChangedLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_can_publish_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGatePublishCommandCurrentLine)) {
+        $latestGeneratedOverlayPublishGatePublishCommandCurrent = $compareGeneratedOverlayPublishGatePublishCommandCurrentLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_publish_command_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGatePublishCommandPreviousLine)) {
+        $latestGeneratedOverlayPublishGatePublishCommandPrevious = $compareGeneratedOverlayPublishGatePublishCommandPreviousLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_publish_command_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishGatePublishCommandChangedLine)) {
+        $latestGeneratedOverlayPublishGatePublishCommandChanged = $compareGeneratedOverlayPublishGatePublishCommandChangedLine.Substring("real_session_v0_compare_generated_overlay_publish_gate_publish_command_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryAnchorEntryPointIdCurrentLine)) {
         $latestMemoryRecoveryAnchorEntryPointIdCurrent = $compareMemoryRecoveryAnchorEntryPointIdCurrentLine.Substring("real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=".Length)
@@ -1164,6 +1224,20 @@ $result = [ordered]@{
         previous = $latestGeneratedOverlayPublishAllowedPrevious
         changed = $latestGeneratedOverlayPublishAllowedChanged
     }
+    latest_generated_overlay_publish_gate = [ordered]@{
+        state_current = $latestGeneratedOverlayPublishGateStateCurrent
+        state_previous = $latestGeneratedOverlayPublishGateStatePrevious
+        state_changed = $latestGeneratedOverlayPublishGateStateChanged
+        reason_current = $latestGeneratedOverlayPublishGateReasonCurrent
+        reason_previous = $latestGeneratedOverlayPublishGateReasonPrevious
+        reason_changed = $latestGeneratedOverlayPublishGateReasonChanged
+        can_publish_current = $latestGeneratedOverlayPublishGateCanPublishCurrent
+        can_publish_previous = $latestGeneratedOverlayPublishGateCanPublishPrevious
+        can_publish_changed = $latestGeneratedOverlayPublishGateCanPublishChanged
+        publish_command_current = $latestGeneratedOverlayPublishGatePublishCommandCurrent
+        publish_command_previous = $latestGeneratedOverlayPublishGatePublishCommandPrevious
+        publish_command_changed = $latestGeneratedOverlayPublishGatePublishCommandChanged
+    }
     latest_status_center = [ordered]@{
         state_current = $latestStatusCenterStateCurrent
         state_previous = $latestStatusCenterStatePrevious
@@ -1433,6 +1507,18 @@ Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_sum
 Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_current=" + $latestGeneratedOverlayPublishAllowedCurrent)
 Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_previous=" + $latestGeneratedOverlayPublishAllowedPrevious)
 Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_changed=" + $latestGeneratedOverlayPublishAllowedChanged)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_state_current=" + $latestGeneratedOverlayPublishGateStateCurrent)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_state_previous=" + $latestGeneratedOverlayPublishGateStatePrevious)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_state_changed=" + $latestGeneratedOverlayPublishGateStateChanged)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_reason_current=" + $latestGeneratedOverlayPublishGateReasonCurrent)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_reason_previous=" + $latestGeneratedOverlayPublishGateReasonPrevious)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_reason_changed=" + $latestGeneratedOverlayPublishGateReasonChanged)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_can_publish_current=" + $latestGeneratedOverlayPublishGateCanPublishCurrent)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_can_publish_previous=" + $latestGeneratedOverlayPublishGateCanPublishPrevious)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_can_publish_changed=" + $latestGeneratedOverlayPublishGateCanPublishChanged)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_publish_command_current=" + $latestGeneratedOverlayPublishGatePublishCommandCurrent)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_publish_command_previous=" + $latestGeneratedOverlayPublishGatePublishCommandPrevious)
+Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_publish_command_changed=" + $latestGeneratedOverlayPublishGatePublishCommandChanged)
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_current=" + $latestMemoryRecoveryAnchorEntryPointIdCurrent)
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_previous=" + $latestMemoryRecoveryAnchorEntryPointIdPrevious)
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_changed=" + $latestMemoryRecoveryAnchorEntryPointIdChanged)

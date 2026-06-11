@@ -3009,6 +3009,10 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"status_center_summary_text_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"status_center_summary_text_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"status_center_summary_text_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"generated_overlay_publish_gate_state_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"generated_overlay_publish_gate_reason_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"generated_overlay_publish_gate_can_publish_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"generated_overlay_publish_gate_publish_command_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_path_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_path_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence auto trend" -Text $evidenceText -Expected '"next_action_path_changed"'
@@ -3047,18 +3051,30 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_previous="
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_gate_state_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_gate_reason_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_gate_can_publish_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_gate_publish_command_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_previous="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_changed="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_previous="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_gate_state_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_gate_reason_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_gate_can_publish_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_gate_publish_command_current="
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_changed"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_gate_state_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_gate_reason_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_gate_can_publish_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_gate_publish_command_current"'
     if ($evidenceJson.entry_point_post_play.post_play_package_campaign_identity_state_summary -ne "folder_alias_fallback") {
         throw "real session loop mismatch forwarding evidence expected entry_point_post_play.post_play_package_campaign_identity_state_summary=folder_alias_fallback."
     }
