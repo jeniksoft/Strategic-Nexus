@@ -2139,6 +2139,11 @@ The same transport-disabled seam now also surfaces explicit `friend_mp_sync_tran
 The transport adapter helper now mirrors friend-trust-store `not_configured` and `needs_attention` states in companion and tray summaries so missing or invalid trust-store states stay explicit while ready trust stores remain on the existing disabled transport boundary.
 Real-session compare, trend, and loop outputs now also forward `friend_trust_store_controls_*` and `friend_mesh_update_*` so revoke/block/disable-auto-sync drift and degraded handoff drift stay visible across the evidence chain; the remaining 15G work is the actual signed/encrypted transport adapter and end-to-end season validation.
 Real-session compare, trend, and loop outputs now also forward `friend_trust_store_state_*` so the base trust-store state itself stays visible across the same evidence chain.
+Next worker-ready 15G slice:
+
+* surface a shared-folder/cloud-folder transport adapter selection path in companion/tray/status surfaces
+* keep the current manual export/import fallback and disabled transport boundary fail closed
+* verify the new selection surface with the smallest targeted companion/tray regression that still exercises the current head
 
 ---
 
