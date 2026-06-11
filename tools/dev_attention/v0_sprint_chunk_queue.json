@@ -2445,5 +2445,25 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-236-verify-local-llm-model-manager-surface-on-current-head",
+      "title": "Verify local LLM model-manager surface on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "1G. Local LLM Model Manager / reduced-mode guidance visibility",
+      "goal": "Verify that the current-head companion, tray, and Status Center surfaces still expose the local LLM reduced-mode guidance, accepted model readiness, supported-model catalog summary, and fail-closed attention routing without reopening the handoff path.",
+      "acceptance": [
+        "Companion and tray local LLM status surfaces expose local_llm_install_guidance, local_llm_model_state_path, and the supported-model catalog summary/count on current head.",
+        "No-model and unsupported-model states remain fail closed with reduced-mode guidance and review_local_llm_model_manager routing.",
+        "dist/strategic_nexus_companion_test.exe, tools/smoke_snc_tray.cmd, and tools/run_v0_pipeline_tests.cmd pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }
