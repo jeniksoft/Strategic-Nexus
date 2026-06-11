@@ -132,6 +132,32 @@ int main()
         rejectedNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "reject note should still expose the personality bias");
 
+    strategic_nexus::StrategicSummary hegemonicPressureSummary = quietSummary;
+    hegemonicPressureSummary.hegemonyDetected = true;
+    hegemonicPressureSummary.instability = 0.09;
+
+    const auto hegemonicReject = engine.refineDoctrineDecision(fearfulEmpire, hegemonicPressureSummary, proposedExpansion);
+    requireCondition(
+        hegemonicReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "hegemony pressure should still resolve weak fearful opportunism to defense");
+    requireCondition(
+        hegemonicReject.rationale ==
+            "Rejected opportunistic expansion: a detected hegemon, capability limits, and fear do not support it yet.",
+        "hegemony-aware reject should explain the contradiction");
+    requireCondition(
+        hegemonicReject.confidence == 0.39,
+        "hegemony-aware reject path should clamp confidence lower than the other reject paths");
+    const auto hegemonicRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedExpansion,
+        hegemonicReject);
+    requireCondition(
+        hegemonicRejectNote.find("rejected opportunistic_expansion in favor of defensive_posture") != std::string::npos,
+        "hegemony-aware reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        hegemonicRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "hegemony-aware reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState capabilityConstrainedEmpire;
     capabilityConstrainedEmpire.id = "empire_capability_constrained";
     capabilityConstrainedEmpire.power.fleetPower = 34;

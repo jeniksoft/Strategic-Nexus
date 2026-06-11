@@ -80,6 +80,14 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
     const bool boldAndOpportunistic = empire.personality.boldness > 0.7 && empire.personality.opportunism > 0.6;
     const bool pressureIsLow = !summary.hegemonyDetected && summary.instability < 0.45;
 
+    if (decision.type == DoctrineType::OpportunisticExpansion && weakCapability && fearful && summary.hegemonyDetected) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected opportunistic expansion: a detected hegemon, capability limits, and fear do not support it yet.";
+        decision.confidence = 0.39;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::OpportunisticExpansion && weakCapability && fearful && summary.instability < 0.15) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale = "Rejected opportunistic expansion: capability, fear, and low pressure do not support it yet.";
