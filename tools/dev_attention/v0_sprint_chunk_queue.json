@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-11T11:02:42.2922524+02:00",
+  "updated_at": "2026-06-11T11:10:06.8304626+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2425,6 +2425,23 @@
       ],
       "preferred_tests": [
         "rg -n \"friend_mp_sync_preflight_checklist|friend_mp_sync_transport_state|friend_mesh_update_state\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-235-verify-personality-alignment-note-current-head",
+      "title": "Verify personality alignment note on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "9C. Personality-To-Rule Validation",
+      "goal": "Verify that current-head personality prompting and doctrine JSON still surface the bounded personality alignment note and personality bias when a focus empire is available.",
+      "acceptance": [
+        "The personality engine regression continues to surface the personality alignment note in the LLM prompt when present.",
+        "The doctrine JSON still includes the personality_alignment_note field with the expected alignment text.",
+        "The targeted personality engine regression passes on current head without changing the broader MP write set."
+      ],
+      "preferred_tests": [
+        "dist/personality_engine_test.exe"
       ],
       "dependencies": []
     }
