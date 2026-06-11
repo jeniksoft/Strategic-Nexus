@@ -57,6 +57,10 @@ struct SncDecisionInputPackage {
     bool ok = false;
     std::string reason;
     std::string readiness;
+    std::size_t schemaVersion = 1;
+    std::size_t sourceSchemaVersion = 1;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
     bool dryRunOnly = true;
     bool publishesOverlay = false;
     bool modelOutputTrusted = false;

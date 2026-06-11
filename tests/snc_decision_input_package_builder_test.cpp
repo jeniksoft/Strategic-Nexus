@@ -129,6 +129,13 @@ int main()
         "blocked beta entry should explain insufficient history");
 
     const auto json = strategic_nexus::serializeSncDecisionInputPackage(decisionPackage);
+    requireCondition(json.find("\"source_schema_version\": 1") != std::string::npos, "JSON should expose source schema version");
+    requireCondition(
+        json.find("\"schema_compatibility_state\": \"current\"") != std::string::npos,
+        "JSON should expose current compatibility state");
+    requireCondition(
+        json.find("\"schema_compatibility_note\": \"\"") != std::string::npos,
+        "JSON should keep current compatibility note empty");
     requireCondition(json.find("\"decision_input_count\": 2") != std::string::npos, "JSON should expose decision input count");
     requireCondition(json.find("\"blocked_entry_count\": 1") != std::string::npos, "JSON should expose blocked count");
     requireCondition(json.find("\"model_output_trusted\": false") != std::string::npos, "JSON should expose trust boundary");
@@ -161,6 +168,36 @@ int main()
     requireCondition(
         futureDecisionSchemaRead.reason == "unsupported decision input package schema",
         "unsupported decision input package schema should expose explicit compatibility reason");
+
+    auto legacyDecisionSchemaJson = json;
+    const auto legacySchemaMarker = legacyDecisionSchemaJson.find("\"schema_version\": 1");
+    requireCondition(
+        legacySchemaMarker != std::string::npos,
+        "legacy decision input package JSON should expose schema version marker");
+    legacyDecisionSchemaJson.replace(
+        legacySchemaMarker,
+        std::string("\"schema_version\": 1").size(),
+        "\"schema_version\": 0");
+    const auto legacySourceSchemaMarker = legacyDecisionSchemaJson.find("\"source_schema_version\": 1");
+    requireCondition(
+        legacySourceSchemaMarker != std::string::npos,
+        "legacy decision input package JSON should expose source schema version marker");
+    legacyDecisionSchemaJson.replace(
+        legacySourceSchemaMarker,
+        std::string("\"source_schema_version\": 1").size(),
+        "\"source_schema_version\": 0");
+    const auto legacyDecisionSchemaRead = strategic_nexus::parseSncDecisionInputPackageJson(legacyDecisionSchemaJson);
+    requireCondition(legacyDecisionSchemaRead.ok, "legacy decision input package schema should parse");
+    requireCondition(
+        legacyDecisionSchemaRead.package.sourceSchemaVersion == 0,
+        "legacy decision input package should expose source schema version 0");
+    requireCondition(
+        legacyDecisionSchemaRead.package.schemaCompatibilityState == "partial_compatibility",
+        "legacy decision input package should expose partial compatibility");
+    requireCondition(
+        legacyDecisionSchemaRead.package.schemaCompatibilityNote ==
+            "migrated legacy decision input package schema_version 0 to current schema_version 1",
+        "legacy decision input package should expose the migration note");
 
     std::cout << "SNC decision input package builder tests passed.\n";
     return 0;

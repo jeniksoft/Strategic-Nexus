@@ -81,6 +81,15 @@ int main()
     const auto decisionInputRead = strategic_nexus::parseSncDecisionInputPackageJson(decisionInputJson);
 
     requireCondition(decisionInputRead.ok, "serialized decision input package should parse back");
+    requireCondition(
+        decisionInputRead.package.sourceSchemaVersion == 1,
+        "decision input parser should preserve current source schema version");
+    requireCondition(
+        decisionInputRead.package.schemaCompatibilityState == "current",
+        "decision input parser should preserve current compatibility state");
+    requireCondition(
+        decisionInputRead.package.schemaCompatibilityNote.empty(),
+        "decision input parser should keep current compatibility note empty");
     requireCondition(decisionInputRead.package.decisionInputCount == 2, "decision input parser should preserve ready count");
     requireCondition(decisionInputRead.package.blockedEntryCount == 1, "decision input parser should preserve blocked count");
 

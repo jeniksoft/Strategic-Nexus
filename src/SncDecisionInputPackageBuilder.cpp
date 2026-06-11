@@ -440,6 +440,10 @@ SncDecisionInputPackage SncDecisionInputPackageBuilder::build(
     const std::filesystem::path& sourcePostPlayPackagePath) const
 {
     SncDecisionInputPackage package;
+    package.schemaVersion = 1;
+    package.sourceSchemaVersion = 1;
+    package.schemaCompatibilityState = "current";
+    package.schemaCompatibilityNote.clear();
     package.sourcePostPlayPackagePath = sourcePostPlayPackagePath;
     package.sessionArchiveDirectory = postPlayPackage.sessionArchiveDirectory;
     package.sourcePostPlayReadiness = postPlayPackage.readiness;
@@ -491,7 +495,10 @@ std::string serializeSncDecisionInputPackage(const SncDecisionInputPackage& pack
 {
     std::ostringstream json;
     json << "{\n";
-    json << "  \"schema_version\": 1,\n";
+    json << "  \"schema_version\": " << package.schemaVersion << ",\n";
+    json << "  \"source_schema_version\": " << package.sourceSchemaVersion << ",\n";
+    json << "  \"schema_compatibility_state\": \"" << jsonEscape(package.schemaCompatibilityState) << "\",\n";
+    json << "  \"schema_compatibility_note\": \"" << jsonEscape(package.schemaCompatibilityNote) << "\",\n";
     json << "  \"ok\": " << (package.ok ? "true" : "false") << ",\n";
     json << "  \"reason\": \"" << jsonEscape(package.reason) << "\",\n";
     json << "  \"readiness\": \"" << jsonEscape(package.readiness) << "\",\n";

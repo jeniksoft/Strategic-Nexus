@@ -503,9 +503,23 @@ SncDecisionInputPackageReadResult parseSncDecisionInputPackageJson(const std::st
     }
 
     const auto schemaVersion = extractJsonSize(json, "schema_version");
-    if (!schemaVersion.has_value() || *schemaVersion != 1) {
+    if (!schemaVersion.has_value() || *schemaVersion > 1) {
         result.reason = "unsupported decision input package schema";
         return result;
+    }
+
+    const auto sourceSchemaVersionValue = extractJsonSize(json, "source_schema_version");
+    std::size_t sourceSchemaVersion = schemaVersion.value();
+    if (sourceSchemaVersionValue.has_value()) {
+        if (*sourceSchemaVersionValue > 1) {
+            result.reason = "unsupported decision input package schema";
+            return result;
+        }
+        sourceSchemaVersion = *sourceSchemaVersionValue;
+        if (schemaVersion.value() == 0 && sourceSchemaVersion != 0) {
+            result.reason = "decision input package json is malformed";
+            return result;
+        }
     }
 
     const auto ok = extractJsonBool(json, "ok");
@@ -525,6 +539,16 @@ SncDecisionInputPackageReadResult parseSncDecisionInputPackageJson(const std::st
     }
 
     auto& package = result.package;
+    package.schemaVersion = 1;
+    package.sourceSchemaVersion = sourceSchemaVersion;
+    if (package.sourceSchemaVersion == 0) {
+        package.schemaCompatibilityState = "partial_compatibility";
+        package.schemaCompatibilityNote =
+            "migrated legacy decision input package schema_version 0 to current schema_version 1";
+    } else {
+        package.schemaCompatibilityState = "current";
+        package.schemaCompatibilityNote.clear();
+    }
     package.ok = *ok;
     package.reason = stringOrEmpty(json, "reason");
     package.readiness = stringOrEmpty(json, "readiness");
