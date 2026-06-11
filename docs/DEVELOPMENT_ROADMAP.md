@@ -1332,7 +1332,7 @@ The active library has anchor fingerprints and local continuity signals, and pos
 ## 6F. Pinned Campaign And Library Override UX
 
 Status:
-IN_PROGRESS
+VERIFIED
 
 Goal:
 Allow the user to keep specific campaign rules available even when a save folder is temporarily absent.
@@ -1347,6 +1347,7 @@ Required:
 
 Current progress:
 The companion and tray status surfaces now expose pinned-campaign state, the copyable `--toggle-campaign-library-pin` command template, and fail-closed guidance for unavailable or degraded pinned coverage. Local pin-manifest updates remain bounded to the explicit pin/unpin command and keep the active library size handling and durable campaign memory separation intact. The remaining campaign-library maintenance work is broader library synchronization, not the owner-facing pin toggle surface itself.
+`tools/run_v0_pipeline_tests.cmd` passes on current head, so the pinned-campaign pin/unpin surface is verified while broader campaign-library synchronization remains in 6G.
 
 ---
 
