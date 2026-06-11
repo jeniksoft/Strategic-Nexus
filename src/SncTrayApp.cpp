@@ -7261,11 +7261,11 @@ void writeStatus(
     json << "  \"friend_mp_sync_inbox_plan_package_staging_allowed\": false,\n";
     json << "  \"friend_mp_sync_outbox_plan_command_template\": \""
          << jsonEscape(buildFriendMpSyncOutboxPlanCommandTemplateUtf8()) << "\",\n";
-    json << "  \"friend_mp_sync_transport_state\": \"disabled_not_implemented\",\n";
-    json << "  \"friend_mp_sync_transport_reason\": \""
-         << jsonEscape("signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") << "\",\n";
-    json << "  \"friend_mp_sync_transport_next_step\": \""
-         << jsonEscape(companionSnapshot.friendTrustStore.mpSyncTransportNextStep) << "\",\n";
+    const auto friendMpSyncTransport =
+        strategic_nexus::buildFriendMpSyncTransportStatus(companionSnapshot.friendTrustStore);
+    json << "  \"friend_mp_sync_transport_state\": \"" << jsonEscape(friendMpSyncTransport.state) << "\",\n";
+    json << "  \"friend_mp_sync_transport_reason\": \"" << jsonEscape(friendMpSyncTransport.reason) << "\",\n";
+    json << "  \"friend_mp_sync_transport_next_step\": \"" << jsonEscape(friendMpSyncTransport.nextStep) << "\",\n";
     json << "  \"friend_mp_sync_preflight_checklist\": \""
          << jsonEscape(companionSnapshot.friendTrustStore.mpSyncPreflightChecklist) << "\",\n";
     json << "  \"mp_host_rotation_sync_state\": \""

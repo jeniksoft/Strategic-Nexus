@@ -2583,6 +2583,22 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
     return status;
 }
 
+CompanionFriendMpSyncTransportStatus buildFriendMpSyncTransportStatusImpl(
+    const CompanionFriendTrustStoreStatus& friendTrustStore)
+{
+    CompanionFriendMpSyncTransportStatus status;
+    if (!friendTrustStore.mpSyncTransportState.empty()) {
+        status.state = friendTrustStore.mpSyncTransportState;
+    }
+    if (!friendTrustStore.mpSyncTransportReason.empty()) {
+        status.reason = friendTrustStore.mpSyncTransportReason;
+    }
+    if (!friendTrustStore.mpSyncTransportNextStep.empty()) {
+        status.nextStep = friendTrustStore.mpSyncTransportNextStep;
+    }
+    return status;
+}
+
 CompanionFriendMeshUpdateStatus buildFriendMeshUpdateStatusImpl(
     const CompanionFriendTrustStoreStatus& friendTrustStore,
     const CompanionMpOverlayPackageStatus& mpOverlayPackage)
@@ -3234,18 +3250,13 @@ std::string buildStatusCenterSummaryText(
          << (friendTrustStore.mpSyncInboxAutomaticDownloadEnabled ? "true" : "false") << "\n";
     text << "friend_mp_sync_inbox_plan_package_staging_allowed: "
          << (friendTrustStore.mpSyncInboxPackageStagingAllowed ? "true" : "false") << "\n";
-    if (!friendTrustStore.mpSyncTransportState.empty()) {
-        text << "friend_mp_sync_transport_state: "
-             << friendTrustStore.mpSyncTransportState << "\n";
-    }
-    if (!friendTrustStore.mpSyncTransportReason.empty()) {
-        text << "friend_mp_sync_transport_reason: "
-             << friendTrustStore.mpSyncTransportReason << "\n";
-    }
-    if (!friendTrustStore.mpSyncTransportNextStep.empty()) {
-        text << "friend_mp_sync_transport_next_step: "
-             << friendTrustStore.mpSyncTransportNextStep << "\n";
-    }
+    const auto friendMpSyncTransport = buildFriendMpSyncTransportStatus(friendTrustStore);
+    text << "friend_mp_sync_transport_state: "
+         << friendMpSyncTransport.state << "\n";
+    text << "friend_mp_sync_transport_reason: "
+         << friendMpSyncTransport.reason << "\n";
+    text << "friend_mp_sync_transport_next_step: "
+         << friendMpSyncTransport.nextStep << "\n";
     if (!friendTrustStore.mpSyncPreflightChecklist.empty()) {
         text << "friend_mp_sync_preflight_checklist: "
              << friendTrustStore.mpSyncPreflightChecklist << "\n";
@@ -3685,12 +3696,13 @@ void writeFriendTrustStoreJson(
            << (status.mpSyncInboxAutomaticDownloadEnabled ? "true" : "false") << ",\n";
     output << indent << "  \"mp_sync_inbox_plan_package_staging_allowed\": "
            << (status.mpSyncInboxPackageStagingAllowed ? "true" : "false") << ",\n";
+    const auto friendMpSyncTransport = buildFriendMpSyncTransportStatus(status);
     output << indent << "  \"mp_sync_transport_state\": "
-           << jsonString(status.mpSyncTransportState) << ",\n";
+           << jsonString(friendMpSyncTransport.state) << ",\n";
     output << indent << "  \"mp_sync_transport_reason\": "
-           << jsonString(status.mpSyncTransportReason) << ",\n";
+           << jsonString(friendMpSyncTransport.reason) << ",\n";
     output << indent << "  \"mp_sync_transport_next_step\": "
-           << jsonString(status.mpSyncTransportNextStep) << ",\n";
+           << jsonString(friendMpSyncTransport.nextStep) << ",\n";
     output << indent << "  \"mp_sync_preflight_checklist\": "
            << jsonString(status.mpSyncPreflightChecklist) << ",\n";
     output << indent << "  \"auto_sync_available\": "
@@ -3962,6 +3974,12 @@ void writePostPlayPipelineJson(
 }
 
 } // namespace
+
+CompanionFriendMpSyncTransportStatus buildFriendMpSyncTransportStatus(
+    const CompanionFriendTrustStoreStatus& friendTrustStore)
+{
+    return buildFriendMpSyncTransportStatusImpl(friendTrustStore);
+}
 
 CompanionFriendMeshUpdateStatus buildFriendMeshUpdateStatus(
     const CompanionFriendTrustStoreStatus& friendTrustStore,

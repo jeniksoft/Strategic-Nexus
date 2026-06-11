@@ -353,6 +353,17 @@ struct CompanionFriendTrustStoreStatus {
     bool autoSyncAvailable = false;
 };
 
+struct CompanionFriendMpSyncTransportStatus {
+    std::string state = "disabled_not_implemented";
+    std::string reason =
+        "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled";
+    std::string nextStep =
+        "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.";
+};
+
+CompanionFriendMpSyncTransportStatus buildFriendMpSyncTransportStatus(
+    const CompanionFriendTrustStoreStatus& friendTrustStore);
+
 struct CompanionFriendMeshUpdateStatus {
     std::string state = "waiting";
     std::string reason = "waiting for trusted friend mesh prerequisites";
