@@ -2465,5 +2465,23 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-237-document-real-season-mp-validation-checklist",
+      "title": "Document real-season MP validation checklist",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / real-season validation readiness",
+      "goal": "Document a repeatable first real-season validation checklist for MP handoff so the owner knows exactly what to test, what evidence to keep, and which transport limitation still blocks automation.",
+      "acceptance": [
+        "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md includes a compact real-season validation checklist with the owner steps and the expected evidence.",
+        "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md calls out the current signed/encrypted transport limitation and keeps manual export/import as the active fallback.",
+        "docs/DEVELOPMENT_ROADMAP.md records that the real-season validation checklist now exists."
+      ],
+      "preferred_tests": [
+        "rg -n \"real-season validation checklist|signed/encrypted transport limitation|manual export/import\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md docs/DEVELOPMENT_ROADMAP.md"
+      ],
+      "dependencies": []
+    }
   ]
 }

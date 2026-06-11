@@ -2127,6 +2127,7 @@ The canonical multiplayer season guide now also names those friend trust store c
 Current-head verification confirms the outbox-plan template and transport-next-step wording stay aligned across companion, tray, and dashboard surfaces.
 Current-head verification also confirms `friend_mesh_update_state`, `friend_mesh_update_reason`, and `friend_mesh_update_next_step` are surfaced across companion, tray, and Status Center views for degraded handoff visibility.
 Current-head verification also confirms `friend_mp_sync_outbox_plan_command_template` is exposed consistently across companion, tray, and Status Center surfaces with the explicit no-send/no-upload/no-staging wording.
+The canonical multiplayer season guide now also includes a compact first real-season validation checklist with the expected evidence and the current transport limitation called out explicitly.
 
 ---
 

@@ -509,6 +509,32 @@ stage host local overlay while Stellaris is closed
 produce copyable invite/package status text
 ```
 
+For the first real season validation, keep the check small and repeatable:
+
+```text
+open SNC before Stellaris starts
+confirm the current MP handoff status still shows the manual fallback path
+run one normal play session
+capture the post-session archive/status evidence
+verify the host-rotation and degraded-handoff warnings still match the observed state
+```
+
+Evidence to keep:
+
+```text
+copyable status text from SNC companion or tray
+session archive path or summary
+the current friend_mesh_update_state / mp_host_rotation_sync_state wording
+any mismatch or degraded-handoff warning text that appeared
+```
+
+Known limitation:
+
+```text
+signed/encrypted friend transport is still not implemented, so automatic receive/verify/stage remains unavailable for the real-season test.
+manual export/import is still the active fallback.
+```
+
 The current SNC companion and tray status surfaces also expose `friend_mp_sync_transport_state`, `friend_mp_sync_transport_reason`, and `friend_mp_sync_transport_next_step` so the signed/encrypted transport gap stays explicit while manual export/import remains the active fallback.
 The next missing product piece is still the signed/encrypted transport adapter that will eventually make automatic receive/verify/stage possible; until that exists, manual export/import remains the active path.
 The same friend-pairing guide also repeats the manual MP package export/import fallback and strict verify/import path so the transport-disabled state stays visible without opening raw JSON.
