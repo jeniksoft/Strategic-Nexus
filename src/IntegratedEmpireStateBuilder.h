@@ -56,6 +56,7 @@ struct IntegratedEmpireState {
     std::string personalityProfileSchemaCompatibilityState;
     std::string personalityProfileSchemaCompatibilityNote;
     std::string personalityProfileValidatedUpdateSummary;
+    std::string personalityProfilePromptOutputNote;
     std::string personalityProfileSourceSaveDate;
     bool personalityProfileZeroHistoryBootstrap = false;
     double confidence = 0.0;

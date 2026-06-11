@@ -54,3 +54,8 @@ Invoke-TaskBoardJsonMutation -Path $taskPath -Mutate {
 $removed = if ($ProgressPercent -ge 100) { "true" } else { "false" }
 Write-Host "user_task_progress_updated=$Id"
 Write-Host "user_task_removed=$removed"
+if (Test-TaskBoardPathMatchesDefault -RepoRoot $repoRoot -Path $taskPath -DefaultRelativePath "dist/private_reports/user_tasks.json") {
+    if (Invoke-TaskBoardStateSync) {
+        Write-Host "task_board_state_sync_invoked=true"
+    }
+}

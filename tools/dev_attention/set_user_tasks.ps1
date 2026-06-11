@@ -41,3 +41,8 @@ Invoke-TaskBoardJsonMutation -Path $taskPath -Mutate {
     }
 }
 Write-Host "user_tasks_written=$taskPath"
+if (Test-TaskBoardPathMatchesDefault -RepoRoot $repoRoot -Path $taskPath -DefaultRelativePath "dist/private_reports/user_tasks.json") {
+    if (Invoke-TaskBoardStateSync) {
+        Write-Host "task_board_state_sync_invoked=true"
+    }
+}

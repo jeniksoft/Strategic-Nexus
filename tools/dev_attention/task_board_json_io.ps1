@@ -7,6 +7,30 @@ function Ensure-TaskBoardDirectory {
     }
 }
 
+function Test-TaskBoardPathMatchesDefault {
+    param(
+        [string]$RepoRoot,
+        [string]$Path,
+        [string]$DefaultRelativePath
+    )
+
+    $resolvedInputPath = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $RepoRoot $Path }
+    $resolvedPath = [System.IO.Path]::GetFullPath($resolvedInputPath)
+    $defaultPath = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $DefaultRelativePath))
+
+    return $resolvedPath.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) -ieq $defaultPath.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+}
+
+function Invoke-TaskBoardStateSync {
+    $syncScript = Join-Path $PSScriptRoot "sync_user_task_board_state.cmd"
+    if (-not (Test-Path -LiteralPath $syncScript)) {
+        return $false
+    }
+
+    & $syncScript | Out-Null
+    return $true
+}
+
 function Invoke-TaskBoardJsonMutation {
     param(
         [Parameter(Mandatory = $true)]

@@ -145,6 +145,7 @@ int main()
         requireCondition(json.find("\"personality_profile\": {") != std::string::npos, "JSON should include personality profile provenance");
         requireCondition(json.find("\"applied\": false") != std::string::npos, "JSON should expose unloaded profile state");
         requireCondition(json.find("\"schema_compatibility_state\": \"not_loaded\"") != std::string::npos, "JSON should expose not-loaded compatibility state");
+        requireCondition(json.find("\"prompt_output_note\": \"summary-only prompt-output context; no validated personality profile loaded\"") != std::string::npos, "JSON should expose summary-only prompt-output context");
         requireCondition(json.find("\"field_group\": \"ethics\"") != std::string::npos, "JSON should expose ethics field availability");
         requireCondition(json.find("\"field_group\": \"relationships\"") != std::string::npos, "JSON should expose relationships field availability");
         requireCondition(json.find("integrated_empire_state_summary_only_contract") != std::string::npos, "JSON should record the summary-only contract note");
@@ -186,6 +187,7 @@ int main()
         requireCondition(profileJson.find("\"applied\": true") != std::string::npos, "profile-backed JSON should expose applied profile state");
         requireCondition(profileJson.find("\"validated_update_summary\": \"profile-backed defensive caution\"") != std::string::npos, "profile-backed JSON should expose the validated update summary");
         requireCondition(profileJson.find("\"schema_compatibility_state\": \"current\"") != std::string::npos, "profile-backed JSON should expose the current compatibility state");
+        requireCondition(profileJson.find("\"prompt_output_note\": \"validated personality profile available for prompt-output consumers\"") != std::string::npos, "profile-backed JSON should expose prompt-output provenance");
     }
 
     {

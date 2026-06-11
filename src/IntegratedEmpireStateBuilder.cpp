@@ -177,6 +177,9 @@ IntegratedEmpireState IntegratedEmpireStateBuilder::build(
     state.personalityProfileValidatedUpdateSummary = loadedPersonalityProfile
         ? loadedProfile.validatedUpdateSummary
         : "summary_only_empire_state_contract";
+    state.personalityProfilePromptOutputNote = loadedPersonalityProfile
+        ? "validated personality profile available for prompt-output consumers"
+        : "summary-only prompt-output context; no validated personality profile loaded";
     state.personalityProfileSourceSaveDate = loadedPersonalityProfile ? loadedProfile.sourceSaveDate : std::string();
     state.personalityProfileZeroHistoryBootstrap = loadedPersonalityProfile ? loadedProfile.zeroHistoryBootstrap : false;
     state.confidence = confidence;
@@ -317,6 +320,7 @@ std::string serializeIntegratedEmpireState(const IntegratedEmpireState& state)
     json << "    \"schema_compatibility_state\": \"" << jsonEscape(state.personalityProfileSchemaCompatibilityState) << "\",\n";
     json << "    \"schema_compatibility_note\": \"" << jsonEscape(state.personalityProfileSchemaCompatibilityNote) << "\",\n";
     json << "    \"validated_update_summary\": \"" << jsonEscape(state.personalityProfileValidatedUpdateSummary) << "\",\n";
+    json << "    \"prompt_output_note\": \"" << jsonEscape(state.personalityProfilePromptOutputNote) << "\",\n";
     json << "    \"source_save_date\": \"" << jsonEscape(state.personalityProfileSourceSaveDate) << "\",\n";
     json << "    \"zero_history_bootstrap\": " << (state.personalityProfileZeroHistoryBootstrap ? "true" : "false") << "\n";
     json << "  },\n";

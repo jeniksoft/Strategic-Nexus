@@ -60,3 +60,8 @@ Invoke-TaskBoardJsonMutation -Path $reportPath -Mutate {
     }
 }
 Write-Host "user_report_written=$Id"
+if (Test-TaskBoardPathMatchesDefault -RepoRoot $repoRoot -Path $reportPath -DefaultRelativePath "dist/private_reports/user_reports.json") {
+    if (Invoke-TaskBoardStateSync) {
+        Write-Host "task_board_state_sync_invoked=true"
+    }
+}
