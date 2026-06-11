@@ -1183,6 +1183,9 @@ $sncNextActionReason = ""
 $sncNextActionCommandHint = ""
 $sncNextActionCommandHintSource = ""
 $sncNextActionPath = ""
+$sncFriendTrustStoreState = ""
+$sncFriendTrustStoreReason = ""
+$sncFriendTrustStorePath = ""
 $sncFriendMpSyncTransportAdapterState = ""
 $sncFriendMpSyncTransportAdapterReason = ""
 $sncFriendMpSyncTransportAdapterNextStep = ""
@@ -1232,6 +1235,15 @@ if ($null -ne $statusJson.next_action_command_hint_source) {
 }
 if ($null -ne $statusJson.next_action_path) {
     $sncNextActionPath = [string]$statusJson.next_action_path
+}
+if ($null -ne $statusJson.friend_trust_store_state) {
+    $sncFriendTrustStoreState = [string]$statusJson.friend_trust_store_state
+}
+if ($null -ne $statusJson.friend_trust_store_reason) {
+    $sncFriendTrustStoreReason = [string]$statusJson.friend_trust_store_reason
+}
+if ($null -ne $statusJson.friend_trust_store_path) {
+    $sncFriendTrustStorePath = [string]$statusJson.friend_trust_store_path
 }
 if ($null -ne $statusJson.friend_mp_sync_transport_adapter_state) {
     $sncFriendMpSyncTransportAdapterState = [string]$statusJson.friend_mp_sync_transport_adapter_state
@@ -1408,6 +1420,9 @@ Write-Host ("real_session_v0_loop_snc_next_action=" + $sncNextAction)
 Write-Host ("real_session_v0_loop_snc_next_action_reason=" + $sncNextActionReason)
 Write-Host ("real_session_v0_loop_snc_next_action_command_hint_source=" + $sncNextActionCommandHintSource)
 Write-Host ("real_session_v0_loop_snc_next_action_path=" + $sncNextActionPath)
+Write-Host ("real_session_v0_loop_friend_trust_store_state=" + $sncFriendTrustStoreState)
+Write-Host ("real_session_v0_loop_friend_trust_store_reason=" + $sncFriendTrustStoreReason)
+Write-Host ("real_session_v0_loop_friend_trust_store_path=" + $sncFriendTrustStorePath)
 Write-Host ("real_session_v0_loop_friend_trust_store_controls_state=" + $sncFriendTrustStoreControlsState)
 Write-Host ("real_session_v0_loop_friend_trust_store_controls_reason=" + $sncFriendTrustStoreControlsReason)
 Write-Host ("real_session_v0_loop_friend_trust_store_controls_next_step=" + $sncFriendTrustStoreControlsNextStep)
@@ -1516,6 +1531,15 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareNextActionPathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_current"
     $compareNextActionPathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_previous"
     $compareNextActionPathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_next_action_path_changed"
+    $compareFriendTrustStoreStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_state_current"
+    $compareFriendTrustStoreStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_state_previous"
+    $compareFriendTrustStoreStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_state_changed"
+    $compareFriendTrustStoreReasonCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_reason_current"
+    $compareFriendTrustStoreReasonPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_reason_previous"
+    $compareFriendTrustStoreReasonChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_reason_changed"
+    $compareFriendTrustStorePathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_path_current"
+    $compareFriendTrustStorePathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_path_previous"
+    $compareFriendTrustStorePathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_path_changed"
     $compareFriendTrustStoreControlsStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_controls_state_current"
     $compareFriendTrustStoreControlsStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_controls_state_previous"
     $compareFriendTrustStoreControlsStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_controls_state_changed"
@@ -1803,6 +1827,15 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_next_action_path_current=" + $compareNextActionPathCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_next_action_path_previous=" + $compareNextActionPathPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_next_action_path_changed=" + $compareNextActionPathChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_state_current=" + $compareFriendTrustStoreStateCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_state_previous=" + $compareFriendTrustStoreStatePrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_state_changed=" + $compareFriendTrustStoreStateChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_reason_current=" + $compareFriendTrustStoreReasonCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_reason_previous=" + $compareFriendTrustStoreReasonPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_reason_changed=" + $compareFriendTrustStoreReasonChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_path_current=" + $compareFriendTrustStorePathCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_path_previous=" + $compareFriendTrustStorePathPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_path_changed=" + $compareFriendTrustStorePathChanged)
     Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_controls_state_current=" + $compareFriendTrustStoreControlsStateCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_controls_state_previous=" + $compareFriendTrustStoreControlsStatePrevious)
     Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_controls_state_changed=" + $compareFriendTrustStoreControlsStateChanged)
@@ -2252,6 +2285,15 @@ if ($EmitTrendSummary) {
     $trendNextActionPathCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_current"
     $trendNextActionPathPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_previous"
     $trendNextActionPathChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_next_action_path_changed"
+    $trendFriendTrustStoreStateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_state_current"
+    $trendFriendTrustStoreStatePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_state_previous"
+    $trendFriendTrustStoreStateChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_state_changed"
+    $trendFriendTrustStoreReasonCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_reason_current"
+    $trendFriendTrustStoreReasonPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_reason_previous"
+    $trendFriendTrustStoreReasonChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_reason_changed"
+    $trendFriendTrustStorePathCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_path_current"
+    $trendFriendTrustStorePathPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_path_previous"
+    $trendFriendTrustStorePathChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_path_changed"
     $trendFriendTrustStoreControlsStateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_controls_state_current"
     $trendFriendTrustStoreControlsStatePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_controls_state_previous"
     $trendFriendTrustStoreControlsStateChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_controls_state_changed"
@@ -2517,6 +2559,15 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_next_action_path_current=" + $trendNextActionPathCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_next_action_path_previous=" + $trendNextActionPathPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_next_action_path_changed=" + $trendNextActionPathChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_state_current=" + $trendFriendTrustStoreStateCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_state_previous=" + $trendFriendTrustStoreStatePrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_state_changed=" + $trendFriendTrustStoreStateChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_reason_current=" + $trendFriendTrustStoreReasonCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_reason_previous=" + $trendFriendTrustStoreReasonPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_reason_changed=" + $trendFriendTrustStoreReasonChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_path_current=" + $trendFriendTrustStorePathCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_path_previous=" + $trendFriendTrustStorePathPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_path_changed=" + $trendFriendTrustStorePathChanged)
     Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_controls_state_current=" + $trendFriendTrustStoreControlsStateCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_controls_state_previous=" + $trendFriendTrustStoreControlsStatePrevious)
     Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_controls_state_changed=" + $trendFriendTrustStoreControlsStateChanged)
@@ -3156,6 +3207,11 @@ $sessionEvidence = [ordered]@{
         command_hint = $nextActionSummary.command_hint
         command_hint_source = $nextActionSummary.command_hint_source
         path = $nextActionSummary.path
+    }
+    friend_trust_store = [ordered]@{
+        state = $sncFriendTrustStoreState
+        reason = $sncFriendTrustStoreReason
+        path = $sncFriendTrustStorePath
     }
     friend_trust_store_controls = [ordered]@{
         state = $sncFriendTrustStoreControlsState

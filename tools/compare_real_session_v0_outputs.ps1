@@ -192,6 +192,12 @@ $previousNextActionCommandHint = ""
 $currentNextActionCommandHint = ""
 $previousNextActionPath = ""
 $currentNextActionPath = ""
+$previousFriendTrustStoreState = ""
+$currentFriendTrustStoreState = ""
+$previousFriendTrustStoreReason = ""
+$currentFriendTrustStoreReason = ""
+$previousFriendTrustStorePath = ""
+$currentFriendTrustStorePath = ""
 $previousFriendTrustStoreControlsState = ""
 $currentFriendTrustStoreControlsState = ""
 $previousFriendTrustStoreControlsReason = ""
@@ -277,6 +283,11 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousNextActionCommandHint = Get-OptionalString -Object $previousEvidence.next_action -Property "command_hint"
         $previousNextActionPath = Get-OptionalString -Object $previousEvidence.next_action -Property "path"
     }
+    if ($null -ne $previousEvidence.friend_trust_store) {
+        $previousFriendTrustStoreState = Get-OptionalString -Object $previousEvidence.friend_trust_store -Property "state"
+        $previousFriendTrustStoreReason = Get-OptionalString -Object $previousEvidence.friend_trust_store -Property "reason"
+        $previousFriendTrustStorePath = Get-OptionalString -Object $previousEvidence.friend_trust_store -Property "path"
+    }
     if ($null -ne $previousEvidence.friend_trust_store_controls) {
         $previousFriendTrustStoreControlsState = Get-OptionalString -Object $previousEvidence.friend_trust_store_controls -Property "state"
         $previousFriendTrustStoreControlsReason = Get-OptionalString -Object $previousEvidence.friend_trust_store_controls -Property "reason"
@@ -343,6 +354,11 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentNextActionCommandHintSource = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint_source"
         $currentNextActionCommandHint = Get-OptionalString -Object $currentEvidence.next_action -Property "command_hint"
         $currentNextActionPath = Get-OptionalString -Object $currentEvidence.next_action -Property "path"
+    }
+    if ($null -ne $currentEvidence.friend_trust_store) {
+        $currentFriendTrustStoreState = Get-OptionalString -Object $currentEvidence.friend_trust_store -Property "state"
+        $currentFriendTrustStoreReason = Get-OptionalString -Object $currentEvidence.friend_trust_store -Property "reason"
+        $currentFriendTrustStorePath = Get-OptionalString -Object $currentEvidence.friend_trust_store -Property "path"
     }
     if ($null -ne $currentEvidence.friend_trust_store_controls) {
         $currentFriendTrustStoreControlsState = Get-OptionalString -Object $currentEvidence.friend_trust_store_controls -Property "state"
@@ -800,6 +816,21 @@ $result = [ordered]@{
         current = $currentNextActionPath
         changed = ($previousNextActionPath -ne $currentNextActionPath)
     }
+    friend_trust_store_state = [ordered]@{
+        previous = $previousFriendTrustStoreState
+        current = $currentFriendTrustStoreState
+        changed = ($previousFriendTrustStoreState -ne $currentFriendTrustStoreState)
+    }
+    friend_trust_store_reason = [ordered]@{
+        previous = $previousFriendTrustStoreReason
+        current = $currentFriendTrustStoreReason
+        changed = ($previousFriendTrustStoreReason -ne $currentFriendTrustStoreReason)
+    }
+    friend_trust_store_path = [ordered]@{
+        previous = $previousFriendTrustStorePath
+        current = $currentFriendTrustStorePath
+        changed = ($previousFriendTrustStorePath -ne $currentFriendTrustStorePath)
+    }
     friend_trust_store_controls_state = [ordered]@{
         previous = $previousFriendTrustStoreControlsState
         current = $currentFriendTrustStoreControlsState
@@ -1187,6 +1218,15 @@ Write-Host ("real_session_v0_compare_next_action_command_hint_changed=" + ((($pr
 Write-Host ("real_session_v0_compare_next_action_path_current=" + $currentNextActionPath)
 Write-Host ("real_session_v0_compare_next_action_path_previous=" + $previousNextActionPath)
 Write-Host ("real_session_v0_compare_next_action_path_changed=" + ((($previousNextActionPath -ne $currentNextActionPath).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_trust_store_state_current=" + $currentFriendTrustStoreState)
+Write-Host ("real_session_v0_compare_friend_trust_store_state_previous=" + $previousFriendTrustStoreState)
+Write-Host ("real_session_v0_compare_friend_trust_store_state_changed=" + ((($previousFriendTrustStoreState -ne $currentFriendTrustStoreState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_trust_store_reason_current=" + $currentFriendTrustStoreReason)
+Write-Host ("real_session_v0_compare_friend_trust_store_reason_previous=" + $previousFriendTrustStoreReason)
+Write-Host ("real_session_v0_compare_friend_trust_store_reason_changed=" + ((($previousFriendTrustStoreReason -ne $currentFriendTrustStoreReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_trust_store_path_current=" + $currentFriendTrustStorePath)
+Write-Host ("real_session_v0_compare_friend_trust_store_path_previous=" + $previousFriendTrustStorePath)
+Write-Host ("real_session_v0_compare_friend_trust_store_path_changed=" + ((($previousFriendTrustStorePath -ne $currentFriendTrustStorePath).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_friend_trust_store_controls_state_current=" + $currentFriendTrustStoreControlsState)
 Write-Host ("real_session_v0_compare_friend_trust_store_controls_state_previous=" + $previousFriendTrustStoreControlsState)
 Write-Host ("real_session_v0_compare_friend_trust_store_controls_state_changed=" + ((($previousFriendTrustStoreControlsState -ne $currentFriendTrustStoreControlsState).ToString().ToLowerInvariant())))

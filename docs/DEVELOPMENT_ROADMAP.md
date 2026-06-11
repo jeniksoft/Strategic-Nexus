@@ -2138,6 +2138,7 @@ The disabled friend MP sync transport wording is now centralized through a share
 The same transport-disabled seam now also surfaces explicit `friend_mp_sync_transport_adapter_*` fields in companion, tray, and Status Center output, keeping the future signed/encrypted adapter boundary visible without changing the fail-closed fallback.
 The transport adapter helper now mirrors friend-trust-store `not_configured` and `needs_attention` states in companion and tray summaries so missing or invalid trust-store states stay explicit while ready trust stores remain on the existing disabled transport boundary.
 Real-session compare, trend, and loop outputs now also forward `friend_trust_store_controls_*` and `friend_mesh_update_*` so revoke/block/disable-auto-sync drift and degraded handoff drift stay visible across the evidence chain; the remaining 15G work is the actual signed/encrypted transport adapter and end-to-end season validation.
+Real-session compare, trend, and loop outputs now also forward `friend_trust_store_state_*` so the base trust-store state itself stays visible across the same evidence chain.
 
 ---
 

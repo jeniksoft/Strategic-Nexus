@@ -136,6 +136,15 @@ $latestNextActionCommandHintSourceChanged = ""
 $latestNextActionPathCurrent = ""
 $latestNextActionPathPrevious = ""
 $latestNextActionPathChanged = ""
+$latestFriendTrustStoreStateCurrent = ""
+$latestFriendTrustStoreStatePrevious = ""
+$latestFriendTrustStoreStateChanged = ""
+$latestFriendTrustStoreReasonCurrent = ""
+$latestFriendTrustStoreReasonPrevious = ""
+$latestFriendTrustStoreReasonChanged = ""
+$latestFriendTrustStorePathCurrent = ""
+$latestFriendTrustStorePathPrevious = ""
+$latestFriendTrustStorePathChanged = ""
 $latestFriendTrustStoreControlsStateCurrent = ""
 $latestFriendTrustStoreControlsStatePrevious = ""
 $latestFriendTrustStoreControlsStateChanged = ""
@@ -351,6 +360,15 @@ if ($sessionCount -ge 2) {
     $compareNextActionPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_current=*" } | Select-Object -First 1
     $compareNextActionPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_previous=*" } | Select-Object -First 1
     $compareNextActionPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_next_action_path_changed=*" } | Select-Object -First 1
+    $compareFriendTrustStoreStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_state_current=*" } | Select-Object -First 1
+    $compareFriendTrustStoreStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_state_previous=*" } | Select-Object -First 1
+    $compareFriendTrustStoreStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_state_changed=*" } | Select-Object -First 1
+    $compareFriendTrustStoreReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_reason_current=*" } | Select-Object -First 1
+    $compareFriendTrustStoreReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_reason_previous=*" } | Select-Object -First 1
+    $compareFriendTrustStoreReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_reason_changed=*" } | Select-Object -First 1
+    $compareFriendTrustStorePathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_path_current=*" } | Select-Object -First 1
+    $compareFriendTrustStorePathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_path_previous=*" } | Select-Object -First 1
+    $compareFriendTrustStorePathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_path_changed=*" } | Select-Object -First 1
     $compareFriendTrustStoreControlsStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_state_current=*" } | Select-Object -First 1
     $compareFriendTrustStoreControlsStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_state_previous=*" } | Select-Object -First 1
     $compareFriendTrustStoreControlsStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_state_changed=*" } | Select-Object -First 1
@@ -735,6 +753,33 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareNextActionPathChangedLine)) {
         $latestNextActionPathChanged = $compareNextActionPathChangedLine.Substring("real_session_v0_compare_next_action_path_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreStateCurrentLine)) {
+        $latestFriendTrustStoreStateCurrent = $compareFriendTrustStoreStateCurrentLine.Substring("real_session_v0_compare_friend_trust_store_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreStatePreviousLine)) {
+        $latestFriendTrustStoreStatePrevious = $compareFriendTrustStoreStatePreviousLine.Substring("real_session_v0_compare_friend_trust_store_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreStateChangedLine)) {
+        $latestFriendTrustStoreStateChanged = $compareFriendTrustStoreStateChangedLine.Substring("real_session_v0_compare_friend_trust_store_state_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreReasonCurrentLine)) {
+        $latestFriendTrustStoreReasonCurrent = $compareFriendTrustStoreReasonCurrentLine.Substring("real_session_v0_compare_friend_trust_store_reason_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreReasonPreviousLine)) {
+        $latestFriendTrustStoreReasonPrevious = $compareFriendTrustStoreReasonPreviousLine.Substring("real_session_v0_compare_friend_trust_store_reason_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreReasonChangedLine)) {
+        $latestFriendTrustStoreReasonChanged = $compareFriendTrustStoreReasonChangedLine.Substring("real_session_v0_compare_friend_trust_store_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStorePathCurrentLine)) {
+        $latestFriendTrustStorePathCurrent = $compareFriendTrustStorePathCurrentLine.Substring("real_session_v0_compare_friend_trust_store_path_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStorePathPreviousLine)) {
+        $latestFriendTrustStorePathPrevious = $compareFriendTrustStorePathPreviousLine.Substring("real_session_v0_compare_friend_trust_store_path_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStorePathChangedLine)) {
+        $latestFriendTrustStorePathChanged = $compareFriendTrustStorePathChangedLine.Substring("real_session_v0_compare_friend_trust_store_path_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsStateCurrentLine)) {
         $latestFriendTrustStoreControlsStateCurrent = $compareFriendTrustStoreControlsStateCurrentLine.Substring("real_session_v0_compare_friend_trust_store_controls_state_current=".Length)
@@ -1412,6 +1457,17 @@ $result = [ordered]@{
         path_previous = $latestNextActionPathPrevious
         path_changed = $latestNextActionPathChanged
     }
+    latest_friend_trust_store = [ordered]@{
+        state_current = $latestFriendTrustStoreStateCurrent
+        state_previous = $latestFriendTrustStoreStatePrevious
+        state_changed = $latestFriendTrustStoreStateChanged
+        reason_current = $latestFriendTrustStoreReasonCurrent
+        reason_previous = $latestFriendTrustStoreReasonPrevious
+        reason_changed = $latestFriendTrustStoreReasonChanged
+        path_current = $latestFriendTrustStorePathCurrent
+        path_previous = $latestFriendTrustStorePathPrevious
+        path_changed = $latestFriendTrustStorePathChanged
+    }
     latest_friend_trust_store_controls = [ordered]@{
         state_current = $latestFriendTrustStoreControlsStateCurrent
         state_previous = $latestFriendTrustStoreControlsStatePrevious
@@ -1645,6 +1701,15 @@ Write-Host ("real_session_v0_trend_next_action_command_hint_source_changed=" + $
 Write-Host ("real_session_v0_trend_next_action_path_current=" + $latestNextActionPathCurrent)
 Write-Host ("real_session_v0_trend_next_action_path_previous=" + $latestNextActionPathPrevious)
 Write-Host ("real_session_v0_trend_next_action_path_changed=" + $latestNextActionPathChanged)
+Write-Host ("real_session_v0_trend_friend_trust_store_state_current=" + $latestFriendTrustStoreStateCurrent)
+Write-Host ("real_session_v0_trend_friend_trust_store_state_previous=" + $latestFriendTrustStoreStatePrevious)
+Write-Host ("real_session_v0_trend_friend_trust_store_state_changed=" + $latestFriendTrustStoreStateChanged)
+Write-Host ("real_session_v0_trend_friend_trust_store_reason_current=" + $latestFriendTrustStoreReasonCurrent)
+Write-Host ("real_session_v0_trend_friend_trust_store_reason_previous=" + $latestFriendTrustStoreReasonPrevious)
+Write-Host ("real_session_v0_trend_friend_trust_store_reason_changed=" + $latestFriendTrustStoreReasonChanged)
+Write-Host ("real_session_v0_trend_friend_trust_store_path_current=" + $latestFriendTrustStorePathCurrent)
+Write-Host ("real_session_v0_trend_friend_trust_store_path_previous=" + $latestFriendTrustStorePathPrevious)
+Write-Host ("real_session_v0_trend_friend_trust_store_path_changed=" + $latestFriendTrustStorePathChanged)
 Write-Host ("real_session_v0_trend_friend_trust_store_controls_state_current=" + $latestFriendTrustStoreControlsStateCurrent)
 Write-Host ("real_session_v0_trend_friend_trust_store_controls_state_previous=" + $latestFriendTrustStoreControlsStatePrevious)
 Write-Host ("real_session_v0_trend_friend_trust_store_controls_state_changed=" + $latestFriendTrustStoreControlsStateChanged)
