@@ -2608,6 +2608,15 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_identity_mismatch_warning_code_current=package_manifest_hash_mismatch"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_warning_code_previous=package_overlay_version_mismatch"
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_warning_code_current=package_game_version_mismatch"
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_state_current="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_state_previous="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_state_changed="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_reason_current="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_reason_previous="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_reason_changed="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_current="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_previous="
+    Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_changed="
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_handoff_status_current="
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_previous_host_available_current="
     Assert-Contains -Name "real session warning-code drift compare" -Text $compareText -Expected "real_session_v0_compare_mp_package_output_dir_changed=true"
@@ -2652,6 +2661,15 @@ function Invoke-RealSessionWarningCodeDriftSurfaceCase {
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_identity_mismatch_warning_code_current=package_manifest_hash_mismatch"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_warning_code_previous=package_overlay_version_mismatch"
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_warning_code_current=package_game_version_mismatch"
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_state_current="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_state_previous="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_state_changed="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_reason_current="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_reason_previous="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_reason_changed="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_current="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_previous="
+    Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_changed="
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_handoff_status_current="
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_previous_host_available_current="
     Assert-Contains -Name "real session warning-code drift trend" -Text $trendText -Expected "real_session_v0_trend_mp_package_output_dir_changed=true"
@@ -2924,6 +2942,13 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_strict_verify"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_strict_import"'
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_package_campaign_identity_state_summary="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_friend_mp_sync_transport_adapter_state="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_friend_mp_sync_transport_adapter_reason="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_friend_mp_sync_transport_adapter_next_step="
+    Assert-Contains -Name "real session loop mismatch forwarding evidence adapter" -Text $evidenceText -Expected '"friend_mp_sync_transport_adapter"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence adapter" -Text $evidenceText -Expected '"state"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence adapter" -Text $evidenceText -Expected '"reason"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence adapter" -Text $evidenceText -Expected '"next_step"'
     $nextStepsBriefPathLine = ($output | Where-Object { $_ -like "real_session_v0_loop_next_steps_brief=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($nextStepsBriefPathLine)) {
         throw "real session loop mismatch forwarding case missing next-steps brief path."
