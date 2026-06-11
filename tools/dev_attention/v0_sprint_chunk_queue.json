@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-11T13:26:19.4606434+02:00",
+  "updated_at": "2026-06-11T13:51:17.2695672+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2573,6 +2573,24 @@
     ],
     "preferred_tests": [
       "dist/personality_engine_test.exe"
+    ],
+    "dependencies": []
+  }
+  ,
+  {
+    "id": "v0-sprint-243-verify-owner-ready-real-season-mp-validation-note-on-current-head",
+    "title": "Verify owner-ready real-season validation note",
+    "status": "done",
+    "lane": "verification",
+    "roadmap_anchor": "15G. Release Companion MP Package UX / real-season validation readiness",
+    "goal": "Verify that the current-head canonical guide and roadmap both surface the owner-ready manual real-season Stellaris MP validation note, the compact checklist, and the transport limitation without reopening raw JSON.",
+    "acceptance": [
+      "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md exposes the owner-ready manual real-season Stellaris MP validation note and the compact checklist in the same section.",
+      "docs/DEVELOPMENT_ROADMAP.md points at the same owner-ready real-season validation guidance so future workers do not have to rediscover it.",
+      "A targeted rg-based verification confirms the note remains visible on current head."
+    ],
+    "preferred_tests": [
+      "rg -n \"owner-ready for a manual real-season Stellaris MP validation pass|real-season validation checklist|signed/encrypted transport limitation|manual export/import\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md docs/DEVELOPMENT_ROADMAP.md"
     ],
     "dependencies": []
   }
