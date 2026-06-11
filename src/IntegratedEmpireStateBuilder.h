@@ -51,6 +51,13 @@ struct IntegratedEmpireState {
     std::string empireId;
     std::string sourceBriefQuality;
     std::string sourceEmpireStateQuality;
+    bool personalityProfileApplied = false;
+    int personalityProfileSourceSchemaVersion = 0;
+    std::string personalityProfileSchemaCompatibilityState;
+    std::string personalityProfileSchemaCompatibilityNote;
+    std::string personalityProfileValidatedUpdateSummary;
+    std::string personalityProfileSourceSaveDate;
+    bool personalityProfileZeroHistoryBootstrap = false;
     double confidence = 0.0;
     bool summaryOnly = true;
     std::vector<std::string> evidenceReferences;

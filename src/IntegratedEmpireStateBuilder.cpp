@@ -152,11 +152,14 @@ IntegratedEmpireState IntegratedEmpireStateBuilder::build(
     const double confidence) const
 {
     EmpireState effectiveEmpire = empire;
+    bool loadedPersonalityProfile = false;
+    PersonalityProfileRecord loadedProfile;
     if (!personalityProfileRoot_.empty() && hasNonWhitespace(brief.campaignId) && hasNonWhitespace(empire.id)) {
         const PersonalityProfileStore store;
-        const PersonalityProfileRecord storedProfile = store.load(personalityProfileRoot_, brief.campaignId, empire.id);
-        if (storedProfile.ok) {
-            effectiveEmpire.personality = storedProfile.personality;
+        loadedProfile = store.load(personalityProfileRoot_, brief.campaignId, empire.id);
+        loadedPersonalityProfile = loadedProfile.ok;
+        if (loadedPersonalityProfile) {
+            effectiveEmpire.personality = loadedProfile.personality;
         }
     }
 
@@ -165,6 +168,17 @@ IntegratedEmpireState IntegratedEmpireStateBuilder::build(
     state.empireId = effectiveEmpire.id;
     state.sourceBriefQuality = brief.sourceLedgerQuality;
     state.sourceEmpireStateQuality = "summary_only_empire_state_contract";
+    state.personalityProfileApplied = loadedPersonalityProfile;
+    state.personalityProfileSourceSchemaVersion = loadedPersonalityProfile ? loadedProfile.sourceSchemaVersion : 0;
+    state.personalityProfileSchemaCompatibilityState = loadedPersonalityProfile ? loadedProfile.schemaCompatibilityState : "not_loaded";
+    state.personalityProfileSchemaCompatibilityNote = loadedPersonalityProfile
+        ? loadedProfile.schemaCompatibilityNote
+        : "no validated personality profile loaded";
+    state.personalityProfileValidatedUpdateSummary = loadedPersonalityProfile
+        ? loadedProfile.validatedUpdateSummary
+        : "summary_only_empire_state_contract";
+    state.personalityProfileSourceSaveDate = loadedPersonalityProfile ? loadedProfile.sourceSaveDate : std::string();
+    state.personalityProfileZeroHistoryBootstrap = loadedPersonalityProfile ? loadedProfile.zeroHistoryBootstrap : false;
     state.confidence = confidence;
     state.summaryOnly = true;
     state.evidenceReferences = brief.relevantFacts;
@@ -297,6 +311,15 @@ std::string serializeIntegratedEmpireState(const IntegratedEmpireState& state)
     json << "  \"empire_id\": \"" << jsonEscape(state.empireId) << "\",\n";
     json << "  \"source_brief_quality\": \"" << jsonEscape(state.sourceBriefQuality) << "\",\n";
     json << "  \"source_empire_state_quality\": \"" << jsonEscape(state.sourceEmpireStateQuality) << "\",\n";
+    json << "  \"personality_profile\": {\n";
+    json << "    \"applied\": " << (state.personalityProfileApplied ? "true" : "false") << ",\n";
+    json << "    \"source_schema_version\": " << state.personalityProfileSourceSchemaVersion << ",\n";
+    json << "    \"schema_compatibility_state\": \"" << jsonEscape(state.personalityProfileSchemaCompatibilityState) << "\",\n";
+    json << "    \"schema_compatibility_note\": \"" << jsonEscape(state.personalityProfileSchemaCompatibilityNote) << "\",\n";
+    json << "    \"validated_update_summary\": \"" << jsonEscape(state.personalityProfileValidatedUpdateSummary) << "\",\n";
+    json << "    \"source_save_date\": \"" << jsonEscape(state.personalityProfileSourceSaveDate) << "\",\n";
+    json << "    \"zero_history_bootstrap\": " << (state.personalityProfileZeroHistoryBootstrap ? "true" : "false") << "\n";
+    json << "  },\n";
     json << "  \"confidence\": " << state.confidence << ",\n";
     json << "  \"summary_only\": " << (state.summaryOnly ? "true" : "false") << ",\n";
     writeStringArray(json, "evidence_references", state.evidenceReferences, true);
