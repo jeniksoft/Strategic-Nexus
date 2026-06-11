@@ -2880,6 +2880,24 @@
         "dist/strategic_nexus_companion_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-260-verify-personality-profile-store-reuse-on-current-head",
+      "title": "Verify personality profile store reuse on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "9B. Campaign-Empire Personality Profile Store",
+      "goal": "Confirm the current-head integrated state builder still reloads validated personality profiles for matching campaign/empire pairs and keeps loaded versus summary-only provenance explicit in owner-visible JSON surfaces.",
+      "acceptance": [
+        "dist/personality_profile_store_test.exe passes on current head.",
+        "dist/integrated_empire_state_builder_test.exe passes on current head.",
+        "The integrated empire-state JSON keeps loaded/not-loaded provenance and prompt_output_note explicit without any new model behavior or schema changes."
+      ],
+      "preferred_tests": [
+        "dist/personality_profile_store_test.exe",
+        "dist/integrated_empire_state_builder_test.exe"
+      ],
+      "dependencies": []
     }
   ]
 }
