@@ -2631,5 +2631,24 @@
     ],
     "dependencies": []
   }
+  ,
+  {
+    "id": "v0-sprint-246-verify-monthly-pulse-visible-marker-refresh-path",
+    "title": "Verify monthly pulse visible marker refresh path",
+    "status": "ready",
+    "lane": "verification",
+    "roadmap_anchor": "2C. Mod-Side Observable Strategy Markers",
+    "goal": "Verify that the current-head PoC marker path still refreshes the supported strategy markers on the monthly pulse and keeps the owner-visible harmless marker surface explicit without introducing hidden buffs.",
+    "acceptance": [
+      "The PoC mod monthly pulse path remains wired through `on_monthly_pulse_country` or equivalent current-head load-safe refresh wiring.",
+      "Companion status and tests keep the owner-visible harmless marker surface explicit for the supported generated markers.",
+      "dist/strategic_nexus_companion_test.exe and tools/run_v0_pipeline_tests.cmd pass on current head."
+    ],
+    "preferred_tests": [
+      "dist/strategic_nexus_companion_test.exe",
+      "tools/run_v0_pipeline_tests.cmd"
+    ],
+    "dependencies": []
+  }
 ]
 }
