@@ -2337,5 +2337,25 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-229-verify-post-play-campaign-identity-owner-note-on-current-head",
+      "title": "Verify post-play campaign identity owner note on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "6E. Final Campaign Identity Binding",
+      "goal": "Verify that current-head post-play package, companion, tray, CLI, and real-session evidence surfaces all expose the campaign identity owner note for folder-alias fallback, ambiguous save identity, and mixed save identity resolution while keeping generated rules conservative.",
+      "acceptance": [
+        "Post-play package JSON and CLI output expose post_play_package_campaign_identity_owner_note for folder_alias_fallback, ambiguous_save_identity, and mixed_save_identity_resolution states.",
+        "Companion and tray status-center output expose the same owner note whenever post_play_package_campaign_identity_state_summary is present and non-empty.",
+        "The targeted post-play/companion regression and the broader v0 pipeline regression pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }

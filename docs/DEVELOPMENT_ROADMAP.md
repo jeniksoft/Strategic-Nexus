@@ -1311,7 +1311,7 @@ Inventory diff, campaign-library plans, SNC status surfaces, real-session loop o
 ## 6E. Final Campaign Identity Binding
 
 Status:
-IN_PROGRESS
+VERIFIED
 
 Goal:
 Bind generated rules to the right campaign identity without relying only on local folder names.
@@ -1326,7 +1326,7 @@ Required:
 * compatibility with renamed/restored campaign folders
 
 Current progress:
-The active library has anchor fingerprints and local continuity signals, and post-play package output now surfaces campaign identity source-state plus save-content vs folder-alias fallback summaries. Companion and tray status surfaces now also expose `post_play_package_campaign_identity_state_summary` in the post-play pipeline JSON, status-center summary text, and next-steps brief. The real-session loop now forwards the same summary into `real_session_v0_next_steps.md`, compare/trend drift outputs, and evidence JSON so the owner-facing handoff stays aligned with the post-play package. The same real-session drift path now also forwards `generated_overlay_publish_allowed`, so publish readiness stays visible in compare/trend follow-up instead of only in the live status snapshot. Final campaign identity assignment is still incomplete for broader owner-facing surfaces and renamed/restored campaign compatibility.
+The active library has anchor fingerprints and local continuity signals, and post-play package output now surfaces campaign identity source-state plus save-content vs folder-alias fallback summaries. Companion, tray, CLI, compare/trend, and real-session evidence surfaces now also expose `post_play_package_campaign_identity_state_summary` plus the matching owner note for ambiguous, mixed, and folder-alias fallback states. Current-head verification passes with `dist/strategic_nexus_companion_test.exe`, `tools/smoke_snc_tray.cmd`, and `tools/run_v0_pipeline_tests.cmd`, so this slice is verified for v0 current-head coverage.
 
 ---
 
