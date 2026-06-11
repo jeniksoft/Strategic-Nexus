@@ -64,6 +64,39 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-11
+
+Dnesni commitova vlna se soustredi hlavne na presnejsi owner-facing stav, kampanovou identitu a dalsi zpevneni MP handoff hranic. Nejviditelnejsi commity jsou `Surface campaign library pin action`, `Surface campaign identity in real-session loop`, `Surface friend MP sync inbox-plan gate state`, `Polish SNC support report wording`, `Add campaign library pin manifest support`, `Mark archive status chunk done`, `Surface archive status next action` a `Surface post-play campaign identity summary`. Nejde o novy runtime zasah do bezici session, ale o dalsi zprehledneni integration boundary a scripted event/effect path.
+
+Co pribylo v repozitari:
+
+* Campaign library pin akce je ted viditelnejsi v owner-facing povrchu, takze je jasnejsi, kdy je pin jen pripravny stav a kdy uz je skutecne soucasti dalsiho kroku.
+* Post-play i real-session povrch presneji ukazuji kampanovou identitu a navazani do real-session loop, aby dalsi rozhodnuti vychazelo z overeneho stavu, ne z volne interpretace.
+* Friend MP sync inbox-plan gate state a souvisejici archive/status kroky zpevnuji, co je uz pripravene k predani a co stale zustava pouze plan nebo signal pro dalsi krok.
+* Polished support report wording je hlavne ergonomicke dorovnani owner-facing komunikace, aby byl status citelny i bez cteni technickych detailu.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt dal zpresnuje host-authoritative model: companion a status vrstva pouze popisuji stav, zatimco skutecny runtime zustava oddeleny a bounded.
+* Dnesni zmeny podporuji runtime interoperability research tim, ze lepe vyznacuji integration boundary mezi archivem, analyzou, MP handoff pripravou a dalsi session.
+* Kampanova identita v real-session loop je dulezita pro to, aby scripted event/effect path dostala spravne ukotveny kontext a dalsi krok nebyl odvozen jen z povrchoveho stavu UI.
+
+Testy a stav overeni:
+
+* Pro aktualni head neni k dispozici zadny verejny GitHub Actions workflow run ani combined status check.
+* Lokalni plny test run jsem pro tento denikovy zapis nespoustel; zapis vychazi z commit historie a aktualniho stavu repozitare.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi ucastniky.
+* Owner-facing stav je citelnejsi, ale sam o sobe jeste neuzavira finalni export/import contract, campaign marker handshake ani spolehlive doruceni pres integration boundary.
+* Bez verejneho CI signalu zustava novy head funkcne slibny, ale jeste ne plne overeny.
+
+Doporuceny dalsi krok:
+
+* Pushnout aktualni head spolu s timto denikovym zapisem a nechat probehnout verejni CI kontrolu.
+* Potom navazat formalnim overenim kampanove identity a MP inbox-plan cesty tak, aby dalsi session navazovala z jednoznacneho, auditovatelneho stavu.
+
 ## 2026-06-10
 
 Dnesni commitova vlna se soustredi na presnejsi owner-facing stav, drobne UI dorovnani a dalsi zpevnitelne hranice kolem handoffu, model state a MP synchronizace. Nejvice viditelny je commit `Surface MP host rotation sync gap`; navazujici commity `Add entry-point handoff verification chunk`, `Route local LLM attention to model state path`, `Fix memory recovery next action precedence`, `Regress missing entry-point fallback`, `Surface post-play campaign identity state`, `Add personality profile store scaffold` a `Add hover highlight to SNC custom scrollbars` spis zpevnuji integracni povrch nez rozsirujou runtime schopnosti.
@@ -80,7 +113,7 @@ Co to znamena pro architekturu a runtime interoperability research:
 
 * Projekt dal zpresnuje integration boundary mezi offline analyzou, host-authoritative modelem a scripted event/effect path.
 * Presun pozornosti na model state path a post-play kampanovou identitu pomaha tomu, aby dalsi krok vychazel z overeneho kontextu, ne z volne interpretace stavu.
-* MP host rotation sync gap je dulezity signal pro runtime reverse engineering a interoperabilitu, protoze ukazuje, kde je jeste treba doladit konzistentni predani mezi hostem, companion vrstvou a dalsi session.
+* MP host rotation sync gap je dulezity signal pro host/client continuity a interoperabilitu, protoze ukazuje, kde je jeste treba doladit konzistentni predani mezi hostem, companion vrstvou a dalsi session.
 
 Testy a stav overeni:
 
