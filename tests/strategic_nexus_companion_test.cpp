@@ -628,6 +628,22 @@ int main()
             ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_reason: signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") != std::string::npos &&
             ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_next_step: Use manual MP package export/import and strict verify") != std::string::npos,
         "status center summary should expose the friend MP sync transport adapter seam");
+    strategic_nexus::CompanionStatusConfig missingFriendTrustStoreConfig = readyConfig;
+    missingFriendTrustStoreConfig.friendTrustStorePath = root / "missing_friend_trust_store.json";
+    const auto missingFriendTrustStore = companion.buildStatusSnapshot(missingFriendTrustStoreConfig);
+    requireCondition(
+        missingFriendTrustStore.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_state: not_configured") !=
+            std::string::npos,
+        "status center summary should report the adapter boundary as not configured when the trust store is missing");
+    requireCondition(
+        missingFriendTrustStore.statusCenterSummaryText.find(
+            "friend_mp_sync_transport_adapter_reason: friend trust store not present; automatic friend sync disabled") !=
+            std::string::npos,
+        "status center summary should explain the missing trust store at the adapter boundary");
+    requireCondition(
+        missingFriendTrustStore.statusCenterSummaryText.find(
+            "friend_mp_sync_transport_adapter_next_step: Import a friend acceptance first") != std::string::npos,
+        "status center summary should keep the missing trust store next step actionable");
     requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_preflight_checklist: Before a friend MP season") != std::string::npos &&
             ready.statusCenterSummaryText.find("run inbox/outbox plan checks with Stellaris closed") != std::string::npos,
@@ -670,6 +686,15 @@ int main()
         brokenFriendTrustStore.statusCenterSummaryText.find("friend_mesh_update_reason: unsupported friend trust store schema") !=
             std::string::npos,
         "status center summary should report the invalid trust-store reason in the friend mesh aggregate");
+    requireCondition(
+        brokenFriendTrustStore.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_state: needs_attention") !=
+            std::string::npos,
+        "status center summary should reflect trust-store validation failure at the adapter boundary");
+    requireCondition(
+        brokenFriendTrustStore.statusCenterSummaryText.find(
+            "friend_mp_sync_transport_adapter_reason: unsupported friend trust store schema") !=
+            std::string::npos,
+        "status center summary should carry the invalid trust-store reason into the adapter boundary");
     requireCondition(ready.lifecycle.windowCloseBehavior == "minimize_to_tray", "window close should minimize to tray");
     requireCondition(ready.lifecycle.explicitExitBehavior == "stop_without_restart", "explicit exit should stop without restart");
     requireCondition(ready.lifecycle.crashRestartPolicy == "bounded_backoff_with_crash_loop_guard", "crash policy should be bounded");

@@ -2602,9 +2602,30 @@ CompanionFriendMpSyncTransportStatus buildFriendMpSyncTransportStatusImpl(
 CompanionFriendMpSyncTransportAdapterStatus buildFriendMpSyncTransportAdapterStatusImpl(
     const CompanionFriendTrustStoreStatus& friendTrustStore)
 {
-    static_cast<void>(friendTrustStore);
-
     CompanionFriendMpSyncTransportAdapterStatus status;
+
+    if (friendTrustStore.state == "needs_attention") {
+        status.state = "needs_attention";
+        status.reason = friendTrustStore.reason.empty()
+            ? "friend trust store needs attention"
+            : friendTrustStore.reason;
+        status.nextStep = friendTrustStore.controlsNextStep.empty()
+            ? "Repair or recreate the friend trust store before relying on transport adapters."
+            : friendTrustStore.controlsNextStep;
+        return status;
+    }
+
+    if (friendTrustStore.state == "not_configured") {
+        status.state = "not_configured";
+        status.reason = friendTrustStore.reason.empty()
+            ? "friend trust store not present; automatic friend sync disabled"
+            : friendTrustStore.reason;
+        status.nextStep = friendTrustStore.controlsNextStep.empty()
+            ? "Import a friend acceptance first, then revisit the transport adapter boundary."
+            : friendTrustStore.controlsNextStep;
+        return status;
+    }
+
     return status;
 }
 

@@ -2135,6 +2135,7 @@ The canonical multiplayer season guide now also includes a compact first real-se
 Current-head verification confirms that `friend_mp_sync_outbox_plan_command_template`, `friend_mp_sync_transport_next_step`, `mp_host_rotation_sync_state`, `mp_host_rotation_sync_reason`, `mp_host_rotation_sync_next_step`, and `friend_mesh_update_state/reason/next_step` are already surfaced across companion, tray, and Status Center views; the remaining 15G work is the actual signed/encrypted transport adapter and end-to-end season validation.
 The disabled friend MP sync transport wording is now centralized through a shared companion helper seam, so future transport-adapter work has a single replaceable boundary while the fail-closed surface text stays aligned.
 The same transport-disabled seam now also surfaces explicit `friend_mp_sync_transport_adapter_*` fields in companion, tray, and Status Center output, keeping the future signed/encrypted adapter boundary visible without changing the fail-closed fallback.
+The transport adapter helper now mirrors friend-trust-store `not_configured` and `needs_attention` states in companion and tray summaries so missing or invalid trust-store states stay explicit while ready trust stores remain on the existing disabled transport boundary.
 
 ---
 
