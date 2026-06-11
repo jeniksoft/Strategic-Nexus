@@ -282,6 +282,11 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousFriendTrustStoreControlsReason = Get-OptionalString -Object $previousEvidence.friend_trust_store_controls -Property "reason"
         $previousFriendTrustStoreControlsNextStep = Get-OptionalString -Object $previousEvidence.friend_trust_store_controls -Property "next_step"
     }
+    if ($null -ne $previousEvidence.friend_mesh_update) {
+        $previousFriendMeshUpdateState = Get-OptionalString -Object $previousEvidence.friend_mesh_update -Property "state"
+        $previousFriendMeshUpdateReason = Get-OptionalString -Object $previousEvidence.friend_mesh_update -Property "reason"
+        $previousFriendMeshUpdateNextStep = Get-OptionalString -Object $previousEvidence.friend_mesh_update -Property "next_step"
+    }
     if ($null -ne $previousEvidence.friend_mp_sync_transport_adapter) {
         $previousFriendMpSyncTransportAdapterState = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "state"
         $previousFriendMpSyncTransportAdapterReason = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "reason"
@@ -343,6 +348,11 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentFriendTrustStoreControlsState = Get-OptionalString -Object $currentEvidence.friend_trust_store_controls -Property "state"
         $currentFriendTrustStoreControlsReason = Get-OptionalString -Object $currentEvidence.friend_trust_store_controls -Property "reason"
         $currentFriendTrustStoreControlsNextStep = Get-OptionalString -Object $currentEvidence.friend_trust_store_controls -Property "next_step"
+    }
+    if ($null -ne $currentEvidence.friend_mesh_update) {
+        $currentFriendMeshUpdateState = Get-OptionalString -Object $currentEvidence.friend_mesh_update -Property "state"
+        $currentFriendMeshUpdateReason = Get-OptionalString -Object $currentEvidence.friend_mesh_update -Property "reason"
+        $currentFriendMeshUpdateNextStep = Get-OptionalString -Object $currentEvidence.friend_mesh_update -Property "next_step"
     }
     if ($null -ne $currentEvidence.friend_mp_sync_transport_adapter) {
         $currentFriendMpSyncTransportAdapterState = Get-OptionalString -Object $currentEvidence.friend_mp_sync_transport_adapter -Property "state"
@@ -805,6 +815,21 @@ $result = [ordered]@{
         current = $currentFriendTrustStoreControlsNextStep
         changed = ($previousFriendTrustStoreControlsNextStep -ne $currentFriendTrustStoreControlsNextStep)
     }
+    friend_mesh_update_state = [ordered]@{
+        previous = $previousFriendMeshUpdateState
+        current = $currentFriendMeshUpdateState
+        changed = ($previousFriendMeshUpdateState -ne $currentFriendMeshUpdateState)
+    }
+    friend_mesh_update_reason = [ordered]@{
+        previous = $previousFriendMeshUpdateReason
+        current = $currentFriendMeshUpdateReason
+        changed = ($previousFriendMeshUpdateReason -ne $currentFriendMeshUpdateReason)
+    }
+    friend_mesh_update_next_step = [ordered]@{
+        previous = $previousFriendMeshUpdateNextStep
+        current = $currentFriendMeshUpdateNextStep
+        changed = ($previousFriendMeshUpdateNextStep -ne $currentFriendMeshUpdateNextStep)
+    }
     friend_mp_sync_transport_adapter_state = [ordered]@{
         previous = $previousFriendMpSyncTransportAdapterState
         current = $currentFriendMpSyncTransportAdapterState
@@ -1171,6 +1196,15 @@ Write-Host ("real_session_v0_compare_friend_trust_store_controls_reason_changed=
 Write-Host ("real_session_v0_compare_friend_trust_store_controls_next_step_current=" + $currentFriendTrustStoreControlsNextStep)
 Write-Host ("real_session_v0_compare_friend_trust_store_controls_next_step_previous=" + $previousFriendTrustStoreControlsNextStep)
 Write-Host ("real_session_v0_compare_friend_trust_store_controls_next_step_changed=" + ((($previousFriendTrustStoreControlsNextStep -ne $currentFriendTrustStoreControlsNextStep).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_mesh_update_state_current=" + $currentFriendMeshUpdateState)
+Write-Host ("real_session_v0_compare_friend_mesh_update_state_previous=" + $previousFriendMeshUpdateState)
+Write-Host ("real_session_v0_compare_friend_mesh_update_state_changed=" + ((($previousFriendMeshUpdateState -ne $currentFriendMeshUpdateState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_mesh_update_reason_current=" + $currentFriendMeshUpdateReason)
+Write-Host ("real_session_v0_compare_friend_mesh_update_reason_previous=" + $previousFriendMeshUpdateReason)
+Write-Host ("real_session_v0_compare_friend_mesh_update_reason_changed=" + ((($previousFriendMeshUpdateReason -ne $currentFriendMeshUpdateReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_mesh_update_next_step_current=" + $currentFriendMeshUpdateNextStep)
+Write-Host ("real_session_v0_compare_friend_mesh_update_next_step_previous=" + $previousFriendMeshUpdateNextStep)
+Write-Host ("real_session_v0_compare_friend_mesh_update_next_step_changed=" + ((($previousFriendMeshUpdateNextStep -ne $currentFriendMeshUpdateNextStep).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_state_current=" + $currentFriendMpSyncTransportAdapterState)
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_state_previous=" + $previousFriendMpSyncTransportAdapterState)
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_state_changed=" + ((($previousFriendMpSyncTransportAdapterState -ne $currentFriendMpSyncTransportAdapterState).ToString().ToLowerInvariant())))

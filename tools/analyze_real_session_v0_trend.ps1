@@ -360,6 +360,15 @@ if ($sessionCount -ge 2) {
     $compareFriendTrustStoreControlsNextStepCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_next_step_current=*" } | Select-Object -First 1
     $compareFriendTrustStoreControlsNextStepPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_next_step_previous=*" } | Select-Object -First 1
     $compareFriendTrustStoreControlsNextStepChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_trust_store_controls_next_step_changed=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_state_current=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_state_previous=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_state_changed=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_reason_current=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_reason_previous=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_reason_changed=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateNextStepCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_next_step_current=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateNextStepPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_next_step_previous=*" } | Select-Object -First 1
+    $compareFriendMeshUpdateNextStepChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mesh_update_next_step_changed=*" } | Select-Object -First 1
     $compareFriendMpSyncTransportAdapterStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_state_current=*" } | Select-Object -First 1
     $compareFriendMpSyncTransportAdapterStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_state_previous=*" } | Select-Object -First 1
     $compareFriendMpSyncTransportAdapterStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_state_changed=*" } | Select-Object -First 1
@@ -753,6 +762,33 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareFriendTrustStoreControlsNextStepChangedLine)) {
         $latestFriendTrustStoreControlsNextStepChanged = $compareFriendTrustStoreControlsNextStepChangedLine.Substring("real_session_v0_compare_friend_trust_store_controls_next_step_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateStateCurrentLine)) {
+        $latestFriendMeshUpdateStateCurrent = $compareFriendMeshUpdateStateCurrentLine.Substring("real_session_v0_compare_friend_mesh_update_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateStatePreviousLine)) {
+        $latestFriendMeshUpdateStatePrevious = $compareFriendMeshUpdateStatePreviousLine.Substring("real_session_v0_compare_friend_mesh_update_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateStateChangedLine)) {
+        $latestFriendMeshUpdateStateChanged = $compareFriendMeshUpdateStateChangedLine.Substring("real_session_v0_compare_friend_mesh_update_state_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateReasonCurrentLine)) {
+        $latestFriendMeshUpdateReasonCurrent = $compareFriendMeshUpdateReasonCurrentLine.Substring("real_session_v0_compare_friend_mesh_update_reason_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateReasonPreviousLine)) {
+        $latestFriendMeshUpdateReasonPrevious = $compareFriendMeshUpdateReasonPreviousLine.Substring("real_session_v0_compare_friend_mesh_update_reason_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateReasonChangedLine)) {
+        $latestFriendMeshUpdateReasonChanged = $compareFriendMeshUpdateReasonChangedLine.Substring("real_session_v0_compare_friend_mesh_update_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateNextStepCurrentLine)) {
+        $latestFriendMeshUpdateNextStepCurrent = $compareFriendMeshUpdateNextStepCurrentLine.Substring("real_session_v0_compare_friend_mesh_update_next_step_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateNextStepPreviousLine)) {
+        $latestFriendMeshUpdateNextStepPrevious = $compareFriendMeshUpdateNextStepPreviousLine.Substring("real_session_v0_compare_friend_mesh_update_next_step_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMeshUpdateNextStepChangedLine)) {
+        $latestFriendMeshUpdateNextStepChanged = $compareFriendMeshUpdateNextStepChangedLine.Substring("real_session_v0_compare_friend_mesh_update_next_step_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterStateCurrentLine)) {
         $latestFriendMpSyncTransportAdapterStateCurrent = $compareFriendMpSyncTransportAdapterStateCurrentLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_state_current=".Length)
@@ -1387,6 +1423,17 @@ $result = [ordered]@{
         next_step_previous = $latestFriendTrustStoreControlsNextStepPrevious
         next_step_changed = $latestFriendTrustStoreControlsNextStepChanged
     }
+    latest_friend_mesh_update = [ordered]@{
+        state_current = $latestFriendMeshUpdateStateCurrent
+        state_previous = $latestFriendMeshUpdateStatePrevious
+        state_changed = $latestFriendMeshUpdateStateChanged
+        reason_current = $latestFriendMeshUpdateReasonCurrent
+        reason_previous = $latestFriendMeshUpdateReasonPrevious
+        reason_changed = $latestFriendMeshUpdateReasonChanged
+        next_step_current = $latestFriendMeshUpdateNextStepCurrent
+        next_step_previous = $latestFriendMeshUpdateNextStepPrevious
+        next_step_changed = $latestFriendMeshUpdateNextStepChanged
+    }
     latest_friend_mp_sync_transport_adapter = [ordered]@{
         state_current = $latestFriendMpSyncTransportAdapterStateCurrent
         state_previous = $latestFriendMpSyncTransportAdapterStatePrevious
@@ -1607,6 +1654,15 @@ Write-Host ("real_session_v0_trend_friend_trust_store_controls_reason_changed=" 
 Write-Host ("real_session_v0_trend_friend_trust_store_controls_next_step_current=" + $latestFriendTrustStoreControlsNextStepCurrent)
 Write-Host ("real_session_v0_trend_friend_trust_store_controls_next_step_previous=" + $latestFriendTrustStoreControlsNextStepPrevious)
 Write-Host ("real_session_v0_trend_friend_trust_store_controls_next_step_changed=" + $latestFriendTrustStoreControlsNextStepChanged)
+Write-Host ("real_session_v0_trend_friend_mesh_update_state_current=" + $latestFriendMeshUpdateStateCurrent)
+Write-Host ("real_session_v0_trend_friend_mesh_update_state_previous=" + $latestFriendMeshUpdateStatePrevious)
+Write-Host ("real_session_v0_trend_friend_mesh_update_state_changed=" + $latestFriendMeshUpdateStateChanged)
+Write-Host ("real_session_v0_trend_friend_mesh_update_reason_current=" + $latestFriendMeshUpdateReasonCurrent)
+Write-Host ("real_session_v0_trend_friend_mesh_update_reason_previous=" + $latestFriendMeshUpdateReasonPrevious)
+Write-Host ("real_session_v0_trend_friend_mesh_update_reason_changed=" + $latestFriendMeshUpdateReasonChanged)
+Write-Host ("real_session_v0_trend_friend_mesh_update_next_step_current=" + $latestFriendMeshUpdateNextStepCurrent)
+Write-Host ("real_session_v0_trend_friend_mesh_update_next_step_previous=" + $latestFriendMeshUpdateNextStepPrevious)
+Write-Host ("real_session_v0_trend_friend_mesh_update_next_step_changed=" + $latestFriendMeshUpdateNextStepChanged)
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_state_current=" + $latestFriendMpSyncTransportAdapterStateCurrent)
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_state_previous=" + $latestFriendMpSyncTransportAdapterStatePrevious)
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_state_changed=" + $latestFriendMpSyncTransportAdapterStateChanged)

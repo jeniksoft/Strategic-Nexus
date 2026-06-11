@@ -1251,6 +1251,15 @@ if ($null -ne $statusJson.friend_trust_store_controls_reason) {
 if ($null -ne $statusJson.friend_trust_store_controls_next_step) {
     $sncFriendTrustStoreControlsNextStep = [string]$statusJson.friend_trust_store_controls_next_step
 }
+if ($null -ne $statusJson.friend_mesh_update_state) {
+    $sncFriendMeshUpdateState = [string]$statusJson.friend_mesh_update_state
+}
+if ($null -ne $statusJson.friend_mesh_update_reason) {
+    $sncFriendMeshUpdateReason = [string]$statusJson.friend_mesh_update_reason
+}
+if ($null -ne $statusJson.friend_mesh_update_next_step) {
+    $sncFriendMeshUpdateNextStep = [string]$statusJson.friend_mesh_update_next_step
+}
 if ($null -ne $statusJson.owner_test_playbook_path) {
     $sncMonthlyReactiveOwnerTestPlaybookPath = [string]$statusJson.owner_test_playbook_path
 }
@@ -1402,6 +1411,9 @@ Write-Host ("real_session_v0_loop_snc_next_action_path=" + $sncNextActionPath)
 Write-Host ("real_session_v0_loop_friend_trust_store_controls_state=" + $sncFriendTrustStoreControlsState)
 Write-Host ("real_session_v0_loop_friend_trust_store_controls_reason=" + $sncFriendTrustStoreControlsReason)
 Write-Host ("real_session_v0_loop_friend_trust_store_controls_next_step=" + $sncFriendTrustStoreControlsNextStep)
+Write-Host ("real_session_v0_loop_friend_mesh_update_state=" + $sncFriendMeshUpdateState)
+Write-Host ("real_session_v0_loop_friend_mesh_update_reason=" + $sncFriendMeshUpdateReason)
+Write-Host ("real_session_v0_loop_friend_mesh_update_next_step=" + $sncFriendMeshUpdateNextStep)
 Write-Host ("real_session_v0_loop_friend_mp_sync_transport_adapter_state=" + $sncFriendMpSyncTransportAdapterState)
 Write-Host ("real_session_v0_loop_friend_mp_sync_transport_adapter_reason=" + $sncFriendMpSyncTransportAdapterReason)
 Write-Host ("real_session_v0_loop_friend_mp_sync_transport_adapter_next_step=" + $sncFriendMpSyncTransportAdapterNextStep)
@@ -1513,6 +1525,15 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareFriendTrustStoreControlsNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_controls_next_step_current"
     $compareFriendTrustStoreControlsNextStepPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_controls_next_step_previous"
     $compareFriendTrustStoreControlsNextStepChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_trust_store_controls_next_step_changed"
+    $compareFriendMeshUpdateStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_state_current"
+    $compareFriendMeshUpdateStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_state_previous"
+    $compareFriendMeshUpdateStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_state_changed"
+    $compareFriendMeshUpdateReasonCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_reason_current"
+    $compareFriendMeshUpdateReasonPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_reason_previous"
+    $compareFriendMeshUpdateReasonChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_reason_changed"
+    $compareFriendMeshUpdateNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_next_step_current"
+    $compareFriendMeshUpdateNextStepPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_next_step_previous"
+    $compareFriendMeshUpdateNextStepChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mesh_update_next_step_changed"
     $compareFriendMpSyncTransportAdapterStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_state_current"
     $compareFriendMpSyncTransportAdapterStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_state_previous"
     $compareFriendMpSyncTransportAdapterStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_state_changed"
@@ -1791,6 +1812,15 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_controls_next_step_current=" + $compareFriendTrustStoreControlsNextStepCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_controls_next_step_previous=" + $compareFriendTrustStoreControlsNextStepPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_friend_trust_store_controls_next_step_changed=" + $compareFriendTrustStoreControlsNextStepChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_state_current=" + $compareFriendMeshUpdateStateCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_state_previous=" + $compareFriendMeshUpdateStatePrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_state_changed=" + $compareFriendMeshUpdateStateChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_reason_current=" + $compareFriendMeshUpdateReasonCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_reason_previous=" + $compareFriendMeshUpdateReasonPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_reason_changed=" + $compareFriendMeshUpdateReasonChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_next_step_current=" + $compareFriendMeshUpdateNextStepCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_next_step_previous=" + $compareFriendMeshUpdateNextStepPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mesh_update_next_step_changed=" + $compareFriendMeshUpdateNextStepChanged)
     Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_state_current=" + $compareFriendMpSyncTransportAdapterStateCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_state_previous=" + $compareFriendMpSyncTransportAdapterStatePrevious)
     Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_state_changed=" + $compareFriendMpSyncTransportAdapterStateChanged)
@@ -2231,6 +2261,15 @@ if ($EmitTrendSummary) {
     $trendFriendTrustStoreControlsNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_controls_next_step_current"
     $trendFriendTrustStoreControlsNextStepPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_controls_next_step_previous"
     $trendFriendTrustStoreControlsNextStepChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_trust_store_controls_next_step_changed"
+    $trendFriendMeshUpdateStateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_state_current"
+    $trendFriendMeshUpdateStatePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_state_previous"
+    $trendFriendMeshUpdateStateChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_state_changed"
+    $trendFriendMeshUpdateReasonCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_reason_current"
+    $trendFriendMeshUpdateReasonPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_reason_previous"
+    $trendFriendMeshUpdateReasonChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_reason_changed"
+    $trendFriendMeshUpdateNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_next_step_current"
+    $trendFriendMeshUpdateNextStepPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_next_step_previous"
+    $trendFriendMeshUpdateNextStepChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mesh_update_next_step_changed"
     $trendFriendMpSyncTransportAdapterStateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_state_current"
     $trendFriendMpSyncTransportAdapterStatePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_state_previous"
     $trendFriendMpSyncTransportAdapterStateChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_state_changed"
@@ -2487,6 +2526,15 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_controls_next_step_current=" + $trendFriendTrustStoreControlsNextStepCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_controls_next_step_previous=" + $trendFriendTrustStoreControlsNextStepPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_friend_trust_store_controls_next_step_changed=" + $trendFriendTrustStoreControlsNextStepChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_state_current=" + $trendFriendMeshUpdateStateCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_state_previous=" + $trendFriendMeshUpdateStatePrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_state_changed=" + $trendFriendMeshUpdateStateChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_reason_current=" + $trendFriendMeshUpdateReasonCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_reason_previous=" + $trendFriendMeshUpdateReasonPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_reason_changed=" + $trendFriendMeshUpdateReasonChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_next_step_current=" + $trendFriendMeshUpdateNextStepCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_next_step_previous=" + $trendFriendMeshUpdateNextStepPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mesh_update_next_step_changed=" + $trendFriendMeshUpdateNextStepChanged)
     Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_state_current=" + $trendFriendMpSyncTransportAdapterStateCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_state_previous=" + $trendFriendMpSyncTransportAdapterStatePrevious)
     Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_state_changed=" + $trendFriendMpSyncTransportAdapterStateChanged)
@@ -3113,6 +3161,11 @@ $sessionEvidence = [ordered]@{
         state = $sncFriendTrustStoreControlsState
         reason = $sncFriendTrustStoreControlsReason
         next_step = $sncFriendTrustStoreControlsNextStep
+    }
+    friend_mesh_update = [ordered]@{
+        state = $sncFriendMeshUpdateState
+        reason = $sncFriendMeshUpdateReason
+        next_step = $sncFriendMeshUpdateNextStep
     }
     friend_mp_sync_transport_adapter = [ordered]@{
         state = $sncFriendMpSyncTransportAdapterState
