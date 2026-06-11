@@ -123,6 +123,37 @@ int main()
     requireCondition(
         json.find("\"campaign_identity_state\": \"folder_alias_fallback\"") != std::string::npos,
         "JSON should expose per-campaign identity fallback state");
+    requireCondition(
+        json.find("\"personality_profile\":") != std::string::npos,
+        "JSON should expose personality profile provenance");
+    requireCondition(
+        json.find("\"applied\": false") != std::string::npos,
+        "JSON should expose summary-only personality profile provenance");
+    requireCondition(
+        json.find("\"source_schema_version\": 0") != std::string::npos,
+        "JSON should expose summary-only personality profile source schema version");
+    requireCondition(
+        json.find("\"schema_compatibility_state\": \"not_loaded\"") != std::string::npos,
+        "JSON should expose summary-only personality profile compatibility state");
+    requireCondition(
+        json.find("\"schema_compatibility_note\": \"no validated personality profile loaded\"") !=
+            std::string::npos,
+        "JSON should expose summary-only personality profile compatibility note");
+    requireCondition(
+        json.find("\"validated_update_summary\": \"summary_only_post_play_package_contract\"") !=
+            std::string::npos,
+        "JSON should expose summary-only personality profile validated update summary");
+    requireCondition(
+        json.find(
+            "\"prompt_output_note\": \"summary-only prompt-output context; no validated personality profile loaded\"") !=
+            std::string::npos,
+        "JSON should expose summary-only personality profile prompt output note");
+    requireCondition(
+        json.find("\"source_save_date\": \"\"") != std::string::npos,
+        "JSON should expose empty personality profile source save date");
+    requireCondition(
+        json.find("\"zero_history_bootstrap\": false") != std::string::npos,
+        "JSON should expose summary-only personality profile zero-history flag");
     requireCondition(json.find("\"post_play_no_compatible_history\"") != std::string::npos, "JSON should expose history warning");
     requireCondition(json.find("\"compatible_history_only_future_excluded\"") != std::string::npos, "JSON should expose future evidence policy");
     requireCondition(

@@ -249,6 +249,15 @@ PostPlayPackage PostPlayPackageBuilder::build(
     const SaveEntryPointAnalysis& entryPointAnalysis) const
 {
     PostPlayPackage package;
+    package.personalityProfile.applied = false;
+    package.personalityProfile.sourceSchemaVersion = 0;
+    package.personalityProfile.schemaCompatibilityState = "not_loaded";
+    package.personalityProfile.schemaCompatibilityNote = "no validated personality profile loaded";
+    package.personalityProfile.validatedUpdateSummary = "summary_only_post_play_package_contract";
+    package.personalityProfile.promptOutputNote =
+        "summary-only prompt-output context; no validated personality profile loaded";
+    package.personalityProfile.sourceSaveDate.clear();
+    package.personalityProfile.zeroHistoryBootstrap = false;
     package.sessionArchiveDirectory = archiveSummary.sessionArchiveDirectory;
     package.archiveVerified = archiveSummary.ok && entryPointAnalysis.archiveVerified;
     package.entryPointAnalysisReadiness = entryPointAnalysis.readiness;
@@ -433,6 +442,22 @@ std::string serializePostPlayPackage(const PostPlayPackage& package)
     json << "  \"warning_codes\": ";
     writeStringArray(json, package.warningCodes);
     json << ",\n";
+    json << "  \"personality_profile\": {\n";
+    json << "    \"applied\": " << (package.personalityProfile.applied ? "true" : "false") << ",\n";
+    json << "    \"source_schema_version\": " << package.personalityProfile.sourceSchemaVersion << ",\n";
+    json << "    \"schema_compatibility_state\": \""
+         << jsonEscape(package.personalityProfile.schemaCompatibilityState) << "\",\n";
+    json << "    \"schema_compatibility_note\": \""
+         << jsonEscape(package.personalityProfile.schemaCompatibilityNote) << "\",\n";
+    json << "    \"validated_update_summary\": \""
+         << jsonEscape(package.personalityProfile.validatedUpdateSummary) << "\",\n";
+    json << "    \"prompt_output_note\": \""
+         << jsonEscape(package.personalityProfile.promptOutputNote) << "\",\n";
+    json << "    \"source_save_date\": \""
+         << jsonEscape(package.personalityProfile.sourceSaveDate) << "\",\n";
+    json << "    \"zero_history_bootstrap\": "
+         << (package.personalityProfile.zeroHistoryBootstrap ? "true" : "false") << "\n";
+    json << "  },\n";
     json << "  \"campaigns\": [\n";
     for (std::size_t index = 0; index < package.campaigns.size(); ++index) {
         const auto& campaign = package.campaigns[index];

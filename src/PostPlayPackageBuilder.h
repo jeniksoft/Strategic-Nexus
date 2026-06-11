@@ -52,6 +52,18 @@ struct PostPlayPackageCampaign {
     std::vector<std::string> warningCodes;
 };
 
+struct PostPlayPersonalityProfileProvenance {
+    bool applied = false;
+    int sourceSchemaVersion = 0;
+    std::string schemaCompatibilityState = "not_loaded";
+    std::string schemaCompatibilityNote = "no validated personality profile loaded";
+    std::string validatedUpdateSummary = "summary_only_post_play_package_contract";
+    std::string promptOutputNote =
+        "summary-only prompt-output context; no validated personality profile loaded";
+    std::string sourceSaveDate;
+    bool zeroHistoryBootstrap = false;
+};
+
 struct PostPlayPackage {
     bool ok = false;
     std::string reason;
@@ -73,6 +85,7 @@ struct PostPlayPackage {
     std::size_t decisionReadyEntryCount = 0;
     std::size_t archivedEvidenceCount = 0;
     std::vector<std::string> warningCodes;
+    PostPlayPersonalityProfileProvenance personalityProfile;
     std::vector<PostPlayPackageCampaign> campaigns;
     std::vector<PostPlayPackageEntry> entries;
 };

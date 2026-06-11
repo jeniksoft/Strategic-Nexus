@@ -2789,6 +2789,43 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-256-surface-post-play-personality-profile-provenance",
+      "title": "Surface post-play personality profile provenance",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "9B. Campaign-Empire Personality Profile Store",
+      "goal": "Carry the summary-only personality profile provenance fields through post-play package serialization, real-session loop compare/trend forwarding, and the owner-visible evidence JSON so downstream consumers can see when a validated profile was or was not applied.",
+      "acceptance": [
+        "Post-play package JSON and CLI output expose the summary-only personality profile provenance fields with explicit source schema and compatibility metadata.",
+        "Real-session compare, trend, and evidence JSON forward the post-play personality profile provenance block end to end.",
+        "The targeted v0 pipeline regression passes on current head."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-255-signed-encrypted-friend-mp-sync-transport-adapter",
+      "title": "Signed and encrypted friend MP sync transport adapter",
+      "status": "blocked",
+      "lane": "implementation",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / encrypted and signed MP package sync",
+      "goal": "Implement the actual signed/encrypted friend MP sync transport adapter and the end-to-end season validation path that remains after the shared-folder/cloud-folder selection probe and fail-closed status surfaces are already in place.",
+      "blocker": "The remaining transport step is broader than a safe bounded worker chunk and needs an explicit architecture decision for the concrete signed/encrypted transport mechanism, validation flow, and staging boundary before implementation should start.",
+      "acceptance": [
+        "Accepted friends can transfer MP packages through a real signed/encrypted transport adapter without IP-address workflows or active-game network hooks.",
+        "Automatic receive/verify/stage remains fail-closed while Stellaris is running and continues to preserve the manual export/import fallback.",
+        "The current-head companion/tray/pipeline regressions stay green after the transport work is eventually wired in."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": [
+        "v0-sprint-254-surface-friend-mp-sync-transport-adapter-probe-cli"
+      ]
     }
   ]
 }

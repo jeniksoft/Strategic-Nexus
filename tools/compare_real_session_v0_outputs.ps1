@@ -226,6 +226,22 @@ $previousEntryPointBranchAmbiguity = ""
 $currentEntryPointBranchAmbiguity = ""
 $previousMemoryRecoveryAnchorEntryPointId = ""
 $currentMemoryRecoveryAnchorEntryPointId = ""
+$previousPostPlayPersonalityProfileApplied = "false"
+$currentPostPlayPersonalityProfileApplied = "false"
+$previousPostPlayPersonalityProfileSourceSchemaVersion = "0"
+$currentPostPlayPersonalityProfileSourceSchemaVersion = "0"
+$previousPostPlayPersonalityProfileSchemaCompatibilityState = ""
+$currentPostPlayPersonalityProfileSchemaCompatibilityState = ""
+$previousPostPlayPersonalityProfileSchemaCompatibilityNote = ""
+$currentPostPlayPersonalityProfileSchemaCompatibilityNote = ""
+$previousPostPlayPersonalityProfileValidatedUpdateSummary = ""
+$currentPostPlayPersonalityProfileValidatedUpdateSummary = ""
+$previousPostPlayPersonalityProfilePromptOutputNote = ""
+$currentPostPlayPersonalityProfilePromptOutputNote = ""
+$previousPostPlayPersonalityProfileSourceSaveDate = ""
+$currentPostPlayPersonalityProfileSourceSaveDate = ""
+$previousPostPlayPersonalityProfileZeroHistoryBootstrap = "false"
+$currentPostPlayPersonalityProfileZeroHistoryBootstrap = "false"
 $previousCampaignLibraryPlanPresent = "false"
 $currentCampaignLibraryPlanPresent = "false"
 $previousCampaignLibraryPlanPath = ""
@@ -318,6 +334,19 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
     $previousPostPlayPackageCampaignIdentityStateSummary = ""
     if ($null -ne $previousEvidence.entry_point_post_play) {
         $previousPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $previousEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
+        if ($null -ne $previousEvidence.entry_point_post_play.personality_profile) {
+            $previousPostPlayPersonalityProfileApplied = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "applied"
+            if ([string]::IsNullOrWhiteSpace($previousPostPlayPersonalityProfileApplied)) { $previousPostPlayPersonalityProfileApplied = "false" }
+            $previousPostPlayPersonalityProfileSourceSchemaVersion = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "source_schema_version"
+            if ([string]::IsNullOrWhiteSpace($previousPostPlayPersonalityProfileSourceSchemaVersion)) { $previousPostPlayPersonalityProfileSourceSchemaVersion = "0" }
+            $previousPostPlayPersonalityProfileSchemaCompatibilityState = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "schema_compatibility_state"
+            $previousPostPlayPersonalityProfileSchemaCompatibilityNote = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "schema_compatibility_note"
+            $previousPostPlayPersonalityProfileValidatedUpdateSummary = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "validated_update_summary"
+            $previousPostPlayPersonalityProfilePromptOutputNote = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "prompt_output_note"
+            $previousPostPlayPersonalityProfileSourceSaveDate = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "source_save_date"
+            $previousPostPlayPersonalityProfileZeroHistoryBootstrap = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "zero_history_bootstrap"
+            if ([string]::IsNullOrWhiteSpace($previousPostPlayPersonalityProfileZeroHistoryBootstrap)) { $previousPostPlayPersonalityProfileZeroHistoryBootstrap = "false" }
+        }
     }
     $previousGeneratedOverlayPublishAllowed = Get-OptionalString -Object $previousEvidence -Property "generated_overlay_publish_allowed"
     if ($null -ne $previousEvidence.campaign_library) {
@@ -392,6 +421,19 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
     $currentPostPlayPackageCampaignIdentityStateSummary = ""
     if ($null -ne $currentEvidence.entry_point_post_play) {
         $currentPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $currentEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
+        if ($null -ne $currentEvidence.entry_point_post_play.personality_profile) {
+            $currentPostPlayPersonalityProfileApplied = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "applied"
+            if ([string]::IsNullOrWhiteSpace($currentPostPlayPersonalityProfileApplied)) { $currentPostPlayPersonalityProfileApplied = "false" }
+            $currentPostPlayPersonalityProfileSourceSchemaVersion = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "source_schema_version"
+            if ([string]::IsNullOrWhiteSpace($currentPostPlayPersonalityProfileSourceSchemaVersion)) { $currentPostPlayPersonalityProfileSourceSchemaVersion = "0" }
+            $currentPostPlayPersonalityProfileSchemaCompatibilityState = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "schema_compatibility_state"
+            $currentPostPlayPersonalityProfileSchemaCompatibilityNote = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "schema_compatibility_note"
+            $currentPostPlayPersonalityProfileValidatedUpdateSummary = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "validated_update_summary"
+            $currentPostPlayPersonalityProfilePromptOutputNote = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "prompt_output_note"
+            $currentPostPlayPersonalityProfileSourceSaveDate = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "source_save_date"
+            $currentPostPlayPersonalityProfileZeroHistoryBootstrap = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "zero_history_bootstrap"
+            if ([string]::IsNullOrWhiteSpace($currentPostPlayPersonalityProfileZeroHistoryBootstrap)) { $currentPostPlayPersonalityProfileZeroHistoryBootstrap = "false" }
+        }
     }
     $currentGeneratedOverlayPublishAllowed = Get-OptionalString -Object $currentEvidence -Property "generated_overlay_publish_allowed"
     if ($null -ne $currentEvidence.campaign_library) {
@@ -788,6 +830,32 @@ $result = [ordered]@{
         previous = $previousPostPlayPackageCampaignIdentityStateSummary
         current = $currentPostPlayPackageCampaignIdentityStateSummary
         changed = ($previousPostPlayPackageCampaignIdentityStateSummary -ne $currentPostPlayPackageCampaignIdentityStateSummary)
+    }
+    post_play_personality_profile = [ordered]@{
+        applied_previous = $previousPostPlayPersonalityProfileApplied
+        applied_current = $currentPostPlayPersonalityProfileApplied
+        applied_changed = ($previousPostPlayPersonalityProfileApplied -ne $currentPostPlayPersonalityProfileApplied)
+        source_schema_version_previous = $previousPostPlayPersonalityProfileSourceSchemaVersion
+        source_schema_version_current = $currentPostPlayPersonalityProfileSourceSchemaVersion
+        source_schema_version_changed = ($previousPostPlayPersonalityProfileSourceSchemaVersion -ne $currentPostPlayPersonalityProfileSourceSchemaVersion)
+        schema_compatibility_state_previous = $previousPostPlayPersonalityProfileSchemaCompatibilityState
+        schema_compatibility_state_current = $currentPostPlayPersonalityProfileSchemaCompatibilityState
+        schema_compatibility_state_changed = ($previousPostPlayPersonalityProfileSchemaCompatibilityState -ne $currentPostPlayPersonalityProfileSchemaCompatibilityState)
+        schema_compatibility_note_previous = $previousPostPlayPersonalityProfileSchemaCompatibilityNote
+        schema_compatibility_note_current = $currentPostPlayPersonalityProfileSchemaCompatibilityNote
+        schema_compatibility_note_changed = ($previousPostPlayPersonalityProfileSchemaCompatibilityNote -ne $currentPostPlayPersonalityProfileSchemaCompatibilityNote)
+        validated_update_summary_previous = $previousPostPlayPersonalityProfileValidatedUpdateSummary
+        validated_update_summary_current = $currentPostPlayPersonalityProfileValidatedUpdateSummary
+        validated_update_summary_changed = ($previousPostPlayPersonalityProfileValidatedUpdateSummary -ne $currentPostPlayPersonalityProfileValidatedUpdateSummary)
+        prompt_output_note_previous = $previousPostPlayPersonalityProfilePromptOutputNote
+        prompt_output_note_current = $currentPostPlayPersonalityProfilePromptOutputNote
+        prompt_output_note_changed = ($previousPostPlayPersonalityProfilePromptOutputNote -ne $currentPostPlayPersonalityProfilePromptOutputNote)
+        source_save_date_previous = $previousPostPlayPersonalityProfileSourceSaveDate
+        source_save_date_current = $currentPostPlayPersonalityProfileSourceSaveDate
+        source_save_date_changed = ($previousPostPlayPersonalityProfileSourceSaveDate -ne $currentPostPlayPersonalityProfileSourceSaveDate)
+        zero_history_bootstrap_previous = $previousPostPlayPersonalityProfileZeroHistoryBootstrap
+        zero_history_bootstrap_current = $currentPostPlayPersonalityProfileZeroHistoryBootstrap
+        zero_history_bootstrap_changed = ($previousPostPlayPersonalityProfileZeroHistoryBootstrap -ne $currentPostPlayPersonalityProfileZeroHistoryBootstrap)
     }
     generated_overlay_publish_allowed = [ordered]@{
         previous = $previousGeneratedOverlayPublishAllowed
@@ -1215,6 +1283,30 @@ Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_changed=" + ((
 Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_current=" + $currentPostPlayPackageCampaignIdentityStateSummary)
 Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_previous=" + $previousPostPlayPackageCampaignIdentityStateSummary)
 Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed=" + ((($previousPostPlayPackageCampaignIdentityStateSummary -ne $currentPostPlayPackageCampaignIdentityStateSummary).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_personality_profile_applied_current=" + $currentPostPlayPersonalityProfileApplied)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_applied_previous=" + $previousPostPlayPersonalityProfileApplied)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_applied_changed=" + ((($previousPostPlayPersonalityProfileApplied -ne $currentPostPlayPersonalityProfileApplied).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_personality_profile_source_schema_version_current=" + $currentPostPlayPersonalityProfileSourceSchemaVersion)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_source_schema_version_previous=" + $previousPostPlayPersonalityProfileSourceSchemaVersion)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_source_schema_version_changed=" + ((($previousPostPlayPersonalityProfileSourceSchemaVersion -ne $currentPostPlayPersonalityProfileSourceSchemaVersion).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_current=" + $currentPostPlayPersonalityProfileSchemaCompatibilityState)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_previous=" + $previousPostPlayPersonalityProfileSchemaCompatibilityState)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_changed=" + ((($previousPostPlayPersonalityProfileSchemaCompatibilityState -ne $currentPostPlayPersonalityProfileSchemaCompatibilityState).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_current=" + $currentPostPlayPersonalityProfileSchemaCompatibilityNote)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_previous=" + $previousPostPlayPersonalityProfileSchemaCompatibilityNote)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_changed=" + ((($previousPostPlayPersonalityProfileSchemaCompatibilityNote -ne $currentPostPlayPersonalityProfileSchemaCompatibilityNote).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_personality_profile_validated_update_summary_current=" + $currentPostPlayPersonalityProfileValidatedUpdateSummary)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_validated_update_summary_previous=" + $previousPostPlayPersonalityProfileValidatedUpdateSummary)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_validated_update_summary_changed=" + ((($previousPostPlayPersonalityProfileValidatedUpdateSummary -ne $currentPostPlayPersonalityProfileValidatedUpdateSummary).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_personality_profile_prompt_output_note_current=" + $currentPostPlayPersonalityProfilePromptOutputNote)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_prompt_output_note_previous=" + $previousPostPlayPersonalityProfilePromptOutputNote)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_prompt_output_note_changed=" + ((($previousPostPlayPersonalityProfilePromptOutputNote -ne $currentPostPlayPersonalityProfilePromptOutputNote).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_personality_profile_source_save_date_current=" + $currentPostPlayPersonalityProfileSourceSaveDate)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_source_save_date_previous=" + $previousPostPlayPersonalityProfileSourceSaveDate)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_source_save_date_changed=" + ((($previousPostPlayPersonalityProfileSourceSaveDate -ne $currentPostPlayPersonalityProfileSourceSaveDate).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_current=" + $currentPostPlayPersonalityProfileZeroHistoryBootstrap)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_previous=" + $previousPostPlayPersonalityProfileZeroHistoryBootstrap)
+Write-Host ("real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_changed=" + ((($previousPostPlayPersonalityProfileZeroHistoryBootstrap -ne $currentPostPlayPersonalityProfileZeroHistoryBootstrap).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_generated_overlay_publish_allowed_current=" + $currentGeneratedOverlayPublishAllowed)
 Write-Host ("real_session_v0_compare_generated_overlay_publish_allowed_previous=" + $previousGeneratedOverlayPublishAllowed)
 Write-Host ("real_session_v0_compare_generated_overlay_publish_allowed_changed=" + ((($previousGeneratedOverlayPublishAllowed -ne $currentGeneratedOverlayPublishAllowed).ToString().ToLowerInvariant())))

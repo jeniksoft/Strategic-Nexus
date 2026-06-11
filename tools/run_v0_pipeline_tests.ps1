@@ -2899,6 +2899,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_follow_up_active=true"
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_follow_up_reason="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_next_steps_brief="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_applied="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_schema_compatibility_state="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_validated_update_summary="
     $runIdLine = ($output | Where-Object { $_ -like "real_session_v0_loop_run_id=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($runIdLine)) {
         throw "real session loop mismatch forwarding case missing run id line."
@@ -3109,6 +3112,8 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"entry_point_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"post_play_package_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"personality_profile"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"validated_update_summary"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"decision_input_package_reason"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"decision_input_blocked_entry_count"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"candidate_decision_package_reason"'
@@ -3118,6 +3123,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_previous="
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_personality_profile_applied_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_personality_profile_schema_compatibility_state_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_post_play_personality_profile_validated_update_summary_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_previous="
     Assert-Contains -Name "real session loop mismatch forwarding compare output" -Text $text -Expected "real_session_v0_loop_compare_auto_generated_overlay_publish_allowed_changed="
@@ -3128,6 +3136,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_previous="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_changed="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_personality_profile_applied_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_personality_profile_schema_compatibility_state_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_post_play_personality_profile_validated_update_summary_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_previous="
     Assert-Contains -Name "real session loop mismatch forwarding trend output" -Text $text -Expected "real_session_v0_loop_trend_auto_generated_overlay_publish_allowed_changed="
@@ -3138,6 +3149,9 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"post_play_personality_profile"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"applied_current"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"validated_update_summary_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_allowed_changed"'
@@ -3147,6 +3161,18 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare block" -Text $evidenceText -Expected '"generated_overlay_publish_gate_publish_command_current"'
     if ($evidenceJson.entry_point_post_play.post_play_package_campaign_identity_state_summary -ne "folder_alias_fallback") {
         throw "real session loop mismatch forwarding evidence expected entry_point_post_play.post_play_package_campaign_identity_state_summary=folder_alias_fallback."
+    }
+    if ($null -eq $evidenceJson.entry_point_post_play.personality_profile) {
+        throw "real session loop mismatch forwarding evidence expected entry_point_post_play.personality_profile."
+    }
+    if ([string]$evidenceJson.entry_point_post_play.personality_profile.applied -ne "false") {
+        throw "real session loop mismatch forwarding evidence expected summary-only personality profile to remain unapplied."
+    }
+    if ([string]$evidenceJson.entry_point_post_play.personality_profile.schema_compatibility_state -ne "not_loaded") {
+        throw "real session loop mismatch forwarding evidence expected summary-only personality profile schema_compatibility_state=not_loaded."
+    }
+    if ([string]$evidenceJson.entry_point_post_play.personality_profile.validated_update_summary -ne "summary_only_post_play_package_contract") {
+        throw "real session loop mismatch forwarding evidence expected summary-only personality profile validated_update_summary."
     }
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"dsl_draft_skipped_candidate_count"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence entry point post play" -Text $evidenceText -Expected '"generated_overlay_staging_reason"'
@@ -3328,6 +3354,9 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_anchor_archived_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_campaign_identity_state_summary="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_applied="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_schema_compatibility_note="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_zero_history_bootstrap="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_decision_input_package_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_candidate_decision_package_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_dsl_draft_readiness="
@@ -3391,6 +3420,9 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"entry_point_post_play":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"post_play_package_campaign_identity_state_summary":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"personality_profile":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"schema_compatibility_state":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"zero_history_bootstrap":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"memory_recovery":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_entry_point_id":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_save_name":'

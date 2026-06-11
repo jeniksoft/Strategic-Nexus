@@ -3815,6 +3815,22 @@ int Application::run(const RunConfig& config) const
                 std::cout << "post_play_package_campaign_identity_owner_note="
                           << sanitizeCliValue(package.campaignIdentityOwnerNote) << "\n";
             }
+            std::cout << "post_play_package_personality_profile_applied="
+                      << (package.personalityProfile.applied ? "true" : "false") << "\n";
+            std::cout << "post_play_package_personality_profile_source_schema_version="
+                      << package.personalityProfile.sourceSchemaVersion << "\n";
+            std::cout << "post_play_package_personality_profile_schema_compatibility_state="
+                      << sanitizeCliValue(package.personalityProfile.schemaCompatibilityState) << "\n";
+            std::cout << "post_play_package_personality_profile_schema_compatibility_note="
+                      << sanitizeCliValue(package.personalityProfile.schemaCompatibilityNote) << "\n";
+            std::cout << "post_play_package_personality_profile_validated_update_summary="
+                      << sanitizeCliValue(package.personalityProfile.validatedUpdateSummary) << "\n";
+            std::cout << "post_play_package_personality_profile_prompt_output_note="
+                      << sanitizeCliValue(package.personalityProfile.promptOutputNote) << "\n";
+            std::cout << "post_play_package_personality_profile_source_save_date="
+                      << sanitizeCliValue(package.personalityProfile.sourceSaveDate) << "\n";
+            std::cout << "post_play_package_personality_profile_zero_history_bootstrap="
+                      << (package.personalityProfile.zeroHistoryBootstrap ? "true" : "false") << "\n";
             for (const auto& campaign : package.campaigns) {
                 std::cout << "post_play_package_campaign_identity_state="
                           << sanitizeCliValue(campaign.campaignKey) << ":"

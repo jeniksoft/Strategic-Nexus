@@ -184,6 +184,30 @@ $latestEntryPointCountChanged = ""
 $latestEntryPointBranchAmbiguityCurrent = ""
 $latestEntryPointBranchAmbiguityPrevious = ""
 $latestEntryPointBranchAmbiguityChanged = ""
+$latestPostPlayPersonalityProfileAppliedCurrent = ""
+$latestPostPlayPersonalityProfileAppliedPrevious = ""
+$latestPostPlayPersonalityProfileAppliedChanged = ""
+$latestPostPlayPersonalityProfileSourceSchemaVersionCurrent = ""
+$latestPostPlayPersonalityProfileSourceSchemaVersionPrevious = ""
+$latestPostPlayPersonalityProfileSourceSchemaVersionChanged = ""
+$latestPostPlayPersonalityProfileSchemaCompatibilityStateCurrent = ""
+$latestPostPlayPersonalityProfileSchemaCompatibilityStatePrevious = ""
+$latestPostPlayPersonalityProfileSchemaCompatibilityStateChanged = ""
+$latestPostPlayPersonalityProfileSchemaCompatibilityNoteCurrent = ""
+$latestPostPlayPersonalityProfileSchemaCompatibilityNotePrevious = ""
+$latestPostPlayPersonalityProfileSchemaCompatibilityNoteChanged = ""
+$latestPostPlayPersonalityProfileValidatedUpdateSummaryCurrent = ""
+$latestPostPlayPersonalityProfileValidatedUpdateSummaryPrevious = ""
+$latestPostPlayPersonalityProfileValidatedUpdateSummaryChanged = ""
+$latestPostPlayPersonalityProfilePromptOutputNoteCurrent = ""
+$latestPostPlayPersonalityProfilePromptOutputNotePrevious = ""
+$latestPostPlayPersonalityProfilePromptOutputNoteChanged = ""
+$latestPostPlayPersonalityProfileSourceSaveDateCurrent = ""
+$latestPostPlayPersonalityProfileSourceSaveDatePrevious = ""
+$latestPostPlayPersonalityProfileSourceSaveDateChanged = ""
+$latestPostPlayPersonalityProfileZeroHistoryBootstrapCurrent = ""
+$latestPostPlayPersonalityProfileZeroHistoryBootstrapPrevious = ""
+$latestPostPlayPersonalityProfileZeroHistoryBootstrapChanged = ""
 $latestMemoryRecoveryAnchorEntryPointIdCurrent = ""
 $latestMemoryRecoveryAnchorEntryPointIdPrevious = ""
 $latestMemoryRecoveryAnchorEntryPointIdChanged = ""
@@ -426,6 +450,30 @@ if ($sessionCount -ge 2) {
     $comparePostPlayPackageCampaignIdentityStateSummaryCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_current=*" } | Select-Object -First 1
     $comparePostPlayPackageCampaignIdentityStateSummaryPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_previous=*" } | Select-Object -First 1
     $comparePostPlayPackageCampaignIdentityStateSummaryChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileAppliedCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_applied_current=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileAppliedPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_applied_previous=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileAppliedChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_applied_changed=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSourceSchemaVersionCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_schema_version_current=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSourceSchemaVersionPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_schema_version_previous=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSourceSchemaVersionChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_schema_version_changed=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSchemaCompatibilityStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_current=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSchemaCompatibilityStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_previous=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSchemaCompatibilityStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_changed=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSchemaCompatibilityNoteCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_current=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSchemaCompatibilityNotePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_previous=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSchemaCompatibilityNoteChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_changed=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileValidatedUpdateSummaryCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_validated_update_summary_current=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileValidatedUpdateSummaryPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_validated_update_summary_previous=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileValidatedUpdateSummaryChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_validated_update_summary_changed=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfilePromptOutputNoteCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_prompt_output_note_current=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfilePromptOutputNotePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_prompt_output_note_previous=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfilePromptOutputNoteChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_prompt_output_note_changed=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSourceSaveDateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_save_date_current=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSourceSaveDatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_save_date_previous=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileSourceSaveDateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_save_date_changed=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileZeroHistoryBootstrapCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_current=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileZeroHistoryBootstrapPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_previous=*" } | Select-Object -First 1
+    $comparePostPlayPersonalityProfileZeroHistoryBootstrapChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_changed=*" } | Select-Object -First 1
     $compareGeneratedOverlayPublishAllowedCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_current=*" } | Select-Object -First 1
     $compareGeneratedOverlayPublishAllowedPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_previous=*" } | Select-Object -First 1
     $compareGeneratedOverlayPublishAllowedChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_generated_overlay_publish_allowed_changed=*" } | Select-Object -First 1
@@ -946,6 +994,78 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPackageCampaignIdentityStateSummaryChangedLine)) {
         $latestPostPlayPackageCampaignIdentityStateSummaryChanged = $comparePostPlayPackageCampaignIdentityStateSummaryChangedLine.Substring("real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileAppliedCurrentLine)) {
+        $latestPostPlayPersonalityProfileAppliedCurrent = $comparePostPlayPersonalityProfileAppliedCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_applied_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileAppliedPreviousLine)) {
+        $latestPostPlayPersonalityProfileAppliedPrevious = $comparePostPlayPersonalityProfileAppliedPreviousLine.Substring("real_session_v0_compare_post_play_personality_profile_applied_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileAppliedChangedLine)) {
+        $latestPostPlayPersonalityProfileAppliedChanged = $comparePostPlayPersonalityProfileAppliedChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_applied_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSourceSchemaVersionCurrentLine)) {
+        $latestPostPlayPersonalityProfileSourceSchemaVersionCurrent = $comparePostPlayPersonalityProfileSourceSchemaVersionCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_source_schema_version_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSourceSchemaVersionPreviousLine)) {
+        $latestPostPlayPersonalityProfileSourceSchemaVersionPrevious = $comparePostPlayPersonalityProfileSourceSchemaVersionPreviousLine.Substring("real_session_v0_compare_post_play_personality_profile_source_schema_version_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSourceSchemaVersionChangedLine)) {
+        $latestPostPlayPersonalityProfileSourceSchemaVersionChanged = $comparePostPlayPersonalityProfileSourceSchemaVersionChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_source_schema_version_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSchemaCompatibilityStateCurrentLine)) {
+        $latestPostPlayPersonalityProfileSchemaCompatibilityStateCurrent = $comparePostPlayPersonalityProfileSchemaCompatibilityStateCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSchemaCompatibilityStatePreviousLine)) {
+        $latestPostPlayPersonalityProfileSchemaCompatibilityStatePrevious = $comparePostPlayPersonalityProfileSchemaCompatibilityStatePreviousLine.Substring("real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSchemaCompatibilityStateChangedLine)) {
+        $latestPostPlayPersonalityProfileSchemaCompatibilityStateChanged = $comparePostPlayPersonalityProfileSchemaCompatibilityStateChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_schema_compatibility_state_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSchemaCompatibilityNoteCurrentLine)) {
+        $latestPostPlayPersonalityProfileSchemaCompatibilityNoteCurrent = $comparePostPlayPersonalityProfileSchemaCompatibilityNoteCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSchemaCompatibilityNotePreviousLine)) {
+        $latestPostPlayPersonalityProfileSchemaCompatibilityNotePrevious = $comparePostPlayPersonalityProfileSchemaCompatibilityNotePreviousLine.Substring("real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSchemaCompatibilityNoteChangedLine)) {
+        $latestPostPlayPersonalityProfileSchemaCompatibilityNoteChanged = $comparePostPlayPersonalityProfileSchemaCompatibilityNoteChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_schema_compatibility_note_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileValidatedUpdateSummaryCurrentLine)) {
+        $latestPostPlayPersonalityProfileValidatedUpdateSummaryCurrent = $comparePostPlayPersonalityProfileValidatedUpdateSummaryCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_validated_update_summary_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileValidatedUpdateSummaryPreviousLine)) {
+        $latestPostPlayPersonalityProfileValidatedUpdateSummaryPrevious = $comparePostPlayPersonalityProfileValidatedUpdateSummaryPreviousLine.Substring("real_session_v0_compare_post_play_personality_profile_validated_update_summary_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileValidatedUpdateSummaryChangedLine)) {
+        $latestPostPlayPersonalityProfileValidatedUpdateSummaryChanged = $comparePostPlayPersonalityProfileValidatedUpdateSummaryChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_validated_update_summary_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfilePromptOutputNoteCurrentLine)) {
+        $latestPostPlayPersonalityProfilePromptOutputNoteCurrent = $comparePostPlayPersonalityProfilePromptOutputNoteCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_prompt_output_note_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfilePromptOutputNotePreviousLine)) {
+        $latestPostPlayPersonalityProfilePromptOutputNotePrevious = $comparePostPlayPersonalityProfilePromptOutputNotePreviousLine.Substring("real_session_v0_compare_post_play_personality_profile_prompt_output_note_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfilePromptOutputNoteChangedLine)) {
+        $latestPostPlayPersonalityProfilePromptOutputNoteChanged = $comparePostPlayPersonalityProfilePromptOutputNoteChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_prompt_output_note_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSourceSaveDateCurrentLine)) {
+        $latestPostPlayPersonalityProfileSourceSaveDateCurrent = $comparePostPlayPersonalityProfileSourceSaveDateCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_source_save_date_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSourceSaveDatePreviousLine)) {
+        $latestPostPlayPersonalityProfileSourceSaveDatePrevious = $comparePostPlayPersonalityProfileSourceSaveDatePreviousLine.Substring("real_session_v0_compare_post_play_personality_profile_source_save_date_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSourceSaveDateChangedLine)) {
+        $latestPostPlayPersonalityProfileSourceSaveDateChanged = $comparePostPlayPersonalityProfileSourceSaveDateChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_source_save_date_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileZeroHistoryBootstrapCurrentLine)) {
+        $latestPostPlayPersonalityProfileZeroHistoryBootstrapCurrent = $comparePostPlayPersonalityProfileZeroHistoryBootstrapCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileZeroHistoryBootstrapPreviousLine)) {
+        $latestPostPlayPersonalityProfileZeroHistoryBootstrapPrevious = $comparePostPlayPersonalityProfileZeroHistoryBootstrapPreviousLine.Substring("real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileZeroHistoryBootstrapChangedLine)) {
+        $latestPostPlayPersonalityProfileZeroHistoryBootstrapChanged = $comparePostPlayPersonalityProfileZeroHistoryBootstrapChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_zero_history_bootstrap_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($compareGeneratedOverlayPublishAllowedCurrentLine)) {
         $latestGeneratedOverlayPublishAllowedCurrent = $compareGeneratedOverlayPublishAllowedCurrentLine.Substring("real_session_v0_compare_generated_overlay_publish_allowed_current=".Length)
     }
@@ -1420,6 +1540,32 @@ $result = [ordered]@{
         previous = $latestPostPlayPackageCampaignIdentityStateSummaryPrevious
         changed = $latestPostPlayPackageCampaignIdentityStateSummaryChanged
     }
+    latest_post_play_personality_profile = [ordered]@{
+        applied_current = $latestPostPlayPersonalityProfileAppliedCurrent
+        applied_previous = $latestPostPlayPersonalityProfileAppliedPrevious
+        applied_changed = $latestPostPlayPersonalityProfileAppliedChanged
+        source_schema_version_current = $latestPostPlayPersonalityProfileSourceSchemaVersionCurrent
+        source_schema_version_previous = $latestPostPlayPersonalityProfileSourceSchemaVersionPrevious
+        source_schema_version_changed = $latestPostPlayPersonalityProfileSourceSchemaVersionChanged
+        schema_compatibility_state_current = $latestPostPlayPersonalityProfileSchemaCompatibilityStateCurrent
+        schema_compatibility_state_previous = $latestPostPlayPersonalityProfileSchemaCompatibilityStatePrevious
+        schema_compatibility_state_changed = $latestPostPlayPersonalityProfileSchemaCompatibilityStateChanged
+        schema_compatibility_note_current = $latestPostPlayPersonalityProfileSchemaCompatibilityNoteCurrent
+        schema_compatibility_note_previous = $latestPostPlayPersonalityProfileSchemaCompatibilityNotePrevious
+        schema_compatibility_note_changed = $latestPostPlayPersonalityProfileSchemaCompatibilityNoteChanged
+        validated_update_summary_current = $latestPostPlayPersonalityProfileValidatedUpdateSummaryCurrent
+        validated_update_summary_previous = $latestPostPlayPersonalityProfileValidatedUpdateSummaryPrevious
+        validated_update_summary_changed = $latestPostPlayPersonalityProfileValidatedUpdateSummaryChanged
+        prompt_output_note_current = $latestPostPlayPersonalityProfilePromptOutputNoteCurrent
+        prompt_output_note_previous = $latestPostPlayPersonalityProfilePromptOutputNotePrevious
+        prompt_output_note_changed = $latestPostPlayPersonalityProfilePromptOutputNoteChanged
+        source_save_date_current = $latestPostPlayPersonalityProfileSourceSaveDateCurrent
+        source_save_date_previous = $latestPostPlayPersonalityProfileSourceSaveDatePrevious
+        source_save_date_changed = $latestPostPlayPersonalityProfileSourceSaveDateChanged
+        zero_history_bootstrap_current = $latestPostPlayPersonalityProfileZeroHistoryBootstrapCurrent
+        zero_history_bootstrap_previous = $latestPostPlayPersonalityProfileZeroHistoryBootstrapPrevious
+        zero_history_bootstrap_changed = $latestPostPlayPersonalityProfileZeroHistoryBootstrapChanged
+    }
     latest_generated_overlay_publish_allowed = [ordered]@{
         current = $latestGeneratedOverlayPublishAllowedCurrent
         previous = $latestGeneratedOverlayPublishAllowedPrevious
@@ -1791,6 +1937,30 @@ Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_changed=" + $lat
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_current=" + $latestPostPlayPackageCampaignIdentityStateSummaryCurrent)
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_previous=" + $latestPostPlayPackageCampaignIdentityStateSummaryPrevious)
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_changed=" + $latestPostPlayPackageCampaignIdentityStateSummaryChanged)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_applied_current=" + $latestPostPlayPersonalityProfileAppliedCurrent)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_applied_previous=" + $latestPostPlayPersonalityProfileAppliedPrevious)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_applied_changed=" + $latestPostPlayPersonalityProfileAppliedChanged)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_source_schema_version_current=" + $latestPostPlayPersonalityProfileSourceSchemaVersionCurrent)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_source_schema_version_previous=" + $latestPostPlayPersonalityProfileSourceSchemaVersionPrevious)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_source_schema_version_changed=" + $latestPostPlayPersonalityProfileSourceSchemaVersionChanged)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_schema_compatibility_state_current=" + $latestPostPlayPersonalityProfileSchemaCompatibilityStateCurrent)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_schema_compatibility_state_previous=" + $latestPostPlayPersonalityProfileSchemaCompatibilityStatePrevious)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_schema_compatibility_state_changed=" + $latestPostPlayPersonalityProfileSchemaCompatibilityStateChanged)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_schema_compatibility_note_current=" + $latestPostPlayPersonalityProfileSchemaCompatibilityNoteCurrent)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_schema_compatibility_note_previous=" + $latestPostPlayPersonalityProfileSchemaCompatibilityNotePrevious)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_schema_compatibility_note_changed=" + $latestPostPlayPersonalityProfileSchemaCompatibilityNoteChanged)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_validated_update_summary_current=" + $latestPostPlayPersonalityProfileValidatedUpdateSummaryCurrent)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_validated_update_summary_previous=" + $latestPostPlayPersonalityProfileValidatedUpdateSummaryPrevious)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_validated_update_summary_changed=" + $latestPostPlayPersonalityProfileValidatedUpdateSummaryChanged)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_prompt_output_note_current=" + $latestPostPlayPersonalityProfilePromptOutputNoteCurrent)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_prompt_output_note_previous=" + $latestPostPlayPersonalityProfilePromptOutputNotePrevious)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_prompt_output_note_changed=" + $latestPostPlayPersonalityProfilePromptOutputNoteChanged)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_source_save_date_current=" + $latestPostPlayPersonalityProfileSourceSaveDateCurrent)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_source_save_date_previous=" + $latestPostPlayPersonalityProfileSourceSaveDatePrevious)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_source_save_date_changed=" + $latestPostPlayPersonalityProfileSourceSaveDateChanged)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_zero_history_bootstrap_current=" + $latestPostPlayPersonalityProfileZeroHistoryBootstrapCurrent)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_zero_history_bootstrap_previous=" + $latestPostPlayPersonalityProfileZeroHistoryBootstrapPrevious)
+Write-Host ("real_session_v0_trend_post_play_personality_profile_zero_history_bootstrap_changed=" + $latestPostPlayPersonalityProfileZeroHistoryBootstrapChanged)
 Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_current=" + $latestGeneratedOverlayPublishAllowedCurrent)
 Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_previous=" + $latestGeneratedOverlayPublishAllowedPrevious)
 Write-Host ("real_session_v0_trend_generated_overlay_publish_allowed_changed=" + $latestGeneratedOverlayPublishAllowedChanged)
