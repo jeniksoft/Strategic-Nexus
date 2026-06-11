@@ -132,6 +132,34 @@ int main()
         rejectedNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "reject note should still expose the personality bias");
 
+    strategic_nexus::StrategicSummary lowPressureSummary = quietSummary;
+    lowPressureSummary.instability = 0.09;
+
+    const auto lowPressureConsolidateReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        lowPressureSummary,
+        proposedConsolidate);
+    requireCondition(
+        lowPressureConsolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak fearful empire under low pressure should still reject consolidate in favor of defense");
+    requireCondition(
+        lowPressureConsolidateReject.rationale ==
+            "Rejected consolidate: weak capability, fear, and low pressure make passive consolidation unsafe.",
+        "low-pressure consolidate reject should explain the contradiction");
+    requireCondition(
+        lowPressureConsolidateReject.confidence == 0.43,
+        "low-pressure consolidate reject should clamp confidence");
+    const auto lowPressureConsolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedConsolidate,
+        lowPressureConsolidateReject);
+    requireCondition(
+        lowPressureConsolidateRejectNote.find("rejected consolidate in favor of defensive_posture") != std::string::npos,
+        "low-pressure consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        lowPressureConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "low-pressure consolidate reject note should still expose the personality bias");
+
     strategic_nexus::StrategicSummary hegemonicPressureSummary = quietSummary;
     hegemonicPressureSummary.hegemonyDetected = true;
     hegemonicPressureSummary.instability = 0.09;
