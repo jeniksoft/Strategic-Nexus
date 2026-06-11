@@ -876,6 +876,19 @@ $sncGeneratedOverlayStagingRuleCount = "0"
 $sncGeneratedOverlayManifestVerified = "false"
 $sncGeneratedOverlayPublishAllowed = "false"
 $sncGeneratedOverlayDraftEligible = $false
+$integratedEmpireStatePresent = "false"
+$integratedEmpireStateParsed = "false"
+$integratedEmpireStateCampaignKey = ""
+$integratedEmpireStatePlayerCountryId = ""
+$integratedEmpireStateEmpireName = ""
+$integratedEmpireStateGovernment = ""
+$integratedEmpireStateAuthority = ""
+$integratedEmpireStateCapitalPlanetName = ""
+$integratedEmpireStateHomeSystemName = ""
+$integratedEmpireStateOwnedFleetCount = "0"
+$integratedEmpireStateActiveWarCount = "0"
+$integratedEmpireStateMissingFields = @()
+$integratedEmpireStateUncertainties = @()
 foreach ($candidateDecision in @($candidateDecisionPackageJson.candidate_decisions)) {
     if ($null -eq $candidateDecision) {
         continue
@@ -884,6 +897,21 @@ foreach ($candidateDecision in @($candidateDecisionPackageJson.candidate_decisio
     $empireStateSummary = $candidateDecision.empire_state_summary
     if ($null -ne $empireStateSummary -and $empireStateSummary.parsed -eq $true) {
         $sncGeneratedOverlayDraftEligible = $true
+        if ($integratedEmpireStatePresent -ne "true") {
+            $integratedEmpireStatePresent = "true"
+            $integratedEmpireStateParsed = [string]([bool]$empireStateSummary.parsed).ToString().ToLowerInvariant()
+            $integratedEmpireStateCampaignKey = [string]$candidateDecision.campaign_key
+            $integratedEmpireStatePlayerCountryId = [string]$empireStateSummary.player_country_id
+            $integratedEmpireStateEmpireName = [string]$empireStateSummary.empire_name
+            $integratedEmpireStateGovernment = [string]$empireStateSummary.government
+            $integratedEmpireStateAuthority = [string]$empireStateSummary.authority
+            $integratedEmpireStateCapitalPlanetName = [string]$empireStateSummary.capital_planet_name
+            $integratedEmpireStateHomeSystemName = [string]$empireStateSummary.home_system_name
+            $integratedEmpireStateOwnedFleetCount = [string]$empireStateSummary.owned_fleet_count
+            $integratedEmpireStateActiveWarCount = [string]$empireStateSummary.active_war_count
+            $integratedEmpireStateMissingFields = @($empireStateSummary.missing_fields)
+            $integratedEmpireStateUncertainties = @($empireStateSummary.uncertainties)
+        }
         break
     }
 }
@@ -1400,6 +1428,19 @@ Write-Host ("real_session_v0_loop_candidate_decision_package_reason=" + $candida
 Write-Host ("real_session_v0_loop_candidate_decision_count=" + $candidateDecisionCount)
 Write-Host ("real_session_v0_loop_candidate_decision_blocked_source_entry_count=" + $candidateDecisionBlockedSourceEntryCount)
 Write-Host ("real_session_v0_loop_candidate_decision_validator_passed=" + $candidateDecisionValidatorPassed)
+Write-Host ("real_session_v0_loop_integrated_empire_state_present=" + $integratedEmpireStatePresent)
+Write-Host ("real_session_v0_loop_integrated_empire_state_parsed=" + $integratedEmpireStateParsed)
+Write-Host ("real_session_v0_loop_integrated_empire_state_campaign_key=" + $integratedEmpireStateCampaignKey)
+Write-Host ("real_session_v0_loop_integrated_empire_state_player_country_id=" + $integratedEmpireStatePlayerCountryId)
+Write-Host ("real_session_v0_loop_integrated_empire_state_empire_name=" + $integratedEmpireStateEmpireName)
+Write-Host ("real_session_v0_loop_integrated_empire_state_government=" + $integratedEmpireStateGovernment)
+Write-Host ("real_session_v0_loop_integrated_empire_state_authority=" + $integratedEmpireStateAuthority)
+Write-Host ("real_session_v0_loop_integrated_empire_state_capital_planet_name=" + $integratedEmpireStateCapitalPlanetName)
+Write-Host ("real_session_v0_loop_integrated_empire_state_home_system_name=" + $integratedEmpireStateHomeSystemName)
+Write-Host ("real_session_v0_loop_integrated_empire_state_owned_fleet_count=" + $integratedEmpireStateOwnedFleetCount)
+Write-Host ("real_session_v0_loop_integrated_empire_state_active_war_count=" + $integratedEmpireStateActiveWarCount)
+Write-Host ("real_session_v0_loop_integrated_empire_state_missing_field_count=" + $integratedEmpireStateMissingFields.Count)
+Write-Host ("real_session_v0_loop_integrated_empire_state_uncertainty_count=" + $integratedEmpireStateUncertainties.Count)
 Write-Host ("real_session_v0_loop_dsl_draft_audit_path=" + $dslDraftAuditPath)
 Write-Host ("real_session_v0_loop_dsl_draft_readiness=" + $dslDraftReadiness)
 Write-Host ("real_session_v0_loop_dsl_draft_reason=" + $dslDraftReason)
@@ -3296,6 +3337,21 @@ $sessionEvidence = [ordered]@{
         candidate_decision_count = $candidateDecisionCount
         candidate_decision_blocked_source_entry_count = $candidateDecisionBlockedSourceEntryCount
         candidate_decision_validator_passed = $candidateDecisionValidatorPassed
+        integrated_empire_state = [ordered]@{
+            present = $integratedEmpireStatePresent
+            parsed = $integratedEmpireStateParsed
+            campaign_key = $integratedEmpireStateCampaignKey
+            player_country_id = $integratedEmpireStatePlayerCountryId
+            empire_name = $integratedEmpireStateEmpireName
+            government = $integratedEmpireStateGovernment
+            authority = $integratedEmpireStateAuthority
+            capital_planet_name = $integratedEmpireStateCapitalPlanetName
+            home_system_name = $integratedEmpireStateHomeSystemName
+            owned_fleet_count = $integratedEmpireStateOwnedFleetCount
+            active_war_count = $integratedEmpireStateActiveWarCount
+            missing_fields = @($integratedEmpireStateMissingFields)
+            uncertainties = @($integratedEmpireStateUncertainties)
+        }
         dsl_draft_path = $dslDraftPath
         dsl_draft_audit_path = $dslDraftAuditPath
         dsl_draft_readiness = $dslDraftReadiness

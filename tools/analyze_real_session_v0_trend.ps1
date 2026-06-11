@@ -36,6 +36,7 @@ $sessions = @()
 foreach ($sessionDir in $sessionDirs) {
     $statusPath = Join-Path $sessionDir.FullName "snc_status_snapshot.json"
     $summaryPath = Join-Path $sessionDir.FullName "work/archive_summary.json"
+    $evidencePath = Join-Path $sessionDir.FullName "real_session_v0_loop_evidence.json"
     if (-not (Test-Path -LiteralPath $statusPath) -or -not (Test-Path -LiteralPath $summaryPath)) {
         continue
     }
@@ -60,12 +61,35 @@ foreach ($sessionDir in $sessionDirs) {
         $archiveSaveCount = [int]$summary.copied_save_count
     }
 
+    $integratedEmpireStatePresent = "false"
+    $integratedEmpireStateParsed = "false"
+    $integratedEmpireStateCampaignKey = ""
+    $integratedEmpireStateEmpireName = ""
+    $integratedEmpireStateOwnedFleetCount = ""
+    if (Test-Path -LiteralPath $evidencePath) {
+        $evidence = Read-JsonFile -Path $evidencePath
+        if ($null -ne $evidence.entry_point_post_play.integrated_empire_state) {
+            $integratedEmpireStatePresent = Get-OptionalString -Object $evidence.entry_point_post_play.integrated_empire_state -Property "present"
+            if ([string]::IsNullOrWhiteSpace($integratedEmpireStatePresent)) { $integratedEmpireStatePresent = "false" }
+            $integratedEmpireStateParsed = Get-OptionalString -Object $evidence.entry_point_post_play.integrated_empire_state -Property "parsed"
+            if ([string]::IsNullOrWhiteSpace($integratedEmpireStateParsed)) { $integratedEmpireStateParsed = "false" }
+            $integratedEmpireStateCampaignKey = Get-OptionalString -Object $evidence.entry_point_post_play.integrated_empire_state -Property "campaign_key"
+            $integratedEmpireStateEmpireName = Get-OptionalString -Object $evidence.entry_point_post_play.integrated_empire_state -Property "empire_name"
+            $integratedEmpireStateOwnedFleetCount = Get-OptionalString -Object $evidence.entry_point_post_play.integrated_empire_state -Property "owned_fleet_count"
+        }
+    }
+
     $sessions += [pscustomobject]@{
         session_id = $sessionDir.Name
         session_dir = $sessionDir.FullName
         overlay_manifest_hash = $overlayManifestHash
         archive_save_count = $archiveSaveCount
         gameplay_acceptance_state = $gameplayState
+        integrated_empire_state_present = $integratedEmpireStatePresent
+        integrated_empire_state_parsed = $integratedEmpireStateParsed
+        integrated_empire_state_campaign_key = $integratedEmpireStateCampaignKey
+        integrated_empire_state_empire_name = $integratedEmpireStateEmpireName
+        integrated_empire_state_owned_fleet_count = $integratedEmpireStateOwnedFleetCount
     }
 }
 
@@ -86,6 +110,21 @@ $previousGameplayState = ""
 $latestDeltaOverlayChanged = ""
 $latestDeltaArchiveSaveCountDelta = ""
 $latestDeltaGameplayChanged = ""
+$latestIntegratedEmpireStatePresentCurrent = ""
+$latestIntegratedEmpireStatePresentPrevious = ""
+$latestIntegratedEmpireStatePresentChanged = ""
+$latestIntegratedEmpireStateParsedCurrent = ""
+$latestIntegratedEmpireStateParsedPrevious = ""
+$latestIntegratedEmpireStateParsedChanged = ""
+$latestIntegratedEmpireStateCampaignKeyCurrent = ""
+$latestIntegratedEmpireStateCampaignKeyPrevious = ""
+$latestIntegratedEmpireStateCampaignKeyChanged = ""
+$latestIntegratedEmpireStateEmpireNameCurrent = ""
+$latestIntegratedEmpireStateEmpireNamePrevious = ""
+$latestIntegratedEmpireStateEmpireNameChanged = ""
+$latestIntegratedEmpireStateOwnedFleetCountCurrent = ""
+$latestIntegratedEmpireStateOwnedFleetCountPrevious = ""
+$latestIntegratedEmpireStateOwnedFleetCountChanged = ""
 $latestCompareCommandHint = ""
 $nextSessionCommandHint = ""
 $latestTrendRecommendation = "need_more_real_sessions"
@@ -313,6 +352,11 @@ if ($sessionCount -ge 1) {
     $latestOverlayManifestHash = $latest.overlay_manifest_hash
     $latestArchiveSaveCount = [string]$latest.archive_save_count
     $latestGameplayState = $latest.gameplay_acceptance_state
+    $latestIntegratedEmpireStatePresentCurrent = $latest.integrated_empire_state_present
+    $latestIntegratedEmpireStateParsedCurrent = $latest.integrated_empire_state_parsed
+    $latestIntegratedEmpireStateCampaignKeyCurrent = $latest.integrated_empire_state_campaign_key
+    $latestIntegratedEmpireStateEmpireNameCurrent = $latest.integrated_empire_state_empire_name
+    $latestIntegratedEmpireStateOwnedFleetCountCurrent = $latest.integrated_empire_state_owned_fleet_count
 }
 if ($sessionCount -ge 2) {
     $previous = $sessions[$sessionCount - 2]
@@ -320,9 +364,19 @@ if ($sessionCount -ge 2) {
     $previousOverlayManifestHash = $previous.overlay_manifest_hash
     $previousArchiveSaveCount = [string]$previous.archive_save_count
     $previousGameplayState = $previous.gameplay_acceptance_state
+    $latestIntegratedEmpireStatePresentPrevious = $previous.integrated_empire_state_present
+    $latestIntegratedEmpireStateParsedPrevious = $previous.integrated_empire_state_parsed
+    $latestIntegratedEmpireStateCampaignKeyPrevious = $previous.integrated_empire_state_campaign_key
+    $latestIntegratedEmpireStateEmpireNamePrevious = $previous.integrated_empire_state_empire_name
+    $latestIntegratedEmpireStateOwnedFleetCountPrevious = $previous.integrated_empire_state_owned_fleet_count
     $latestDeltaOverlayChanged = if ($latestOverlayManifestHash -ne $previousOverlayManifestHash) { "true" } else { "false" }
     $latestDeltaArchiveSaveCountDelta = [string]($latest.archive_save_count - $previous.archive_save_count)
     $latestDeltaGameplayChanged = if ($latestGameplayState -ne $previousGameplayState) { "true" } else { "false" }
+    $latestIntegratedEmpireStatePresentChanged = if ($latestIntegratedEmpireStatePresentPrevious -ne $latestIntegratedEmpireStatePresentCurrent) { "true" } else { "false" }
+    $latestIntegratedEmpireStateParsedChanged = if ($latestIntegratedEmpireStateParsedPrevious -ne $latestIntegratedEmpireStateParsedCurrent) { "true" } else { "false" }
+    $latestIntegratedEmpireStateCampaignKeyChanged = if ($latestIntegratedEmpireStateCampaignKeyPrevious -ne $latestIntegratedEmpireStateCampaignKeyCurrent) { "true" } else { "false" }
+    $latestIntegratedEmpireStateEmpireNameChanged = if ($latestIntegratedEmpireStateEmpireNamePrevious -ne $latestIntegratedEmpireStateEmpireNameCurrent) { "true" } else { "false" }
+    $latestIntegratedEmpireStateOwnedFleetCountChanged = if ($latestIntegratedEmpireStateOwnedFleetCountPrevious -ne $latestIntegratedEmpireStateOwnedFleetCountCurrent) { "true" } else { "false" }
     $latestCompareCommandHint = 'cmd /c tools\compare_real_session_v0_outputs.cmd "' + $previous.session_dir + '" "' + $latest.session_dir + '" "dist\private_reports\real_session_v0_compare_' + $previous.session_id + '_to_' + $latest.session_id + '.json"'
 
     $compareScriptPath = Join-Path $PSScriptRoot "compare_real_session_v0_outputs.ps1"
@@ -1540,6 +1594,23 @@ $result = [ordered]@{
         previous = $latestPostPlayPackageCampaignIdentityStateSummaryPrevious
         changed = $latestPostPlayPackageCampaignIdentityStateSummaryChanged
     }
+    latest_integrated_empire_state = [ordered]@{
+        present_current = $latestIntegratedEmpireStatePresentCurrent
+        present_previous = $latestIntegratedEmpireStatePresentPrevious
+        present_changed = $latestIntegratedEmpireStatePresentChanged
+        parsed_current = $latestIntegratedEmpireStateParsedCurrent
+        parsed_previous = $latestIntegratedEmpireStateParsedPrevious
+        parsed_changed = $latestIntegratedEmpireStateParsedChanged
+        campaign_key_current = $latestIntegratedEmpireStateCampaignKeyCurrent
+        campaign_key_previous = $latestIntegratedEmpireStateCampaignKeyPrevious
+        campaign_key_changed = $latestIntegratedEmpireStateCampaignKeyChanged
+        empire_name_current = $latestIntegratedEmpireStateEmpireNameCurrent
+        empire_name_previous = $latestIntegratedEmpireStateEmpireNamePrevious
+        empire_name_changed = $latestIntegratedEmpireStateEmpireNameChanged
+        owned_fleet_count_current = $latestIntegratedEmpireStateOwnedFleetCountCurrent
+        owned_fleet_count_previous = $latestIntegratedEmpireStateOwnedFleetCountPrevious
+        owned_fleet_count_changed = $latestIntegratedEmpireStateOwnedFleetCountChanged
+    }
     latest_post_play_personality_profile = [ordered]@{
         applied_current = $latestPostPlayPersonalityProfileAppliedCurrent
         applied_previous = $latestPostPlayPersonalityProfileAppliedPrevious
@@ -1937,6 +2008,21 @@ Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_changed=" + $lat
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_current=" + $latestPostPlayPackageCampaignIdentityStateSummaryCurrent)
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_previous=" + $latestPostPlayPackageCampaignIdentityStateSummaryPrevious)
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_changed=" + $latestPostPlayPackageCampaignIdentityStateSummaryChanged)
+Write-Host ("real_session_v0_trend_integrated_empire_state_present_current=" + $latestIntegratedEmpireStatePresentCurrent)
+Write-Host ("real_session_v0_trend_integrated_empire_state_present_previous=" + $latestIntegratedEmpireStatePresentPrevious)
+Write-Host ("real_session_v0_trend_integrated_empire_state_present_changed=" + $latestIntegratedEmpireStatePresentChanged)
+Write-Host ("real_session_v0_trend_integrated_empire_state_parsed_current=" + $latestIntegratedEmpireStateParsedCurrent)
+Write-Host ("real_session_v0_trend_integrated_empire_state_parsed_previous=" + $latestIntegratedEmpireStateParsedPrevious)
+Write-Host ("real_session_v0_trend_integrated_empire_state_parsed_changed=" + $latestIntegratedEmpireStateParsedChanged)
+Write-Host ("real_session_v0_trend_integrated_empire_state_campaign_key_current=" + $latestIntegratedEmpireStateCampaignKeyCurrent)
+Write-Host ("real_session_v0_trend_integrated_empire_state_campaign_key_previous=" + $latestIntegratedEmpireStateCampaignKeyPrevious)
+Write-Host ("real_session_v0_trend_integrated_empire_state_campaign_key_changed=" + $latestIntegratedEmpireStateCampaignKeyChanged)
+Write-Host ("real_session_v0_trend_integrated_empire_state_empire_name_current=" + $latestIntegratedEmpireStateEmpireNameCurrent)
+Write-Host ("real_session_v0_trend_integrated_empire_state_empire_name_previous=" + $latestIntegratedEmpireStateEmpireNamePrevious)
+Write-Host ("real_session_v0_trend_integrated_empire_state_empire_name_changed=" + $latestIntegratedEmpireStateEmpireNameChanged)
+Write-Host ("real_session_v0_trend_integrated_empire_state_owned_fleet_count_current=" + $latestIntegratedEmpireStateOwnedFleetCountCurrent)
+Write-Host ("real_session_v0_trend_integrated_empire_state_owned_fleet_count_previous=" + $latestIntegratedEmpireStateOwnedFleetCountPrevious)
+Write-Host ("real_session_v0_trend_integrated_empire_state_owned_fleet_count_changed=" + $latestIntegratedEmpireStateOwnedFleetCountChanged)
 Write-Host ("real_session_v0_trend_post_play_personality_profile_applied_current=" + $latestPostPlayPersonalityProfileAppliedCurrent)
 Write-Host ("real_session_v0_trend_post_play_personality_profile_applied_previous=" + $latestPostPlayPersonalityProfileAppliedPrevious)
 Write-Host ("real_session_v0_trend_post_play_personality_profile_applied_changed=" + $latestPostPlayPersonalityProfileAppliedChanged)
