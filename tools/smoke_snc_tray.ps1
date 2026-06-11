@@ -1018,6 +1018,10 @@ try {
                     $summaryText -notlike "*friend_mp_sync_transport_adapter_next_step: Use manual MP export/import and strict verification until secure friend transport is implemented.*") {
                     throw "SNC tray summary text did not expose friend MP sync transport adapter seam."
                 }
+                if ($sncTraySource -notlike "*metadata_verified_transport_not_implemented*" -or
+                    $sncTraySource -notlike "*Metadata verified, transport not implemented yet*") {
+                    throw "SNC tray source did not keep the metadata_verified_transport_not_implemented translation entry."
+                }
                 if ($summaryText -notlike "*friend_mp_sync_preflight_checklist: Before a friend MP season*" -or
                     $summaryText -notlike "*run inbox/outbox plan checks with Stellaris closed*") {
                     throw "SNC tray summary text did not expose friend MP sync preflight checklist."

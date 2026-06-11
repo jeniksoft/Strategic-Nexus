@@ -1262,6 +1262,7 @@ std::wstring formatOwnerFacingStatusValue(const std::string& value)
         {"waiting_for_staged_overlay", {L"\u010Cek\u00E1 na p\u0159ipraven\u00FD overlay", L"Waiting for a staged overlay"}},
         {"waiting_for_encrypted_payload", {L"\u010Cek\u00E1 na \u0161ifrovan\u00FD bal\u00ED\u010Dek", L"Waiting for encrypted package"}},
         {"waiting_for_owner_approval", {L"\u010Cek\u00E1 na potvrzen\u00ED", L"Waiting for approval"}},
+        {"metadata_verified_transport_not_implemented", {L"Metadata ov\u011B\u0159ena, transport zat\u00EDm nen\u00ED implementov\u00E1n", L"Metadata verified, transport not implemented yet"}},
         {"not_attempted", {L"Zat\u00EDm neprob\u011Bhlo", L"Not attempted yet"}},
         {"not_prepared", {L"Zat\u00EDm nep\u0159ipraveno", L"Not prepared yet"}},
         {"not_exported", {L"Zat\u00EDm neexportov\u00E1no", L"Not exported yet"}},
