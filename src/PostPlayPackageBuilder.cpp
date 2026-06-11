@@ -252,6 +252,9 @@ PostPlayPackage PostPlayPackageBuilder::build(
     package.sessionArchiveDirectory = archiveSummary.sessionArchiveDirectory;
     package.archiveVerified = archiveSummary.ok && entryPointAnalysis.archiveVerified;
     package.entryPointAnalysisReadiness = entryPointAnalysis.readiness;
+    package.entryPointAnalysisSourceSchemaVersion = entryPointAnalysis.sourceSchemaVersion;
+    package.entryPointAnalysisSchemaCompatibilityState = entryPointAnalysis.schemaCompatibilityState;
+    package.entryPointAnalysisSchemaCompatibilityNote = entryPointAnalysis.schemaCompatibilityNote;
     package.branchAmbiguityDetected = entryPointAnalysis.branchAmbiguityDetected;
     package.copiedSaveCount = archiveSummary.copiedSaveCount;
     package.totalByteCount = archiveSummary.totalByteCount;
@@ -415,6 +418,12 @@ std::string serializePostPlayPackage(const PostPlayPackage& package)
     json << "  \"session_archive_directory\": \"" << jsonEscape(package.sessionArchiveDirectory.generic_string()) << "\",\n";
     json << "  \"archive_verified\": " << (package.archiveVerified ? "true" : "false") << ",\n";
     json << "  \"entry_point_analysis_readiness\": \"" << jsonEscape(package.entryPointAnalysisReadiness) << "\",\n";
+    json << "  \"entry_point_analysis_source_schema_version\": "
+         << package.entryPointAnalysisSourceSchemaVersion << ",\n";
+    json << "  \"entry_point_analysis_schema_compatibility_state\": \""
+         << jsonEscape(package.entryPointAnalysisSchemaCompatibilityState) << "\",\n";
+    json << "  \"entry_point_analysis_schema_compatibility_note\": \""
+         << jsonEscape(package.entryPointAnalysisSchemaCompatibilityNote) << "\",\n";
     json << "  \"branch_ambiguity_detected\": " << (package.branchAmbiguityDetected ? "true" : "false") << ",\n";
     json << "  \"copied_save_count\": " << package.copiedSaveCount << ",\n";
     json << "  \"total_byte_count\": " << package.totalByteCount << ",\n";

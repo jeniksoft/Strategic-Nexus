@@ -1726,6 +1726,7 @@ The campaign library plan reader now also accepts legacy schema_version 0 as a d
 The campaign library pin manifest reader now also accepts legacy schema_version 0 as degraded compatibility and surfaces an owner-visible regeneration note in companion and tray status output.
 The autosave archive verifier and summarizer now also accept legacy schema_version 0 manifests as partial compatibility, surface explicit schema compatibility state/note fields in summary JSON, and keep unsupported future archive schemas fail-closed.
 The save entry point analysis artifact now also emits explicit source schema version plus compatibility state/note metadata so downstream post-play evidence can treat it like the other long-lived migrated artifacts.
+The post-play package builder now also carries the save entry point analysis schema provenance through to downstream evidence JSON, so the same degraded-state metadata stays visible after the analysis is wrapped into a post-play artifact.
 The next bounded slice should extend the same explicit degraded-state pattern to any remaining long-lived artifact readers so old campaigns do not rely on silent compatibility assumptions.
 
 ---

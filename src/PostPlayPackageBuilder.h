@@ -62,6 +62,9 @@ struct PostPlayPackage {
     bool publishesOverlay = false;
     std::filesystem::path sessionArchiveDirectory;
     std::string entryPointAnalysisReadiness;
+    int entryPointAnalysisSourceSchemaVersion = 1;
+    std::string entryPointAnalysisSchemaCompatibilityState = "current";
+    std::string entryPointAnalysisSchemaCompatibilityNote;
     bool archiveVerified = false;
     bool branchAmbiguityDetected = false;
     std::size_t copiedSaveCount = 0;

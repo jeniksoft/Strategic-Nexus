@@ -109,6 +109,15 @@ int main()
     requireCondition(json.find("\"publishes_overlay\": false") != std::string::npos, "JSON should expose no overlay publishing");
     requireCondition(json.find("\"decision_ready_entry_count\": 2") != std::string::npos, "JSON should expose ready count");
     requireCondition(
+        json.find("\"entry_point_analysis_source_schema_version\": 1") != std::string::npos,
+        "JSON should expose entry point analysis source schema version");
+    requireCondition(
+        json.find("\"entry_point_analysis_schema_compatibility_state\": \"current\"") != std::string::npos,
+        "JSON should expose entry point analysis compatibility state");
+    requireCondition(
+        json.find("\"entry_point_analysis_schema_compatibility_note\": \"\"") != std::string::npos,
+        "JSON should expose empty entry point analysis compatibility note");
+    requireCondition(
         json.find("\"campaign_identity_state_summary\": \"folder_alias_fallback\"") != std::string::npos,
         "JSON should expose campaign identity state summary");
     requireCondition(
@@ -190,6 +199,26 @@ int main()
             "post_play_campaign_identity_ambiguity_blocks_decision_input") !=
             ambiguousIdentityPackage.warningCodes.end(),
         "package warnings should expose the identity ambiguity blocker");
+
+    auto legacyAnalysis = analysis;
+    legacyAnalysis.sourceSchemaVersion = 0;
+    legacyAnalysis.schemaCompatibilityState = "partial_compatibility";
+    legacyAnalysis.schemaCompatibilityNote =
+        "migrated legacy save entry point analysis schema_version 0 to current schema_version 1";
+    const auto legacyPackage = builder.build(summary, legacyAnalysis);
+    const auto legacyJson = strategic_nexus::serializePostPlayPackage(legacyPackage);
+    requireCondition(
+        legacyJson.find("\"entry_point_analysis_source_schema_version\": 0") != std::string::npos,
+        "legacy package JSON should expose entry point analysis source schema version 0");
+    requireCondition(
+        legacyJson.find("\"entry_point_analysis_schema_compatibility_state\": \"partial_compatibility\"") !=
+            std::string::npos,
+        "legacy package JSON should expose partial compatibility state");
+    requireCondition(
+        legacyJson.find(
+            "\"entry_point_analysis_schema_compatibility_note\": \"migrated legacy save entry point analysis schema_version 0 to current schema_version 1\"") !=
+            std::string::npos,
+        "legacy package JSON should expose entry point analysis compatibility note");
 
     const auto ambiguousRoot = root / "ambiguous";
     const auto ambiguousCaptureRoot = ambiguousRoot / "capture_root";
