@@ -1189,6 +1189,8 @@ $sncFriendTrustStorePath = ""
 $sncFriendMpSyncTransportAdapterState = ""
 $sncFriendMpSyncTransportAdapterReason = ""
 $sncFriendMpSyncTransportAdapterNextStep = ""
+$sncFriendMpSyncTransportAdapterKind = ""
+$sncFriendMpSyncTransportAdapterPath = ""
 $sncFriendTrustStoreControlsState = ""
 $sncFriendTrustStoreControlsReason = ""
 $sncFriendTrustStoreControlsNextStep = ""
@@ -1253,6 +1255,12 @@ if ($null -ne $statusJson.friend_mp_sync_transport_adapter_reason) {
 }
 if ($null -ne $statusJson.friend_mp_sync_transport_adapter_next_step) {
     $sncFriendMpSyncTransportAdapterNextStep = [string]$statusJson.friend_mp_sync_transport_adapter_next_step
+}
+if ($null -ne $statusJson.friend_mp_sync_transport_adapter_kind) {
+    $sncFriendMpSyncTransportAdapterKind = [string]$statusJson.friend_mp_sync_transport_adapter_kind
+}
+if ($null -ne $statusJson.friend_mp_sync_transport_adapter_path) {
+    $sncFriendMpSyncTransportAdapterPath = [string]$statusJson.friend_mp_sync_transport_adapter_path
 }
 if ($null -ne $statusJson.friend_trust_store_controls_state) {
     $sncFriendTrustStoreControlsState = [string]$statusJson.friend_trust_store_controls_state
@@ -1432,6 +1440,8 @@ Write-Host ("real_session_v0_loop_friend_mesh_update_next_step=" + $sncFriendMes
 Write-Host ("real_session_v0_loop_friend_mp_sync_transport_adapter_state=" + $sncFriendMpSyncTransportAdapterState)
 Write-Host ("real_session_v0_loop_friend_mp_sync_transport_adapter_reason=" + $sncFriendMpSyncTransportAdapterReason)
 Write-Host ("real_session_v0_loop_friend_mp_sync_transport_adapter_next_step=" + $sncFriendMpSyncTransportAdapterNextStep)
+Write-Host ("real_session_v0_loop_friend_mp_sync_transport_adapter_kind=" + $sncFriendMpSyncTransportAdapterKind)
+Write-Host ("real_session_v0_loop_friend_mp_sync_transport_adapter_path=" + $sncFriendMpSyncTransportAdapterPath)
 Write-Host ("real_session_v0_loop_owner_test_ready=" + $sncMonthlyReactiveOwnerTestReady.ToString().ToLowerInvariant())
 Write-Host ("real_session_v0_loop_owner_test_playbook_path=" + $sncMonthlyReactiveOwnerTestPlaybookPath)
 Write-Host ("real_session_v0_loop_compare_previous_session_dir_hint=dist\\real_session_v0_loop\\<previous_session_id>")
@@ -1567,6 +1577,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareFriendMpSyncTransportAdapterNextStepCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_current"
     $compareFriendMpSyncTransportAdapterNextStepPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_previous"
     $compareFriendMpSyncTransportAdapterNextStepChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_changed"
+    $compareFriendMpSyncTransportAdapterKindCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_kind_current"
+    $compareFriendMpSyncTransportAdapterKindPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_kind_previous"
+    $compareFriendMpSyncTransportAdapterKindChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_kind_changed"
+    $compareFriendMpSyncTransportAdapterPathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_path_current"
+    $compareFriendMpSyncTransportAdapterPathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_path_previous"
+    $compareFriendMpSyncTransportAdapterPathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_friend_mp_sync_transport_adapter_path_changed"
     $compareEntryPointAnalysisPathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_analysis_path_current"
     $compareEntryPointAnalysisPathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_analysis_path_previous"
     $compareEntryPointAnalysisPathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_analysis_path_changed"
@@ -1863,6 +1879,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_next_step_current=" + $compareFriendMpSyncTransportAdapterNextStepCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_next_step_previous=" + $compareFriendMpSyncTransportAdapterNextStepPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_next_step_changed=" + $compareFriendMpSyncTransportAdapterNextStepChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_kind_current=" + $compareFriendMpSyncTransportAdapterKindCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_kind_previous=" + $compareFriendMpSyncTransportAdapterKindPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_kind_changed=" + $compareFriendMpSyncTransportAdapterKindChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_path_current=" + $compareFriendMpSyncTransportAdapterPathCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_path_previous=" + $compareFriendMpSyncTransportAdapterPathPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_friend_mp_sync_transport_adapter_path_changed=" + $compareFriendMpSyncTransportAdapterPathChanged)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_analysis_path_current=" + $compareEntryPointAnalysisPathCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_analysis_path_previous=" + $compareEntryPointAnalysisPathPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_analysis_path_changed=" + $compareEntryPointAnalysisPathChanged)
@@ -2321,6 +2343,12 @@ if ($EmitTrendSummary) {
     $trendFriendMpSyncTransportAdapterNextStepCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_current"
     $trendFriendMpSyncTransportAdapterNextStepPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_previous"
     $trendFriendMpSyncTransportAdapterNextStepChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_changed"
+    $trendFriendMpSyncTransportAdapterKindCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_kind_current"
+    $trendFriendMpSyncTransportAdapterKindPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_kind_previous"
+    $trendFriendMpSyncTransportAdapterKindChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_kind_changed"
+    $trendFriendMpSyncTransportAdapterPathCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_path_current"
+    $trendFriendMpSyncTransportAdapterPathPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_path_previous"
+    $trendFriendMpSyncTransportAdapterPathChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_friend_mp_sync_transport_adapter_path_changed"
     $trendEntryPointAnalysisPathCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_analysis_path_current"
     $trendEntryPointAnalysisPathPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_analysis_path_previous"
     $trendEntryPointAnalysisPathChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_analysis_path_changed"
@@ -2595,6 +2623,12 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_next_step_current=" + $trendFriendMpSyncTransportAdapterNextStepCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_next_step_previous=" + $trendFriendMpSyncTransportAdapterNextStepPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_next_step_changed=" + $trendFriendMpSyncTransportAdapterNextStepChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_kind_current=" + $trendFriendMpSyncTransportAdapterKindCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_kind_previous=" + $trendFriendMpSyncTransportAdapterKindPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_kind_changed=" + $trendFriendMpSyncTransportAdapterKindChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_path_current=" + $trendFriendMpSyncTransportAdapterPathCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_path_previous=" + $trendFriendMpSyncTransportAdapterPathPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_friend_mp_sync_transport_adapter_path_changed=" + $trendFriendMpSyncTransportAdapterPathChanged)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_analysis_path_current=" + $trendEntryPointAnalysisPathCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_analysis_path_previous=" + $trendEntryPointAnalysisPathPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_analysis_path_changed=" + $trendEntryPointAnalysisPathChanged)
@@ -3227,6 +3261,8 @@ $sessionEvidence = [ordered]@{
         state = $sncFriendMpSyncTransportAdapterState
         reason = $sncFriendMpSyncTransportAdapterReason
         next_step = $sncFriendMpSyncTransportAdapterNextStep
+        kind = $sncFriendMpSyncTransportAdapterKind
+        path = $sncFriendMpSyncTransportAdapterPath
     }
     snc_owner_test_contract = [ordered]@{
         ready = $sncMonthlyReactiveOwnerTestReady
@@ -3359,6 +3395,12 @@ $sessionEvidence = [ordered]@{
         friend_mp_sync_transport_adapter_next_step_current = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterNextStepCurrent")
         friend_mp_sync_transport_adapter_next_step_previous = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterNextStepPrevious")
         friend_mp_sync_transport_adapter_next_step_changed = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterNextStepChanged")
+        friend_mp_sync_transport_adapter_kind_current = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterKindCurrent")
+        friend_mp_sync_transport_adapter_kind_previous = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterKindPrevious")
+        friend_mp_sync_transport_adapter_kind_changed = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterKindChanged")
+        friend_mp_sync_transport_adapter_path_current = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterPathCurrent")
+        friend_mp_sync_transport_adapter_path_previous = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterPathPrevious")
+        friend_mp_sync_transport_adapter_path_changed = (Get-VariableOrDefault -Name "compareFriendMpSyncTransportAdapterPathChanged")
         post_play_package_campaign_identity_state_summary_current = (Get-VariableOrDefault -Name "comparePostPlayPackageCampaignIdentityStateSummaryCurrent")
         post_play_package_campaign_identity_state_summary_previous = (Get-VariableOrDefault -Name "comparePostPlayPackageCampaignIdentityStateSummaryPrevious")
         post_play_package_campaign_identity_state_summary_changed = (Get-VariableOrDefault -Name "comparePostPlayPackageCampaignIdentityStateSummaryChanged")
@@ -3584,6 +3626,12 @@ $sessionEvidence = [ordered]@{
         friend_mp_sync_transport_adapter_next_step_current = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterNextStepCurrent")
         friend_mp_sync_transport_adapter_next_step_previous = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterNextStepPrevious")
         friend_mp_sync_transport_adapter_next_step_changed = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterNextStepChanged")
+        friend_mp_sync_transport_adapter_kind_current = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterKindCurrent")
+        friend_mp_sync_transport_adapter_kind_previous = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterKindPrevious")
+        friend_mp_sync_transport_adapter_kind_changed = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterKindChanged")
+        friend_mp_sync_transport_adapter_path_current = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterPathCurrent")
+        friend_mp_sync_transport_adapter_path_previous = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterPathPrevious")
+        friend_mp_sync_transport_adapter_path_changed = (Get-VariableOrDefault -Name "trendFriendMpSyncTransportAdapterPathChanged")
         post_play_package_campaign_identity_state_summary_current = (Get-VariableOrDefault -Name "trendPostPlayPackageCampaignIdentityStateSummaryCurrent")
         post_play_package_campaign_identity_state_summary_previous = (Get-VariableOrDefault -Name "trendPostPlayPackageCampaignIdentityStateSummaryPrevious")
         post_play_package_campaign_identity_state_summary_changed = (Get-VariableOrDefault -Name "trendPostPlayPackageCampaignIdentityStateSummaryChanged")

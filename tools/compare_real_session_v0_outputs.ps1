@@ -210,6 +210,10 @@ $previousFriendMpSyncTransportAdapterReason = ""
 $currentFriendMpSyncTransportAdapterReason = ""
 $previousFriendMpSyncTransportAdapterNextStep = ""
 $currentFriendMpSyncTransportAdapterNextStep = ""
+$previousFriendMpSyncTransportAdapterKind = ""
+$currentFriendMpSyncTransportAdapterKind = ""
+$previousFriendMpSyncTransportAdapterPath = ""
+$currentFriendMpSyncTransportAdapterPath = ""
 $previousEntryPointAnalysisPath = ""
 $currentEntryPointAnalysisPath = ""
 $previousEntryPointReadiness = ""
@@ -302,6 +306,8 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
         $previousFriendMpSyncTransportAdapterState = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "state"
         $previousFriendMpSyncTransportAdapterReason = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "reason"
         $previousFriendMpSyncTransportAdapterNextStep = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "next_step"
+        $previousFriendMpSyncTransportAdapterKind = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "kind"
+        $previousFriendMpSyncTransportAdapterPath = Get-OptionalString -Object $previousEvidence.friend_mp_sync_transport_adapter -Property "path"
     }
     $previousEntryPointAnalysisPath = Get-OptionalString -Object $previousEvidence -Property "entry_point_analysis_path"
     $previousEntryPointReadiness = Get-OptionalString -Object $previousEvidence -Property "entry_point_readiness"
@@ -374,6 +380,8 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
         $currentFriendMpSyncTransportAdapterState = Get-OptionalString -Object $currentEvidence.friend_mp_sync_transport_adapter -Property "state"
         $currentFriendMpSyncTransportAdapterReason = Get-OptionalString -Object $currentEvidence.friend_mp_sync_transport_adapter -Property "reason"
         $currentFriendMpSyncTransportAdapterNextStep = Get-OptionalString -Object $currentEvidence.friend_mp_sync_transport_adapter -Property "next_step"
+        $currentFriendMpSyncTransportAdapterKind = Get-OptionalString -Object $currentEvidence.friend_mp_sync_transport_adapter -Property "kind"
+        $currentFriendMpSyncTransportAdapterPath = Get-OptionalString -Object $currentEvidence.friend_mp_sync_transport_adapter -Property "path"
     }
     $currentEntryPointAnalysisPath = Get-OptionalString -Object $currentEvidence -Property "entry_point_analysis_path"
     $currentEntryPointReadiness = Get-OptionalString -Object $currentEvidence -Property "entry_point_readiness"
@@ -876,6 +884,16 @@ $result = [ordered]@{
         current = $currentFriendMpSyncTransportAdapterNextStep
         changed = ($previousFriendMpSyncTransportAdapterNextStep -ne $currentFriendMpSyncTransportAdapterNextStep)
     }
+    friend_mp_sync_transport_adapter_kind = [ordered]@{
+        previous = $previousFriendMpSyncTransportAdapterKind
+        current = $currentFriendMpSyncTransportAdapterKind
+        changed = ($previousFriendMpSyncTransportAdapterKind -ne $currentFriendMpSyncTransportAdapterKind)
+    }
+    friend_mp_sync_transport_adapter_path = [ordered]@{
+        previous = $previousFriendMpSyncTransportAdapterPath
+        current = $currentFriendMpSyncTransportAdapterPath
+        changed = ($previousFriendMpSyncTransportAdapterPath -ne $currentFriendMpSyncTransportAdapterPath)
+    }
     campaign_library_plan_present = [ordered]@{
         previous = $previousCampaignLibraryPlanPresent
         current = $currentCampaignLibraryPlanPresent
@@ -1254,6 +1272,12 @@ Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_reason_cha
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_current=" + $currentFriendMpSyncTransportAdapterNextStep)
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_previous=" + $previousFriendMpSyncTransportAdapterNextStep)
 Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_changed=" + ((($previousFriendMpSyncTransportAdapterNextStep -ne $currentFriendMpSyncTransportAdapterNextStep).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_kind_current=" + $currentFriendMpSyncTransportAdapterKind)
+Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_kind_previous=" + $previousFriendMpSyncTransportAdapterKind)
+Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_kind_changed=" + ((($previousFriendMpSyncTransportAdapterKind -ne $currentFriendMpSyncTransportAdapterKind).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_path_current=" + $currentFriendMpSyncTransportAdapterPath)
+Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_path_previous=" + $previousFriendMpSyncTransportAdapterPath)
+Write-Host ("real_session_v0_compare_friend_mp_sync_transport_adapter_path_changed=" + ((($previousFriendMpSyncTransportAdapterPath -ne $currentFriendMpSyncTransportAdapterPath).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_campaign_library_plan_present_current=" + $currentCampaignLibraryPlanPresent)
 Write-Host ("real_session_v0_compare_campaign_library_plan_present_previous=" + $previousCampaignLibraryPlanPresent)
 Write-Host ("real_session_v0_compare_campaign_library_plan_present_changed=" + ((($previousCampaignLibraryPlanPresent -ne $currentCampaignLibraryPlanPresent).ToString().ToLowerInvariant())))

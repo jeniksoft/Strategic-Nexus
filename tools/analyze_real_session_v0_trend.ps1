@@ -163,6 +163,12 @@ $latestFriendMpSyncTransportAdapterReasonChanged = ""
 $latestFriendMpSyncTransportAdapterNextStepCurrent = ""
 $latestFriendMpSyncTransportAdapterNextStepPrevious = ""
 $latestFriendMpSyncTransportAdapterNextStepChanged = ""
+$latestFriendMpSyncTransportAdapterKindCurrent = ""
+$latestFriendMpSyncTransportAdapterKindPrevious = ""
+$latestFriendMpSyncTransportAdapterKindChanged = ""
+$latestFriendMpSyncTransportAdapterPathCurrent = ""
+$latestFriendMpSyncTransportAdapterPathPrevious = ""
+$latestFriendMpSyncTransportAdapterPathChanged = ""
 $latestEntryPointAnalysisPathCurrent = ""
 $latestEntryPointAnalysisPathPrevious = ""
 $latestEntryPointAnalysisPathChanged = ""
@@ -396,6 +402,12 @@ if ($sessionCount -ge 2) {
     $compareFriendMpSyncTransportAdapterNextStepCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_current=*" } | Select-Object -First 1
     $compareFriendMpSyncTransportAdapterNextStepPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_previous=*" } | Select-Object -First 1
     $compareFriendMpSyncTransportAdapterNextStepChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_changed=*" } | Select-Object -First 1
+    $compareFriendMpSyncTransportAdapterKindCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_kind_current=*" } | Select-Object -First 1
+    $compareFriendMpSyncTransportAdapterKindPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_kind_previous=*" } | Select-Object -First 1
+    $compareFriendMpSyncTransportAdapterKindChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_kind_changed=*" } | Select-Object -First 1
+    $compareFriendMpSyncTransportAdapterPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_path_current=*" } | Select-Object -First 1
+    $compareFriendMpSyncTransportAdapterPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_path_previous=*" } | Select-Object -First 1
+    $compareFriendMpSyncTransportAdapterPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_friend_mp_sync_transport_adapter_path_changed=*" } | Select-Object -First 1
     $compareEntryPointAnalysisPathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_analysis_path_current=*" } | Select-Object -First 1
     $compareEntryPointAnalysisPathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_analysis_path_previous=*" } | Select-Object -First 1
     $compareEntryPointAnalysisPathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_analysis_path_changed=*" } | Select-Object -First 1
@@ -861,6 +873,24 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterNextStepChangedLine)) {
         $latestFriendMpSyncTransportAdapterNextStepChanged = $compareFriendMpSyncTransportAdapterNextStepChangedLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_next_step_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterKindCurrentLine)) {
+        $latestFriendMpSyncTransportAdapterKindCurrent = $compareFriendMpSyncTransportAdapterKindCurrentLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_kind_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterKindPreviousLine)) {
+        $latestFriendMpSyncTransportAdapterKindPrevious = $compareFriendMpSyncTransportAdapterKindPreviousLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_kind_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterKindChangedLine)) {
+        $latestFriendMpSyncTransportAdapterKindChanged = $compareFriendMpSyncTransportAdapterKindChangedLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_kind_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterPathCurrentLine)) {
+        $latestFriendMpSyncTransportAdapterPathCurrent = $compareFriendMpSyncTransportAdapterPathCurrentLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_path_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterPathPreviousLine)) {
+        $latestFriendMpSyncTransportAdapterPathPrevious = $compareFriendMpSyncTransportAdapterPathPreviousLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_path_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareFriendMpSyncTransportAdapterPathChangedLine)) {
+        $latestFriendMpSyncTransportAdapterPathChanged = $compareFriendMpSyncTransportAdapterPathChangedLine.Substring("real_session_v0_compare_friend_mp_sync_transport_adapter_path_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareEntryPointAnalysisPathCurrentLine)) {
         $latestEntryPointAnalysisPathCurrent = $compareEntryPointAnalysisPathCurrentLine.Substring("real_session_v0_compare_entry_point_analysis_path_current=".Length)
@@ -1737,6 +1767,12 @@ Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_reason_chang
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_current=" + $latestFriendMpSyncTransportAdapterNextStepCurrent)
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_previous=" + $latestFriendMpSyncTransportAdapterNextStepPrevious)
 Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_next_step_changed=" + $latestFriendMpSyncTransportAdapterNextStepChanged)
+Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_kind_current=" + $latestFriendMpSyncTransportAdapterKindCurrent)
+Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_kind_previous=" + $latestFriendMpSyncTransportAdapterKindPrevious)
+Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_kind_changed=" + $latestFriendMpSyncTransportAdapterKindChanged)
+Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_path_current=" + $latestFriendMpSyncTransportAdapterPathCurrent)
+Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_path_previous=" + $latestFriendMpSyncTransportAdapterPathPrevious)
+Write-Host ("real_session_v0_trend_friend_mp_sync_transport_adapter_path_changed=" + $latestFriendMpSyncTransportAdapterPathChanged)
 Write-Host ("real_session_v0_trend_entry_point_analysis_path_current=" + $latestEntryPointAnalysisPathCurrent)
 Write-Host ("real_session_v0_trend_entry_point_analysis_path_previous=" + $latestEntryPointAnalysisPathPrevious)
 Write-Host ("real_session_v0_trend_entry_point_analysis_path_changed=" + $latestEntryPointAnalysisPathChanged)

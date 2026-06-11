@@ -2140,6 +2140,7 @@ The transport adapter helper now mirrors friend-trust-store `not_configured` and
 Real-session compare, trend, and loop outputs now also forward `friend_trust_store_controls_*` and `friend_mesh_update_*` so revoke/block/disable-auto-sync drift and degraded handoff drift stay visible across the evidence chain; the remaining 15G work is the actual signed/encrypted transport adapter and end-to-end season validation.
 Real-session compare, trend, and loop outputs now also forward `friend_trust_store_state_*` so the base trust-store state itself stays visible across the same evidence chain.
 Companion and tray status surfaces now also surface the first shared-folder/cloud-folder adapter selection path through `friend_mp_sync_transport_adapter_kind` and `friend_mp_sync_transport_adapter_path`, while keeping the disabled transport boundary fail closed when the folder is missing, unreadable, or not configured.
+Real-session compare, trend, and loop outputs now also forward `friend_mp_sync_transport_adapter_kind/path` so the new adapter-selection path stays visible across the evidence chain, not only in tray/status surfaces.
 Next worker-ready 15G slice:
 
 * surface a shared-folder/cloud-folder transport adapter selection path in companion/tray/status surfaces
