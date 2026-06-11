@@ -2845,6 +2845,23 @@
       "dependencies": [
         "v0-sprint-254-surface-friend-mp-sync-transport-adapter-probe-cli"
       ]
+    },
+    {
+      "id": "v0-sprint-258-verify-generated-overlay-publish-gate-on-current-head",
+      "title": "Verify generated-overlay publish gate on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "1F. Generated Overlay Publish Gate And Status Center",
+      "goal": "Verify the current-head generated-overlay publish gate state, reason, can_publish, and publish-command surfaces remain visible across companion, tray, and real-session outputs so 1F stays grounded in a real-session validation path instead of only the live status snapshot.",
+      "acceptance": [
+        "Companion, tray, and Status Center surfaces expose the generated overlay publish gate state, reason, can_publish, and publish command fields on current head.",
+        "Compare/trend/loop outputs forward the same generated overlay publish gate drift fields on current head.",
+        "The targeted v0 pipeline regression passes on current head."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }

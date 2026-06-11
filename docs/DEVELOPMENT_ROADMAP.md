@@ -532,6 +532,7 @@ Required:
 Current progress:
 `--publish-generated-overlay`, `--publish-snc-generated-overlay`, status snapshot fields, Status Center summary fields, and gameplay-acceptance status plumbing exist. Remaining work is hardening owner-facing publish/review UX and validating the full real-session publish path.
 The real-session compare/trend/loop path now also forwards generated-overlay publish-gate state, reason, can_publish, and publish-command drift, so publish readiness stays visible in session deltas instead of only in the live status snapshot.
+Current-head verification confirms the companion tray smoke and v0 pipeline still expose the generated-overlay publish gate state, reason, can_publish, and publish-command follow-up on the current head.
 
 ---
 
