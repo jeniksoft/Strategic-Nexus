@@ -731,6 +731,7 @@ Owner-facing minimum test:
 
 * open `dist/private_reports/snc_next_steps_brief.txt`
 * confirm the MP package lines show the current package directory, ZIP path, and strict verify/import commands
+* confirm `friend_mp_sync_preflight_checklist` is visible before the handoff and keep automatic sync disabled until the checklist is satisfied
 * run one ordinary MP handoff or join flow using the current package guidance
 * if the client reports the wrong overlay or a mismatch warning, keep the warning text and switch to manual export/import or a freshly verified package before retrying
 * expect `friend_mp_sync_transport_state` to stay disabled for now; manual MP export/import is still the active fallback

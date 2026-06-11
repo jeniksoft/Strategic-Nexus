@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-11T10:45:19.4900633+02:00",
+  "updated_at": "2026-06-11T11:01:16.2051748+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, and continuity hints; the remaining 15G work is deeper host/client workflow polish and real-season validation.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -2408,6 +2408,23 @@
       "preferred_tests": [
         "dist/personality_profile_store_test.exe",
         "dist/integrated_empire_state_builder_test.exe"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-234-document-friend-mp-sync-preflight-checklist-in-season-guide",
+      "title": "Document friend MP sync preflight checklist in season guide",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / friend-mesh transport readiness",
+      "goal": "Add the current fail-closed friend MP sync preflight checklist to the canonical multiplayer season guide so the owner-facing minimum test flow stays aligned with the companion and tray surfaces on current head.",
+      "acceptance": [
+        "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md names friend_mp_sync_preflight_checklist in the owner-facing minimum test guidance and keeps manual MP export/import as the active fallback while transport remains disabled.",
+        "The guide still points owners at the disabled transport gap, strict verification, and degraded friend mesh warnings instead of implying automatic sync is ready.",
+        "A targeted rg-based docs verification passes on the updated guide."
+      ],
+      "preferred_tests": [
+        "rg -n \"friend_mp_sync_preflight_checklist|friend_mp_sync_transport_state|friend_mesh_update_state\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md"
       ],
       "dependencies": []
     }
