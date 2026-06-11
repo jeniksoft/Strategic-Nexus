@@ -44,6 +44,13 @@ std::string PersonalityEngine::buildDoctrineAlignmentNote(
     if (proposedDecision.type == DoctrineType::Consolidate &&
         refinedDecision.type == DoctrineType::OpportunisticExpansion) {
         note += "upgraded from consolidate to opportunistic_expansion";
+    } else if (proposedDecision.type == DoctrineType::Consolidate &&
+               refinedDecision.type == DoctrineType::DefensivePosture) {
+        if (refinedDecision.rationale.rfind("Rejected consolidate:", 0) == 0) {
+            note += "rejected consolidate in favor of defensive_posture";
+        } else {
+            note += "downgraded from consolidate to defensive_posture";
+        }
     } else if (proposedDecision.type == DoctrineType::OpportunisticExpansion &&
                refinedDecision.type == DoctrineType::DefensivePosture) {
         if (refinedDecision.rationale.rfind("Rejected opportunistic expansion:", 0) == 0) {
@@ -92,6 +99,14 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale = "Rejected opportunistic expansion: capability, fear, and low pressure do not support it yet.";
         decision.confidence = 0.41;
+        return decision;
+    }
+
+    if (decision.type == DoctrineType::Consolidate && weakCapability && fearful && summary.hegemonyDetected) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected consolidate: a detected hegemon, capability limits, and fear require immediate defense.";
+        decision.confidence = 0.44;
         return decision;
     }
 

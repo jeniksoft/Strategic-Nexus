@@ -158,6 +158,35 @@ int main()
         hegemonicRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "hegemony-aware reject note should still expose the personality bias");
 
+    const auto hegemonicConsolidate = strategic_nexus::DoctrineDecision{
+        strategic_nexus::DoctrineType::Consolidate,
+        "Consolidate while external pressure remains elevated.",
+        0.67};
+    const auto consolidateReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        hegemonicPressureSummary,
+        hegemonicConsolidate);
+    requireCondition(
+        consolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "hegemony pressure should reject fragile consolidation in favor of defense");
+    requireCondition(
+        consolidateReject.rationale ==
+            "Rejected consolidate: a detected hegemon, capability limits, and fear require immediate defense.",
+        "consolidate reject should explain the contradiction");
+    requireCondition(
+        consolidateReject.confidence == 0.44,
+        "consolidate reject should clamp confidence");
+    const auto consolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        hegemonicConsolidate,
+        consolidateReject);
+    requireCondition(
+        consolidateRejectNote.find("rejected consolidate in favor of defensive_posture") != std::string::npos,
+        "consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        consolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "consolidate reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState capabilityConstrainedEmpire;
     capabilityConstrainedEmpire.id = "empire_capability_constrained";
     capabilityConstrainedEmpire.power.fleetPower = 34;

@@ -1548,6 +1548,7 @@ Required:
 
 Current progress:
 StrategicWorker now refines doctrine choices through personality and capability checks for the dominant empire, and the LLM prompt surfaces the resulting personality bias when that focus empire is available. The regression coverage now also exercises a capability-only opportunistic-expansion downgrade path plus two explicit contradiction reject paths, including the hegemony-aware reject path added on current head, while the alignment note already flows through prompt, JSON, and worker stdout. Remaining work is broader contradiction coverage, richer downgrade/reject paths, and any additional owner-facing surface that needs the note made even more prominent.
+Current-head verification now also covers a hegemony-aware consolidate reject path, which keeps fragile consolidation fail-closed under weak capability and high fear while preserving the personality alignment note in owner-facing surfaces.
 Current-head verification with `dist/personality_engine_test.exe` confirms the prompt and doctrine JSON still surface the bounded personality alignment note and personality bias when a focus empire is available.
 
 ---
