@@ -2141,6 +2141,7 @@ Real-session compare, trend, and loop outputs now also forward `friend_trust_sto
 Real-session compare, trend, and loop outputs now also forward `friend_trust_store_state_*` so the base trust-store state itself stays visible across the same evidence chain.
 Companion and tray status surfaces now also surface the first shared-folder/cloud-folder adapter selection path through `friend_mp_sync_transport_adapter_kind` and `friend_mp_sync_transport_adapter_path`, while keeping the disabled transport boundary fail closed when the folder is missing, unreadable, or not configured.
 Real-session compare, trend, and loop outputs now also forward `friend_mp_sync_transport_adapter_kind/path` so the new adapter-selection path stays visible across the evidence chain, not only in tray/status surfaces.
+A standalone `--plan-snc-friend-mp-sync-transport-adapter` probe now reuses the same fail-closed helper so the selected shared-folder/cloud-folder boundary can be validated without opening the full status snapshot.
 Next worker-ready 15G slice:
 
 * surface a shared-folder/cloud-folder transport adapter selection path in companion/tray/status surfaces

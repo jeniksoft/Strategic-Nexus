@@ -646,6 +646,18 @@ RunConfig parseRunConfig(int argc, char* argv[])
         return config;
     }
 
+    if (argc > 1 && std::string(argv[1]) == "--plan-snc-friend-mp-sync-transport-adapter") {
+        config.planSncFriendMpSyncTransportAdapterMode = true;
+
+        if (argc > 2) {
+            config.sncFriendTrustStoreInputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.mpOverlayPackageDirectory = argv[3];
+        }
+        return config;
+    }
+
     if (argc > 1 && std::string(argv[1]) == "--snc-status-snapshot") {
         config.sncStatusSnapshotMode = true;
 
@@ -2454,6 +2466,36 @@ int Application::run(const RunConfig& config) const
                           << sanitizeCliValue(envelope.encryptedPayloadHash) << "\n";
             }
             return success ? 0 : 1;
+        }
+
+        if (config.planSncFriendMpSyncTransportAdapterMode) {
+            if (config.sncFriendTrustStoreInputPath.empty() || config.mpOverlayPackageDirectory.empty()) {
+                std::cout << "snc_friend_mp_sync_transport_adapter_probe_success=false\n";
+                std::cout << "snc_friend_mp_sync_transport_adapter_probe_reason=missing trust store input path or transport adapter path\n";
+                return 1;
+            }
+
+            strategic_nexus::CompanionStatusConfig statusConfig;
+            statusConfig.friendTrustStorePath = config.sncFriendTrustStoreInputPath;
+            statusConfig.mpOverlayPackageDirectory = config.mpOverlayPackageDirectory;
+            const strategic_nexus::StrategicNexusCompanion companion;
+            const auto snapshot = companion.buildStatusSnapshot(statusConfig);
+            const auto transportAdapter =
+                strategic_nexus::buildFriendMpSyncTransportAdapterStatus(snapshot.friendTrustStore);
+
+            std::cout << "snc_friend_mp_sync_transport_adapter_probe_success=true\n";
+            std::cout << "snc_friend_mp_sync_transport_adapter_probe_reason=transport adapter status evaluated\n";
+            std::cout << "snc_friend_mp_sync_transport_adapter_kind="
+                      << sanitizeCliValue(transportAdapter.kind) << "\n";
+            std::cout << "snc_friend_mp_sync_transport_adapter_path="
+                      << sanitizeCliValue(transportAdapter.path.generic_string()) << "\n";
+            std::cout << "snc_friend_mp_sync_transport_adapter_state="
+                      << sanitizeCliValue(transportAdapter.state) << "\n";
+            std::cout << "snc_friend_mp_sync_transport_adapter_reason="
+                      << sanitizeCliValue(transportAdapter.reason) << "\n";
+            std::cout << "snc_friend_mp_sync_transport_adapter_next_step="
+                      << sanitizeCliValue(transportAdapter.nextStep) << "\n";
+            return 0;
         }
 
         if (config.sncStatusSnapshotMode) {
