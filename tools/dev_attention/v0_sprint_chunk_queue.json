@@ -2,8 +2,8 @@
   "schema_version": 1,
   "mode": "v0_sprint",
   "updated_at": "2026-06-12T03:16:40.6132754+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining 15G gap is the actual signed/encrypted transport adapter plus deeper host/client workflow polish and real-season validation.",
-  "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing real-session evidence chunk from 15G before broader release-companion work, including the transport-adapter readiness probe when it is the next visible missing step.",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining 15G gap is the actual signed/encrypted transport adapter plus deeper host/client workflow polish and real-season validation. The next worker-ready 9B slice is a small regression that proves zero-history bootstrap provenance still surfaces in the integrated empire-state path for loaded profiles.",
+  "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing real-session evidence chunk from 15G before broader release-companion work, including the transport-adapter readiness probe when it is the next visible missing step. If 9B is the next safe bounded path, prefer a true-path provenance regression over broader personality expansion.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
   "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, visible outbox-plan template action, and the new transport-adapter probe CLI are implemented or wired in. The companion now also surfaces the explicit host-owned automatic handoff sync gap for host rotation, so the remaining 15G work stays discoverable and fail closed. The canonical multiplayer season guide now also names the trust-store control surface, so revoke/block/disable-auto-sync guidance stays discoverable alongside the manual MP fallback. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. The next worker-ready 15G slice should surface a shared-folder/cloud-folder transport adapter selection path before deeper transport implementation, while the transport adapter helper still mirrors trust-store not_configured and needs_attention states for ready/stale trust stores. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract, and the next verification step is to keep zero-history bootstrap provenance visible on current head while the remaining target-specific gameplay rule generation stays deferred. The next worker-ready 6E slice surfaces post-play campaign identity state summary in companion and tray owner-facing status text, and the next worker-ready verification slice checks personality-profile store reuse in the integrated empire-state builder on current head.",
@@ -2970,6 +2970,23 @@
       "preferred_tests": [
         "tools/smoke_snc_tray.cmd",
         "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-265-verify-zero-history-bootstrap-provenance-in-integrated-state",
+      "title": "Verify zero-history bootstrap provenance in integrated state",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "9B. Campaign-Empire Personality Profile Store",
+      "goal": "Prove the integrated empire-state path still surfaces zero-history bootstrap provenance when a loaded personality profile is explicitly marked as zero-history, so downstream prompt-output consumers can distinguish bootstrap-backed state from history-backed state on current head.",
+      "acceptance": [
+        "dist/integrated_empire_state_builder_test.exe covers a loaded profile with zero_history_bootstrap=true and keeps the provenance flag visible in the integrated state object.",
+        "The serialized integrated empire-state JSON exposes zero_history_bootstrap=true for the zero-history profile case while preserving the existing not-loaded and history-backed cases.",
+        "The test remains bounded to current-head verification and does not broaden personality generation scope."
+      ],
+      "preferred_tests": [
+        "dist/integrated_empire_state_builder_test.exe"
       ],
       "dependencies": []
     }

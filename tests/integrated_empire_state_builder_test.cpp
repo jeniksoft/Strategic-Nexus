@@ -94,6 +94,21 @@ strategic_nexus::PersonalityProfileRecord makeStoredProfile()
     return record;
 }
 
+strategic_nexus::PersonalityProfileRecord makeZeroHistoryStoredProfile()
+{
+    auto record = makeStoredProfile();
+    record.sourceSaveDate = "2026-06-11";
+    record.sourceSavePath = "dist/private_reports/personality_profile_zero_history_source.sav";
+    record.validatedUpdateSummary = "bootstrap conservative default profile";
+    record.confidence = 0.74;
+    record.zeroHistoryBootstrap = true;
+    record.personality.boldness = 0.29;
+    record.personality.paranoia = 0.68;
+    record.personality.honor = 0.47;
+    record.personality.opportunism = 0.33;
+    return record;
+}
+
 } // namespace
 
 int main()
@@ -101,11 +116,16 @@ int main()
     const auto root = std::filesystem::path("dist/integrated_empire_state_builder_fixture");
     const auto emptyProfileRoot = root / "empty_profile_root";
     const auto storedProfileRoot = root / "stored_profile_root";
+    const auto zeroHistoryProfileRoot = root / "zero_history_profile_root";
     std::filesystem::remove_all(root);
 
     const strategic_nexus::PersonalityProfileStore store;
     const auto storedProfile = makeStoredProfile();
     requireCondition(store.save(storedProfileRoot, storedProfile), "stored profile fixture should be writable");
+    const auto zeroHistoryStoredProfile = makeZeroHistoryStoredProfile();
+    requireCondition(
+        store.save(zeroHistoryProfileRoot, zeroHistoryStoredProfile),
+        "zero-history profile fixture should be writable");
 
     const strategic_nexus::IntegratedEmpireStateBuilder builder(emptyProfileRoot);
     const strategic_nexus::IntegratedEmpireStateBuilder profileBackedBuilder(storedProfileRoot);
@@ -188,6 +208,19 @@ int main()
         requireCondition(profileJson.find("\"validated_update_summary\": \"profile-backed defensive caution\"") != std::string::npos, "profile-backed JSON should expose the validated update summary");
         requireCondition(profileJson.find("\"schema_compatibility_state\": \"current\"") != std::string::npos, "profile-backed JSON should expose the current compatibility state");
         requireCondition(profileJson.find("\"prompt_output_note\": \"validated personality profile available for prompt-output consumers\"") != std::string::npos, "profile-backed JSON should expose prompt-output provenance");
+    }
+
+    {
+        const strategic_nexus::IntegratedEmpireStateBuilder zeroHistoryProfileBackedBuilder(zeroHistoryProfileRoot);
+        const auto zeroHistoryState = zeroHistoryProfileBackedBuilder.build(alphaBrief, alpha, 0.58);
+        requireCondition(zeroHistoryState.ok, "zero-history profile-backed integrated state should still build successfully");
+        requireCondition(zeroHistoryState.personalityProfileApplied, "zero-history profile-backed state should surface an applied profile");
+        requireCondition(zeroHistoryState.personalityProfileZeroHistoryBootstrap, "zero-history profile-backed state should keep the bootstrap flag visible");
+        requireCondition(zeroHistoryState.personalityProfileValidatedUpdateSummary == "bootstrap conservative default profile", "zero-history profile-backed state should expose the validated update summary");
+        const auto zeroHistoryJson = strategic_nexus::serializeIntegratedEmpireState(zeroHistoryState);
+        requireCondition(zeroHistoryJson.find("\"applied\": true") != std::string::npos, "zero-history JSON should expose applied profile state");
+        requireCondition(zeroHistoryJson.find("\"zero_history_bootstrap\": true") != std::string::npos, "zero-history JSON should expose the bootstrap flag");
+        requireCondition(zeroHistoryJson.find("\"validated_update_summary\": \"bootstrap conservative default profile\"") != std::string::npos, "zero-history JSON should expose the bootstrap update summary");
     }
 
     {
