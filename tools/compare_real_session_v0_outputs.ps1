@@ -351,6 +351,7 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
     $previousEntryPointCount = Get-OptionalString -Object $previousEvidence -Property "entry_point_count"
     $previousEntryPointBranchAmbiguity = Get-OptionalString -Object $previousEvidence -Property "entry_point_branch_ambiguity"
     $previousMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $previousEvidence -Property "memory_recovery_anchor_entry_point_id"
+    $previousMemoryRecoveryStatePath = Get-OptionalString -Object $previousEvidence -Property "memory_recovery_state_path"
     $previousPostPlayPackageCampaignIdentityStateSummary = ""
     if ($null -ne $previousEvidence.entry_point_post_play) {
         $previousPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $previousEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
@@ -452,6 +453,7 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
     $currentEntryPointCount = Get-OptionalString -Object $currentEvidence -Property "entry_point_count"
     $currentEntryPointBranchAmbiguity = Get-OptionalString -Object $currentEvidence -Property "entry_point_branch_ambiguity"
     $currentMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $currentEvidence -Property "memory_recovery_anchor_entry_point_id"
+    $currentMemoryRecoveryStatePath = Get-OptionalString -Object $currentEvidence -Property "memory_recovery_state_path"
     $currentPostPlayPackageCampaignIdentityStateSummary = ""
     if ($null -ne $currentEvidence.entry_point_post_play) {
         $currentPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $currentEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
@@ -947,6 +949,11 @@ $result = [ordered]@{
         current = $currentMemoryRecoveryAnchorEntryPointId
         changed = ($previousMemoryRecoveryAnchorEntryPointId -ne $currentMemoryRecoveryAnchorEntryPointId)
     }
+    memory_recovery_state_path = [ordered]@{
+        previous = $previousMemoryRecoveryStatePath
+        current = $currentMemoryRecoveryStatePath
+        changed = ($previousMemoryRecoveryStatePath -ne $currentMemoryRecoveryStatePath)
+    }
     next_action = [ordered]@{
         previous = $previousNextAction
         current = $currentNextAction
@@ -1411,6 +1418,9 @@ Write-Host ("real_session_v0_compare_generated_overlay_publish_allowed_changed="
 Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=" + $currentMemoryRecoveryAnchorEntryPointId)
 Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_previous=" + $previousMemoryRecoveryAnchorEntryPointId)
 Write-Host ("real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=" + ((($previousMemoryRecoveryAnchorEntryPointId -ne $currentMemoryRecoveryAnchorEntryPointId).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_memory_recovery_state_path_current=" + $currentMemoryRecoveryStatePath)
+Write-Host ("real_session_v0_compare_memory_recovery_state_path_previous=" + $previousMemoryRecoveryStatePath)
+Write-Host ("real_session_v0_compare_memory_recovery_state_path_changed=" + ((($previousMemoryRecoveryStatePath -ne $currentMemoryRecoveryStatePath).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_next_action_current=" + $currentNextAction)
 Write-Host ("real_session_v0_compare_next_action_previous=" + $previousNextAction)
 Write-Host ("real_session_v0_compare_next_action_changed=" + ((($previousNextAction -ne $currentNextAction).ToString().ToLowerInvariant())))

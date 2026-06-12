@@ -546,6 +546,9 @@ if ($sessionCount -ge 2) {
     $compareMemoryRecoveryAnchorEntryPointIdCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_current=*" } | Select-Object -First 1
     $compareMemoryRecoveryAnchorEntryPointIdPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_previous=*" } | Select-Object -First 1
     $compareMemoryRecoveryAnchorEntryPointIdChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=*" } | Select-Object -First 1
+    $compareMemoryRecoveryStatePathCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_state_path_current=*" } | Select-Object -First 1
+    $compareMemoryRecoveryStatePathPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_state_path_previous=*" } | Select-Object -First 1
+    $compareMemoryRecoveryStatePathChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_memory_recovery_state_path_changed=*" } | Select-Object -First 1
     $compareCampaignLibraryPlanPresentCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_current=*" } | Select-Object -First 1
     $compareCampaignLibraryPlanPresentPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_previous=*" } | Select-Object -First 1
     $compareCampaignLibraryPlanPresentChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_campaign_library_plan_present_changed=*" } | Select-Object -First 1
@@ -1173,6 +1176,15 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryAnchorEntryPointIdChangedLine)) {
         $latestMemoryRecoveryAnchorEntryPointIdChanged = $compareMemoryRecoveryAnchorEntryPointIdChangedLine.Substring("real_session_v0_compare_memory_recovery_anchor_entry_point_id_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryStatePathCurrentLine)) {
+        $latestMemoryRecoveryStatePathCurrent = $compareMemoryRecoveryStatePathCurrentLine.Substring("real_session_v0_compare_memory_recovery_state_path_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryStatePathPreviousLine)) {
+        $latestMemoryRecoveryStatePathPrevious = $compareMemoryRecoveryStatePathPreviousLine.Substring("real_session_v0_compare_memory_recovery_state_path_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareMemoryRecoveryStatePathChangedLine)) {
+        $latestMemoryRecoveryStatePathChanged = $compareMemoryRecoveryStatePathChangedLine.Substring("real_session_v0_compare_memory_recovery_state_path_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareCampaignLibraryPlanPresentCurrentLine)) {
         $latestCampaignLibraryPlanPresentCurrent = $compareCampaignLibraryPlanPresentCurrentLine.Substring("real_session_v0_compare_campaign_library_plan_present_current=".Length)
@@ -2065,6 +2077,9 @@ Write-Host ("real_session_v0_trend_generated_overlay_publish_gate_publish_comman
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_current=" + $latestMemoryRecoveryAnchorEntryPointIdCurrent)
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_previous=" + $latestMemoryRecoveryAnchorEntryPointIdPrevious)
 Write-Host ("real_session_v0_trend_memory_recovery_anchor_entry_point_id_changed=" + $latestMemoryRecoveryAnchorEntryPointIdChanged)
+Write-Host ("real_session_v0_trend_memory_recovery_state_path_current=" + $latestMemoryRecoveryStatePathCurrent)
+Write-Host ("real_session_v0_trend_memory_recovery_state_path_previous=" + $latestMemoryRecoveryStatePathPrevious)
+Write-Host ("real_session_v0_trend_memory_recovery_state_path_changed=" + $latestMemoryRecoveryStatePathChanged)
 Write-Host ("real_session_v0_trend_campaign_library_plan_present_current=" + $latestCampaignLibraryPlanPresentCurrent)
 Write-Host ("real_session_v0_trend_campaign_library_plan_present_previous=" + $latestCampaignLibraryPlanPresentPrevious)
 Write-Host ("real_session_v0_trend_campaign_library_plan_present_changed=" + $latestCampaignLibraryPlanPresentChanged)

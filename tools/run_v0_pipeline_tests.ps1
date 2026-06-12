@@ -2515,6 +2515,7 @@ function Invoke-RealSessionTrendHandoffContinuityPriorityCase {
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_entry_point_count_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_entry_point_branch_ambiguity_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_memory_recovery_anchor_entry_point_id_current="
+    Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_memory_recovery_state_path_current="
 
     $trendOutputPath = Join-Path $trendFixtureRoot "trend_output.json"
     $trendOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "analyze_real_session_v0_trend.ps1") $trendFixtureRoot $trendOutputPath
@@ -2532,6 +2533,7 @@ function Invoke-RealSessionTrendHandoffContinuityPriorityCase {
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_entry_point_count_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_entry_point_branch_ambiguity_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_memory_recovery_anchor_entry_point_id_current="
+    Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_memory_recovery_state_path_current="
     Write-Host "[PASS] real_session_trend_handoff_continuity_priority"
 }
 
@@ -2876,6 +2878,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_entry_point_count_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_entry_point_branch_ambiguity_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_memory_recovery_anchor_entry_point_id_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_memory_recovery_state_path_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_plan_readiness_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_plan_readiness_previous="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_plan_readiness_changed="
@@ -2892,6 +2895,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_entry_point_count_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_entry_point_branch_ambiguity_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_memory_recovery_anchor_entry_point_id_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_memory_recovery_state_path_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_plan_readiness_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_plan_readiness_previous="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_plan_readiness_changed="
@@ -2966,6 +2970,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence mp snapshot" -Text $evidenceText -Expected '"bootstrap_campaign_count":  "0"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence metadata" -Text $evidenceText -Expected '"run_id":'
     Assert-Contains -Name "real session loop mismatch forwarding evidence metadata" -Text $evidenceText -Expected 'real-session-v0-loop-'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence metadata" -Text $evidenceText -Expected '"memory_recovery_state_path"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"command_hints"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"compare"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"trend"'
@@ -2975,6 +2980,12 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_import"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_strict_verify"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence command hints" -Text $evidenceText -Expected '"mp_strict_import"'
+    if ([string]::IsNullOrWhiteSpace([string]$evidenceJson.memory_recovery_state_path)) {
+        throw "real session loop mismatch forwarding evidence expected memory_recovery_state_path to be present."
+    }
+    if (-not ([string]$evidenceJson.memory_recovery_state_path -like "*snc_memory_recovery_state.json")) {
+        throw "real session loop mismatch forwarding evidence expected memory_recovery_state_path to end with snc_memory_recovery_state.json, got '$($evidenceJson.memory_recovery_state_path)'."
+    }
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_package_campaign_identity_state_summary="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_friend_mesh_update_state="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_friend_mesh_update_reason="
