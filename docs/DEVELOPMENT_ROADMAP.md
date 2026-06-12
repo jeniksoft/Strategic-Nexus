@@ -1537,7 +1537,7 @@ A durable campaign-empire personality profile store now exists as a bounded JSON
 The integrated empire-state JSON now also surfaces explicit personality profile provenance for loaded vs not-loaded cases, including compatibility state, validated update summary, source save date, and zero-history bootstrap flag, so downstream prompt/output consumers can distinguish profile-backed state from summary-only fallback more clearly.
 Current-head verification now also covers a loaded-profile zero-history bootstrap path in the integrated empire-state builder, so the provenance flag stays visible when a validated profile is explicitly marked as bootstrap-backed.
 The post-play package and real-session compare/trend/evidence pipeline now carry the same summary-only personality profile provenance fields end to end, so owner-visible session artifacts can report whether a validated profile was actually applied without reopening the nested profile store.
-Next worker-ready verification slice: confirm personality profile store reuse on current head with the bounded store and integrated-state tests, then keep any broader generation/prompt-output reuse work queued separately.
+Current-head verification now also confirms personality profile store reuse on current head with the bounded store and integrated-state tests, so broader generation/prompt-output reuse work can stay queued separately.
 
 ---
 
