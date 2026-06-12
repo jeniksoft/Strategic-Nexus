@@ -226,6 +226,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::Consolidate && weakCapability && !fearful
+        && !summary.hegemonyDetected && summary.instability < 0.15) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected consolidate: weak capability and low pressure make passive consolidation unsafe.";
+        decision.confidence = 0.45;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::Consolidate && weakCapability && fearful && summary.instability < 0.15) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale =

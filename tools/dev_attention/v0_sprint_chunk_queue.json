@@ -3899,6 +3899,23 @@
         "tools/smoke_snc_tray.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-316-reject-consolidate-for-weak-capability-and-low-pressure-without-hegemon",
+      "title": "Reject consolidate for weak capability and low pressure without hegemon",
+      "status": "not_started",
+      "lane": "implementation",
+      "roadmap_anchor": "9C. Personality-To-Rule Validation",
+      "goal": "Add one bounded consolidate reject path for weak-capability empires when pressure is still low and no hegemon is confirmed, so passive consolidation fails closed even when fear is not the deciding signal.",
+      "acceptance": [
+        "PersonalityEngine rejects consolidate to defensive_posture when capability is weak, pressure is low, and no hegemon is detected, even if fear is not the trigger.",
+        "The personality alignment note still explains the explicit rejection and exposes the personality bias.",
+        "dist/personality_engine_test.exe passes on current head after the new reject path is added."
+      ],
+      "preferred_tests": [
+        "dist/personality_engine_test.exe"
+      ],
+      "dependencies": []
     }
   ]
 }

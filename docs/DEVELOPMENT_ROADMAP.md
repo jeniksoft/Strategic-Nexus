@@ -1587,6 +1587,7 @@ Current-head verification now also covers a rising-pressure balance_against_hege
   Current-head verification now also covers a low-trust, low-pressure balance_against_hegemon reject path without war trauma, so distrust alone can still fail closed before coalition balancing becomes a default fallback.
   Current-head verification now also covers a low-trust balance_against_hegemon reject path under confirmed hegemonic pressure, so coalition balancing stays fail-closed even when trauma is not the deciding signal.
   Current-head verification now also covers a no-hegemon balance_against_hegemon reject path for otherwise steady empires, so the doctrine gate stays fail-closed when coalition balancing is proposed without a confirmed target.
+  Current-head verification now also covers a weak-capability consolidate reject path for calm empires under low pressure, so passive consolidation stays fail-closed even when fear is not the deciding signal.
   The remaining 9C work is broader contradiction coverage and any additional owner-facing surface that should expose the note more prominently.
 
 ---

@@ -354,6 +354,47 @@ int main()
         lowPressureConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "low-pressure consolidate reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState weakCalmEmpire = boldEmpire;
+    weakCalmEmpire.id = "empire_weak_calm";
+    weakCalmEmpire.power.fleetPower = 28;
+    weakCalmEmpire.power.economicRank = 1;
+    weakCalmEmpire.power.technologyRank = 1;
+    weakCalmEmpire.personality.boldness = 0.34;
+    weakCalmEmpire.personality.paranoia = 0.18;
+    weakCalmEmpire.personality.honor = 0.56;
+    weakCalmEmpire.personality.opportunism = 0.31;
+    weakCalmEmpire.adaptiveState.fearOfPlayer = 0.19;
+    weakCalmEmpire.adaptiveState.warTrauma = 0.12;
+    weakCalmEmpire.adaptiveState.trustInFederations = 0.57;
+
+    strategic_nexus::StrategicSummary weakCalmSummary = quietSummary;
+    weakCalmSummary.instability = 0.11;
+
+    const auto weakCalmConsolidateReject = engine.refineDoctrineDecision(
+        weakCalmEmpire,
+        weakCalmSummary,
+        proposedConsolidate);
+    requireCondition(
+        weakCalmConsolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak calm empire under low pressure should reject consolidate in favor of defense");
+    requireCondition(
+        weakCalmConsolidateReject.rationale ==
+            "Rejected consolidate: weak capability and low pressure make passive consolidation unsafe.",
+        "weak calm consolidate reject should explain the contradiction");
+    requireCondition(
+        weakCalmConsolidateReject.confidence == 0.45,
+        "weak calm consolidate reject should clamp confidence");
+    const auto weakCalmConsolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        weakCalmEmpire,
+        proposedConsolidate,
+        weakCalmConsolidateReject);
+    requireCondition(
+        weakCalmConsolidateRejectNote.find("rejected consolidate in favor of defensive_posture") != std::string::npos,
+        "weak calm consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        weakCalmConsolidateRejectNote.find("bias = cautious consolidation") != std::string::npos,
+        "weak calm consolidate reject note should still expose the personality bias");
+
     strategic_nexus::StrategicSummary moderatePressureSummary = quietSummary;
     moderatePressureSummary.instability = 0.22;
 
