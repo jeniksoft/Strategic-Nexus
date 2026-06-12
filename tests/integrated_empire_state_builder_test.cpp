@@ -146,6 +146,11 @@ int main()
         requireCondition(state.sourceEmpireStateQuality == "summary_only_empire_state_contract", "empire-state quality should be explicit");
         requireCondition(state.evidenceReferences.size() == 3, "evidence references should combine facts and uncertainties");
         requireCondition(state.fieldAvailability.size() == 13, "field availability map should cover the integrated state");
+        requireCondition(state.fieldAvailabilityAvailableCount == 6, "field availability should count available groups");
+        requireCondition(state.fieldAvailabilityMissingCount == 7, "field availability should count missing groups");
+        requireCondition(
+            state.fieldAvailabilitySummary == "available=identity,capability,memory,internal_pressure,reputation,doctrine_inertia; missing=ethics,population_ethics_distribution,government,civics,resources,income_trajectory,relationships",
+            "field availability summary should describe available and missing groups");
         requireCondition(state.missingInformation.size() == 8, "missing information should stay bounded");
         requireCondition(state.compressionNotes.size() == 4, "compression notes should stay bounded");
         requireCondition(state.internalPressure.securityAnxiety > 0.0, "security anxiety should be derived");
@@ -166,6 +171,9 @@ int main()
         requireCondition(json.find("\"applied\": false") != std::string::npos, "JSON should expose unloaded profile state");
         requireCondition(json.find("\"schema_compatibility_state\": \"not_loaded\"") != std::string::npos, "JSON should expose not-loaded compatibility state");
         requireCondition(json.find("\"prompt_output_note\": \"summary-only prompt-output context; no validated personality profile loaded\"") != std::string::npos, "JSON should expose summary-only prompt-output context");
+        requireCondition(json.find("\"field_availability_available_count\": 6") != std::string::npos, "JSON should expose available field count");
+        requireCondition(json.find("\"field_availability_missing_count\": 7") != std::string::npos, "JSON should expose missing field count");
+        requireCondition(json.find("\"field_availability_summary\": \"available=identity,capability,memory,internal_pressure,reputation,doctrine_inertia; missing=ethics,population_ethics_distribution,government,civics,resources,income_trajectory,relationships\"") != std::string::npos, "JSON should expose field availability summary");
         requireCondition(json.find("\"field_group\": \"ethics\"") != std::string::npos, "JSON should expose ethics field availability");
         requireCondition(json.find("\"field_group\": \"relationships\"") != std::string::npos, "JSON should expose relationships field availability");
         requireCondition(json.find("integrated_empire_state_summary_only_contract") != std::string::npos, "JSON should record the summary-only contract note");
@@ -208,6 +216,7 @@ int main()
         requireCondition(profileJson.find("\"validated_update_summary\": \"profile-backed defensive caution\"") != std::string::npos, "profile-backed JSON should expose the validated update summary");
         requireCondition(profileJson.find("\"schema_compatibility_state\": \"current\"") != std::string::npos, "profile-backed JSON should expose the current compatibility state");
         requireCondition(profileJson.find("\"prompt_output_note\": \"validated personality profile available for prompt-output consumers\"") != std::string::npos, "profile-backed JSON should expose prompt-output provenance");
+        requireCondition(profileJson.find("\"field_availability_summary\": \"available=identity,capability,memory,internal_pressure,reputation,doctrine_inertia; missing=ethics,population_ethics_distribution,government,civics,resources,income_trajectory,relationships\"") != std::string::npos, "profile-backed JSON should keep the field availability summary");
     }
 
     {
@@ -221,6 +230,7 @@ int main()
         requireCondition(zeroHistoryJson.find("\"applied\": true") != std::string::npos, "zero-history JSON should expose applied profile state");
         requireCondition(zeroHistoryJson.find("\"zero_history_bootstrap\": true") != std::string::npos, "zero-history JSON should expose the bootstrap flag");
         requireCondition(zeroHistoryJson.find("\"validated_update_summary\": \"bootstrap conservative default profile\"") != std::string::npos, "zero-history JSON should expose the bootstrap update summary");
+        requireCondition(zeroHistoryJson.find("\"field_availability_summary\": \"available=identity,capability,memory,internal_pressure,reputation,doctrine_inertia; missing=ethics,population_ethics_distribution,government,civics,resources,income_trajectory,relationships\"") != std::string::npos, "zero-history JSON should keep the field availability summary");
     }
 
     {

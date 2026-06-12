@@ -66,6 +66,9 @@ struct IntegratedEmpireState {
     StrategicReputationProfile strategicReputation;
     DoctrineInertiaProfile doctrineInertia;
     std::vector<IntegratedEmpireFieldAvailability> fieldAvailability;
+    std::size_t fieldAvailabilityAvailableCount = 0;
+    std::size_t fieldAvailabilityMissingCount = 0;
+    std::string fieldAvailabilitySummary;
     std::vector<std::string> missingInformation;
     std::vector<std::string> compressionNotes;
 };

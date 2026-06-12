@@ -138,6 +138,18 @@ std::string describeInertiaBand(const std::string& label, const double value)
     return label + " band=" + bandFor(value);
 }
 
+std::string joinStrings(const std::vector<std::string>& values, const std::string& separator)
+{
+    std::ostringstream output;
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        if (index > 0) {
+            output << separator;
+        }
+        output << values[index];
+    }
+    return output.str();
+}
+
 } // namespace
 
 IntegratedEmpireStateBuilder::IntegratedEmpireStateBuilder(
@@ -279,6 +291,28 @@ IntegratedEmpireState IntegratedEmpireStateBuilder::build(
         { "reputation", "summary_only_empire_state_contract", true, {} },
         { "doctrine_inertia", "summary_only_empire_state_contract", true, {} }
     };
+    for (const auto& field : state.fieldAvailability) {
+        if (field.available) {
+            ++state.fieldAvailabilityAvailableCount;
+        } else {
+            ++state.fieldAvailabilityMissingCount;
+        }
+    }
+    std::vector<std::string> availableFieldGroups;
+    std::vector<std::string> missingFieldGroups;
+    availableFieldGroups.reserve(state.fieldAvailabilityAvailableCount);
+    missingFieldGroups.reserve(state.fieldAvailabilityMissingCount);
+    for (const auto& field : state.fieldAvailability) {
+        if (field.available) {
+            availableFieldGroups.push_back(field.fieldGroup);
+        } else {
+            missingFieldGroups.push_back(field.fieldGroup);
+        }
+    }
+    std::ostringstream fieldAvailabilitySummary;
+    fieldAvailabilitySummary << "available=" << joinStrings(availableFieldGroups, ",");
+    fieldAvailabilitySummary << "; missing=" << joinStrings(missingFieldGroups, ",");
+    state.fieldAvailabilitySummary = fieldAvailabilitySummary.str();
 
     state.missingInformation = {
         "ethics_distribution_not_extracted_yet",
@@ -327,6 +361,9 @@ std::string serializeIntegratedEmpireState(const IntegratedEmpireState& state)
     json << "  \"confidence\": " << state.confidence << ",\n";
     json << "  \"summary_only\": " << (state.summaryOnly ? "true" : "false") << ",\n";
     writeStringArray(json, "evidence_references", state.evidenceReferences, true);
+    json << "  \"field_availability_available_count\": " << state.fieldAvailabilityAvailableCount << ",\n";
+    json << "  \"field_availability_missing_count\": " << state.fieldAvailabilityMissingCount << ",\n";
+    json << "  \"field_availability_summary\": \"" << jsonEscape(state.fieldAvailabilitySummary) << "\",\n";
     json << "  \"internal_pressure\": {\n";
     json << "    \"security_anxiety\": " << state.internalPressure.securityAnxiety << ",\n";
     json << "    \"economic_pressure\": " << state.internalPressure.economicPressure << ",\n";
