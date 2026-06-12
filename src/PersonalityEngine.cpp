@@ -110,6 +110,14 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::Consolidate && fearful && summary.hegemonyDetected && !weakCapability) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected consolidate: a detected hegemon and fear require immediate defense even when capability is adequate.";
+        decision.confidence = 0.48;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::Consolidate && weakCapability && fearful && summary.instability < 0.15) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale =

@@ -271,6 +271,36 @@ int main()
         consolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "consolidate reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState hegemonicButCapableEmpire = boldEmpire;
+    hegemonicButCapableEmpire.id = "empire_hegemonic_but_capable";
+    hegemonicButCapableEmpire.personality.paranoia = 0.78;
+    hegemonicButCapableEmpire.adaptiveState.fearOfPlayer = 0.74;
+
+    const auto hegemonicCapableConsolidateReject = engine.refineDoctrineDecision(
+        hegemonicButCapableEmpire,
+        hegemonicPressureSummary,
+        proposedConsolidate);
+    requireCondition(
+        hegemonicCapableConsolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "hegemonic capable empire should still reject fragile consolidation in favor of defense");
+    requireCondition(
+        hegemonicCapableConsolidateReject.rationale ==
+            "Rejected consolidate: a detected hegemon and fear require immediate defense even when capability is adequate.",
+        "hegemonic capable consolidate reject should explain the contradiction");
+    requireCondition(
+        hegemonicCapableConsolidateReject.confidence == 0.48,
+        "hegemonic capable consolidate reject should clamp confidence");
+    const auto hegemonicCapableConsolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        hegemonicButCapableEmpire,
+        proposedConsolidate,
+        hegemonicCapableConsolidateReject);
+    requireCondition(
+        hegemonicCapableConsolidateRejectNote.find("rejected consolidate in favor of defensive_posture") != std::string::npos,
+        "hegemonic capable consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        hegemonicCapableConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "hegemonic capable consolidate reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState capabilityConstrainedEmpire;
     capabilityConstrainedEmpire.id = "empire_capability_constrained";
     capabilityConstrainedEmpire.power.fleetPower = 34;
