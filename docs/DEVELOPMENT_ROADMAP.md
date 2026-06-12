@@ -1178,6 +1178,7 @@ Required:
 
 Current progress:
 The owner-facing validation checklist now explicitly calls out wrong-overlay / mismatch fallback handling, the recovery text to preserve, and the evidence files to inspect after the run. No real MP desync/fallback validation evidence exists yet.
+Current-head verification now also has a bounded faithful validation slice for the current MP fallback contract, so the mismatch guidance and recovery evidence remain checkable on current head even before an owner-run real session.
 
 ---
 
