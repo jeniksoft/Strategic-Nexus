@@ -3454,6 +3454,23 @@
         "tools/smoke_snc_tray.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-292-verify-observer-target-field-availability-summary-on-current-head",
+      "title": "Verify observer-target field availability summary on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "3A. Subjective Other-Empire Profiles And Targeted Rules",
+      "goal": "Confirm the current-head observer-target profile builder keeps the compact field-availability counts and summary contract visible so downstream consumers do not need the full availability array just to see present versus missing evidence groups.",
+      "acceptance": [
+        "dist/observer_target_profile_builder_test.exe passes on current head.",
+        "Observer-target profile JSON exposes field availability counts plus a compact summary string.",
+        "The change remains read-only verification and does not broaden target-specific rule generation."
+      ],
+      "preferred_tests": [
+        "dist/observer_target_profile_builder_test.exe"
+      ],
+      "dependencies": []
     }
   ]
 }
