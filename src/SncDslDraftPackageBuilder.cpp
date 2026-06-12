@@ -486,8 +486,7 @@ SncCandidateDecisionPackageReadResult parseSncCandidateDecisionPackageJson(const
     package.sourceSchemaVersion = sourceSchemaVersion;
     if (package.sourceSchemaVersion == 0) {
         package.schemaCompatibilityState = "partial_compatibility";
-        package.schemaCompatibilityNote =
-            "migrated legacy candidate decision package schema_version 0 to current schema_version 1";
+        package.schemaCompatibilityNote = stringOrEmpty(json, "schema_compatibility_note");
     } else {
         package.schemaCompatibilityState = "current";
         package.schemaCompatibilityNote.clear();
