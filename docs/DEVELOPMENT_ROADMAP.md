@@ -561,6 +561,7 @@ The companion and tray next-action surfaces now also route local LLM attention s
 The Local LLM page now also exposes an explicit open-model-state button, so the owner can jump straight to the state file from the dashboard when attention is needed.
 Current-head verification confirms `local_llm_install_guidance`, `local_llm_model_state_path`, `review_local_llm_model_manager`, and the curated supported-model catalog summary/count remain visible across companion, tray, and Status Center surfaces while the reduced-mode path stays fail closed when no supported model is selected.
 The owner-facing local LLM summary and install guidance now use polished Czech wording with diacritics while preserving the same readiness fields and fail-closed behavior.
+Current-head verification now also confirms `dist/strategic_nexus_companion_test.exe` and `tools/smoke_snc_tray.cmd` pass on current head after the copy polish, so the owner-facing summary and open-state path remain visible.
 Next worker-ready verification slice: confirm the owner-facing model-manager summary and open-state path remain visible on current head after the copy polish, then keep broader LLM handoff work queued separately.
 
 ---
@@ -1755,6 +1756,7 @@ The SNC candidate decision package parse/round-trip path now preserves the seria
 The post-play package builder now also carries the save entry point analysis schema provenance through to downstream evidence JSON, so the same degraded-state metadata stays visible after the analysis is wrapped into a post-play artifact.
 The SNC friend trust store reader now also accepts legacy schema_version 0 as partial compatibility and surfaces explicit source schema version plus compatibility state/note metadata in companion and tray status output.
 Current-head verification now also confirms the SNC candidate decision package degraded-state warnings remain visible on current head across companion and tray surfaces, so the remaining migration-reader work can stay focused on any other long-lived artifact readers that still need the same explicit legacy cue.
+Current-head verification now also confirms `dist/campaign_library_planner_test.exe`, `dist/strategic_nexus_companion_test.exe`, and `tools/smoke_snc_tray.cmd` pass on current head, so the campaign library plan and pinned-manifest legacy degraded-state warnings remain visible.
 The next bounded slice should extend the same explicit degraded-state pattern to any remaining long-lived artifact readers so old campaigns do not rely on silent compatibility assumptions.
 Next worker-ready verification slice: confirm the campaign library plan and pinned-manifest legacy degraded-state warnings remain visible on current head across the companion and tray surfaces, then keep broader migration-reader work queued separately.
 
