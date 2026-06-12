@@ -894,6 +894,7 @@ Required:
 
 Current progress:
 `SaveParserSummary` now exposes a `field_availability` map in parser summary JSON for headline-derived player empire evidence, including explicit source-quality and missing-reason signals for country-core, diplomacy/subject/federation/border/intel groups. `country_core` now distinguishes complete vs partial headline coverage with specific missing reasons for incomplete headline fields. `IntegratedEmpireStateBuilder` now also emits a compact derived field-availability summary/count contract so downstream prompt/output consumers can see available versus missing evidence groups without reopening the full array. The richer per-empire evidence coverage map still needs broader extraction work beyond headline-only parsing.
+Current-head verification now also confirms `dist/integrated_empire_state_builder_test.exe` and `tools/run_v0_pipeline_tests.cmd` pass with the compact count/summary contract still visible on current head, so the existing evidence map can be relied on by downstream consumers without reopening the full array.
 
 ---
 

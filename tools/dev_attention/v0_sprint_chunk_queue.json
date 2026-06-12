@@ -3363,6 +3363,24 @@
       ]
     },
     {
+      "id": "v0-sprint-305-verify-per-empire-save-evidence-coverage-map-on-current-head",
+      "title": "Verify per-empire save-evidence coverage map on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "3E. Per-Empire Save-Evidence Coverage Map",
+      "goal": "Confirm the current-head integrated empire-state builder still exposes the compact per-empire field-availability counts and summary so downstream consumers can see available versus missing evidence groups without reopening the full array.",
+      "acceptance": [
+        "Integrated empire-state JSON exposes the compact field-availability counts plus the derived summary contract for available and missing evidence groups.",
+        "dist/integrated_empire_state_builder_test.exe passes on current head.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head after the summary contract is re-verified."
+      ],
+      "preferred_tests": [
+        "dist/integrated_empire_state_builder_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    },
+    {
       "id": "v0-sprint-255-signed-encrypted-friend-mp-sync-transport-adapter",
       "title": "Signed and encrypted friend MP sync transport adapter",
       "status": "blocked",
