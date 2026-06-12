@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -95,6 +96,16 @@ struct SncFriendMpSyncOutboxPlanResult {
     std::string reason;
 };
 
+struct SncFriendMpSyncOutboxStageResult {
+    bool ok = false;
+    std::string state;
+    std::string reason;
+    std::filesystem::path stagedDirectory;
+    std::filesystem::path stagedEnvelopePath;
+    std::filesystem::path stagedEncryptedPayloadPath;
+    std::filesystem::path stagedManifestPath;
+};
+
 SncFriendRequestPackage parseSncFriendRequestPackageJson(const std::string& json);
 SncFriendAcceptancePackage parseSncFriendAcceptancePackageJson(const std::string& json);
 SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json);
@@ -119,6 +130,12 @@ SncFriendMpSyncOutboxPlanResult planSncFriendMpSyncOutboxSend(
     bool encryptedPayloadPresent,
     bool stellarisRunning,
     bool friendAutoSyncEnabled);
+SncFriendMpSyncOutboxStageResult stageSncFriendMpSyncOutboxPackage(
+    const SncFriendMpSyncEnvelopePackage& package,
+    const std::filesystem::path& envelopeSourcePath,
+    const std::filesystem::path& encryptedPayloadSourcePath,
+    const std::filesystem::path& transportAdapterPath,
+    bool stellarisRunning);
 std::string serializeSncFriendRequestPackage(const SncFriendRequestPackage& package);
 std::string serializeSncFriendAcceptancePackage(const SncFriendAcceptancePackage& package);
 std::string serializeSncFriendTrustStore(const SncFriendTrustStore& store);

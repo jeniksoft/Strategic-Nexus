@@ -3665,5 +3665,24 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-303-stage-friend-mp-sync-outbox-package-into-selected-transport-folder",
+      "title": "Stage friend MP sync outbox package into selected transport folder",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "15G. Release Companion MP Package UX",
+      "goal": "Add the first fail-closed outbox transport staging helper behind the shared-folder/cloud-folder seam, so a verified friend MP package can be copied into the selected transport folder while still rejecting missing files or active Stellaris.",
+      "acceptance": [
+        "SncFriendPackage exposes a fail-closed helper that stages a verified outbox envelope and encrypted payload into the selected transport adapter folder with deterministic manifest output.",
+        "The helper rejects missing or invalid envelope, payload, adapter path, or active Stellaris state without staging files.",
+        "tests/snc_friend_package_test.cpp passes on current head after the helper is added."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }

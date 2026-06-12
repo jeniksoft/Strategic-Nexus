@@ -363,6 +363,7 @@ $sncFriendPackageExePath = Join-Path $repoRoot "dist/snc_friend_package_test.exe
 $sncFriendPackageSourceFiles = @(
     (Join-Path $repoRoot "tests/snc_friend_package_test.cpp"),
     (Join-Path $repoRoot "src/SncFriendPackage.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
     (Join-Path $repoRoot "src/common/JsonExtract.cpp")
 )
 $sncTrayStartupShortcutActionExePath = Join-Path $repoRoot "dist/snc_tray_startup_shortcut_action_test.exe"

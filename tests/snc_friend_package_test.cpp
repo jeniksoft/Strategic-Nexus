@@ -3,6 +3,8 @@
 
 #include "SncFriendPackage.h"
 
+#include <filesystem>
+#include <fstream>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -344,6 +346,60 @@ int main()
     requireCondition(
         !runningOutboxPlan.sendAllowed && runningOutboxPlan.state == "blocked_stellaris_running",
         "friend mp sync outbox plan should block while Stellaris is running");
+
+    const auto transportRoot = std::filesystem::temp_directory_path() / "snc_friend_mp_sync_transport_stage_test";
+    std::filesystem::remove_all(transportRoot);
+    std::filesystem::create_directories(transportRoot);
+    const auto envelopeSourcePath = transportRoot / "friend_mp_sync_envelope.json";
+    const auto payloadSourcePath = transportRoot / "friend_mp_sync_encrypted_payload.bin";
+    {
+        std::ofstream envelopeFile(envelopeSourcePath, std::ios::binary | std::ios::trunc);
+        envelopeFile << syncEnvelopeJson;
+    }
+    {
+        std::ofstream payloadFile(payloadSourcePath, std::ios::binary | std::ios::trunc);
+        payloadFile << "encrypted-payload-bytes";
+    }
+    const auto transportAdapterPath = transportRoot / "selected_transport_adapter";
+    std::filesystem::create_directories(transportAdapterPath);
+    const auto stagedTransport = strategic_nexus::stageSncFriendMpSyncOutboxPackage(
+        parsedSyncEnvelope,
+        envelopeSourcePath,
+        payloadSourcePath,
+        transportAdapterPath,
+        false);
+    requireCondition(stagedTransport.ok, "friend mp sync outbox stage helper should stage a valid package");
+    requireCondition(
+        stagedTransport.state == "staged_for_transport",
+        "friend mp sync outbox stage helper should expose staged state");
+    requireCondition(
+        std::filesystem::exists(stagedTransport.stagedEnvelopePath) &&
+            std::filesystem::exists(stagedTransport.stagedEncryptedPayloadPath) &&
+            std::filesystem::exists(stagedTransport.stagedManifestPath),
+        "friend mp sync outbox stage helper should write staged files");
+    requireCondition(
+        stagedTransport.stagedDirectory.string().find("snc_friend_mp_sync_outbox") != std::string::npos,
+        "friend mp sync outbox stage helper should stage into the outbox folder");
+
+    const auto blockedTransport = strategic_nexus::stageSncFriendMpSyncOutboxPackage(
+        parsedSyncEnvelope,
+        envelopeSourcePath,
+        payloadSourcePath,
+        transportAdapterPath,
+        true);
+    requireCondition(
+        !blockedTransport.ok && blockedTransport.state == "blocked_stellaris_running",
+        "friend mp sync outbox stage helper should block while Stellaris is running");
+
+    const auto missingAdapterTransport = strategic_nexus::stageSncFriendMpSyncOutboxPackage(
+        parsedSyncEnvelope,
+        envelopeSourcePath,
+        payloadSourcePath,
+        transportRoot / "missing_adapter",
+        false);
+    requireCondition(
+        !missingAdapterTransport.ok && missingAdapterTransport.state == "needs_attention",
+        "friend mp sync outbox stage helper should fail closed for a missing adapter path");
 
     auto futureSyncEnvelopeJson = syncEnvelopeJson;
     const auto syncSchemaMarker = futureSyncEnvelopeJson.find("\"schema_version\": 1");

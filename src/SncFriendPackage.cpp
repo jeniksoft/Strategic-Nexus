@@ -3,10 +3,12 @@
 
 #include "SncFriendPackage.h"
 
+#include "common/FileUtil.h"
 #include "common/JsonExtract.h"
 
 #include <algorithm>
 #include <cctype>
+#include <filesystem>
 #include <optional>
 #include <regex>
 #include <sstream>
@@ -343,6 +345,24 @@ std::string validateMpSyncEnvelope(const SncFriendMpSyncEnvelopePackage& package
         return "friend mp sync envelope encrypted payload byte count is missing";
     }
     return {};
+}
+
+std::string sanitizePathComponent(const std::string& value)
+{
+    std::string sanitized;
+    sanitized.reserve(value.size());
+    for (const char ch : value) {
+        const unsigned char byte = static_cast<unsigned char>(ch);
+        if (std::isalnum(byte) != 0 || ch == '_' || ch == '-' || ch == '.') {
+            sanitized.push_back(ch);
+        } else {
+            sanitized.push_back('_');
+        }
+    }
+    if (sanitized.empty()) {
+        return "unknown";
+    }
+    return sanitized;
 }
 
 SncFriendPackageIdentity parseIdentity(const std::string& json)
@@ -763,6 +783,128 @@ SncFriendMpSyncOutboxPlanResult planSncFriendMpSyncOutboxSend(
     result.state = "metadata_verified_transport_not_implemented";
     result.reason =
         "friend MP sync metadata and payload presence verified; signed/encrypted transport remains disabled";
+    return result;
+}
+
+SncFriendMpSyncOutboxStageResult stageSncFriendMpSyncOutboxPackage(
+    const SncFriendMpSyncEnvelopePackage& package,
+    const std::filesystem::path& envelopeSourcePath,
+    const std::filesystem::path& encryptedPayloadSourcePath,
+    const std::filesystem::path& transportAdapterPath,
+    const bool stellarisRunning)
+{
+    SncFriendMpSyncOutboxStageResult result;
+    if (!package.ok) {
+        result.state = "invalid_envelope";
+        result.reason = package.reason.empty()
+            ? "friend mp sync envelope is invalid"
+            : package.reason;
+        return result;
+    }
+    if (stellarisRunning) {
+        result.state = "blocked_stellaris_running";
+        result.reason = "Stellaris is running; friend MP outbox staging is deferred";
+        return result;
+    }
+    if (transportAdapterPath.empty()) {
+        result.state = "not_configured";
+        result.reason =
+            "shared-folder/cloud-folder transport adapter path not configured; manual MP package export/import remains the fallback";
+        return result;
+    }
+
+    std::error_code error;
+    if (!std::filesystem::exists(transportAdapterPath, error) || error) {
+        result.state = "needs_attention";
+        result.reason = "selected shared-folder/cloud-folder transport adapter path is missing";
+        return result;
+    }
+    if (!std::filesystem::is_directory(transportAdapterPath, error) || error) {
+        result.state = "needs_attention";
+        result.reason = "selected shared-folder/cloud-folder transport adapter path is not a folder";
+        return result;
+    }
+    if (!std::filesystem::is_regular_file(envelopeSourcePath, error) || error) {
+        result.state = "waiting_for_envelope";
+        result.reason = "friend MP sync envelope source file is missing";
+        return result;
+    }
+    if (!std::filesystem::is_regular_file(encryptedPayloadSourcePath, error) || error) {
+        result.state = "waiting_for_encrypted_payload";
+        result.reason = "friend MP sync encrypted payload source file is missing";
+        return result;
+    }
+
+    const auto stageDirectory =
+        transportAdapterPath / "snc_friend_mp_sync_outbox" /
+        sanitizePathComponent(package.campaignId) /
+        sanitizePathComponent(package.overlayVersion) /
+        sanitizePathComponent(package.sender.nodeId) /
+        sanitizePathComponent(package.recipient.nodeId);
+    if (!std::filesystem::create_directories(stageDirectory, error) && error) {
+        result.state = "needs_attention";
+        result.reason = "failed to create friend MP outbox staging directory";
+        return result;
+    }
+
+    const auto stagedEnvelopePath = stageDirectory / "snc_friend_mp_sync_envelope.json";
+    const auto stagedEncryptedPayloadPath = stageDirectory / "snc_friend_mp_sync_encrypted_payload.bin";
+    const auto stagedManifestPath = stageDirectory / "snc_friend_mp_sync_transport_manifest.json";
+
+    std::filesystem::copy_file(
+        envelopeSourcePath,
+        stagedEnvelopePath,
+        std::filesystem::copy_options::overwrite_existing,
+        error);
+    if (error) {
+        result.state = "needs_attention";
+        result.reason = "failed to copy friend MP sync envelope into the transport adapter folder";
+        return result;
+    }
+
+    std::filesystem::copy_file(
+        encryptedPayloadSourcePath,
+        stagedEncryptedPayloadPath,
+        std::filesystem::copy_options::overwrite_existing,
+        error);
+    if (error) {
+        result.state = "needs_attention";
+        result.reason = "failed to copy encrypted payload into the transport adapter folder";
+        return result;
+    }
+
+    std::ostringstream manifest;
+    manifest << "{\n";
+    manifest << "  \"schema_version\": 1,\n";
+    manifest << "  \"stage_state\": \"staged_for_transport\",\n";
+    manifest << "  \"stage_reason\": \"friend mp sync outbox staged in selected transport adapter folder\",\n";
+    manifest << "  \"campaign_id\": \"" << jsonEscape(package.campaignId) << "\",\n";
+    manifest << "  \"overlay_version\": \"" << jsonEscape(package.overlayVersion) << "\",\n";
+    manifest << "  \"sender_node_id\": \"" << jsonEscape(package.sender.nodeId) << "\",\n";
+    manifest << "  \"recipient_node_id\": \"" << jsonEscape(package.recipient.nodeId) << "\",\n";
+    manifest << "  \"package_manifest_hash\": \"" << jsonEscape(package.packageManifestHash) << "\",\n";
+    manifest << "  \"package_zip_hash\": \"" << jsonEscape(package.packageZipHash) << "\",\n";
+    manifest << "  \"encrypted_payload_hash\": \"" << jsonEscape(package.encryptedPayloadHash) << "\",\n";
+    manifest << "  \"encrypted_payload_bytes\": " << package.encryptedPayloadBytes << ",\n";
+    manifest << "  \"stage_directory\": \"" << jsonEscape(stageDirectory.generic_string()) << "\",\n";
+    manifest << "  \"staged_envelope_path\": \"" << jsonEscape(stagedEnvelopePath.generic_string()) << "\",\n";
+    manifest << "  \"staged_encrypted_payload_path\": \""
+             << jsonEscape(stagedEncryptedPayloadPath.generic_string()) << "\"\n";
+    manifest << "}\n";
+
+    if (!common::writeTextFileAtomically(stagedManifestPath, manifest.str())) {
+        result.state = "needs_attention";
+        result.reason = "failed to write friend MP transport stage manifest";
+        return result;
+    }
+
+    result.ok = true;
+    result.state = "staged_for_transport";
+    result.reason = "friend mp sync outbox staged into the selected transport adapter folder";
+    result.stagedDirectory = stageDirectory;
+    result.stagedEnvelopePath = stagedEnvelopePath;
+    result.stagedEncryptedPayloadPath = stagedEncryptedPayloadPath;
+    result.stagedManifestPath = stagedManifestPath;
     return result;
 }
 
