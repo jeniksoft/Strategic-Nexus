@@ -616,6 +616,7 @@ The native SNC window exists, uses a branded icon, and has TB-inspired styling. 
 The local LLM model-manager reason strings and install guidance were polished further so reduced-mode and ready states read more naturally in owner-facing Czech without changing readiness behavior.
 The support-report tray action labels now also use more natural Czech wording, keeping the owner-facing menu/button text aligned with the rest of the SNC presentation surface.
 Next worker-ready verification slice: confirm the owner-facing Czech copy polish remains visible on current head across the companion and tray surfaces, then keep broader UI polish queued separately.
+Current-head verification confirms `dist/strategic_nexus_companion_test.exe` and `tools/smoke_snc_tray.cmd` still pass on current head, so the Czech copy polish on the companion and tray surfaces remains visible and the broader UI polish can stay queued separately.
 
 ---
 
