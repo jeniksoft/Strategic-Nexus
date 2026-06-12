@@ -1752,6 +1752,7 @@ The SNC candidate decision package parse/round-trip path now preserves the seria
 The post-play package builder now also carries the save entry point analysis schema provenance through to downstream evidence JSON, so the same degraded-state metadata stays visible after the analysis is wrapped into a post-play artifact.
 The SNC friend trust store reader now also accepts legacy schema_version 0 as partial compatibility and surfaces explicit source schema version plus compatibility state/note metadata in companion and tray status output.
 The next bounded slice should extend the same explicit degraded-state pattern to any remaining long-lived artifact readers so old campaigns do not rely on silent compatibility assumptions.
+Next worker-ready verification slice: confirm the campaign library plan and pinned-manifest legacy degraded-state warnings remain visible on current head across the companion and tray surfaces, then keep broader migration-reader work queued separately.
 
 ---
 
