@@ -178,6 +178,46 @@ int main()
         lowTrustBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
         "low-trust balance reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState lowTrustRisingPressureEmpire = boldEmpire;
+    lowTrustRisingPressureEmpire.id = "empire_low_trust_rising_pressure";
+    lowTrustRisingPressureEmpire.power.fleetPower = 84;
+    lowTrustRisingPressureEmpire.power.economicRank = 3;
+    lowTrustRisingPressureEmpire.power.technologyRank = 3;
+    lowTrustRisingPressureEmpire.personality.boldness = 0.41;
+    lowTrustRisingPressureEmpire.personality.paranoia = 0.23;
+    lowTrustRisingPressureEmpire.personality.honor = 0.53;
+    lowTrustRisingPressureEmpire.personality.opportunism = 0.36;
+    lowTrustRisingPressureEmpire.adaptiveState.fearOfPlayer = 0.22;
+    lowTrustRisingPressureEmpire.adaptiveState.warTrauma = 0.18;
+    lowTrustRisingPressureEmpire.adaptiveState.trustInFederations = 0.24;
+
+    strategic_nexus::StrategicSummary risingPressureBalanceSummary = quietSummary;
+    risingPressureBalanceSummary.instability = 0.34;
+    const auto risingPressureBalanceReject = engine.refineDoctrineDecision(
+        lowTrustRisingPressureEmpire,
+        risingPressureBalanceSummary,
+        proposedHegemonBalance);
+    requireCondition(
+        risingPressureBalanceReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "low-trust empire under rising pressure should reject balance-against-hegemon in favor of defense");
+    requireCondition(
+        risingPressureBalanceReject.rationale ==
+            "Rejected balance against hegemon: low federation trust and rising pressure do not justify coalition balancing yet.",
+        "rising-pressure low-trust balance reject should explain the contradiction");
+    requireCondition(
+        risingPressureBalanceReject.confidence == 0.44,
+        "rising-pressure low-trust balance reject should clamp confidence");
+    const auto risingPressureBalanceRejectNote = engine.buildDoctrineAlignmentNote(
+        lowTrustRisingPressureEmpire,
+        proposedHegemonBalance,
+        risingPressureBalanceReject);
+    requireCondition(
+        risingPressureBalanceRejectNote.find("rejected balance_against_hegemon in favor of defensive_posture") != std::string::npos,
+        "rising-pressure low-trust balance reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        risingPressureBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
+        "rising-pressure low-trust balance reject note should still expose the personality bias");
+
     strategic_nexus::StrategicSummary severePressureSummary = quietSummary;
     severePressureSummary.instability = 0.08;
 

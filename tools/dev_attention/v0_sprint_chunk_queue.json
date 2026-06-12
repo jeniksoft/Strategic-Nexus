@@ -1909,8 +1909,7 @@
         "tools/run_v0_pipeline_tests.ps1"
       ],
       "dependencies": []
-    }
-    ,
+    },
     {
       "id": "v0-sprint-178-verify-mp-host-rotation-handoff-visibility-on-current-head",
       "title": "Verify MP host rotation handoff visibility on current head",
@@ -3804,6 +3803,24 @@
       "acceptance": [
         "PersonalityEngine rejects balance_against_hegemon to defensive_posture when federation trust is low, war trauma is not the trigger, and pressure is still low.",
         "The rationale explains that low federation trust and low pressure do not justify coalition balancing yet.",
+        "dist/personality_engine_test.exe passes on current head after the new reject path is added."
+      ],
+      "preferred_tests": [
+        "dist/personality_engine_test.exe"
+      ],
+      "dependencies": []
+    }
+    ,
+    {
+      "id": "v0-sprint-311-surface-low-trust-balance-against-hegemon-rejection-under-rising-pressure",
+      "title": "Surface low-trust balance rejection under rising pressure",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "9C. Personality-To-Rule Validation",
+      "goal": "Reject balance_against_hegemon for non-traumatized low-trust empires when pressure is rising, so coalition balancing stays fail-closed beyond the low-pressure branch.",
+      "acceptance": [
+        "PersonalityEngine rejects balance_against_hegemon to defensive_posture when federation trust is low, trauma is not the trigger, no hegemon is confirmed, and pressure is rising or higher.",
+        "The rationale explains why low trust and higher pressure still do not justify coalition balancing yet.",
         "dist/personality_engine_test.exe passes on current head after the new reject path is added."
       ],
       "preferred_tests": [
