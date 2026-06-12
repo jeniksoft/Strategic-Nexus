@@ -4380,6 +4380,34 @@ Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sn
 Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_reason=selected shared-folder/cloud-folder transport adapter path is configured and readable; signed/encrypted friend MP sync transport adapter is not implemented yet"
 Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_next_step=Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented."
 
+$sncMissingTrustStorePath = Join-Path $sncFriendCliRoot "missing-friend-trust-store.json"
+$sncMissingTrustStoreProbeOutput = & $exePath `
+    --plan-snc-friend-mp-sync-transport-adapter `
+    $sncMissingTrustStorePath `
+    $sncFriendTransportAdapterPath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync transport-adapter missing trust store probe CLI failed. Actual output:`n$($sncMissingTrustStoreProbeOutput -join "`n")"
+}
+$sncMissingTrustStoreProbeText = $sncMissingTrustStoreProbeOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync transport adapter missing trust store cli" -Text $sncMissingTrustStoreProbeText -Expected "snc_friend_mp_sync_transport_adapter_probe_success=true"
+Assert-Contains -Name "snc friend mp sync transport adapter missing trust store cli" -Text $sncMissingTrustStoreProbeText -Expected "snc_friend_mp_sync_transport_adapter_state=not_configured"
+Assert-Contains -Name "snc friend mp sync transport adapter missing trust store cli" -Text $sncMissingTrustStoreProbeText -Expected "snc_friend_mp_sync_transport_adapter_reason=friend trust store not present; automatic friend sync disabled"
+Assert-Contains -Name "snc friend mp sync transport adapter missing trust store cli" -Text $sncMissingTrustStoreProbeText -Expected "snc_friend_mp_sync_transport_adapter_next_step=Import a friend acceptance first, then use the update command to revoke, block, or disable auto-sync for a trusted friend."
+
+$sncMissingTransportAdapterPath = Join-Path $sncFriendCliRoot "missing-transport-adapter"
+$sncMissingTransportAdapterProbeOutput = & $exePath `
+    --plan-snc-friend-mp-sync-transport-adapter `
+    $sncFriendTrustStorePath `
+    $sncMissingTransportAdapterPath
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync transport-adapter missing path probe CLI failed. Actual output:`n$($sncMissingTransportAdapterProbeOutput -join "`n")"
+}
+$sncMissingTransportAdapterProbeText = $sncMissingTransportAdapterProbeOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync transport adapter missing path cli" -Text $sncMissingTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_probe_success=true"
+Assert-Contains -Name "snc friend mp sync transport adapter missing path cli" -Text $sncMissingTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_state=needs_attention"
+Assert-Contains -Name "snc friend mp sync transport adapter missing path cli" -Text $sncMissingTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_reason=selected shared-folder/cloud-folder transport adapter path is missing"
+Assert-Contains -Name "snc friend mp sync transport adapter missing path cli" -Text $sncMissingTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_next_step=Point SNC at a readable synced folder or use manual MP package export/import and strict verify."
+
 $sncFriendSelfAcceptanceOutput = & $exePath `
     --create-snc-friend-acceptance `
     $sncFriendRequestPath `
