@@ -216,6 +216,34 @@ int main()
         risingPressureExpansionRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "rising-pressure opportunistic expansion reject note should still expose the personality bias");
 
+    strategic_nexus::StrategicSummary elevatedPressureExpansionSummary = quietSummary;
+    elevatedPressureExpansionSummary.instability = 0.52;
+
+    const auto elevatedPressureExpansionReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        elevatedPressureExpansionSummary,
+        proposedExpansion);
+    requireCondition(
+        elevatedPressureExpansionReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak fearful empire under elevated pressure should reject opportunistic expansion in favor of defense");
+    requireCondition(
+        elevatedPressureExpansionReject.rationale ==
+            "Rejected opportunistic expansion: weak capability, fear, and elevated pressure still do not support it yet.",
+        "elevated-pressure opportunistic expansion reject should explain the contradiction");
+    requireCondition(
+        elevatedPressureExpansionReject.confidence == 0.42,
+        "elevated-pressure opportunistic expansion reject should clamp confidence");
+    const auto elevatedPressureExpansionRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedExpansion,
+        elevatedPressureExpansionReject);
+    requireCondition(
+        elevatedPressureExpansionRejectNote.find("rejected opportunistic_expansion in favor of defensive_posture") != std::string::npos,
+        "elevated-pressure opportunistic expansion reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        elevatedPressureExpansionRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "elevated-pressure opportunistic expansion reject note should still expose the personality bias");
+
     const auto moderatePressureConsolidateReject = engine.refineDoctrineDecision(
         fearfulEmpire,
         moderatePressureSummary,
