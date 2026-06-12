@@ -145,6 +145,15 @@ int main()
     requireCondition(foundFutureExclusion, "older alpha candidate should preserve future evidence exclusion");
 
     const auto json = strategic_nexus::serializeSncCandidateDecisionPackage(candidatePackage);
+    requireCondition(
+        json.find("\"source_schema_version\": 1") != std::string::npos,
+        "candidate decision package JSON should expose source schema version");
+    requireCondition(
+        json.find("\"schema_compatibility_state\": \"current\"") != std::string::npos,
+        "candidate decision package JSON should expose current compatibility state");
+    requireCondition(
+        json.find("\"schema_compatibility_note\": \"\"") != std::string::npos,
+        "candidate decision package JSON should keep current compatibility note empty");
     requireCondition(json.find("\"candidate_decision_count\": 2") != std::string::npos, "JSON should expose candidate count");
     requireCondition(json.find("\"accepted_candidate_count\": 2") != std::string::npos, "JSON should expose accepted count");
     requireCondition(json.find("\"blocked_source_entry_count\": 1") != std::string::npos, "JSON should expose blocked source count");
@@ -184,6 +193,52 @@ int main()
     requireCondition(
         futureCandidateSchemaRead.reason == "unsupported candidate decision package schema",
         "unsupported candidate decision package schema should expose explicit compatibility reason");
+
+    auto legacyDecisionInputPackage = decisionInputRead.package;
+    legacyDecisionInputPackage.sourceSchemaVersion = 0;
+    legacyDecisionInputPackage.schemaCompatibilityState = "partial_compatibility";
+    legacyDecisionInputPackage.schemaCompatibilityNote =
+        "migrated legacy decision input package schema_version 0 to current schema_version 1";
+    const auto legacyCandidatePackage = candidateBuilder.build(
+        legacyDecisionInputPackage,
+        root / "legacy_snc_decision_input_package.json");
+    requireCondition(
+        legacyCandidatePackage.sourceSchemaVersion == 0,
+        "legacy candidate decision package should preserve source schema version 0");
+    requireCondition(
+        legacyCandidatePackage.schemaCompatibilityState == "partial_compatibility",
+        "legacy candidate decision package should expose partial compatibility");
+    requireCondition(
+        legacyCandidatePackage.schemaCompatibilityNote ==
+            "migrated legacy decision input package schema_version 0 to current schema_version 1",
+        "legacy candidate decision package should expose the migration note");
+
+    const auto legacyCandidateJson = strategic_nexus::serializeSncCandidateDecisionPackage(legacyCandidatePackage);
+    requireCondition(
+        legacyCandidateJson.find("\"source_schema_version\": 0") != std::string::npos,
+        "legacy candidate decision package JSON should expose source schema version 0");
+    requireCondition(
+        legacyCandidateJson.find("\"schema_compatibility_state\": \"partial_compatibility\"") !=
+            std::string::npos,
+        "legacy candidate decision package JSON should expose partial compatibility state");
+    requireCondition(
+        legacyCandidateJson.find(
+            "\"schema_compatibility_note\": \"migrated legacy decision input package schema_version 0 to current schema_version 1\"") !=
+            std::string::npos,
+        "legacy candidate decision package JSON should expose the migration note");
+
+    const auto legacyCandidateRead = strategic_nexus::parseSncCandidateDecisionPackageJson(legacyCandidateJson);
+    requireCondition(legacyCandidateRead.ok, "legacy candidate decision package JSON should parse back");
+    requireCondition(
+        legacyCandidateRead.package.sourceSchemaVersion == 0,
+        "legacy candidate decision package parse should preserve source schema version 0");
+    requireCondition(
+        legacyCandidateRead.package.schemaCompatibilityState == "partial_compatibility",
+        "legacy candidate decision package parse should preserve partial compatibility");
+    requireCondition(
+        legacyCandidateRead.package.schemaCompatibilityNote ==
+            "migrated legacy decision input package schema_version 0 to current schema_version 1",
+        "legacy candidate decision package parse should preserve migration note");
 
     std::cout << "SNC candidate decision package builder tests passed.\n";
     return 0;

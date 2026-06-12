@@ -593,6 +593,9 @@ SncCandidateDecisionPackage SncCandidateDecisionPackageBuilder::build(
     SncCandidateDecisionPackage package;
     package.sourceDecisionInputPackagePath = sourceDecisionInputPackagePath;
     package.sourceDecisionInputReadiness = decisionInputPackage.readiness;
+    package.sourceSchemaVersion = decisionInputPackage.sourceSchemaVersion;
+    package.schemaCompatibilityState = decisionInputPackage.schemaCompatibilityState;
+    package.schemaCompatibilityNote = decisionInputPackage.schemaCompatibilityNote;
     package.entryPointCount = decisionInputPackage.entryPointCount;
     package.decisionInputCount = decisionInputPackage.decisionInputCount;
     package.blockedSourceEntryCount = decisionInputPackage.blockedEntryCount;
@@ -653,6 +656,9 @@ std::string serializeSncCandidateDecisionPackage(const SncCandidateDecisionPacka
     std::ostringstream json;
     json << "{\n";
     json << "  \"schema_version\": 1,\n";
+    json << "  \"source_schema_version\": " << package.sourceSchemaVersion << ",\n";
+    json << "  \"schema_compatibility_state\": \"" << jsonEscape(package.schemaCompatibilityState) << "\",\n";
+    json << "  \"schema_compatibility_note\": \"" << jsonEscape(package.schemaCompatibilityNote) << "\",\n";
     json << "  \"ok\": " << (package.ok ? "true" : "false") << ",\n";
     json << "  \"reason\": \"" << jsonEscape(package.reason) << "\",\n";
     json << "  \"readiness\": \"" << jsonEscape(package.readiness) << "\",\n";
