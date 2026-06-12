@@ -58,6 +58,7 @@ struct RunConfig {
     bool verifySncFriendMpSyncEnvelopeMode = false;
     bool planSncFriendMpSyncInboxMode = false;
     bool planSncFriendMpSyncOutboxMode = false;
+    bool stageSncFriendMpSyncInboxMode = false;
     bool stageSncFriendMpSyncOutboxMode = false;
     bool planSncFriendMpSyncTransportAdapterMode = false;
     std::filesystem::path exchangeDirectory = "exchange";

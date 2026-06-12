@@ -2177,6 +2177,7 @@ The same transport-disabled seam now also surfaces explicit `friend_mp_sync_tran
 The transport adapter helper now mirrors friend-trust-store `not_configured` and `needs_attention` states in companion and tray summaries so missing or invalid trust-store states stay explicit while ready trust stores remain on the existing disabled transport boundary.
 The configured shared-folder/cloud-folder transport adapter path now reports `ready_disabled` when the trust store is current and the folder is readable, while the companion/tray smoke and v0 pipeline stay green.
 The bounded `--stage-snc-friend-mp-sync-outbox` CLI now exposes the existing selected-folder staging helper and writes a deterministic transport manifest for verified envelope/payload pairs, so the selected transport-adapter seam has a concrete owner-facing staging action while the full signed/encrypted transport path remains future work.
+The bounded inbox staging helper now mirrors the selected transport-adapter folder into a deterministic inbox namespace and keeps the same fail-closed source/file checks, so the automatic receive/verify/stage seam has one more concrete local step while the full signed/encrypted transport path remains future work.
 Real-session compare, trend, and loop outputs now also forward `friend_trust_store_controls_*` and `friend_mesh_update_*` so revoke/block/disable-auto-sync drift and degraded handoff drift stay visible across the evidence chain; the remaining 15G work is the actual signed/encrypted transport adapter and end-to-end season validation.
 Real-session compare, trend, and loop outputs now also forward `friend_trust_store_state_*` so the base trust-store state itself stays visible across the same evidence chain.
 Companion and tray status surfaces now also surface the first shared-folder/cloud-folder adapter selection path through `friend_mp_sync_transport_adapter_kind` and `friend_mp_sync_transport_adapter_path`, while keeping the disabled transport boundary fail closed when the folder is missing, unreadable, or not configured.
@@ -2186,6 +2187,7 @@ Current-head verification confirms the companion and tray surfaces still expose 
 Next worker-ready 15G slice:
 
 * implement the actual signed/encrypted transport adapter behind the already surfaced shared-folder/cloud-folder selection path
+* keep the selected-folder inbox staging helper and the existing outbox staging helper fail closed
 * keep the current manual export/import fallback and disabled transport boundary fail closed
 * verify the adapter boundary with the smallest targeted companion/tray regression that still exercises the current head
 

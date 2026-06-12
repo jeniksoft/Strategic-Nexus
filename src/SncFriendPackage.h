@@ -106,6 +106,16 @@ struct SncFriendMpSyncOutboxStageResult {
     std::filesystem::path stagedManifestPath;
 };
 
+struct SncFriendMpSyncInboxStageResult {
+    bool ok = false;
+    std::string state;
+    std::string reason;
+    std::filesystem::path stagedDirectory;
+    std::filesystem::path stagedEnvelopePath;
+    std::filesystem::path stagedEncryptedPayloadPath;
+    std::filesystem::path stagedManifestPath;
+};
+
 SncFriendRequestPackage parseSncFriendRequestPackageJson(const std::string& json);
 SncFriendAcceptancePackage parseSncFriendAcceptancePackageJson(const std::string& json);
 SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json);
@@ -131,6 +141,12 @@ SncFriendMpSyncOutboxPlanResult planSncFriendMpSyncOutboxSend(
     bool stellarisRunning,
     bool friendAutoSyncEnabled);
 SncFriendMpSyncOutboxStageResult stageSncFriendMpSyncOutboxPackage(
+    const SncFriendMpSyncEnvelopePackage& package,
+    const std::filesystem::path& envelopeSourcePath,
+    const std::filesystem::path& encryptedPayloadSourcePath,
+    const std::filesystem::path& transportAdapterPath,
+    bool stellarisRunning);
+SncFriendMpSyncInboxStageResult stageSncFriendMpSyncInboxPackage(
     const SncFriendMpSyncEnvelopePackage& package,
     const std::filesystem::path& envelopeSourcePath,
     const std::filesystem::path& encryptedPayloadSourcePath,

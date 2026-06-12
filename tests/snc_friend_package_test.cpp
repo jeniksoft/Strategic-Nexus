@@ -381,6 +381,47 @@ int main()
         stagedTransport.stagedDirectory.string().find("snc_friend_mp_sync_outbox") != std::string::npos,
         "friend mp sync outbox stage helper should stage into the outbox folder");
 
+    const auto inboxStageTransportAdapterPath = transportRoot / "inbox_transport_adapter";
+    std::filesystem::create_directories(inboxStageTransportAdapterPath);
+    const auto stagedInboxTransport = strategic_nexus::stageSncFriendMpSyncInboxPackage(
+        parsedSyncEnvelope,
+        envelopeSourcePath,
+        payloadSourcePath,
+        inboxStageTransportAdapterPath,
+        false);
+    requireCondition(stagedInboxTransport.ok, "friend mp sync inbox stage helper should stage a valid package");
+    requireCondition(
+        stagedInboxTransport.state == "staged_for_inbox",
+        "friend mp sync inbox stage helper should expose staged state");
+    requireCondition(
+        std::filesystem::exists(stagedInboxTransport.stagedEnvelopePath) &&
+            std::filesystem::exists(stagedInboxTransport.stagedEncryptedPayloadPath) &&
+            std::filesystem::exists(stagedInboxTransport.stagedManifestPath),
+        "friend mp sync inbox stage helper should write staged files");
+    requireCondition(
+        stagedInboxTransport.stagedDirectory.string().find("snc_friend_mp_sync_inbox") != std::string::npos,
+        "friend mp sync inbox stage helper should stage into the inbox folder");
+
+    const auto blockedInboxTransport = strategic_nexus::stageSncFriendMpSyncInboxPackage(
+        parsedSyncEnvelope,
+        envelopeSourcePath,
+        payloadSourcePath,
+        inboxStageTransportAdapterPath,
+        true);
+    requireCondition(
+        !blockedInboxTransport.ok && blockedInboxTransport.state == "blocked_stellaris_running",
+        "friend mp sync inbox stage helper should block while Stellaris is running");
+
+    const auto missingAdapterInboxTransport = strategic_nexus::stageSncFriendMpSyncInboxPackage(
+        parsedSyncEnvelope,
+        envelopeSourcePath,
+        payloadSourcePath,
+        transportRoot / "missing_inbox_adapter",
+        false);
+    requireCondition(
+        !missingAdapterInboxTransport.ok && missingAdapterInboxTransport.state == "needs_attention",
+        "friend mp sync inbox stage helper should fail closed for a missing adapter path");
+
     const auto blockedTransport = strategic_nexus::stageSncFriendMpSyncOutboxPackage(
         parsedSyncEnvelope,
         envelopeSourcePath,
