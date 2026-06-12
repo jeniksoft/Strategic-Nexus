@@ -188,6 +188,34 @@ int main()
         moderatePressureConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "moderate-pressure consolidate reject note should still expose the personality bias");
 
+    strategic_nexus::StrategicSummary elevatedPressureSummary = quietSummary;
+    elevatedPressureSummary.instability = 0.52;
+
+    const auto elevatedPressureConsolidateReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        elevatedPressureSummary,
+        proposedConsolidate);
+    requireCondition(
+        elevatedPressureConsolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak fearful empire under elevated pressure should reject consolidate in favor of defense");
+    requireCondition(
+        elevatedPressureConsolidateReject.rationale ==
+            "Rejected consolidate: weak capability, fear, and elevated pressure still require immediate defense.",
+        "elevated-pressure consolidate reject should explain the contradiction");
+    requireCondition(
+        elevatedPressureConsolidateReject.confidence == 0.42,
+        "elevated-pressure consolidate reject should clamp confidence");
+    const auto elevatedPressureConsolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedConsolidate,
+        elevatedPressureConsolidateReject);
+    requireCondition(
+        elevatedPressureConsolidateRejectNote.find("rejected consolidate in favor of defensive_posture") != std::string::npos,
+        "elevated-pressure consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        elevatedPressureConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "elevated-pressure consolidate reject note should still expose the personality bias");
+
     strategic_nexus::StrategicSummary hegemonicPressureSummary = quietSummary;
     hegemonicPressureSummary.hegemonyDetected = true;
     hegemonicPressureSummary.instability = 0.09;

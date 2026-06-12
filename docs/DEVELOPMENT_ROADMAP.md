@@ -1561,6 +1561,7 @@ Current progress:
   Current-head verification now also covers a hegemony-aware consolidate reject path, which keeps fragile consolidation fail-closed under weak capability and high fear while preserving the personality alignment note in owner-facing surfaces.
   Current-head verification now also covers a low-pressure consolidate reject path, which keeps weak fearful empires from treating passive consolidation as safe when the pressure signal is still low.
   Current-head verification now also covers a moderate-pressure consolidate reject path, which keeps weak fearful empires from treating moderate pressure as a reason to keep fragile consolidation instead of switching to immediate defense.
+  Current-head verification now also covers an elevated-pressure consolidate reject path, which keeps weak fearful empires from treating clearly rising pressure as a reason to stay in fragile consolidation instead of moving to immediate defense.
   Current-head verification with `dist/personality_engine_test.exe` confirms the prompt and doctrine JSON still surface the bounded personality alignment note and personality bias when a focus empire is available.
 
 ---
