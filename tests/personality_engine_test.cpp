@@ -163,6 +163,31 @@ int main()
     strategic_nexus::StrategicSummary moderatePressureSummary = quietSummary;
     moderatePressureSummary.instability = 0.22;
 
+    const auto moderatePressureExpansionReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        moderatePressureSummary,
+        proposedExpansion);
+    requireCondition(
+        moderatePressureExpansionReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak fearful empire under moderate pressure should reject opportunistic expansion in favor of defense");
+    requireCondition(
+        moderatePressureExpansionReject.rationale ==
+            "Rejected opportunistic expansion: weak capability, fear, and moderate pressure do not support it yet.",
+        "moderate-pressure opportunistic expansion reject should explain the contradiction");
+    requireCondition(
+        moderatePressureExpansionReject.confidence == 0.44,
+        "moderate-pressure opportunistic expansion reject should clamp confidence");
+    const auto moderatePressureExpansionRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedExpansion,
+        moderatePressureExpansionReject);
+    requireCondition(
+        moderatePressureExpansionRejectNote.find("rejected opportunistic_expansion in favor of defensive_posture") != std::string::npos,
+        "moderate-pressure opportunistic expansion reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        moderatePressureExpansionRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "moderate-pressure opportunistic expansion reject note should still expose the personality bias");
+
     const auto moderatePressureConsolidateReject = engine.refineDoctrineDecision(
         fearfulEmpire,
         moderatePressureSummary,

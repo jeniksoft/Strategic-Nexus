@@ -109,6 +109,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::OpportunisticExpansion && weakCapability && fearful
+        && summary.instability >= 0.20 && summary.instability < 0.30) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected opportunistic expansion: weak capability, fear, and moderate pressure do not support it yet.";
+        decision.confidence = 0.44;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::BalanceAgainstHegemon && weakCapability && fearful && summary.hegemonyDetected) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale =
