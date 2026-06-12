@@ -223,6 +223,9 @@ $latestEntryPointCountChanged = ""
 $latestEntryPointBranchAmbiguityCurrent = ""
 $latestEntryPointBranchAmbiguityPrevious = ""
 $latestEntryPointBranchAmbiguityChanged = ""
+$latestBranchAwareMemoryReconstructionStateCurrent = ""
+$latestBranchAwareMemoryReconstructionStatePrevious = ""
+$latestBranchAwareMemoryReconstructionStateChanged = ""
 $latestPostPlayPersonalityProfileAppliedCurrent = ""
 $latestPostPlayPersonalityProfileAppliedPrevious = ""
 $latestPostPlayPersonalityProfileAppliedChanged = ""
@@ -501,6 +504,9 @@ if ($sessionCount -ge 2) {
     $compareEntryPointBranchAmbiguityCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_current=*" } | Select-Object -First 1
     $compareEntryPointBranchAmbiguityPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_previous=*" } | Select-Object -First 1
     $compareEntryPointBranchAmbiguityChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_branch_ambiguity_changed=*" } | Select-Object -First 1
+    $compareBranchAwareMemoryReconstructionStateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_branch_aware_memory_reconstruction_state_current=*" } | Select-Object -First 1
+    $compareBranchAwareMemoryReconstructionStatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_branch_aware_memory_reconstruction_state_previous=*" } | Select-Object -First 1
+    $compareBranchAwareMemoryReconstructionStateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_branch_aware_memory_reconstruction_state_changed=*" } | Select-Object -First 1
     $comparePostPlayPackageCampaignIdentityStateSummaryCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_current=*" } | Select-Object -First 1
     $comparePostPlayPackageCampaignIdentityStateSummaryPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_previous=*" } | Select-Object -First 1
     $comparePostPlayPackageCampaignIdentityStateSummaryChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed=*" } | Select-Object -First 1
@@ -1041,6 +1047,15 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareEntryPointBranchAmbiguityChangedLine)) {
         $latestEntryPointBranchAmbiguityChanged = $compareEntryPointBranchAmbiguityChangedLine.Substring("real_session_v0_compare_entry_point_branch_ambiguity_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareBranchAwareMemoryReconstructionStateCurrentLine)) {
+        $latestBranchAwareMemoryReconstructionStateCurrent = $compareBranchAwareMemoryReconstructionStateCurrentLine.Substring("real_session_v0_compare_branch_aware_memory_reconstruction_state_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareBranchAwareMemoryReconstructionStatePreviousLine)) {
+        $latestBranchAwareMemoryReconstructionStatePrevious = $compareBranchAwareMemoryReconstructionStatePreviousLine.Substring("real_session_v0_compare_branch_aware_memory_reconstruction_state_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareBranchAwareMemoryReconstructionStateChangedLine)) {
+        $latestBranchAwareMemoryReconstructionStateChanged = $compareBranchAwareMemoryReconstructionStateChangedLine.Substring("real_session_v0_compare_branch_aware_memory_reconstruction_state_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPackageCampaignIdentityStateSummaryCurrentLine)) {
         $latestPostPlayPackageCampaignIdentityStateSummaryCurrent = $comparePostPlayPackageCampaignIdentityStateSummaryCurrentLine.Substring("real_session_v0_compare_post_play_package_campaign_identity_state_summary_current=".Length)
@@ -2017,6 +2032,9 @@ Write-Host ("real_session_v0_trend_entry_point_count_changed=" + $latestEntryPoi
 Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_current=" + $latestEntryPointBranchAmbiguityCurrent)
 Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_previous=" + $latestEntryPointBranchAmbiguityPrevious)
 Write-Host ("real_session_v0_trend_entry_point_branch_ambiguity_changed=" + $latestEntryPointBranchAmbiguityChanged)
+Write-Host ("real_session_v0_trend_branch_aware_memory_reconstruction_state_current=" + $latestBranchAwareMemoryReconstructionStateCurrent)
+Write-Host ("real_session_v0_trend_branch_aware_memory_reconstruction_state_previous=" + $latestBranchAwareMemoryReconstructionStatePrevious)
+Write-Host ("real_session_v0_trend_branch_aware_memory_reconstruction_state_changed=" + $latestBranchAwareMemoryReconstructionStateChanged)
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_current=" + $latestPostPlayPackageCampaignIdentityStateSummaryCurrent)
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_previous=" + $latestPostPlayPackageCampaignIdentityStateSummaryPrevious)
 Write-Host ("real_session_v0_trend_post_play_package_campaign_identity_state_summary_changed=" + $latestPostPlayPackageCampaignIdentityStateSummaryChanged)

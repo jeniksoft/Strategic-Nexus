@@ -2514,6 +2514,7 @@ function Invoke-RealSessionTrendHandoffContinuityPriorityCase {
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_entry_point_reason_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_entry_point_count_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_entry_point_branch_ambiguity_current="
+    Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_branch_aware_memory_reconstruction_state_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_memory_recovery_anchor_entry_point_id_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_memory_recovery_state_path_current="
 
@@ -2532,6 +2533,7 @@ function Invoke-RealSessionTrendHandoffContinuityPriorityCase {
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_entry_point_reason_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_entry_point_count_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_entry_point_branch_ambiguity_current="
+    Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_branch_aware_memory_reconstruction_state_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_memory_recovery_anchor_entry_point_id_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_memory_recovery_state_path_current="
     Write-Host "[PASS] real_session_trend_handoff_continuity_priority"
@@ -2877,6 +2879,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_entry_point_reason_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_entry_point_count_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_entry_point_branch_ambiguity_current="
+    Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_branch_aware_memory_reconstruction_state_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_memory_recovery_anchor_entry_point_id_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_memory_recovery_state_path_current="
     Assert-Contains -Name "real session loop mismatch forwarding compare" -Text $text -Expected "real_session_v0_loop_compare_auto_campaign_library_plan_readiness_current="
@@ -2894,6 +2897,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_entry_point_reason_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_entry_point_count_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_entry_point_branch_ambiguity_current="
+    Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_branch_aware_memory_reconstruction_state_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_memory_recovery_anchor_entry_point_id_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_memory_recovery_state_path_current="
     Assert-Contains -Name "real session loop mismatch forwarding trend" -Text $text -Expected "real_session_v0_loop_trend_auto_campaign_library_plan_readiness_current="
@@ -3364,6 +3368,7 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_anchor_save_name="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_anchor_source_kind="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_memory_recovery_anchor_archived_path="
+    Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_branch_aware_memory_reconstruction_state="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_path="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_campaign_identity_state_summary="
     Assert-Contains -Name "real session loop mp snapshot contract output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_applied="
@@ -3440,6 +3445,7 @@ function Invoke-RealSessionLoopMpSnapshotContractCase {
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_save_name":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_source_kind":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"anchor_archived_path":'
+    Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"branch_aware_memory_reconstruction_state":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"entry_point_analysis_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"post_play_package_path":'
     Assert-Contains -Name "real session loop mp snapshot contract evidence" -Text $evidenceText -Expected '"decision_input_package_path":'

@@ -352,6 +352,7 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
     $previousEntryPointBranchAmbiguity = Get-OptionalString -Object $previousEvidence -Property "entry_point_branch_ambiguity"
     $previousMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $previousEvidence -Property "memory_recovery_anchor_entry_point_id"
     $previousMemoryRecoveryStatePath = Get-OptionalString -Object $previousEvidence -Property "memory_recovery_state_path"
+    $previousBranchAwareMemoryReconstructionState = Get-OptionalString -Object $previousEvidence -Property "branch_aware_memory_reconstruction_state"
     $previousPostPlayPackageCampaignIdentityStateSummary = ""
     if ($null -ne $previousEvidence.entry_point_post_play) {
         $previousPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $previousEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
@@ -454,6 +455,7 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
     $currentEntryPointBranchAmbiguity = Get-OptionalString -Object $currentEvidence -Property "entry_point_branch_ambiguity"
     $currentMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $currentEvidence -Property "memory_recovery_anchor_entry_point_id"
     $currentMemoryRecoveryStatePath = Get-OptionalString -Object $currentEvidence -Property "memory_recovery_state_path"
+    $currentBranchAwareMemoryReconstructionState = Get-OptionalString -Object $currentEvidence -Property "branch_aware_memory_reconstruction_state"
     $currentPostPlayPackageCampaignIdentityStateSummary = ""
     if ($null -ne $currentEvidence.entry_point_post_play) {
         $currentPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $currentEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
@@ -954,6 +956,11 @@ $result = [ordered]@{
         current = $currentMemoryRecoveryStatePath
         changed = ($previousMemoryRecoveryStatePath -ne $currentMemoryRecoveryStatePath)
     }
+    branch_aware_memory_reconstruction_state = [ordered]@{
+        previous = $previousBranchAwareMemoryReconstructionState
+        current = $currentBranchAwareMemoryReconstructionState
+        changed = ($previousBranchAwareMemoryReconstructionState -ne $currentBranchAwareMemoryReconstructionState)
+    }
     next_action = [ordered]@{
         previous = $previousNextAction
         current = $currentNextAction
@@ -1367,6 +1374,9 @@ Write-Host ("real_session_v0_compare_entry_point_count_changed=" + ((($previousE
 Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_current=" + $currentEntryPointBranchAmbiguity)
 Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_previous=" + $previousEntryPointBranchAmbiguity)
 Write-Host ("real_session_v0_compare_entry_point_branch_ambiguity_changed=" + ((($previousEntryPointBranchAmbiguity -ne $currentEntryPointBranchAmbiguity).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_branch_aware_memory_reconstruction_state_current=" + $currentBranchAwareMemoryReconstructionState)
+Write-Host ("real_session_v0_compare_branch_aware_memory_reconstruction_state_previous=" + $previousBranchAwareMemoryReconstructionState)
+Write-Host ("real_session_v0_compare_branch_aware_memory_reconstruction_state_changed=" + ((($previousBranchAwareMemoryReconstructionState -ne $currentBranchAwareMemoryReconstructionState).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_current=" + $currentPostPlayPackageCampaignIdentityStateSummary)
 Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_previous=" + $previousPostPlayPackageCampaignIdentityStateSummary)
 Write-Host ("real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed=" + ((($previousPostPlayPackageCampaignIdentityStateSummary -ne $currentPostPlayPackageCampaignIdentityStateSummary).ToString().ToLowerInvariant())))

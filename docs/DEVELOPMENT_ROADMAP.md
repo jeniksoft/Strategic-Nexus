@@ -1066,7 +1066,7 @@ Required:
 * no gameplay-affecting rules from incompatible branch evidence
 
 Current progress:
-The artifacts carry enough early evidence separation to support this, but full branch-aware memory reconstruction is not implemented yet.
+The artifacts carry enough early evidence separation to support this, and the real-session compare/trend/loop chain now forwards a branch-aware memory reconstruction state summary alongside the existing entry-point and memory-recovery fields. Full branch-aware memory reconstruction is not implemented yet.
 
 ---
 

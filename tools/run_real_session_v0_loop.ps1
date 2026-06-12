@@ -757,6 +757,12 @@ $entryPointReadiness = [string]$entryPointAnalysisJson.readiness
 $entryPointReason = [string]$entryPointAnalysisJson.reason
 $entryPointCount = [string]$entryPointAnalysisJson.entry_point_count
 $entryPointBranchAmbiguity = [string]([bool]$entryPointAnalysisJson.branch_ambiguity_detected).ToString().ToLowerInvariant()
+$branchAwareMemoryReconstructionState = "entry_point_compatible"
+if ([string]::IsNullOrWhiteSpace($entryPointAnalysisPath) -or [string]::IsNullOrWhiteSpace($entryPointReadiness)) {
+    $branchAwareMemoryReconstructionState = "entry_point_analysis_missing"
+} elseif ($entryPointBranchAmbiguity -eq "true") {
+    $branchAwareMemoryReconstructionState = "branch_ambiguity_detected"
+}
 
 Write-Host "==> build post-play package"
 & $exe --build-post-play-package $sessionArchiveDir $postPlayPackagePath $saveRootFull
@@ -1402,6 +1408,7 @@ Write-Host ("real_session_v0_loop_memory_recovery_anchor_save_name=" + $memoryRe
 Write-Host ("real_session_v0_loop_memory_recovery_anchor_source_kind=" + $memoryRecoveryAnchorSourceKind)
 Write-Host ("real_session_v0_loop_memory_recovery_anchor_archived_path=" + $memoryRecoveryAnchorArchivedPath)
 Write-Host ("real_session_v0_loop_memory_recovery_state_path=" + $memoryRecoveryStatePath)
+Write-Host ("real_session_v0_loop_branch_aware_memory_reconstruction_state=" + $branchAwareMemoryReconstructionState)
 Write-Host ("real_session_v0_loop_post_play_package_path=" + $postPlayPackagePath)
 Write-Host ("real_session_v0_loop_post_play_package_readiness=" + $postPlayPackageReadiness)
 Write-Host ("real_session_v0_loop_post_play_package_reason=" + $postPlayPackageReason)
@@ -1657,6 +1664,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareEntryPointBranchAmbiguityCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_branch_ambiguity_current"
     $compareEntryPointBranchAmbiguityPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_branch_ambiguity_previous"
     $compareEntryPointBranchAmbiguityChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_branch_ambiguity_changed"
+    $compareBranchAwareMemoryReconstructionStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_branch_aware_memory_reconstruction_state_current"
+    $compareBranchAwareMemoryReconstructionStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_branch_aware_memory_reconstruction_state_previous"
+    $compareBranchAwareMemoryReconstructionStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_branch_aware_memory_reconstruction_state_changed"
     $comparePostPlayPackageCampaignIdentityStateSummaryCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_post_play_package_campaign_identity_state_summary_current"
     $comparePostPlayPackageCampaignIdentityStateSummaryPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_post_play_package_campaign_identity_state_summary_previous"
     $comparePostPlayPackageCampaignIdentityStateSummaryChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_post_play_package_campaign_identity_state_summary_changed"
@@ -1705,6 +1715,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareMemoryRecoveryStatePathCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_memory_recovery_state_path_current"
     $compareMemoryRecoveryStatePathPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_memory_recovery_state_path_previous"
     $compareMemoryRecoveryStatePathChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_memory_recovery_state_path_changed"
+    $compareBranchAwareMemoryReconstructionStateCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_branch_aware_memory_reconstruction_state_current"
+    $compareBranchAwareMemoryReconstructionStatePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_branch_aware_memory_reconstruction_state_previous"
+    $compareBranchAwareMemoryReconstructionStateChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_branch_aware_memory_reconstruction_state_changed"
     $compareCampaignLibraryPlanPresentCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_present_current"
     $compareCampaignLibraryPlanPresentPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_present_previous"
     $compareCampaignLibraryPlanPresentChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_campaign_library_plan_present_changed"
@@ -1986,6 +1999,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_branch_ambiguity_current=" + $compareEntryPointBranchAmbiguityCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_branch_ambiguity_previous=" + $compareEntryPointBranchAmbiguityPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_branch_ambiguity_changed=" + $compareEntryPointBranchAmbiguityChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_branch_aware_memory_reconstruction_state_current=" + $compareBranchAwareMemoryReconstructionStateCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_branch_aware_memory_reconstruction_state_previous=" + $compareBranchAwareMemoryReconstructionStatePrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_branch_aware_memory_reconstruction_state_changed=" + $compareBranchAwareMemoryReconstructionStateChanged)
     Write-Host ("real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_current=" + $comparePostPlayPackageCampaignIdentityStateSummaryCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_previous=" + $comparePostPlayPackageCampaignIdentityStateSummaryPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_post_play_package_campaign_identity_state_summary_changed=" + $comparePostPlayPackageCampaignIdentityStateSummaryChanged)
@@ -2477,6 +2493,9 @@ if ($EmitTrendSummary) {
     $trendEntryPointBranchAmbiguityCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_branch_ambiguity_current"
     $trendEntryPointBranchAmbiguityPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_branch_ambiguity_previous"
     $trendEntryPointBranchAmbiguityChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_branch_ambiguity_changed"
+    $trendBranchAwareMemoryReconstructionStateCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_branch_aware_memory_reconstruction_state_current"
+    $trendBranchAwareMemoryReconstructionStatePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_branch_aware_memory_reconstruction_state_previous"
+    $trendBranchAwareMemoryReconstructionStateChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_branch_aware_memory_reconstruction_state_changed"
     $trendPostPlayPackageCampaignIdentityStateSummaryCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_post_play_package_campaign_identity_state_summary_current"
     $trendPostPlayPackageCampaignIdentityStateSummaryPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_post_play_package_campaign_identity_state_summary_previous"
     $trendPostPlayPackageCampaignIdentityStateSummaryChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_post_play_package_campaign_identity_state_summary_changed"
@@ -2784,6 +2803,9 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_branch_ambiguity_current=" + $trendEntryPointBranchAmbiguityCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_branch_ambiguity_previous=" + $trendEntryPointBranchAmbiguityPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_branch_ambiguity_changed=" + $trendEntryPointBranchAmbiguityChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_branch_aware_memory_reconstruction_state_current=" + $trendBranchAwareMemoryReconstructionStateCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_branch_aware_memory_reconstruction_state_previous=" + $trendBranchAwareMemoryReconstructionStatePrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_branch_aware_memory_reconstruction_state_changed=" + $trendBranchAwareMemoryReconstructionStateChanged)
     Write-Host ("real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_current=" + $trendPostPlayPackageCampaignIdentityStateSummaryCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_previous=" + $trendPostPlayPackageCampaignIdentityStateSummaryPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_post_play_package_campaign_identity_state_summary_changed=" + $trendPostPlayPackageCampaignIdentityStateSummaryChanged)
@@ -3321,6 +3343,7 @@ $sessionEvidence = [ordered]@{
         entry_point_reason = $entryPointReason
         entry_point_count = $entryPointCount
         entry_point_branch_ambiguity = $entryPointBranchAmbiguity
+        branch_aware_memory_reconstruction_state = $branchAwareMemoryReconstructionState
         post_play_package_path = $postPlayPackagePath
         post_play_package_readiness = $postPlayPackageReadiness
         post_play_package_reason = $postPlayPackageReason
@@ -3393,6 +3416,7 @@ $sessionEvidence = [ordered]@{
         anchor_archived_path = $memoryRecoveryAnchorArchivedPath
     }
     memory_recovery_state_path = $memoryRecoveryStatePath
+    branch_aware_memory_reconstruction_state = $branchAwareMemoryReconstructionState
     season_delta_ledger_path = $seasonDeltaLedgerPath
     empire_brief_path = $empireBriefPath
     generated_overlay_dir = $overlayOutputDirFull
@@ -3630,6 +3654,11 @@ $sessionEvidence = [ordered]@{
             previous = (Get-VariableOrDefault -Name "compareMemoryRecoveryStatePathPrevious")
             current = (Get-VariableOrDefault -Name "compareMemoryRecoveryStatePathCurrent")
             changed = (Get-VariableOrDefault -Name "compareMemoryRecoveryStatePathChanged")
+        }
+        branch_aware_memory_reconstruction_state = [ordered]@{
+            previous = (Get-VariableOrDefault -Name "compareBranchAwareMemoryReconstructionStatePrevious")
+            current = (Get-VariableOrDefault -Name "compareBranchAwareMemoryReconstructionStateCurrent")
+            changed = (Get-VariableOrDefault -Name "compareBranchAwareMemoryReconstructionStateChanged")
         }
         generated_overlay_publish_gate_state_current = (Get-VariableOrDefault -Name "compareGeneratedOverlayPublishGateStateCurrent")
         generated_overlay_publish_gate_state_previous = (Get-VariableOrDefault -Name "compareGeneratedOverlayPublishGateStatePrevious")
@@ -3892,6 +3921,11 @@ $sessionEvidence = [ordered]@{
             previous = (Get-VariableOrDefault -Name "trendMemoryRecoveryStatePathPrevious")
             current = (Get-VariableOrDefault -Name "trendMemoryRecoveryStatePathCurrent")
             changed = (Get-VariableOrDefault -Name "trendMemoryRecoveryStatePathChanged")
+        }
+        branch_aware_memory_reconstruction_state = [ordered]@{
+            previous = (Get-VariableOrDefault -Name "trendBranchAwareMemoryReconstructionStatePrevious")
+            current = (Get-VariableOrDefault -Name "trendBranchAwareMemoryReconstructionStateCurrent")
+            changed = (Get-VariableOrDefault -Name "trendBranchAwareMemoryReconstructionStateChanged")
         }
         generated_overlay_publish_gate_state_current = (Get-VariableOrDefault -Name "trendGeneratedOverlayPublishGateStateCurrent")
         generated_overlay_publish_gate_state_previous = (Get-VariableOrDefault -Name "trendGeneratedOverlayPublishGateStatePrevious")
