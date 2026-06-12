@@ -6555,11 +6555,11 @@ std::string buildStatusCenterSummaryText(
     appendOwnerFacingStatusValueLine(
         summary,
         "friend_mp_sync_transport_adapter_state",
-        "disabled_not_implemented");
+        "ready_disabled");
     appendOwnerFacingStatusReasonLine(
         summary,
         "friend_mp_sync_transport_adapter_reason",
-        "signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled");
+        "selected shared-folder/cloud-folder transport adapter path is configured and readable; signed/encrypted friend MP sync transport adapter is not implemented yet");
     appendOwnerFacingStatusReasonLine(
         summary,
         "friend_mp_sync_transport_adapter_next_step",

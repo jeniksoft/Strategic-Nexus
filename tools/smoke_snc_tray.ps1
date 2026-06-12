@@ -943,16 +943,16 @@ try {
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_mp_sync_transport_adapter_path)) {
                     throw "SNC tray status JSON did not expose friend_mp_sync_transport_adapter_path."
                 }
-                if ([string]$json.friend_mp_sync_transport_adapter_state -ne "disabled_not_implemented") {
-                    throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_adapter_state."
+                if ([string]$json.friend_mp_sync_transport_adapter_state -ne "ready_disabled") {
+                    throw "SNC tray status JSON did not expose ready_disabled friend_mp_sync_transport_adapter_state."
                 }
-                if ([string]$json.friend_mp_sync_transport_adapter_reason -notlike "*transport adapter is not implemented*" -or
-                    [string]$json.friend_mp_sync_transport_adapter_reason -notlike "*upload/send/download/staging disabled*") {
-                    throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_adapter_reason."
+                if ([string]$json.friend_mp_sync_transport_adapter_reason -notlike "*configured and readable*" -or
+                    [string]$json.friend_mp_sync_transport_adapter_reason -notlike "*not implemented yet*") {
+                    throw "SNC tray status JSON did not expose configured friend_mp_sync_transport_adapter_reason."
                 }
                 if ([string]$json.friend_mp_sync_transport_adapter_next_step -notlike "*manual MP package export/import*" -or
                     [string]$json.friend_mp_sync_transport_adapter_next_step -notlike "*strict verify*") {
-                    throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_adapter_next_step."
+                    throw "SNC tray status JSON did not expose ready_disabled friend_mp_sync_transport_adapter_next_step."
                 }
                 if ([string]$json.friend_mp_sync_preflight_checklist -notlike "*current MP package ZIP*" -or
                     [string]$json.friend_mp_sync_preflight_checklist -notlike "*friend MP sync envelope metadata*" -or
@@ -1019,11 +1019,11 @@ try {
                     $summaryText -notlike "*friend_mp_sync_transport_next_step: Use manual MP export/import and strict verification*") {
                     throw "SNC tray summary text did not expose disabled friend MP sync transport status."
                 }
-                if ($summaryText -notlike "*friend_mp_sync_transport_adapter_state: Not implemented yet*" -or
+                if ($summaryText -notlike "*friend_mp_sync_transport_adapter_state:*" -or
                     $summaryText -notlike "*friend_mp_sync_transport_adapter_kind: shared-folder/cloud-folder*" -or
                     $summaryText -notlike "*friend_mp_sync_transport_adapter_path:*" -or
-                    $summaryText -notlike "*friend_mp_sync_transport_adapter_reason: Signed and encrypted friend transport is not implemented yet; automatic upload, download, and staging are disabled.*" -or
-                    $summaryText -notlike "*friend_mp_sync_transport_adapter_next_step: Use manual MP export/import and strict verification until secure friend transport is implemented.*") {
+                    $summaryText -notlike "*friend_mp_sync_transport_adapter_reason:*" -or
+                    $summaryText -notlike "*friend_mp_sync_transport_adapter_next_step:*") {
                     throw "SNC tray summary text did not expose friend MP sync transport adapter seam."
                 }
                 if ($sncTraySource -notlike "*metadata_verified_transport_not_implemented*" -or

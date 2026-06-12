@@ -3509,6 +3509,25 @@
         "tools/smoke_snc_tray.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-295-surface-configured-friend-mp-sync-transport-adapter-readiness",
+      "title": "Surface configured friend MP sync transport adapter readiness",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / transport adapters",
+      "goal": "Show a ready_disabled transport-adapter state when the selected shared-folder/cloud-folder path is readable, while keeping the signed/encrypted transport boundary explicitly disabled.",
+      "acceptance": [
+        "Companion and tray status surfaces expose friend_mp_sync_transport_adapter_state as ready_disabled when the selected transport adapter path exists and the friend trust store is current.",
+        "The adapter state still fails closed as not_configured or needs_attention when the trust store is missing or the selected path is broken.",
+        "dist/strategic_nexus_companion_test.exe, tools/smoke_snc_tray.cmd, and tools/run_v0_pipeline_tests.cmd pass after the readiness refinement."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }

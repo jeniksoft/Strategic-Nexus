@@ -2667,6 +2667,15 @@ CompanionFriendMpSyncTransportAdapterStatus buildFriendMpSyncTransportAdapterSta
         return status;
     }
 
+    if (friendTrustStore.state == "ready" || friendTrustStore.state == "ready_disabled") {
+        status.state = "ready_disabled";
+        status.reason =
+            "selected shared-folder/cloud-folder transport adapter path is configured and readable; signed/encrypted friend MP sync transport adapter is not implemented yet";
+        status.nextStep =
+            "Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented.";
+        return status;
+    }
+
     return status;
 }
 

@@ -647,8 +647,8 @@ int main()
             ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_path: " + mpPackageRoot.generic_string()) != std::string::npos,
         "status center summary should expose the shared-folder/cloud-folder adapter selection path");
     requireCondition(
-        ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_state: disabled_not_implemented") != std::string::npos &&
-            ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_reason: signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled") != std::string::npos &&
+        ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_state: ready_disabled") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_reason: selected shared-folder/cloud-folder transport adapter path is configured and readable; signed/encrypted friend MP sync transport adapter is not implemented yet") != std::string::npos &&
             ready.statusCenterSummaryText.find("friend_mp_sync_transport_adapter_next_step: Use manual MP package export/import and strict verify") != std::string::npos,
         "status center summary should expose the friend MP sync transport adapter seam");
     strategic_nexus::CompanionStatusConfig missingFriendTrustStoreConfig = readyConfig;

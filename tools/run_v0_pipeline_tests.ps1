@@ -4358,8 +4358,8 @@ $sncFriendTransportAdapterProbeText = $sncFriendTransportAdapterProbeOutput -joi
 Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_probe_success=true"
 Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_kind=shared-folder/cloud-folder"
 Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_path=$sncFriendTransportAdapterPathText"
-Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_state=disabled_not_implemented"
-Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_reason=signed/encrypted friend MP sync transport adapter is not implemented; upload/send/download/staging disabled"
+Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_state=ready_disabled"
+Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_reason=selected shared-folder/cloud-folder transport adapter path is configured and readable; signed/encrypted friend MP sync transport adapter is not implemented yet"
 Assert-Contains -Name "snc friend mp sync transport adapter probe cli" -Text $sncFriendTransportAdapterProbeText -Expected "snc_friend_mp_sync_transport_adapter_next_step=Use manual MP package export/import and strict verify until signed/encrypted friend transport is implemented."
 
 $sncFriendSelfAcceptanceOutput = & $exePath `
