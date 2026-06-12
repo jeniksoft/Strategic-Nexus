@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-12T21:24:10.7621334+02:00",
+  "updated_at": "2026-06-12T21:45:00.0000000+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the blocked 15G signed/encrypted transport adapter remains the long-term gap while the next bounded 9C trauma/trust reject slice is queued on current head.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G real-session evidence before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -3879,6 +3879,24 @@
       ],
       "preferred_tests": [
         "dist/personality_engine_test.exe"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-315-verify-local-llm-model-manager-summary-and-open-state-on-current-head",
+      "title": "Verify local LLM model manager summary and open-state on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "1G. Local LLM Model Manager",
+      "goal": "Confirm the owner-facing local LLM model-manager summary and open-state path remain visible on current head after the copy polish.",
+      "acceptance": [
+        "Current-head companion and tray surfaces still expose local_llm_install_guidance, local_llm_model_state_path, review_local_llm_model_manager, and the curated supported-model catalog summary.",
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd"
       ],
       "dependencies": []
     }
