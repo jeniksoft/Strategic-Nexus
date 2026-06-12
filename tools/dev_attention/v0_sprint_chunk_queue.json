@@ -3360,6 +3360,26 @@
       "dependencies": [
         "v0-sprint-254-transport-adapter-probe-cli"
       ]
+    },
+    {
+      "id": "v0-sprint-287-verify-generated-overlay-publish-gate-visibility-on-current-head",
+      "title": "Verify generated overlay publish gate visibility on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "1F. Generated Overlay Publish Gate And Status Center",
+      "goal": "Confirm the current-head companion, tray, and v0 pipeline still expose generated_overlay_publish_gate_status state, reason, can_publish, and publish_command while the publish gate stays fail closed.",
+      "acceptance": [
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head.",
+        "Companion, tray, and real-session evidence surfaces still expose generated_overlay_publish_gate_status, generated_overlay_publish_gate_reason, generated_overlay_publish_gate_can_publish, and generated_overlay_publish_gate_publish_command."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }

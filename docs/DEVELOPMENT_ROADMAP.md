@@ -2169,9 +2169,9 @@ A standalone `--plan-snc-friend-mp-sync-transport-adapter` probe now reuses the 
 Current-head verification confirms the companion and tray surfaces still expose `friend_mp_sync_transport_adapter_kind/path` on current head, so the selection surface stays verified separately from the probe CLI.
 Next worker-ready 15G slice:
 
-* surface a shared-folder/cloud-folder transport adapter selection path in companion/tray/status surfaces
+* implement the actual signed/encrypted transport adapter behind the already surfaced shared-folder/cloud-folder selection path
 * keep the current manual export/import fallback and disabled transport boundary fail closed
-* verify the new selection surface with the smallest targeted companion/tray regression that still exercises the current head
+* verify the adapter boundary with the smallest targeted companion/tray regression that still exercises the current head
 
 ---
 
