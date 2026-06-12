@@ -70,6 +70,7 @@ struct PostPlayPackage {
     std::string readiness;
     std::string campaignIdentityStateSummary;
     std::string campaignIdentityOwnerNote;
+    std::string personalityProfilePromptOutputNote;
     bool dryRunOnly = true;
     bool publishesOverlay = false;
     std::filesystem::path sessionArchiveDirectory;

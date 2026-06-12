@@ -300,6 +300,7 @@ int main()
         "  \"reason\": \"post-play package built; some entry points need more history or parsing\",\n"
         "  \"readiness\": \"ready_partial\",\n"
         "  \"campaign_identity_state_summary\": \"folder_alias_fallback\",\n"
+        "  \"personality_profile_prompt_output_note\": \"summary-only prompt-output context; no validated personality profile loaded\",\n"
         "  \"decision_ready_entry_count\": 2,\n"
         "  \"campaigns\": [\n"
         "    {\n"
@@ -2526,12 +2527,22 @@ int main()
             std::string::npos,
         "JSON should include post-play package campaign identity state summary");
     requireCondition(
+        json.find(
+            "\"post_play_package_personality_profile_prompt_output_note\": \"summary-only prompt-output context; no validated personality profile loaded\"") !=
+            std::string::npos,
+        "JSON should include post-play personality profile prompt output note");
+    requireCondition(
         json.find("\"post_play_campaign_summaries\": [\"alpha_campaign: ready_partial (1/2 ready)\", \"beta_campaign: ready (1/1 ready)\"]") != std::string::npos,
         "JSON should include post-play campaign summaries");
     requireCondition(
         ready.statusCenterSummaryText.find("post_play_package_campaign_identity_state_summary: folder_alias_fallback") !=
             std::string::npos,
         "status center summary should include the post-play identity summary");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "post_play_package_personality_profile_prompt_output_note: summary-only prompt-output context; no validated personality profile loaded") !=
+            std::string::npos,
+        "status center summary should include the post-play personality profile prompt note");
     requireCondition(
         json.find("\"decision_input_package_reason\": \"decision input package built; some entries remain blocked\"") !=
             std::string::npos,

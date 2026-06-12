@@ -269,6 +269,7 @@ PostPlayPackage PostPlayPackageBuilder::build(
     package.totalByteCount = archiveSummary.totalByteCount;
     package.entryPointCount = entryPointAnalysis.entryPointCount;
     package.archivedEvidenceCount = entryPointAnalysis.archivedEvidenceCount;
+    package.personalityProfilePromptOutputNote = package.personalityProfile.promptOutputNote;
 
     if (!archiveSummary.ok) {
         package.reason = archiveSummary.reason.empty() ? "archive summary not ready" : archiveSummary.reason;
@@ -422,6 +423,8 @@ std::string serializePostPlayPackage(const PostPlayPackage& package)
     json << "  \"readiness\": \"" << jsonEscape(package.readiness) << "\",\n";
     json << "  \"campaign_identity_state_summary\": \"" << jsonEscape(package.campaignIdentityStateSummary) << "\",\n";
     json << "  \"campaign_identity_owner_note\": \"" << jsonEscape(package.campaignIdentityOwnerNote) << "\",\n";
+    json << "  \"personality_profile_prompt_output_note\": \""
+         << jsonEscape(package.personalityProfilePromptOutputNote) << "\",\n";
     json << "  \"dry_run_only\": " << (package.dryRunOnly ? "true" : "false") << ",\n";
     json << "  \"publishes_overlay\": " << (package.publishesOverlay ? "true" : "false") << ",\n";
     json << "  \"session_archive_directory\": \"" << jsonEscape(package.sessionArchiveDirectory.generic_string()) << "\",\n";

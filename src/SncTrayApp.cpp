@@ -6298,6 +6298,12 @@ std::string buildStatusCenterSummaryText(
             summary << "post_play_package_campaign_identity_owner_note: save-content identity fell back to folder alias; keep generated rules conservative until identity resolves from save contents\n";
         }
     }
+    if (!postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote.empty()) {
+        appendOwnerFacingStatusValueLine(
+            summary,
+            "post_play_package_personality_profile_prompt_output_note",
+            postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote);
+    }
     if (!mpOverlayPackage.handoffStatus.empty()) {
         appendOwnerFacingStatusValueLine(summary, "mp_handoff_status", mpOverlayPackage.handoffStatus);
     }
@@ -6621,6 +6627,7 @@ void writeNextStepsBrief(
     const std::filesystem::path& postPlayPackagePath,
     const std::string& postPlayPackageReadiness,
     const std::string& postPlayPackageCampaignIdentityStateSummary,
+    const std::string& postPlayPackagePersonalityProfilePromptOutputNote,
     const std::filesystem::path& campaignLibraryPlanPath,
     const bool campaignLibraryPlanPresent,
     const bool campaignLibraryLimitReached,
@@ -6688,6 +6695,10 @@ void writeNextStepsBrief(
     if (!postPlayPackageCampaignIdentityStateSummary.empty()) {
         brief << "- Post-play campaign identity state: "
               << ownerFacingStatusValueUtf8(postPlayPackageCampaignIdentityStateSummary) << "\n";
+    }
+    if (!postPlayPackagePersonalityProfilePromptOutputNote.empty()) {
+        brief << "- Post-play personality profile note: "
+              << ownerFacingStatusValueUtf8(postPlayPackagePersonalityProfilePromptOutputNote) << "\n";
     }
     if (campaignLibraryPlanPresent) {
         brief << "- Campaign library plan: " << pathString(campaignLibraryPlanPath) << "\n";
@@ -7234,6 +7245,7 @@ void writeStatus(
         effectivePostPlayPackagePath,
         effectivePostPlayPackageReadiness,
         effectivePostPlayPackageCampaignIdentityStateSummary,
+        companionSnapshot.postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote,
         effectiveCampaignLibraryPlanPath,
         effectiveCampaignLibraryPlanPresent,
         effectiveCampaignLibraryLimitReached,
@@ -7468,6 +7480,8 @@ void writeStatus(
     json << "  \"post_play_package_readiness\": \"" << jsonEscape(effectivePostPlayPackageReadiness) << "\",\n";
     json << "  \"post_play_package_campaign_identity_state_summary\": \""
          << jsonEscape(effectivePostPlayPackageCampaignIdentityStateSummary) << "\",\n";
+    json << "  \"post_play_package_personality_profile_prompt_output_note\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote) << "\",\n";
     json << "  \"post_play_decision_ready_entry_count\": " << effectivePostPlayDecisionReadyEntryCount << ",\n";
     json << "  \"post_play_campaign_count\": " << effectivePostPlayCampaignCount << ",\n";
     json << "  \"post_play_ready_campaign_count\": " << effectivePostPlayReadyCampaignCount << ",\n";

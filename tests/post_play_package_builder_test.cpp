@@ -149,6 +149,11 @@ int main()
             std::string::npos,
         "JSON should expose summary-only personality profile prompt output note");
     requireCondition(
+        json.find(
+            "\"personality_profile_prompt_output_note\": \"summary-only prompt-output context; no validated personality profile loaded\"") !=
+            std::string::npos,
+        "JSON should expose top-level personality profile prompt output note");
+    requireCondition(
         json.find("\"source_save_date\": \"\"") != std::string::npos,
         "JSON should expose empty personality profile source save date");
     requireCondition(

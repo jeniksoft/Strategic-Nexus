@@ -2085,6 +2085,8 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
         status.postPlayPackageReason = common::extractJsonString(json, "reason").value_or("");
         status.postPlayPackageCampaignIdentityStateSummary =
             common::extractJsonString(json, "campaign_identity_state_summary").value_or("");
+        status.postPlayPackagePersonalityProfilePromptOutputNote =
+            common::extractJsonString(json, "personality_profile_prompt_output_note").value_or("");
         status.playerCountryId = parsePostPlayPlayerCountryId(json);
         status.postPlayDecisionReadyEntryCount = extractJsonSize(json, "decision_ready_entry_count").value_or(0);
         parsePostPlayCampaignSummaries(json, status);
@@ -3002,6 +3004,10 @@ std::string buildStatusCenterSummaryText(
         } else if (postPlayPipeline.postPlayPackageCampaignIdentityStateSummary == "folder_alias_fallback") {
             text << "post_play_package_campaign_identity_owner_note: save-content identity fell back to folder alias; keep generated rules conservative until identity resolves from save contents\n";
         }
+    }
+    if (!postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote.empty()) {
+        text << "post_play_package_personality_profile_prompt_output_note: "
+             << postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote << "\n";
     }
     if (!postPlayPipeline.playerCountryId.empty()) {
         text << "post_play_player_country_id: " << postPlayPipeline.playerCountryId << "\n";
@@ -4012,6 +4018,8 @@ void writePostPlayPipelineJson(
     output << indent << "  \"post_play_package_reason\": " << jsonString(status.postPlayPackageReason) << ",\n";
     output << indent << "  \"post_play_package_campaign_identity_state_summary\": "
            << jsonString(status.postPlayPackageCampaignIdentityStateSummary) << ",\n";
+    output << indent << "  \"post_play_package_personality_profile_prompt_output_note\": "
+           << jsonString(status.postPlayPackagePersonalityProfilePromptOutputNote) << ",\n";
     output << indent << "  \"post_play_player_country_id\": " << jsonString(status.playerCountryId) << ",\n";
     output << indent << "  \"post_play_decision_ready_entry_count\": " << status.postPlayDecisionReadyEntryCount << ",\n";
     output << indent << "  \"post_play_campaign_count\": " << status.postPlayCampaignCount << ",\n";
