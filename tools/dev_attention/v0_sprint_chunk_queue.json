@@ -3471,6 +3471,24 @@
         "dist/observer_target_profile_builder_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-293-verify-owner-facing-czech-copy-polish-on-current-head",
+      "title": "Verify owner-facing Czech copy polish on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "1I. SNC Owner UI And Presentation",
+      "goal": "Confirm the current-head companion and tray surfaces still expose the owner-facing Czech copy polish for the local LLM model-manager and support-report wording, so the last UI polish remains visible without changing behavior.",
+      "acceptance": [
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "The current-head companion and tray surfaces still expose the polished Czech wording for the local LLM model-manager summary, install guidance, and support-report labels."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
