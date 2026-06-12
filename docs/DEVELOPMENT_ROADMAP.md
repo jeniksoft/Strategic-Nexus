@@ -561,6 +561,7 @@ The companion and tray next-action surfaces now also route local LLM attention s
 The Local LLM page now also exposes an explicit open-model-state button, so the owner can jump straight to the state file from the dashboard when attention is needed.
 Current-head verification confirms `local_llm_install_guidance`, `local_llm_model_state_path`, `review_local_llm_model_manager`, and the curated supported-model catalog summary/count remain visible across companion, tray, and Status Center surfaces while the reduced-mode path stays fail closed when no supported model is selected.
 The owner-facing local LLM summary and install guidance now use polished Czech wording with diacritics while preserving the same readiness fields and fail-closed behavior.
+Next worker-ready verification slice: confirm the owner-facing model-manager summary and open-state path remain visible on current head after the copy polish, then keep broader LLM handoff work queued separately.
 
 ---
 

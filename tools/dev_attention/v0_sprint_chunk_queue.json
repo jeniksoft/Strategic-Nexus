@@ -3009,6 +3009,24 @@
       "dependencies": [
         "v0-sprint-265-verify-zero-history-bootstrap-provenance-in-integrated-state"
       ]
+    },
+    {
+      "id": "v0-sprint-267-verify-local-llm-model-manager-surface-on-current-head",
+      "title": "Verify local LLM model-manager surface on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "1G. Local LLM Model Manager",
+      "goal": "Confirm the current-head companion and tray surfaces still expose the owner-facing local LLM model-manager summary, the selected-model state path, and the open-model-manager follow-up after the recent Czech copy polish, without changing readiness behavior.",
+      "acceptance": [
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "Current-head companion and tray surfaces still expose local_llm_model_state_path, review_local_llm_model_manager, local_llm_install_guidance, and local_llm_supported_model_catalog_summary."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
