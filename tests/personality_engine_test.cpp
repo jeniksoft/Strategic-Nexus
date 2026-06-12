@@ -188,6 +188,34 @@ int main()
         moderatePressureExpansionRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "moderate-pressure opportunistic expansion reject note should still expose the personality bias");
 
+    strategic_nexus::StrategicSummary risingPressureExpansionSummary = quietSummary;
+    risingPressureExpansionSummary.instability = 0.34;
+
+    const auto risingPressureExpansionReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        risingPressureExpansionSummary,
+        proposedExpansion);
+    requireCondition(
+        risingPressureExpansionReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak fearful empire under rising pressure should reject opportunistic expansion in favor of defense");
+    requireCondition(
+        risingPressureExpansionReject.rationale ==
+            "Rejected opportunistic expansion: weak capability, fear, and rising pressure still do not support it yet.",
+        "rising-pressure opportunistic expansion reject should explain the contradiction");
+    requireCondition(
+        risingPressureExpansionReject.confidence == 0.45,
+        "rising-pressure opportunistic expansion reject should clamp confidence");
+    const auto risingPressureExpansionRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedExpansion,
+        risingPressureExpansionReject);
+    requireCondition(
+        risingPressureExpansionRejectNote.find("rejected opportunistic_expansion in favor of defensive_posture") != std::string::npos,
+        "rising-pressure opportunistic expansion reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        risingPressureExpansionRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "rising-pressure opportunistic expansion reject note should still expose the personality bias");
+
     const auto moderatePressureConsolidateReject = engine.refineDoctrineDecision(
         fearfulEmpire,
         moderatePressureSummary,
