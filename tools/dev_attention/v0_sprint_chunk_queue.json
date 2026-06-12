@@ -3169,6 +3169,23 @@
         "dist/personality_engine_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-276-verify-personality-balance-against-hegemon-reject-path-on-current-head",
+      "title": "Verify balance-against-hegemon reject path on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "9C. Personality-To-Rule Validation",
+      "goal": "Confirm the current-head personality engine still surfaces the balance_against_hegemon reject path for weak fearful empires under hegemonic pressure, with the personality alignment note still visible in owner-facing surfaces.",
+      "acceptance": [
+        "dist/personality_engine_test.exe passes on current head.",
+        "The prompt and doctrine JSON still surface the bounded personality alignment note and personality bias when a focus empire is available.",
+        "The current head retains the balance_against_hegemon reject path for weak fearful empires under hegemonic pressure."
+      ],
+      "preferred_tests": [
+        "dist/personality_engine_test.exe"
+      ],
+      "dependencies": []
     }
   ]
 }
