@@ -3398,5 +3398,24 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-289-verify-reactive-policy-pack-owner-test-contract-on-current-head",
+      "title": "Verify reactive policy-pack owner test contract on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "1H. Reactive Policy Pack Dispatch",
+      "goal": "Confirm the current-head companion, tray, and real-session loop still surface the owner-ready monthly reactive test contract, reactive capability, and covered event families while the monthly reactive path remains fail closed until the published overlay is genuinely ready.",
+      "acceptance": [
+        "Companion and tray surfaces keep generated_overlay_reactive_capability and generated_overlay_event_families visible on current head.",
+        "The owner-ready monthly reactive next-action contract still routes to run_monthly_reactive_owner_test only when the published overlay is genuinely ready and gameplay acceptance is verified.",
+        "The targeted companion and v0 pipeline regressions pass on current head after the contract is re-verified."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }

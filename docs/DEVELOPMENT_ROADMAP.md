@@ -587,6 +587,7 @@ Required:
 
 Current progress:
 The compiler supports allowlisted reactive families and tests cover `monthly_strategy_tick`, `war_started`, and `country_attacked`. The handwritten base dispatcher path is wired for v0: `monthly_strategy_tick` routes through the monthly pulse bridge, while `war_started` and `country_attacked` route through low-frequency proxy events in the PoC `on_actions`/events surface. Remaining work is real-session owner validation, not more base dispatcher plumbing.
+Current-head verification now also confirms the owner-ready monthly reactive test contract remains visible with `generated_overlay_reactive_capability = event_family_dispatch` and `generated_overlay_event_families` coverage on the companion/status surfaces, and the targeted companion plus v0 pipeline regressions pass on current head.
 
 ---
 
