@@ -5943,6 +5943,9 @@ std::string buildNextAction(
     if (isCompanionRecoveryNextAction(companionNextAction)) {
         return companionNextAction;
     }
+    if (companionNextAction == "review_support_report_status") {
+        return companionNextAction;
+    }
     if (isGeneratedOverlayStagingReviewable(generatedOverlayPublishAllowed, generatedOverlayStagingReadiness)) {
         return "review_staged_overlay_status";
     }
@@ -6000,6 +6003,9 @@ std::string buildNextActionReason(
     if (isCompanionRecoveryNextAction(companionNextAction)) {
         return companionNextActionReason;
     }
+    if (companionNextAction == "review_support_report_status") {
+        return companionNextActionReason;
+    }
     if (isGeneratedOverlayStagingReviewable(generatedOverlayPublishAllowed, generatedOverlayStagingReadiness)) {
         return "staged_overlay_written_but_publish_gate_not_ready";
     }
@@ -6026,13 +6032,23 @@ std::string buildNextActionCommandHint(
     const std::filesystem::path& nextStepsBriefPath,
     const std::filesystem::path& ownerTestPlaybookPath,
     const std::string& publishCommand,
-    const std::filesystem::path& localLlmModelStatePath)
+    const std::filesystem::path& localLlmModelStatePath,
+    const std::string& supportReportOpenCommandHint,
+    const std::string& supportReportPrepareCommandHint)
 {
     if (nextAction == "run_monthly_reactive_owner_test" && !ownerTestPlaybookPath.empty()) {
         return "open " + pathString(ownerTestPlaybookPath);
     }
     if (nextAction == "review_local_llm_model_manager" && !localLlmModelStatePath.empty()) {
         return "open " + pathString(localLlmModelStatePath);
+    }
+    if (nextAction == "review_support_report_status") {
+        if (!supportReportOpenCommandHint.empty()) {
+            return supportReportOpenCommandHint;
+        }
+        if (!supportReportPrepareCommandHint.empty()) {
+            return supportReportPrepareCommandHint;
+        }
     }
     if (nextAction == "review_archive_status" && !g_archiveRoot.empty()) {
         return "open " + pathString(g_archiveRoot);
@@ -6044,6 +6060,7 @@ std::string buildNextActionCommandHint(
         nextAction == "review_staged_overlay_status" ||
         nextAction == "review_dsl_draft" ||
         nextAction == "review_candidate_decision_package" ||
+        nextAction == "review_support_report_status" ||
         nextAction == "review_archive_status" ||
         nextAction == "review_local_llm_model_manager" ||
         nextAction == "review_entry_point_ambiguity" ||
@@ -6056,7 +6073,9 @@ std::string buildNextActionCommandHint(
 
 std::string buildNextActionCommandHintSource(
     const std::string& nextAction,
-    const std::string& nextActionCommandHint)
+    const std::string& nextActionCommandHint,
+    const std::string& supportReportOpenCommandHint,
+    const std::string& supportReportPrepareCommandHint)
 {
     if (!nextActionCommandHint.empty()) {
         if (nextActionCommandHint.rfind("open docs/MONTHLY_REACTIVE_OWNER_TEST_PLAYBOOK.md", 0) == 0) {
@@ -6070,6 +6089,14 @@ std::string buildNextActionCommandHintSource(
         }
         if (nextAction == "review_local_llm_model_manager") {
             return "local_llm_model_state_path";
+        }
+        if (nextAction == "review_support_report_status") {
+            if (!supportReportOpenCommandHint.empty()) {
+                return "support_report_open_command";
+            }
+            if (!supportReportPrepareCommandHint.empty()) {
+                return "support_report_prepare_command";
+            }
         }
         return "snc_next_steps_brief";
     }
@@ -6085,6 +6112,7 @@ std::filesystem::path buildNextActionPath(
     const std::filesystem::path& dslDraftAuditPath,
     const std::filesystem::path& dslDraftPath,
     const std::filesystem::path& localLlmModelStatePath,
+    const std::filesystem::path& supportReportPreviewPath,
     const std::filesystem::path& generatedOverlayStagingStatusPath,
     const std::filesystem::path& statusPath,
     const std::filesystem::path& companionNextActionPath)
@@ -6094,6 +6122,9 @@ std::filesystem::path buildNextActionPath(
     }
     if (nextAction == "review_local_llm_model_manager" && !localLlmModelStatePath.empty()) {
         return localLlmModelStatePath;
+    }
+    if (nextAction == "review_support_report_status" && !supportReportPreviewPath.empty()) {
+        return supportReportPreviewPath;
     }
     if (isCompanionRecoveryNextAction(nextAction) && !companionNextActionPath.empty()) {
         return companionNextActionPath;
@@ -7102,12 +7133,18 @@ void writeStatus(
             g_nextStepsBriefPath,
             companionSnapshot.ownerTestPlaybookPath,
             companionSnapshot.generatedOverlayPublishGate.publishCommand,
-            companionSnapshot.localLlm.modelStatePath);
+            companionSnapshot.localLlm.modelStatePath,
+            companionSnapshot.supportReport.openCommandHint,
+            companionSnapshot.supportReport.prepareCommandHint);
     if ((nextAction == "review_crash_recovery_status" || isCompanionRecoveryNextAction(nextAction)) &&
         nextActionCommandHint.empty()) {
         nextActionCommandHint = companionSnapshot.nextActionCommandHint;
     }
-    auto nextActionCommandHintSource = buildNextActionCommandHintSource(nextAction, nextActionCommandHint);
+    auto nextActionCommandHintSource = buildNextActionCommandHintSource(
+        nextAction,
+        nextActionCommandHint,
+        companionSnapshot.supportReport.openCommandHint,
+        companionSnapshot.supportReport.prepareCommandHint);
     if ((nextAction == "review_crash_recovery_status" || isCompanionRecoveryNextAction(nextAction)) &&
         !companionSnapshot.nextActionCommandHintSource.empty() &&
         companionSnapshot.nextActionCommandHintSource != "none") {
@@ -7122,6 +7159,7 @@ void writeStatus(
         effectiveDslDraftAuditPath,
         effectiveDslDraftPath,
         companionSnapshot.localLlm.modelStatePath,
+        companionSnapshot.supportReport.previewPath,
         effectiveGeneratedOverlayStagingStatusPath,
         g_trayStatusPath,
         companionSnapshot.nextActionPath);

@@ -3606,5 +3606,24 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-300-route-support-report-next-action-in-tray",
+      "title": "Route support report next action in tray",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "1J. Release Companion Orchestrator UX / local support/crash report preview",
+      "goal": "Mirror the companion support-report next-action contract in the tray so review_support_report_status stays top-level only when the support report is the selected follow-up, while higher-priority recovery, MP handoff, and local LLM guidance keep their precedence.",
+      "acceptance": [
+        "Tray next-action routing returns review_support_report_status when support report is the selected follow-up and higher-priority recovery or MP guidance does not win.",
+        "Tray next-action command hint, source, and path preserve the support report preview/open/prepare contract instead of falling back to generic tray status.",
+        "tools/smoke_snc_tray.cmd and tools/run_v0_pipeline_tests.cmd pass on current head after the tray routing change."
+      ],
+      "preferred_tests": [
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }
