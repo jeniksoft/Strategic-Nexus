@@ -380,6 +380,48 @@ int main()
         balanceAgainstHegemonRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "balance-against-hegemon reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState traumatizedEmpire = boldEmpire;
+    traumatizedEmpire.id = "empire_traumatized";
+    traumatizedEmpire.power.fleetPower = 112;
+    traumatizedEmpire.power.economicRank = 4;
+    traumatizedEmpire.power.technologyRank = 4;
+    traumatizedEmpire.personality.boldness = 0.46;
+    traumatizedEmpire.personality.paranoia = 0.29;
+    traumatizedEmpire.personality.honor = 0.52;
+    traumatizedEmpire.personality.opportunism = 0.41;
+    traumatizedEmpire.adaptiveState.fearOfPlayer = 0.19;
+    traumatizedEmpire.adaptiveState.warTrauma = 0.83;
+    traumatizedEmpire.adaptiveState.trustInFederations = 0.17;
+
+    const auto traumatizedBalanceReject = engine.refineDoctrineDecision(
+        traumatizedEmpire,
+        hegemonicPressureSummary,
+        proposedBalanceAgainstHegemon);
+    requireCondition(
+        traumatizedBalanceReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "traumatized empire under hegemonic pressure should reject balance-against-hegemon in favor of defense");
+    requireCondition(
+        traumatizedBalanceReject.rationale ==
+            "Rejected balance against hegemon: war trauma and low federation trust make coalition balancing unreliable.",
+        "trauma-guarded balance reject should explain the contradiction");
+    requireCondition(
+        traumatizedBalanceReject.confidence == 0.45,
+        "trauma-guarded balance reject should clamp confidence");
+    requireCondition(
+        engine.describeStrategicBias(traumatizedEmpire) == "trauma-guarded caution",
+        "traumatized empire should be described as trauma-guarded caution");
+    const auto traumatizedBalanceRejectNote = engine.buildDoctrineAlignmentNote(
+        traumatizedEmpire,
+        proposedBalanceAgainstHegemon,
+        traumatizedBalanceReject);
+    requireCondition(
+        traumatizedBalanceRejectNote.find("rejected balance_against_hegemon in favor of defensive_posture") !=
+            std::string::npos,
+        "trauma-guarded balance reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        traumatizedBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
+        "trauma-guarded balance reject note should still expose the personality bias");
+
     const auto hegemonicConsolidate = strategic_nexus::DoctrineDecision{
         strategic_nexus::DoctrineType::Consolidate,
         "Consolidate while external pressure remains elevated.",

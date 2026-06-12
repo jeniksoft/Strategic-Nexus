@@ -1576,6 +1576,7 @@ Current progress:
   Current-head verification now also covers an elevated-pressure opportunistic expansion reject path, which keeps weak fearful empires from treating clearly elevated pressure as a reason to stay opportunistic instead of switching to immediate defense.
   Current-head verification now also covers a balance_against_hegemon reject path for weak fearful empires under hegemonic pressure, which keeps the planner's hegemon response fail-closed when capability limits and fear still make immediate defense the safer answer.
   Current-head verification with `dist/personality_engine_test.exe` confirms the prompt and doctrine JSON still surface the bounded personality alignment note and personality bias when a focus empire is available.
+  The next bounded 9C slice now adds a trauma-guarded balance_against_hegemon reject path for empires with high war trauma and low federation trust, keeping the adaptive-state fields visible in the same owner-facing note flow.
 
 ---
 

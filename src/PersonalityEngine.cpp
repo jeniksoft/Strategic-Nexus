@@ -13,6 +13,10 @@ std::string PersonalityEngine::describeStrategicBias(const EmpireState& empire) 
         return "risk-sensitive balancing";
     }
 
+    if (empire.adaptiveState.warTrauma > 0.65 || empire.adaptiveState.trustInFederations < 0.35) {
+        return "trauma-guarded caution";
+    }
+
     if (empire.personality.opportunism > 0.6 && empire.personality.honor < 0.45) {
         return "opportunistic pressure";
     }
@@ -91,6 +95,8 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         || empire.power.economicRank < 2
         || empire.power.technologyRank < 2;
     const bool fearful = empire.personality.paranoia > 0.65 || empire.adaptiveState.fearOfPlayer > 0.65;
+    const bool traumatized = empire.adaptiveState.warTrauma > 0.65;
+    const bool distrustsFederations = empire.adaptiveState.trustInFederations < 0.35;
     const bool boldAndOpportunistic = empire.personality.boldness > 0.7 && empire.personality.opportunism > 0.6;
     const bool pressureIsLow = !summary.hegemonyDetected && summary.instability < 0.45;
 
@@ -141,6 +147,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         decision.rationale =
             "Rejected balance against hegemon: capability limits, fear, and hegemonic pressure require immediate defense.";
         decision.confidence = 0.47;
+        return decision;
+    }
+
+    if (decision.type == DoctrineType::BalanceAgainstHegemon && traumatized && distrustsFederations
+        && summary.hegemonyDetected) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected balance against hegemon: war trauma and low federation trust make coalition balancing unreliable.";
+        decision.confidence = 0.45;
         return decision;
     }
 
