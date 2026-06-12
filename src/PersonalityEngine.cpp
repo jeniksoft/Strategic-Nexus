@@ -159,6 +159,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::BalanceAgainstHegemon && traumatized && distrustsFederations
+        && !summary.hegemonyDetected && summary.instability < 0.35) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected balance against hegemon: war trauma and low federation trust make coalition balancing unreliable even without confirmed hegemonic pressure.";
+        decision.confidence = 0.43;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::Consolidate && weakCapability && fearful && summary.hegemonyDetected) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale =
