@@ -646,6 +646,24 @@ RunConfig parseRunConfig(int argc, char* argv[])
         return config;
     }
 
+    if (argc > 1 && std::string(argv[1]) == "--stage-snc-friend-mp-sync-outbox") {
+        config.stageSncFriendMpSyncOutboxMode = true;
+
+        if (argc > 2) {
+            config.sncFriendMpSyncEnvelopeInputPath = argv[2];
+        }
+        if (argc > 3) {
+            config.sncFriendMpSyncEncryptedPayloadInputPath = argv[3];
+        }
+        if (argc > 4) {
+            config.sncFriendMpSyncTransportAdapterPath = argv[4];
+        }
+        if (argc > 5) {
+            config.sncFriendMpSyncEnvelopeStellarisRunning = std::string(argv[5]) == "true";
+        }
+        return config;
+    }
+
     if (argc > 1 && std::string(argv[1]) == "--plan-snc-friend-mp-sync-transport-adapter") {
         config.planSncFriendMpSyncTransportAdapterMode = true;
 
@@ -2466,6 +2484,49 @@ int Application::run(const RunConfig& config) const
                           << sanitizeCliValue(envelope.encryptedPayloadHash) << "\n";
             }
             return success ? 0 : 1;
+        }
+
+        if (config.stageSncFriendMpSyncOutboxMode) {
+            if (config.sncFriendMpSyncEnvelopeInputPath.empty() ||
+                config.sncFriendMpSyncEncryptedPayloadInputPath.empty() ||
+                config.sncFriendMpSyncTransportAdapterPath.empty()) {
+                std::cout << "snc_friend_mp_sync_outbox_stage_success=false\n";
+                std::cout << "snc_friend_mp_sync_outbox_stage_reason=missing envelope input path, encrypted payload path, or transport adapter path\n";
+                return 1;
+            }
+
+            std::string envelopeJson;
+            if (!common::tryReadTextFile(config.sncFriendMpSyncEnvelopeInputPath, envelopeJson)) {
+                std::cout << "snc_friend_mp_sync_outbox_stage_success=false\n";
+                std::cout << "snc_friend_mp_sync_outbox_stage_reason=failed to read friend mp sync envelope\n";
+                return 1;
+            }
+
+            const auto envelope = parseSncFriendMpSyncEnvelopePackageJson(envelopeJson);
+            const auto stageResult = stageSncFriendMpSyncOutboxPackage(
+                envelope,
+                config.sncFriendMpSyncEnvelopeInputPath,
+                config.sncFriendMpSyncEncryptedPayloadInputPath,
+                config.sncFriendMpSyncTransportAdapterPath,
+                config.sncFriendMpSyncEnvelopeStellarisRunning);
+            std::cout << "snc_friend_mp_sync_outbox_stage_success=" << (stageResult.ok ? "true" : "false") << "\n";
+            std::cout << "snc_friend_mp_sync_outbox_stage_reason="
+                      << sanitizeCliValue(stageResult.reason) << "\n";
+            std::cout << "snc_friend_mp_sync_outbox_stage_state="
+                      << sanitizeCliValue(stageResult.state) << "\n";
+            std::cout << "snc_friend_mp_sync_outbox_stage_stellaris_running="
+                      << (config.sncFriendMpSyncEnvelopeStellarisRunning ? "true" : "false") << "\n";
+            if (stageResult.ok) {
+                std::cout << "snc_friend_mp_sync_outbox_stage_directory="
+                          << sanitizeCliValue(stageResult.stagedDirectory.generic_string()) << "\n";
+                std::cout << "snc_friend_mp_sync_outbox_stage_envelope_path="
+                          << sanitizeCliValue(stageResult.stagedEnvelopePath.generic_string()) << "\n";
+                std::cout << "snc_friend_mp_sync_outbox_stage_encrypted_payload_path="
+                          << sanitizeCliValue(stageResult.stagedEncryptedPayloadPath.generic_string()) << "\n";
+                std::cout << "snc_friend_mp_sync_outbox_stage_manifest_path="
+                          << sanitizeCliValue(stageResult.stagedManifestPath.generic_string()) << "\n";
+            }
+            return stageResult.ok ? 0 : 1;
         }
 
         if (config.planSncFriendMpSyncTransportAdapterMode) {

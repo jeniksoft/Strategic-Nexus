@@ -58,6 +58,7 @@ struct RunConfig {
     bool verifySncFriendMpSyncEnvelopeMode = false;
     bool planSncFriendMpSyncInboxMode = false;
     bool planSncFriendMpSyncOutboxMode = false;
+    bool stageSncFriendMpSyncOutboxMode = false;
     bool planSncFriendMpSyncTransportAdapterMode = false;
     std::filesystem::path exchangeDirectory = "exchange";
     std::chrono::milliseconds daemonPollInterval = std::chrono::milliseconds(1000);
@@ -159,6 +160,7 @@ struct RunConfig {
     std::filesystem::path sncFriendMpSyncEnvelopeOutputPath;
     std::filesystem::path sncFriendMpSyncEnvelopeInputPath;
     std::filesystem::path sncFriendMpSyncEncryptedPayloadInputPath;
+    std::filesystem::path sncFriendMpSyncTransportAdapterPath;
     std::filesystem::path sncFriendTrustStoreInputPath;
     std::string mpOverlayCampaignId;
     std::string mpOverlayOverlayVersion;
