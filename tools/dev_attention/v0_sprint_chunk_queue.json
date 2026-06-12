@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-12T05:01:17.8029392+02:00",
+  "updated_at": "2026-06-12T05:30:13.4970337+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining 15G gap is the actual signed/encrypted transport adapter plus deeper host/client workflow polish and real-season validation. The next worker-ready slice is a small 9C rejection refinement that keeps personality-to-rule validation fail-closed under moderate-pressure consolidate cases.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G real-session evidence before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -3146,6 +3146,23 @@
       "acceptance": [
         "A consolidate doctrine under detected hegemony and fear is refined to defensive posture with an explicit reject rationale even when capability is otherwise adequate.",
         "The personality alignment note explains the rejected consolidate path in owner-facing prompt/stdout/JSON surfaces.",
+        "dist/personality_engine_test.exe passes on current head after the new reject path is added."
+      ],
+      "preferred_tests": [
+        "dist/personality_engine_test.exe"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-275-broaden-balance-against-hegemon-reject-path-under-fear",
+      "title": "Broaden balance-against-hegemon reject path under fear",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "9C. Personality-To-Rule Validation",
+      "goal": "Add one bounded reject path for balance_against_hegemon so weak fearful empires under hegemonic pressure still resolve to immediate defense when the planner's default response remains too optimistic for the state space.",
+      "acceptance": [
+        "A balance_against_hegemon doctrine under weak capability, fear, and hegemonic pressure is refined to defensive posture with an explicit reject rationale.",
+        "The personality alignment note explains the rejected balance_against_hegemon path in owner-facing prompt/stdout/JSON surfaces.",
         "dist/personality_engine_test.exe passes on current head after the new reject path is added."
       ],
       "preferred_tests": [

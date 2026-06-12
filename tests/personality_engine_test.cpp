@@ -242,6 +242,35 @@ int main()
         hegemonicRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "hegemony-aware reject note should still expose the personality bias");
 
+    const auto proposedBalanceAgainstHegemon = strategic_nexus::DoctrineDecision{
+        strategic_nexus::DoctrineType::BalanceAgainstHegemon,
+        "Balance against the hegemon while the pressure point is active.",
+        0.72};
+    const auto balanceAgainstHegemonReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        hegemonicPressureSummary,
+        proposedBalanceAgainstHegemon);
+    requireCondition(
+        balanceAgainstHegemonReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak fearful empire under hegemonic pressure should reject balance-against-hegemon in favor of defense");
+    requireCondition(
+        balanceAgainstHegemonReject.rationale ==
+            "Rejected balance against hegemon: capability limits, fear, and hegemonic pressure require immediate defense.",
+        "balance-against-hegemon reject should explain the contradiction");
+    requireCondition(
+        balanceAgainstHegemonReject.confidence == 0.47,
+        "balance-against-hegemon reject should clamp confidence");
+    const auto balanceAgainstHegemonRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedBalanceAgainstHegemon,
+        balanceAgainstHegemonReject);
+    requireCondition(
+        balanceAgainstHegemonRejectNote.find("rejected balance_against_hegemon in favor of defensive_posture") != std::string::npos,
+        "balance-against-hegemon reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        balanceAgainstHegemonRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "balance-against-hegemon reject note should still expose the personality bias");
+
     const auto hegemonicConsolidate = strategic_nexus::DoctrineDecision{
         strategic_nexus::DoctrineType::Consolidate,
         "Consolidate while external pressure remains elevated.",
