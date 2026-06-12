@@ -484,6 +484,43 @@ int main()
         consolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "consolidate reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState calmHegemonEmpire = boldEmpire;
+    calmHegemonEmpire.id = "empire_calm_hegemon";
+    calmHegemonEmpire.power.fleetPower = 44;
+    calmHegemonEmpire.power.economicRank = 1;
+    calmHegemonEmpire.power.technologyRank = 2;
+    calmHegemonEmpire.personality.paranoia = 0.28;
+    calmHegemonEmpire.personality.boldness = 0.31;
+    calmHegemonEmpire.personality.opportunism = 0.37;
+    calmHegemonEmpire.adaptiveState.fearOfPlayer = 0.22;
+    calmHegemonEmpire.adaptiveState.warTrauma = 0.18;
+    calmHegemonEmpire.adaptiveState.trustInFederations = 0.61;
+
+    const auto calmHegemonConsolidateReject = engine.refineDoctrineDecision(
+        calmHegemonEmpire,
+        hegemonicPressureSummary,
+        hegemonicConsolidate);
+    requireCondition(
+        calmHegemonConsolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak calm empire under hegemonic pressure should reject consolidate in favor of defense");
+    requireCondition(
+        calmHegemonConsolidateReject.rationale ==
+            "Rejected consolidate: a detected hegemon and capability limits require immediate defense.",
+        "calm hegemon consolidate reject should explain the contradiction");
+    requireCondition(
+        calmHegemonConsolidateReject.confidence == 0.46,
+        "calm hegemon consolidate reject should clamp confidence");
+    const auto calmHegemonConsolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        calmHegemonEmpire,
+        hegemonicConsolidate,
+        calmHegemonConsolidateReject);
+    requireCondition(
+        calmHegemonConsolidateRejectNote.find("rejected consolidate in favor of defensive_posture") != std::string::npos,
+        "calm hegemon consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        calmHegemonConsolidateRejectNote.find("bias = cautious consolidation") != std::string::npos,
+        "calm hegemon consolidate reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState hegemonicButCapableEmpire = boldEmpire;
     hegemonicButCapableEmpire.id = "empire_hegemonic_but_capable";
     hegemonicButCapableEmpire.personality.paranoia = 0.78;
