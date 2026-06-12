@@ -178,6 +178,48 @@ int main()
         lowTrustBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
         "low-trust balance reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState lowTrustHegemonEmpire = boldEmpire;
+    lowTrustHegemonEmpire.id = "empire_low_trust_hegemon";
+    lowTrustHegemonEmpire.power.fleetPower = 86;
+    lowTrustHegemonEmpire.power.economicRank = 3;
+    lowTrustHegemonEmpire.power.technologyRank = 3;
+    lowTrustHegemonEmpire.personality.boldness = 0.44;
+    lowTrustHegemonEmpire.personality.paranoia = 0.26;
+    lowTrustHegemonEmpire.personality.honor = 0.51;
+    lowTrustHegemonEmpire.personality.opportunism = 0.37;
+    lowTrustHegemonEmpire.adaptiveState.fearOfPlayer = 0.2;
+    lowTrustHegemonEmpire.adaptiveState.warTrauma = 0.16;
+    lowTrustHegemonEmpire.adaptiveState.trustInFederations = 0.23;
+
+    strategic_nexus::StrategicSummary lowTrustHegemonSummary = quietSummary;
+    lowTrustHegemonSummary.hegemonyDetected = true;
+    lowTrustHegemonSummary.instability = 0.09;
+
+    const auto lowTrustHegemonReject = engine.refineDoctrineDecision(
+        lowTrustHegemonEmpire,
+        lowTrustHegemonSummary,
+        proposedHegemonBalance);
+    requireCondition(
+        lowTrustHegemonReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "low-trust empire under hegemonic pressure should reject balance-against-hegemon in favor of defense");
+    requireCondition(
+        lowTrustHegemonReject.rationale ==
+            "Rejected balance against hegemon: low federation trust and hegemonic pressure do not justify coalition balancing yet.",
+        "low-trust hegemon reject should explain the contradiction");
+    requireCondition(
+        lowTrustHegemonReject.confidence == 0.46,
+        "low-trust hegemon reject should clamp confidence");
+    const auto lowTrustHegemonRejectNote = engine.buildDoctrineAlignmentNote(
+        lowTrustHegemonEmpire,
+        proposedHegemonBalance,
+        lowTrustHegemonReject);
+    requireCondition(
+        lowTrustHegemonRejectNote.find("rejected balance_against_hegemon in favor of defensive_posture") != std::string::npos,
+        "low-trust hegemon reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        lowTrustHegemonRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
+        "low-trust hegemon reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState lowTrustRisingPressureEmpire = boldEmpire;
     lowTrustRisingPressureEmpire.id = "empire_low_trust_rising_pressure";
     lowTrustRisingPressureEmpire.power.fleetPower = 84;
