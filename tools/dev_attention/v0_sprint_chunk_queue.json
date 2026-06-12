@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-12T11:15:00.2349843+02:00",
+  "updated_at": "2026-06-12T11:29:52.8732527+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining visible queue item is the blocked 15G signed/encrypted transport adapter while the 9C pressure-band reject refinements are now covered on current head.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G real-session evidence before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -3341,6 +3341,26 @@
         "rg -n \"wrong overlay|mismatch warning|manual export/import|What Codex will inspect after the run\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-304-verify-friend-mp-outbox-staging-helper-on-current-head",
+      "title": "Verify friend MP outbox staging helper on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / outbox transport staging helper",
+      "goal": "Confirm the current-head outbox staging helper still stages a valid friend MP sync envelope into the selected shared-folder/cloud-folder transport path and fails closed for missing adapter, missing files, or active Stellaris.",
+      "acceptance": [
+        "dist/snc_friend_package_test.exe passes on current head.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head.",
+        "Current-head stageSncFriendMpSyncOutboxPackage still reports staged_for_transport for a valid package and blocks Stellaris or missing adapter paths."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": [
+        "v0-sprint-303-stage-friend-mp-sync-outbox-package-into-selected-transport-folder"
+      ]
     },
     {
       "id": "v0-sprint-255-signed-encrypted-friend-mp-sync-transport-adapter",
