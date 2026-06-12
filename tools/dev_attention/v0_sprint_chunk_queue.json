@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-12T06:25:57.8230615+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining 15G gap is the actual signed/encrypted transport adapter plus deeper host/client workflow polish and real-season validation. The next worker-ready slice is the remaining 9C pressure-band reject refinement so personality-to-rule validation stays fail-closed as pressure rises.",
+  "updated_at": "2026-06-12T06:34:08.7670476+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining visible queue item is the blocked 15G signed/encrypted transport adapter while the 9C pressure-band reject refinements are now covered on current head.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G real-session evidence before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
-  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, visible outbox-plan template action, and the new transport-adapter probe CLI are implemented or wired in. The companion now also surfaces the explicit host-owned automatic handoff sync gap for host rotation, so the remaining 15G work stays discoverable and fail closed. The canonical multiplayer season guide now also names the trust-store control surface, so revoke/block/disable-auto-sync guidance stays discoverable alongside the manual MP fallback. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. The next worker-ready 9C slice now focuses on the remaining elevated-pressure opportunistic expansion reject path so personality-to-rule validation stays fail-closed when weak capability meets the highest pressure band. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract, and the next verification step is to keep zero-history bootstrap provenance visible on current head while the remaining target-specific gameplay rule generation stays deferred. The next worker-ready 6E slice surfaces post-play campaign identity state summary in companion and tray owner-facing status text, and the next worker-ready verification slice checks personality-profile store reuse in the integrated empire-state builder on current head.",
+  "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, visible outbox-plan template action, and the new transport-adapter probe CLI are implemented or wired in. The companion now also surfaces the explicit host-owned automatic handoff sync gap for host rotation, so the remaining 15G work stays discoverable and fail closed. The canonical multiplayer season guide now also names the trust-store control surface, so revoke/block/disable-auto-sync guidance stays discoverable alongside the manual MP fallback. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. The 9C pressure-band opportunistic-expansion reject refinements are now covered on current head, so the remaining visible queue item is the blocked 15G transport adapter while broader 9A/9B follow-up work stays in the roadmap. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract, and the next verification step is to keep zero-history bootstrap provenance visible on current head while the remaining target-specific gameplay rule generation stays deferred. The next worker-ready 6E slice surfaces post-play campaign identity state summary in companion and tray owner-facing status text, and the next worker-ready verification slice checks personality-profile store reuse in the integrated empire-state builder on current head.",
   "chunks": [
     {
       "id": "v0-sprint-281-broaden-opportunistic-expansion-reject-path-under-rising-pressure",
@@ -28,7 +28,7 @@
     {
       "id": "v0-sprint-282-broaden-opportunistic-expansion-reject-path-under-elevated-pressure",
       "title": "Broaden opportunistic expansion reject path under elevated pressure",
-      "status": "ready",
+      "status": "done",
       "lane": "implementation",
       "roadmap_anchor": "9C. Personality-To-Rule Validation",
       "goal": "Add one bounded opportunistic-expansion reject path for weak, fearful empires when pressure is clearly elevated so the personality alignment note stays fail-closed and explicit before the generic defense downgrade triggers.",
@@ -2859,26 +2859,6 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
-    },
-    {
-      "id": "v0-sprint-255-signed-encrypted-friend-mp-sync-transport-adapter",
-      "title": "Signed and encrypted friend MP sync transport adapter",
-      "status": "blocked",
-      "lane": "implementation",
-      "roadmap_anchor": "15G. Release Companion MP Package UX / encrypted and signed MP package sync",
-      "goal": "Implement the actual signed/encrypted friend MP sync transport adapter and the end-to-end season validation path that remains after the shared-folder/cloud-folder selection probe and fail-closed status surfaces are already in place.",
-      "blocker": "The remaining transport step is broader than a safe bounded worker chunk and needs an explicit architecture decision for the concrete signed/encrypted transport mechanism, validation flow, and staging boundary before implementation should start.",
-      "acceptance": [
-        "Accepted friends can transfer MP packages through a real signed/encrypted transport adapter without IP-address workflows or active-game network hooks.",
-        "Automatic receive/verify/stage remains fail-closed while Stellaris is running and continues to preserve the manual export/import fallback.",
-        "The current-head companion/tray/pipeline regressions stay green after the transport work is eventually wired in."
-      ],
-      "preferred_tests": [
-        "tools/run_v0_pipeline_tests.cmd"
-      ],
-      "dependencies": [
-        "v0-sprint-254-surface-friend-mp-sync-transport-adapter-probe-cli"
-      ]
     },
     {
       "id": "v0-sprint-258-verify-generated-overlay-publish-gate-on-current-head",
