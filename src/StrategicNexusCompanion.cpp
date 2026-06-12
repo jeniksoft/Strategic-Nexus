@@ -1983,6 +1983,7 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
     CompanionPostPlayPipelineStatus status;
     status.entryPointAnalysisPath = config.entryPointAnalysisPath;
     status.postPlayPackagePath = config.postPlayPackagePath;
+    status.doctrineOutputPath = config.doctrineOutputPath;
     status.decisionInputPackagePath = config.decisionInputPackagePath;
     status.candidateDecisionPackagePath = config.candidateDecisionPackagePath;
     status.dslDraftPath = config.dslDraftPath;
@@ -2094,6 +2095,11 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
         status.state = "needs_attention";
         status.reason = "post-play package " + fileError;
         return status;
+    }
+
+    if (inspectJsonFile(status.doctrineOutputPath, json, fileError)) {
+        status.postPlayDoctrineAlignmentNote =
+            common::extractJsonString(json, "personality_alignment_note").value_or("");
     }
 
     if (inspectJsonFile(status.entryPointAnalysisPath, entryPointAnalysisJson, fileError)) {
@@ -3008,6 +3014,9 @@ std::string buildStatusCenterSummaryText(
     if (!postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote.empty()) {
         text << "post_play_package_personality_profile_prompt_output_note: "
              << postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote << "\n";
+    }
+    if (!postPlayPipeline.postPlayDoctrineAlignmentNote.empty()) {
+        text << "post_play_doctrine_alignment_note: " << postPlayPipeline.postPlayDoctrineAlignmentNote << "\n";
     }
     if (!postPlayPipeline.playerCountryId.empty()) {
         text << "post_play_player_country_id: " << postPlayPipeline.playerCountryId << "\n";
@@ -4020,6 +4029,8 @@ void writePostPlayPipelineJson(
            << jsonString(status.postPlayPackageCampaignIdentityStateSummary) << ",\n";
     output << indent << "  \"post_play_package_personality_profile_prompt_output_note\": "
            << jsonString(status.postPlayPackagePersonalityProfilePromptOutputNote) << ",\n";
+    output << indent << "  \"post_play_doctrine_alignment_note\": "
+           << jsonString(status.postPlayDoctrineAlignmentNote) << ",\n";
     output << indent << "  \"post_play_player_country_id\": " << jsonString(status.playerCountryId) << ",\n";
     output << indent << "  \"post_play_decision_ready_entry_count\": " << status.postPlayDecisionReadyEntryCount << ",\n";
     output << indent << "  \"post_play_campaign_count\": " << status.postPlayCampaignCount << ",\n";

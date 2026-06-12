@@ -6304,6 +6304,12 @@ std::string buildStatusCenterSummaryText(
             "post_play_package_personality_profile_prompt_output_note",
             postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote);
     }
+    if (!postPlayPipeline.postPlayDoctrineAlignmentNote.empty()) {
+        appendOwnerFacingStatusValueLine(
+            summary,
+            "post_play_doctrine_alignment_note",
+            postPlayPipeline.postPlayDoctrineAlignmentNote);
+    }
     if (!mpOverlayPackage.handoffStatus.empty()) {
         appendOwnerFacingStatusValueLine(summary, "mp_handoff_status", mpOverlayPackage.handoffStatus);
     }
@@ -7482,6 +7488,8 @@ void writeStatus(
          << jsonEscape(effectivePostPlayPackageCampaignIdentityStateSummary) << "\",\n";
     json << "  \"post_play_package_personality_profile_prompt_output_note\": \""
          << jsonEscape(companionSnapshot.postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote) << "\",\n";
+    json << "  \"post_play_doctrine_alignment_note\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.postPlayDoctrineAlignmentNote) << "\",\n";
     json << "  \"post_play_decision_ready_entry_count\": " << effectivePostPlayDecisionReadyEntryCount << ",\n";
     json << "  \"post_play_campaign_count\": " << effectivePostPlayCampaignCount << ",\n";
     json << "  \"post_play_ready_campaign_count\": " << effectivePostPlayReadyCampaignCount << ",\n";

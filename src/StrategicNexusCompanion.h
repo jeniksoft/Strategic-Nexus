@@ -51,6 +51,8 @@ struct CompanionStatusConfig {
     std::filesystem::path statusUiStatePath =
         "dist/private_reports/snc_ui_state.json";
     bool useConfiguredStartWithWindowsState = false;
+    std::filesystem::path doctrineOutputPath =
+        "resources/doctrine_output.json";
 };
 
 struct CompanionStatusLoopConfig {
@@ -202,6 +204,8 @@ struct CompanionPostPlayPipelineStatus {
     std::string postPlayPackageReason;
     std::string postPlayPackageCampaignIdentityStateSummary;
     std::string postPlayPackagePersonalityProfilePromptOutputNote;
+    std::filesystem::path doctrineOutputPath;
+    std::string postPlayDoctrineAlignmentNote;
     std::string playerCountryId;
     std::size_t postPlayDecisionReadyEntryCount = 0;
     std::size_t postPlayCampaignCount = 0;

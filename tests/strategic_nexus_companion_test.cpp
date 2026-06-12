@@ -77,6 +77,7 @@ int main()
     const auto entryPointAnalysisPath = root / "snc_entry_point_analysis.json";
     const auto memoryRecoveryEntryPointAnalysisPath = root / "snc_entry_point_analysis_memory_recovery.json";
     const auto postPlayPackagePath = root / "snc_post_play_package.json";
+    const auto doctrineOutputPath = root / "doctrine_output.json";
     const auto decisionInputPackagePath = root / "snc_decision_input_package.json";
     const auto candidateDecisionPackagePath = root / "snc_candidate_decision_package.json";
     const auto dslDraftPath = root / "snc_validated_dsl_draft.dsl";
@@ -327,6 +328,14 @@ int main()
         "  ]\n"
         "}\n");
     writeTextFileAtomically(
+        doctrineOutputPath,
+        "{\n"
+        "  \"doctrine\": \"consolidate\",\n"
+        "  \"confidence\": 0.61,\n"
+        "  \"personality_alignment_note\": \"Personality alignment: no doctrine adjustment; bias = cautious consolidation; rationale = steady capability holds the line.\",\n"
+        "  \"safe_mode\": true\n"
+        "}\n");
+    writeTextFileAtomically(
         decisionInputPackagePath,
         "{\n"
         "  \"schema_version\": 1,\n"
@@ -447,6 +456,7 @@ int main()
     readyConfig.gameplayAcceptanceReportPath = missingGameplayAcceptanceReport;
     readyConfig.entryPointAnalysisPath = entryPointAnalysisPath;
     readyConfig.postPlayPackagePath = postPlayPackagePath;
+    readyConfig.doctrineOutputPath = doctrineOutputPath;
     readyConfig.decisionInputPackagePath = decisionInputPackagePath;
     readyConfig.candidateDecisionPackagePath = candidateDecisionPackagePath;
     readyConfig.dslDraftPath = dslDraftPath;
@@ -2532,6 +2542,15 @@ int main()
             std::string::npos,
         "JSON should include post-play personality profile prompt output note");
     requireCondition(
+        json.find(
+            "\"post_play_doctrine_alignment_note\": \"Personality alignment: no doctrine adjustment; bias = cautious consolidation; rationale = steady capability holds the line.\"") !=
+            std::string::npos,
+        "JSON should include post-play doctrine alignment note");
+    requireCondition(
+        ready.postPlayPipeline.postPlayDoctrineAlignmentNote ==
+            "Personality alignment: no doctrine adjustment; bias = cautious consolidation; rationale = steady capability holds the line.",
+        "snapshot should store the doctrine alignment note");
+    requireCondition(
         json.find("\"post_play_campaign_summaries\": [\"alpha_campaign: ready_partial (1/2 ready)\", \"beta_campaign: ready (1/1 ready)\"]") != std::string::npos,
         "JSON should include post-play campaign summaries");
     requireCondition(
@@ -2543,6 +2562,11 @@ int main()
             "post_play_package_personality_profile_prompt_output_note: summary-only prompt-output context; no validated personality profile loaded") !=
             std::string::npos,
         "status center summary should include the post-play personality profile prompt note");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "post_play_doctrine_alignment_note: Personality alignment: no doctrine adjustment; bias = cautious consolidation; rationale = steady capability holds the line.") !=
+            std::string::npos,
+        "status center summary should include the post-play doctrine alignment note");
     requireCondition(
         json.find("\"decision_input_package_reason\": \"decision input package built; some entries remain blocked\"") !=
             std::string::npos,
