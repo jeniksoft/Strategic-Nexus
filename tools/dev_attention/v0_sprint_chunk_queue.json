@@ -3936,6 +3936,25 @@
         "tools/smoke_snc_tray.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-318-verify-real-mp-desync-and-fallback-validation-on-current-head",
+      "title": "Verify real MP desync and fallback validation on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "5C. Real MP Desync And Fallback Validation",
+      "goal": "Verify that current-head multiplayer package guidance keeps wrong-overlay and mismatch fallback handling explicit, with the recovery evidence locations preserved, so the owner can rely on the faithful validation contract before a real MP run.",
+      "acceptance": [
+        "dist/mp_overlay_package_verifier_test.exe passes on current head.",
+        "docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md still tells the owner to keep mismatch text, switch to manual export/import or a freshly verified package before retrying, and inspect the listed evidence files after the run.",
+        "docs/DEVELOPMENT_ROADMAP.md 5C current progress records the faithful validation evidence or current-head verification note without claiming the gameplay effect itself is proven."
+      ],
+      "preferred_tests": [
+        "dist/mp_overlay_package_verifier_test.exe",
+        "tools/run_v0_pipeline_tests.cmd",
+        "rg -n \"wrong overlay|mismatch warning|manual export/import|What Codex will inspect after the run\" docs/MULTIPLAYER_SEASON_ORCHESTRATOR.md"
+      ],
+      "dependencies": []
     }
   ]
 }
