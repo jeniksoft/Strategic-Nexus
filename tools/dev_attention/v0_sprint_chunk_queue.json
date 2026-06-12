@@ -3100,6 +3100,24 @@
         "dist/personality_engine_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-272-verify-friend-mp-sync-transport-adapter-selection-surface-on-current-head",
+      "title": "Verify friend MP sync transport adapter selection surface on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / pluggable transport adapters",
+      "goal": "Confirm the current-head companion and tray surfaces still expose the shared-folder/cloud-folder transport adapter kind and path while the disabled transport boundary stays explicit and fail closed.",
+      "acceptance": [
+        "Companion and tray surfaces expose friend_mp_sync_transport_adapter_kind and friend_mp_sync_transport_adapter_path on current head.",
+        "The selection surface keeps the disabled transport boundary explicit when the folder is missing, unreadable, or not configured.",
+        "The smallest targeted companion/tray regression passes on current head."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
