@@ -3239,6 +3239,23 @@
         "dist/personality_engine_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-280-broaden-personality-consolidate-reject-path-under-rising-pressure",
+      "title": "Broaden personality consolidate reject path under rising pressure",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "9C. Personality-To-Rule Validation",
+      "goal": "Add one bounded consolidate reject path for weak, fearful empires when pressure is clearly rising so the personality alignment note keeps fragile consolidation fail-closed between the existing moderate and elevated pressure edges.",
+      "acceptance": [
+        "A consolidate doctrine under weak capability, fear, and rising pressure resolves to defensive posture with an explicit reject rationale.",
+        "The personality alignment note explains the rejected consolidate path in owner-facing prompt/stdout/JSON surfaces.",
+        "dist/personality_engine_test.exe passes on current head after the new reject path is added."
+      ],
+      "preferred_tests": [
+        "dist/personality_engine_test.exe"
+      ],
+      "dependencies": []
     }
   ]
 }

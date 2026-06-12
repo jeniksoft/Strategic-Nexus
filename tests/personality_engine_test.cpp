@@ -213,6 +213,34 @@ int main()
         moderatePressureConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "moderate-pressure consolidate reject note should still expose the personality bias");
 
+    strategic_nexus::StrategicSummary risingPressureSummary = quietSummary;
+    risingPressureSummary.instability = 0.34;
+
+    const auto risingPressureConsolidateReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        risingPressureSummary,
+        proposedConsolidate);
+    requireCondition(
+        risingPressureConsolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak fearful empire under rising pressure should reject consolidate in favor of defense");
+    requireCondition(
+        risingPressureConsolidateReject.rationale ==
+            "Rejected consolidate: weak capability, fear, and rising pressure still require immediate defense.",
+        "rising-pressure consolidate reject should explain the contradiction");
+    requireCondition(
+        risingPressureConsolidateReject.confidence == 0.45,
+        "rising-pressure consolidate reject should clamp confidence");
+    const auto risingPressureConsolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedConsolidate,
+        risingPressureConsolidateReject);
+    requireCondition(
+        risingPressureConsolidateRejectNote.find("rejected consolidate in favor of defensive_posture") != std::string::npos,
+        "rising-pressure consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        risingPressureConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "rising-pressure consolidate reject note should still expose the personality bias");
+
     strategic_nexus::StrategicSummary elevatedPressureSummary = quietSummary;
     elevatedPressureSummary.instability = 0.52;
 
