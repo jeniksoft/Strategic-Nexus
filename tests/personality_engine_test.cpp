@@ -218,6 +218,47 @@ int main()
         risingPressureBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
         "rising-pressure low-trust balance reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState steadyNoHegemonEmpire = boldEmpire;
+    steadyNoHegemonEmpire.id = "empire_steady_no_hegemon";
+    steadyNoHegemonEmpire.power.fleetPower = 88;
+    steadyNoHegemonEmpire.power.economicRank = 3;
+    steadyNoHegemonEmpire.power.technologyRank = 3;
+    steadyNoHegemonEmpire.personality.boldness = 0.49;
+    steadyNoHegemonEmpire.personality.paranoia = 0.29;
+    steadyNoHegemonEmpire.personality.honor = 0.58;
+    steadyNoHegemonEmpire.personality.opportunism = 0.44;
+    steadyNoHegemonEmpire.adaptiveState.fearOfPlayer = 0.22;
+    steadyNoHegemonEmpire.adaptiveState.warTrauma = 0.14;
+    steadyNoHegemonEmpire.adaptiveState.trustInFederations = 0.52;
+
+    strategic_nexus::StrategicSummary noHegemonBalanceSummary = quietSummary;
+    noHegemonBalanceSummary.instability = 0.19;
+
+    const auto noHegemonBalanceReject = engine.refineDoctrineDecision(
+        steadyNoHegemonEmpire,
+        noHegemonBalanceSummary,
+        proposedHegemonBalance);
+    requireCondition(
+        noHegemonBalanceReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "balance-against-hegemon without a detected hegemon should resolve to defense");
+    requireCondition(
+        noHegemonBalanceReject.rationale ==
+            "Rejected balance against hegemon: no confirmed hegemonic pressure yet.",
+        "no-hegemon balance reject should explain the contradiction");
+    requireCondition(
+        noHegemonBalanceReject.confidence == 0.41,
+        "no-hegemon balance reject should clamp confidence");
+    const auto noHegemonBalanceRejectNote = engine.buildDoctrineAlignmentNote(
+        steadyNoHegemonEmpire,
+        proposedHegemonBalance,
+        noHegemonBalanceReject);
+    requireCondition(
+        noHegemonBalanceRejectNote.find("rejected balance_against_hegemon in favor of defensive_posture") != std::string::npos,
+        "no-hegemon balance reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        noHegemonBalanceRejectNote.find("bias = cautious consolidation") != std::string::npos,
+        "no-hegemon balance reject note should still expose the personality bias");
+
     strategic_nexus::StrategicSummary severePressureSummary = quietSummary;
     severePressureSummary.instability = 0.08;
 

@@ -186,6 +186,13 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::BalanceAgainstHegemon && !summary.hegemonyDetected) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale = "Rejected balance against hegemon: no confirmed hegemonic pressure yet.";
+        decision.confidence = 0.41;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::Consolidate && weakCapability && fearful && summary.hegemonyDetected) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale =
