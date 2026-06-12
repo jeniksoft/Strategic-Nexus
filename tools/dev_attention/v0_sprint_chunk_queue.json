@@ -3567,6 +3567,26 @@
         "tools/smoke_snc_tray.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-298-verify-candidate-decision-package-legacy-degraded-state-warnings-on-current-head",
+      "title": "Verify candidate decision package degraded-state warnings on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "12C. Backward Migration Rules",
+      "goal": "Confirm the current-head companion and tray surfaces still expose legacy schema_version 0 degraded-state warnings for the SNC candidate decision package, so the post-play migration chain stays visible without reopening raw JSON.",
+      "acceptance": [
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head.",
+        "Current-head companion and tray surfaces still expose candidate_decision_package_reason / readiness plus the legacy schema_version 0 degraded-state wording when the candidate decision package is loaded from legacy provenance."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
