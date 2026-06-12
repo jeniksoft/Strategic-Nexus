@@ -1088,6 +1088,7 @@ Required:
 
 Current progress:
 Real-session loop output, companion snapshot JSON, Status Center summary text, tray JSON, and tray smoke coverage now expose a fail-closed memory recovery state, confidence, warning visibility, and selected latest-loadable-save recovery anchor. Degraded or attention-needed recovery can become the top-level `review_memory_recovery_status` next action with an evidence path. Remaining work is durable campaign memory merge and deeper branch-aware reconstruction from only entry-point-compatible evidence.
+Current-head verification confirms the companion, tray, and v0 pipeline still expose `review_memory_recovery_status`, the selected latest-loadable-save recovery anchor, and degraded-memory warning visibility on current head.
 
 ---
 
