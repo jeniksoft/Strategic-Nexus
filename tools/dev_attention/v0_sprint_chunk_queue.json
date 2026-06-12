@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-12T06:44:09.6019228+02:00",
+  "updated_at": "2026-06-12T06:56:51.8646955+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the remaining visible queue item is the blocked 15G signed/encrypted transport adapter while the 9C pressure-band reject refinements are now covered on current head.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G real-session evidence before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -3292,7 +3292,7 @@
     {
       "id": "v0-sprint-284-verify-save-parser-field-availability-map-on-current-head",
       "title": "Verify save parser field availability map on current head",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "3E. Per-Empire Save-Evidence Coverage Map",
       "goal": "Confirm the current-head save parser still exposes the complete bounded field availability map, including the not-extracted-yet relationship groups, so downstream evidence consumers can trust the missing-field contract.",
