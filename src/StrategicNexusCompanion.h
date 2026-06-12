@@ -50,6 +50,8 @@ struct CompanionStatusConfig {
         "dist/private_reports/snc_crash_recovery_state.json";
     std::filesystem::path statusUiStatePath =
         "dist/private_reports/snc_ui_state.json";
+    std::filesystem::path memoryRecoveryStatePath =
+        "dist/private_reports/snc_memory_recovery_state.json";
     bool useConfiguredStartWithWindowsState = false;
     std::filesystem::path doctrineOutputPath =
         "resources/doctrine_output.json";
@@ -433,6 +435,7 @@ struct CompanionStatusSnapshot {
     std::filesystem::path nextActionPath;
     std::filesystem::path ownerTestPlaybookPath;
     std::filesystem::path statusUiStatePath;
+    std::filesystem::path memoryRecoveryStatePath;
     std::string statusCenterSummaryText;
 };
 

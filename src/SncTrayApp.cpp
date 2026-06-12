@@ -6202,6 +6202,7 @@ std::string buildStatusCenterSummaryText(
     const std::string& dslDraftReadiness,
     const std::size_t dslDraftRuleCount,
     const strategic_nexus::CompanionMemoryRecoveryStatus& memoryRecovery,
+    const std::filesystem::path& memoryRecoveryStatePath,
     const std::filesystem::path& generatedOverlayStagingDirectory,
     const std::filesystem::path& generatedOverlayStagingStatusPath,
     const std::string& generatedOverlayStagingReadiness,
@@ -6268,6 +6269,10 @@ std::string buildStatusCenterSummaryText(
     }
     if (!memoryRecovery.anchorPath.empty()) {
         summary << "memory_recovery_anchor_path: " << pathString(memoryRecovery.anchorPath) << "\n";
+    }
+    if (!memoryRecoveryStatePath.empty()) {
+        summary << "memory_recovery_state_path: " << pathString(memoryRecoveryStatePath) << "\n";
+        summary << "memory_recovery_state_note: selected latest-loadable-save memory recovery anchor persists between launches\n";
     }
     summary << "memory_recovery_compatible_archived_evidence_count: "
             << memoryRecovery.compatibleArchivedEvidenceCount << "\n";
@@ -7225,6 +7230,7 @@ void writeStatus(
         effectiveDslDraftReadiness,
         effectiveDslDraftRuleCount,
         companionSnapshot.postPlayPipeline.memoryRecovery,
+        companionSnapshot.memoryRecoveryStatePath,
         effectiveGeneratedOverlayStagingDirectory,
         effectiveGeneratedOverlayStagingStatusPath,
         effectiveGeneratedOverlayStagingReadiness,
@@ -7481,6 +7487,8 @@ void writeStatus(
          << companionSnapshot.postPlayPipeline.memoryRecovery.compatibleArchivedEvidenceCount << ",\n";
     json << "  \"memory_recovery_later_archived_evidence_count\": "
          << companionSnapshot.postPlayPipeline.memoryRecovery.laterArchivedEvidenceCount << ",\n";
+    json << "  \"memory_recovery_state_path\": \""
+         << jsonEscape(pathString(companionSnapshot.memoryRecoveryStatePath)) << "\",\n";
     json << "  \"entry_point_readiness\": \"" << jsonEscape(effectiveEntryPointReadiness) << "\",\n";
     json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(effectivePostPlayPackagePath)) << "\",\n";
     json << "  \"post_play_package_readiness\": \"" << jsonEscape(effectivePostPlayPackageReadiness) << "\",\n";

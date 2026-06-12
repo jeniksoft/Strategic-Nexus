@@ -2759,7 +2759,8 @@ std::string buildStatusCenterSummaryText(
     const std::string& nextActionCommandHint,
     const std::string& nextActionCommandHintSource,
     const std::filesystem::path& nextActionPath,
-    const std::filesystem::path& statusUiStatePath)
+    const std::filesystem::path& statusUiStatePath,
+    const std::filesystem::path& memoryRecoveryStatePath)
 {
     std::ostringstream text;
     CompanionStatusSnapshot ownerTestSnapshot;
@@ -3408,6 +3409,10 @@ std::string buildStatusCenterSummaryText(
         text << "status_ui_state_path: " << pathString(statusUiStatePath) << "\n";
         text << "status_ui_state_note: active page and normal window placement persist between launches\n";
     }
+    if (!memoryRecoveryStatePath.empty()) {
+        text << "memory_recovery_state_path: " << pathString(memoryRecoveryStatePath) << "\n";
+        text << "memory_recovery_state_note: selected latest-loadable-save memory recovery anchor persists between launches\n";
+    }
     return text.str();
 }
 
@@ -3872,6 +3877,51 @@ void writeCrashRecoveryJson(
     output << indent << "}";
 }
 
+void writeMemoryRecoveryStateJson(
+    std::ostringstream& output,
+    const CompanionStatusSnapshot& snapshot,
+    const std::string& indent)
+{
+    output << indent << "{\n";
+    output << indent << "  \"schema_version\": 1,\n";
+    output << indent << "  \"generated_at_local\": " << jsonString(snapshot.generatedAtLocal) << ",\n";
+    output << indent << "  \"entry_point_analysis_path\": "
+           << jsonString(pathString(snapshot.postPlayPipeline.entryPointAnalysisPath)) << ",\n";
+    output << indent << "  \"post_play_pipeline_state\": "
+           << jsonString(snapshot.postPlayPipeline.state) << ",\n";
+    output << indent << "  \"post_play_pipeline_reason\": "
+           << jsonString(snapshot.postPlayPipeline.reason) << ",\n";
+    output << indent << "  \"branch_ambiguity_detected\": "
+           << (snapshot.postPlayPipeline.branchAmbiguityDetected ? "true" : "false") << ",\n";
+    output << indent << "  \"memory_recovery\": {\n";
+    output << indent << "    \"state\": " << jsonString(snapshot.postPlayPipeline.memoryRecovery.state) << ",\n";
+    output << indent << "    \"reason\": " << jsonString(snapshot.postPlayPipeline.memoryRecovery.reason) << ",\n";
+    output << indent << "    \"confidence\": " << jsonString(snapshot.postPlayPipeline.memoryRecovery.confidence) << ",\n";
+    output << indent << "    \"warning_visible\": "
+           << (snapshot.postPlayPipeline.memoryRecovery.warningVisible ? "true" : "false") << ",\n";
+    output << indent << "    \"anchor_entry_point_id\": "
+           << jsonString(snapshot.postPlayPipeline.memoryRecovery.anchorEntryPointId) << ",\n";
+    output << indent << "    \"anchor_campaign_key\": "
+           << jsonString(snapshot.postPlayPipeline.memoryRecovery.anchorCampaignKey) << ",\n";
+    output << indent << "    \"anchor_path\": "
+           << jsonString(pathString(snapshot.postPlayPipeline.memoryRecovery.anchorPath)) << ",\n";
+    output << indent << "    \"anchor_save_name\": "
+           << jsonString(snapshot.postPlayPipeline.memoryRecovery.anchorSaveName) << ",\n";
+    output << indent << "    \"anchor_save_date\": "
+           << jsonString(snapshot.postPlayPipeline.memoryRecovery.anchorSaveDate) << ",\n";
+    output << indent << "    \"anchor_source_kind\": "
+           << jsonString(snapshot.postPlayPipeline.memoryRecovery.anchorSourceKind) << ",\n";
+    output << indent << "    \"compatible_archived_evidence_count\": "
+           << snapshot.postPlayPipeline.memoryRecovery.compatibleArchivedEvidenceCount << ",\n";
+    output << indent << "    \"later_archived_evidence_count\": "
+           << snapshot.postPlayPipeline.memoryRecovery.laterArchivedEvidenceCount << "\n";
+    output << indent << "  },\n";
+    output << indent << "  \"next_action\": " << jsonString(snapshot.nextAction) << ",\n";
+    output << indent << "  \"next_action_reason\": " << jsonString(snapshot.nextActionReason) << ",\n";
+    output << indent << "  \"next_action_path\": " << jsonString(pathString(snapshot.nextActionPath)) << "\n";
+    output << indent << "}";
+}
+
 void writeGeneratedOverlayPublishGateJson(
     std::ostringstream& output,
     const CompanionGeneratedOverlayPublishGateStatus& status,
@@ -4213,6 +4263,7 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
     snapshot.nextActionPath = buildCompanionNextActionPath(snapshot);
     snapshot.ownerTestPlaybookPath = buildCompanionOwnerTestPlaybookPath(snapshot);
     snapshot.statusUiStatePath = config.statusUiStatePath;
+    snapshot.memoryRecoveryStatePath = config.memoryRecoveryStatePath;
     snapshot.statusCenterSummaryText = buildStatusCenterSummaryText(
         snapshot.generatedAtLocal,
         snapshot.lifecycle,
@@ -4233,7 +4284,8 @@ CompanionStatusSnapshot StrategicNexusCompanion::buildStatusSnapshot(const Compa
         snapshot.nextActionCommandHint,
         snapshot.nextActionCommandHintSource,
         snapshot.nextActionPath,
-        snapshot.statusUiStatePath);
+        snapshot.statusUiStatePath,
+        snapshot.memoryRecoveryStatePath);
     return snapshot;
 }
 
@@ -4418,6 +4470,7 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"next_action_path\": " << jsonString(pathString(snapshot.nextActionPath)) << ",\n";
     output << "  \"owner_test_playbook_path\": " << jsonString(pathString(snapshot.ownerTestPlaybookPath)) << ",\n";
     output << "  \"status_ui_state_path\": " << jsonString(pathString(snapshot.statusUiStatePath)) << ",\n";
+    output << "  \"memory_recovery_state_path\": " << jsonString(pathString(snapshot.memoryRecoveryStatePath)) << ",\n";
     output << "  \"status_center_summary_text\": " << jsonString(snapshot.statusCenterSummaryText) << "\n";
     output << "}\n";
     return output.str();
@@ -4461,6 +4514,18 @@ CompanionStatusLoopResult runCompanionStatusLoop(const StrategicNexusCompanion& 
         if (!written) {
             result.reason = "failed to write status snapshot: " + config.statusOutputPath.generic_string();
             return result;
+        }
+
+        if (!snapshot.memoryRecoveryStatePath.empty()) {
+            std::ostringstream memoryRecoveryStateJson;
+            writeMemoryRecoveryStateJson(memoryRecoveryStateJson, snapshot, "");
+            const bool memoryRecoveryWritten =
+                common::writeTextFileAtomically(snapshot.memoryRecoveryStatePath, memoryRecoveryStateJson.str());
+            if (!memoryRecoveryWritten) {
+                result.reason = "failed to write memory recovery state: " +
+                    snapshot.memoryRecoveryStatePath.generic_string();
+                return result;
+            }
         }
 
         result.iterationsRun++;

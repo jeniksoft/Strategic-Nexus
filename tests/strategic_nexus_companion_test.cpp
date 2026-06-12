@@ -3182,8 +3182,11 @@ int main()
 
     {
         const auto outputPath = root / "snc_status_snapshot.json";
+        strategic_nexus::CompanionStatusConfig statusConfig{ archiveRoot, overlayRoot, std::filesystem::path(), true, false, false };
+        statusConfig.entryPointAnalysisPath = memoryRecoveryEntryPointAnalysisPath;
+        statusConfig.memoryRecoveryStatePath = root / "snc_memory_recovery_state.json";
         const strategic_nexus::CompanionStatusLoopConfig loopConfig{
-            { archiveRoot, overlayRoot, std::filesystem::path(), true, false, false },
+            statusConfig,
             outputPath,
             std::chrono::milliseconds(0),
             2
@@ -3202,8 +3205,25 @@ int main()
             content.find("\"status_ui_state_path\": \"dist/private_reports/snc_ui_state.json\"") != std::string::npos,
             "status snapshot should include status UI state path");
         requireCondition(
+            content.find("\"memory_recovery_state_path\": \"") != std::string::npos,
+            "status snapshot should include memory recovery state path");
+        requireCondition(
             content.find("status_ui_state_note: active page and normal window placement persist between launches") != std::string::npos,
             "status snapshot summary should describe status UI state persistence");
+        requireCondition(
+            content.find("memory_recovery_state_note: selected latest-loadable-save memory recovery anchor persists between launches") !=
+                std::string::npos,
+            "status snapshot summary should describe memory recovery state persistence");
+        std::ifstream memoryRecoveryStateIn(statusConfig.memoryRecoveryStatePath, std::ios::binary);
+        const std::string memoryRecoveryStateContent(
+            (std::istreambuf_iterator<char>(memoryRecoveryStateIn)),
+            std::istreambuf_iterator<char>());
+        requireCondition(
+            memoryRecoveryStateContent.find("\"schema_version\": 1") != std::string::npos &&
+                memoryRecoveryStateContent.find("\"branch_ambiguity_detected\": true") != std::string::npos &&
+                memoryRecoveryStateContent.find("\"state\": \"degraded\"") != std::string::npos &&
+                memoryRecoveryStateContent.find("\"next_action\": \"review_entry_point_ambiguity\"") != std::string::npos,
+            "memory recovery state sidecar should persist the durable merged branch-ambiguity state");
         requireCondition(
             content.find("\"pairing_command_template\": \"Strategic Nexus.exe --create-snc-friend-request ") != std::string::npos,
             "status snapshot should include friend pairing command template");

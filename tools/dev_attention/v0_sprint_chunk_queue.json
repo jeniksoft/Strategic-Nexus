@@ -3846,5 +3846,23 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-313-forward-memory-recovery-state-path-through-real-session-evidence",
+      "title": "Forward memory recovery state path through real-session evidence",
+      "status": "ready",
+      "lane": "implementation",
+      "roadmap_anchor": "4C. Daemon-Loss Memory Recovery / durable state sidecar evidence forwarding",
+      "goal": "Forward the durable memory-recovery sidecar path through the real-session loop, compare/trend outputs, and evidence JSON so branch-aware recovery continuity stays visible across the full evidence chain.",
+      "acceptance": [
+        "The real-session loop outputs a stable memory_recovery_state_path field alongside the existing memory recovery anchor fields.",
+        "The compare/trend outputs and evidence JSON mirror the same memory recovery state path field so downstream readers can follow the durable sidecar without reopening the raw status snapshot.",
+        "The smallest relevant targeted tests continue to pass on current head after the forwarding is added."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }
