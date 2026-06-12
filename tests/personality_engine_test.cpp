@@ -160,6 +160,34 @@ int main()
         lowPressureConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "low-pressure consolidate reject note should still expose the personality bias");
 
+    strategic_nexus::StrategicSummary moderatePressureSummary = quietSummary;
+    moderatePressureSummary.instability = 0.22;
+
+    const auto moderatePressureConsolidateReject = engine.refineDoctrineDecision(
+        fearfulEmpire,
+        moderatePressureSummary,
+        proposedConsolidate);
+    requireCondition(
+        moderatePressureConsolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak fearful empire under moderate pressure should reject consolidate in favor of defense");
+    requireCondition(
+        moderatePressureConsolidateReject.rationale ==
+            "Rejected consolidate: weak capability, fear, and moderate pressure still favor immediate defense.",
+        "moderate-pressure consolidate reject should explain the contradiction");
+    requireCondition(
+        moderatePressureConsolidateReject.confidence == 0.46,
+        "moderate-pressure consolidate reject should clamp confidence");
+    const auto moderatePressureConsolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulEmpire,
+        proposedConsolidate,
+        moderatePressureConsolidateReject);
+    requireCondition(
+        moderatePressureConsolidateRejectNote.find("rejected consolidate in favor of defensive_posture") != std::string::npos,
+        "moderate-pressure consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        moderatePressureConsolidateRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "moderate-pressure consolidate reject note should still expose the personality bias");
+
     strategic_nexus::StrategicSummary hegemonicPressureSummary = quietSummary;
     hegemonicPressureSummary.hegemonyDetected = true;
     hegemonicPressureSummary.instability = 0.09;

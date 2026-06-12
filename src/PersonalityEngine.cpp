@@ -118,6 +118,14 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::Consolidate && weakCapability && fearful && summary.instability < 0.30) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected consolidate: weak capability, fear, and moderate pressure still favor immediate defense.";
+        decision.confidence = 0.46;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::OpportunisticExpansion && (weakCapability || fearful)) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale = "Personality and capability do not support opportunistic expansion yet.";
