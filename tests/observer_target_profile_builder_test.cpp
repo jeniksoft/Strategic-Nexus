@@ -58,6 +58,12 @@ int main()
         requireCondition(profile.ruleCandidateValidation.blockedReasons.size() == 3, "profile should explain why candidate generation is blocked");
         requireCondition(!profile.ruleCandidateValidation.allowsDomain("diplomacy"), "profile should fail closed on candidate-domain checks");
         requireCondition(profile.fieldAvailability.size() == 10, "profile should expose a bounded field availability map");
+        requireCondition(profile.fieldAvailabilityAvailableCount == 2, "profile should count available field groups");
+        requireCondition(profile.fieldAvailabilityMissingCount == 8, "profile should count missing field groups");
+        requireCondition(
+            profile.fieldAvailabilitySummary ==
+                "available=observer_identity,target_identity; missing=diplomacy,war,subject,federation,border,intel,internal_pressure,strategic_reputation",
+            "profile should summarize field availability");
         requireCondition(profile.missingInformation.size() == 10, "profile should carry brief missing information plus contract gaps");
         requireCondition(profile.compressionNotes.size() == 4, "profile should carry brief compression notes plus contract notes");
         requireCondition(
@@ -87,6 +93,11 @@ int main()
         requireCondition(json.find("\"target_memory_summary\": \"summary_only target memory for target_empire_002") != std::string::npos, "profile JSON should include target memory summary");
         requireCondition(json.find("\"target_memory_summary_confidence\": 0.42") != std::string::npos, "profile JSON should include target memory summary confidence");
         requireCondition(json.find("\"target_memory_summary_confidence_band\": \"low\"") != std::string::npos, "profile JSON should include target memory summary confidence band");
+        requireCondition(json.find("\"field_availability_available_count\": 2") != std::string::npos, "profile JSON should include available field count");
+        requireCondition(json.find("\"field_availability_missing_count\": 8") != std::string::npos, "profile JSON should include missing field count");
+        requireCondition(
+            json.find("\"field_availability_summary\": \"available=observer_identity,target_identity; missing=diplomacy,war,subject,federation,border,intel,internal_pressure,strategic_reputation\"") != std::string::npos,
+            "profile JSON should include field availability summary");
         requireCondition(json.find("\"relationship_delta\": {") != std::string::npos, "profile JSON should include relationship delta");
         requireCondition(json.find("\"general_trust\": ") != std::string::npos, "profile JSON should include general trust");
         requireCondition(json.find("\"predicted_future_behavior\": ") != std::string::npos, "profile JSON should include predicted future behavior");

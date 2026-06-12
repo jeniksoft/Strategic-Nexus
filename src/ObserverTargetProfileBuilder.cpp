@@ -138,6 +138,18 @@ std::vector<ObserverTargetFieldAvailability> buildFieldAvailability(
     return availability;
 }
 
+std::string joinStrings(const std::vector<std::string>& values, const char* separator)
+{
+    std::ostringstream output;
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        if (index > 0) {
+            output << separator;
+        }
+        output << values[index];
+    }
+    return output.str();
+}
+
 std::string confidenceBandFor(const double confidence)
 {
     if (confidence >= 0.75) {
@@ -277,6 +289,30 @@ ObserverTargetProfile ObserverTargetProfileBuilder::build(
     profile.compressionNotes.push_back("do_not_infer_target_specific_rules_from_this_contract_alone");
     profile.ruleCandidateValidation.ready = false;
     profile.fieldAvailability = buildFieldAvailability(profile, observerBrief);
+    for (const auto& field : profile.fieldAvailability) {
+        if (field.available) {
+            ++profile.fieldAvailabilityAvailableCount;
+        } else {
+            ++profile.fieldAvailabilityMissingCount;
+        }
+    }
+
+    std::vector<std::string> availableFieldGroups;
+    availableFieldGroups.reserve(profile.fieldAvailabilityAvailableCount);
+    std::vector<std::string> missingFieldGroups;
+    missingFieldGroups.reserve(profile.fieldAvailabilityMissingCount);
+    for (const auto& field : profile.fieldAvailability) {
+        if (field.available) {
+            availableFieldGroups.push_back(field.fieldGroup);
+        } else {
+            missingFieldGroups.push_back(field.fieldGroup);
+        }
+    }
+
+    std::ostringstream fieldAvailabilitySummary;
+    fieldAvailabilitySummary << "available=" << joinStrings(availableFieldGroups, ",");
+    fieldAvailabilitySummary << "; missing=" << joinStrings(missingFieldGroups, ",");
+    profile.fieldAvailabilitySummary = fieldAvailabilitySummary.str();
     return profile;
 }
 
@@ -302,6 +338,9 @@ std::string serializeObserverTargetProfile(const ObserverTargetProfile& profile)
     json << "  \"target_memory_summary\": \"" << jsonEscape(profile.targetMemorySummary) << "\",\n";
     json << "  \"target_memory_summary_confidence\": " << profile.targetMemorySummaryConfidence << ",\n";
     json << "  \"target_memory_summary_confidence_band\": \"" << jsonEscape(profile.targetMemorySummaryConfidenceBand) << "\",\n";
+    json << "  \"field_availability_available_count\": " << profile.fieldAvailabilityAvailableCount << ",\n";
+    json << "  \"field_availability_missing_count\": " << profile.fieldAvailabilityMissingCount << ",\n";
+    json << "  \"field_availability_summary\": \"" << jsonEscape(profile.fieldAvailabilitySummary) << "\",\n";
     json << "  \"rule_candidate_validation\": {\n";
     json << "    \"ready\": " << (profile.ruleCandidateValidation.ready ? "true" : "false") << ",\n";
     writeStringArray(json, "candidate_domains", profile.ruleCandidateValidation.candidateDomains, true);

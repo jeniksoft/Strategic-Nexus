@@ -951,6 +951,7 @@ If profile confidence is low, store a concise memory summary and skip gameplay-a
 
 Current progress:
 The first observer-target profile contract exists as a summary-only builder. `ObserverTargetProfileBuilder` now accepts a validated observer brief plus a target empire id and confidence, records bounded evidence references, emits a deterministic confidence-scored target memory summary, populates conservative bounded relationship-delta summaries, exposes an explicit observer/target/diplomacy/war/subject/federation/border/intel field-availability map, and now also exposes a fail-closed target-specific rule-candidate validation scaffold that keeps candidate domains visible without enabling gameplay output. It intentionally keeps target-specific rule candidates empty until later validation and gameplay-safe generation exist.
+The next bounded slice should add a compact observer-target field-availability count and summary contract, mirroring the integrated empire-state availability summary so downstream consumers do not need the full array just to see which evidence groups are present or missing.
 
 The regression coverage confirms the profile contract rejects missing target identity, unsupported source brief quality, invalid confidence, and missing evidence references, and it preserves distinct observer-target memories for different observer empires built from the same shared evidence.
 

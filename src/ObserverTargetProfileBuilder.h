@@ -51,6 +51,9 @@ struct ObserverTargetProfile {
     ObserverTargetRuleCandidateValidation ruleCandidateValidation;
     ObserverTargetRelationshipDelta relationshipDelta;
     std::vector<ObserverTargetFieldAvailability> fieldAvailability;
+    std::size_t fieldAvailabilityAvailableCount = 0;
+    std::size_t fieldAvailabilityMissingCount = 0;
+    std::string fieldAvailabilitySummary;
     std::vector<std::string> missingInformation;
     std::vector<std::string> compressionNotes;
 };
