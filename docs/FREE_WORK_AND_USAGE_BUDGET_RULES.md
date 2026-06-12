@@ -335,25 +335,24 @@ This does not override safety, usefulness, or owner-decision boundaries.
 
 Codex should not burn compute just to avoid theoretical waste.
 
-When a trustworthy reset timestamp and current remaining percentage are available, cadence planning should target a small reserve at the reset, not merely classify the current remaining percentage. Default target reserve:
+When a trustworthy reset timestamp and current remaining percentage are available, cadence planning should preserve a small reserve at the reset, not try to burn down to that reserve. Default safety reserve:
 
 ```text
 5% remaining at reset
 ```
 
-This means a high remaining budget shortly before reset should increase cadence more aggressively than the simple threshold table would suggest, as long as useful safe work exists.
+This reserve is a safety floor, not a spending target. A near reset, by itself, must not make Codex increase Free Work cadence just because spendable budget exists.
 
 The reserve-target calculation should be corrected by recent usage history when enough post-reset samples exist. Historical burn rate is a correction signal, not the authority:
 
-* if actual burn is far behind the reserve trajectory, tighten cadence by one safe step
+* if actual burn is far behind the reserve trajectory, do not automatically tighten below the budget threshold fallback without explicit owner-approved acceleration
 * if actual burn is far ahead of the reserve trajectory, soften cadence by one safe step
 * ignore samples across a known reset boundary
 * deduplicate repeated readings with the same used percentage so they do not fake a trend
 
-Codex should increase Free Work cadence only when all of these are true:
+Codex may increase Free Work cadence only when all of these are true:
 
-* the user-declared remaining budget is high
-* the estimated reset is approaching
+* the owner explicitly approves temporary acceleration, or the normal budget threshold table already allows the faster cadence
 * there is roadmap-aligned, architecture-compatible, bounded, decision-free work available
 * gaming quiet mode is not blocking heavy work
 * the repository state allows a safe disjoint implementation chunk
@@ -421,7 +420,7 @@ new interval = T * S
 Interpretation:
 
 * if `D > K`, Codex is spending budget faster than planned, so `S > 1` and the Free Work interval gets longer
-* if `D < K`, Codex is spending budget slower than planned, so `S < 1` and the Free Work interval gets shorter
+* if `D < K`, Codex is spending budget slower than the reserve trajectory; by default this is informational and must not shorten the interval below the budget threshold fallback unless the owner explicitly set the current accelerated interval
 * if `D < 0`, a reset, correction, or bad sample probably occurred; do not use that pair for adaptive cadence
 * clamp `S` to a safe range, initially `0.5..2.0`, so one check can at most halve or double the interval
 * clamp the final interval to safe automation bounds and never allow overlapping heavy implementation in the same worktree
@@ -441,23 +440,24 @@ K = (previous remaining budget percent - target reserve percent) * I / previous 
 
 The threshold table below is a fallback and safety guard.
 The adaptive rule is the normal way to tune cadence when two valid post-reset budget checks exist.
+When the owner explicitly sets a faster current Free Work interval, the budget check should treat that current interval as `T` and continue tuning it with `new interval = T * S` instead of snapping it back to the threshold fallback.
 
 Default cadence policy:
 
 ```text
-target reserve when reset is known: about 5% remaining at reset
+target reserve when reset is known: preserve about 5% remaining at reset
 >80% remaining budget: every 2 hours
 60-80% remaining budget: every 4 hours
 40-60% remaining budget: every 6 hours
 <40% remaining budget: every 12 hours, critical-only
 no useful roadmap work: every 24 hours or manual-only
-high spendable budget near reset: hourly bounded chunks when needed to approach the reserve target
-owner-approved rapid near-reset mode: every 15 minutes when 40%+ remains, 30%+ is spendable above reserve, and reset is within 12 hours
-owner-approved final-window mode: every 10 minutes when 20%+ is spendable above reserve and reset is within 3 hours
-owner-approved urgent near-reset mode: every 5 minutes when 50%+ remains, 40%+ is spendable above reserve, and reset is within 8 hours
+near-reset acceleration: disabled by default; requires explicit owner-approved temporary acceleration plus overlap protection; once explicitly set, budget check adapts the current interval with `new interval = current interval * S`
+owner-approved rapid near-reset mode: only with an explicit acceleration flag/request, every 15 minutes when 40%+ remains, 30%+ is spendable above reserve, and reset is within 12 hours
+owner-approved final-window mode: only with an explicit acceleration flag/request, every 10 minutes when 20%+ is spendable above reserve and reset is within 3 hours
+owner-approved urgent near-reset mode: only with an explicit acceleration flag/request, every 5 minutes when 50%+ remains, 40%+ is spendable above reserve, and reset is within 8 hours
 ```
 
-The cadence tuner may recommend a more frequent gate near reset.
+The cadence tuner must not recommend a more frequent gate solely because reset is near or spendable budget exists.
 It must not recommend overlapping implementation chunks in the same shared worktree.
 
 By default, one Free Work run means at most one bounded useful chunk.

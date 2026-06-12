@@ -5,7 +5,8 @@ param(
     [string]$ProjectProgressPath = "dist/private_reports/project_progress_estimate.json",
     [string]$FreeworkAutomationPath = "",
     [string]$OutputPath = "dist/private_reports/freework_cadence_recommendation.json",
-    [int]$TargetReservePercent = 5
+    [int]$TargetReservePercent = 5,
+    [switch]$EnableOwnerApprovedNearResetAcceleration
 )
 
 $ErrorActionPreference = "Stop"
@@ -553,36 +554,12 @@ if ($hasUsefulProjectWork -and $null -ne $hoursToReset) {
         $intervalHours = 24
         $chunkMode = "reserve-only"
         $reason = "remaining budget is already at or below target reserve"
-    } elseif ($targetSpendPerDay -ge 18) {
-        $intervalHours = 1
-        $chunkMode = "frequent-one-bounded-chunk"
-        $reason = "target 5% reserve at reset requires high burn rate"
-    } elseif ($targetSpendPerDay -ge 10) {
-        $intervalHours = 2
-        $chunkMode = "standard-one-bounded-chunk"
-        $reason = "target 5% reserve at reset requires faster than default cadence"
-    } elseif ($targetSpendPerDay -ge 6) {
-        $intervalHours = 3
-        $chunkMode = "focused"
-        $reason = "target 5% reserve at reset requires moderate cadence"
-    } elseif ($remainingPercent -ge 85 -and $hoursToReset -le 48) {
-        $intervalHours = 1
-        $chunkMode = "frequent-one-bounded-chunk"
-        $reason = "high remaining budget with less than 48 hours to reset"
-    } elseif ($remainingPercent -ge 90 -and $hoursToReset -le 96) {
-        $intervalHours = 2
-        $chunkMode = "standard-one-bounded-chunk"
-        $reason = "very high remaining budget inside final four days"
     }
 
     if ($burnRateInterpretation -eq "ahead-of-target-burn" -and $intervalHours -lt 4) {
         $intervalHours = [Math]::Min(4, $intervalHours + 1)
         $chunkMode = "controlled-one-bounded-chunk"
         $reason = "$reason; historical burn is ahead of target, so cadence is softened"
-    } elseif ($burnRateInterpretation -eq "behind-target-burn" -and $intervalHours -gt 1 -and $spendableToReserve -gt 20) {
-        $intervalHours = [Math]::Max(1, $intervalHours - 1)
-        $chunkMode = "catch-up-one-bounded-chunk"
-        $reason = "$reason; historical burn is behind target, so cadence is tightened"
     }
 }
 
@@ -599,6 +576,7 @@ $adaptiveInputIntervalMinutes = if ($null -ne $currentIntervalMinutes) { $curren
 $adaptiveUnclampedIntervalMinutes = $null
 $adaptiveApplied = $false
 $adaptiveAlreadyAppliedForPair = $false
+$ownerApprovedAcceleratedCurrentInterval = $null -ne $currentIntervalMinutes -and $currentIntervalMinutes -lt $fallbackIntervalMinutes
 
 if ($adaptiveCadence.available -and $null -ne $freeworkAutomationUpdatedAt) {
     $adaptiveCurrentTimestamp = [DateTime]::MinValue
@@ -622,35 +600,55 @@ if (
 
 if (
     $hasUsefulProjectWork -and
-    $remainingPercent -ge 40 -and
     $null -ne $spendableToReserve -and
     $spendableToReserve -gt 0 -and
     $adaptiveCadence.available -and
     -not $adaptiveAlreadyAppliedForPair
 ) {
     $adaptiveUnclampedIntervalMinutes = $adaptiveInputIntervalMinutes * [double]$adaptiveCadence.scale
-    $intervalMinutes = Clamp-IntervalMinutes -Minutes $adaptiveUnclampedIntervalMinutes
-    $adaptiveApplied = $true
-    $chunkMode = if ([double]$adaptiveCadence.scale -lt 1.0) {
-        "adaptive-catch-up-bounded"
-    } elseif ([double]$adaptiveCadence.scale -gt 1.0) {
-        "adaptive-controlled-bounded"
+    $adaptiveCandidateIntervalMinutes = Clamp-IntervalMinutes -Minutes $adaptiveUnclampedIntervalMinutes
+    $adaptiveWouldBeMoreAggressiveThanFallback = $adaptiveCandidateIntervalMinutes -lt $fallbackIntervalMinutes
+    if ($adaptiveWouldBeMoreAggressiveThanFallback -and -not $EnableOwnerApprovedNearResetAcceleration -and -not $ownerApprovedAcceleratedCurrentInterval) {
+        $reason = "$reason; adaptive catch-up would be more aggressive than the budget threshold fallback, so it is not applied without explicit owner-approved acceleration"
     } else {
-        "adaptive-on-target-bounded"
+        $intervalMinutes = $adaptiveCandidateIntervalMinutes
+        $adaptiveApplied = $true
+        $chunkMode = if ([double]$adaptiveCadence.scale -lt 1.0) {
+            "adaptive-catch-up-bounded"
+        } elseif ([double]$adaptiveCadence.scale -gt 1.0) {
+            "adaptive-controlled-bounded"
+        } else {
+            "adaptive-on-target-bounded"
+        }
+        $reason = "adaptive cadence: actual budget spend D=$($adaptiveCadence.actual_spend_percent)% versus expected K=$($adaptiveCadence.expected_spend_percent)% over I=$($adaptiveCadence.interval_hours)h; applying S=$($adaptiveCadence.scale) to current Free Work interval"
     }
-    $reason = "adaptive cadence: actual budget spend D=$($adaptiveCadence.actual_spend_percent)% versus expected K=$($adaptiveCadence.expected_spend_percent)% over I=$($adaptiveCadence.interval_hours)h; applying S=$($adaptiveCadence.scale) to current Free Work interval"
 } elseif ($adaptiveAlreadyAppliedForPair -and $null -ne $currentIntervalMinutes) {
-    $intervalMinutes = $currentIntervalMinutes
-    if ($previousRecommendation.recommended_chunk_mode) {
-        $chunkMode = [string]$previousRecommendation.recommended_chunk_mode
+    if ($currentIntervalMinutes -gt $fallbackIntervalMinutes) {
+        $intervalMinutes = $currentIntervalMinutes
+        if ($previousRecommendation.recommended_chunk_mode) {
+            $chunkMode = [string]$previousRecommendation.recommended_chunk_mode
+        }
+        $reason = "adaptive cadence already applied for the latest budget-check pair; keeping current Free Work interval until a new budget reading arrives"
+    } elseif ($currentIntervalMinutes -eq $fallbackIntervalMinutes) {
+        $reason = "$reason; current Free Work interval already matches the budget threshold fallback"
+    } elseif ($ownerApprovedAcceleratedCurrentInterval) {
+        $intervalMinutes = $currentIntervalMinutes
+        if ($previousRecommendation.recommended_chunk_mode) {
+            $chunkMode = [string]$previousRecommendation.recommended_chunk_mode
+        } else {
+            $chunkMode = "owner-approved-accelerated-bounded"
+        }
+        $reason = "owner-approved accelerated current Free Work interval is below the budget threshold fallback; keeping it until a new budget-check pair tunes it with new interval = current interval * S"
+    } else {
+        $reason = "$reason; current Free Work interval is more aggressive than the budget threshold fallback, so the previous adaptive state is not preserved"
     }
-    $reason = "adaptive cadence already applied for the latest budget-check pair; keeping current Free Work interval until a new budget reading arrives"
 }
 
 $nearResetCapMinutes = $null
 $nearResetCapMode = $null
 $nearResetCapReason = $null
 if (
+    $EnableOwnerApprovedNearResetAcceleration -and
     $hasUsefulProjectWork -and
     $null -ne $hoursToReset -and
     $hoursToReset -le 12 -and
