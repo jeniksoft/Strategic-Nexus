@@ -87,6 +87,7 @@ int main()
     const auto readyGameplayAcceptanceReport = root / "generated_overlay_gameplay_acceptance_v0.json";
     const auto crashRecoveryStatePath = root / "snc_crash_recovery_state.json";
     const auto friendTrustStorePath = root / "snc_friend_trust_store.json";
+    const auto legacyFriendTrustStorePath = root / "snc_friend_trust_store_legacy.json";
     const auto brokenFriendTrustStorePath = root / "snc_friend_trust_store_broken.json";
     const auto brokenArchiveRoot = root / "missing_archive_root";
     std::filesystem::remove_all(root);
@@ -415,7 +416,16 @@ int main()
         blockedFriend.updatedAt = "2026-06-08T17:36:00Z";
         store.friends.push_back(blockedFriend);
 
-        writeTextFileAtomically(friendTrustStorePath, strategic_nexus::serializeSncFriendTrustStore(store));
+        const auto storeJson = strategic_nexus::serializeSncFriendTrustStore(store);
+        writeTextFileAtomically(friendTrustStorePath, storeJson);
+        auto legacyStoreJson = storeJson;
+        const auto legacySchemaMarker = legacyStoreJson.find("\"schema_version\": 1");
+        requireCondition(legacySchemaMarker != std::string::npos, "friend trust store should expose schema version");
+        legacyStoreJson.replace(
+            legacySchemaMarker,
+            std::string("\"schema_version\": 1").size(),
+            "\"schema_version\": 0");
+        writeTextFileAtomically(legacyFriendTrustStorePath, legacyStoreJson);
     }
     writeTextFileAtomically(
         brokenFriendTrustStorePath,
@@ -538,6 +548,11 @@ int main()
             ready.friendTrustStore.controlsReason.find("trust-store update command") != std::string::npos,
         "friend trust store should explain the revoke/block/disable-auto-sync controls");
     requireCondition(
+        ready.friendTrustStore.sourceSchemaVersion == 1 &&
+            ready.friendTrustStore.schemaCompatibilityState == "current" &&
+            ready.friendTrustStore.schemaCompatibilityNote.empty(),
+        "friend trust store should expose current schema metadata");
+    requireCondition(
         ready.friendTrustStore.controlsCommandTemplate.find("--update-snc-friend-trust-store-entry") != std::string::npos &&
             ready.friendTrustStore.controlsCommandTemplate.find("<friend_node_id>") != std::string::npos &&
             ready.friendTrustStore.controlsCommandTemplate.find("<trusted|revoked|blocked>") != std::string::npos,
@@ -596,6 +611,10 @@ int main()
             ready.statusCenterSummaryText.find("friend_trust_store_controls_reason: trusted friends can be revoked, blocked, or have auto-sync disabled through the trust-store update command") != std::string::npos &&
             ready.statusCenterSummaryText.find("friend_trust_store_update_command_template: Strategic Nexus.exe --update-snc-friend-trust-store-entry ") != std::string::npos,
         "status center summary should expose friend trust store control visibility");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_trust_store_source_schema_version: 1") != std::string::npos &&
+            ready.statusCenterSummaryText.find("friend_trust_store_schema_compatibility_state: current") != std::string::npos,
+        "status center summary should expose current friend trust store schema metadata");
     requireCondition(
         ready.statusCenterSummaryText.find("friend_pairing_command_template: Strategic Nexus.exe --create-snc-friend-request ") != std::string::npos,
         "status center summary should expose the manual friend-pairing command template");
@@ -668,6 +687,26 @@ int main()
         ready.statusCenterSummaryText.find("friend_mesh_update_next_step: nacti nejnovnejsi handoff balicek") !=
             std::string::npos,
         "status center summary should expose friend mesh update next step");
+    auto legacyFriendConfig = readyConfig;
+    legacyFriendConfig.friendTrustStorePath = legacyFriendTrustStorePath;
+    const auto legacyFriendTrustStore = companion.buildStatusSnapshot(legacyFriendConfig);
+    requireCondition(
+        legacyFriendTrustStore.friendTrustStore.sourceSchemaVersion == 0,
+        "legacy friend trust store should preserve source schema version 0");
+    requireCondition(
+        legacyFriendTrustStore.friendTrustStore.schemaCompatibilityState == "partial_compatibility",
+        "legacy friend trust store should surface partial compatibility");
+    requireCondition(
+        legacyFriendTrustStore.friendTrustStore.schemaCompatibilityNote ==
+            "migrated legacy friend trust store schema_version 0 to current schema_version 1",
+        "legacy friend trust store should explain the migration note");
+    requireCondition(
+        legacyFriendTrustStore.statusCenterSummaryText.find("friend_trust_store_schema_compatibility_state: partial_compatibility") !=
+            std::string::npos &&
+            legacyFriendTrustStore.statusCenterSummaryText.find(
+                "friend_trust_store_owner_note: migrated legacy friend trust store schema_version 0 to current schema_version 1") !=
+            std::string::npos,
+        "status center summary should explain legacy friend trust store compatibility");
     auto brokenFriendConfig = readyConfig;
     brokenFriendConfig.friendTrustStorePath = brokenFriendTrustStorePath;
     const auto brokenFriendTrustStore = companion.buildStatusSnapshot(brokenFriendConfig);
@@ -1477,6 +1516,10 @@ int main()
         readyJson.find("\"friend_trust_store_controls_state\": \"ready\"") != std::string::npos &&
             readyJson.find("\"friend_trust_store_update_command_template\": \"Strategic Nexus.exe --update-snc-friend-trust-store-entry ") != std::string::npos,
         "snapshot JSON should expose friend trust store control visibility");
+    requireCondition(
+        readyJson.find("\"friend_trust_store_source_schema_version\": 1") != std::string::npos &&
+            readyJson.find("\"friend_trust_store_schema_compatibility_state\": \"current\"") != std::string::npos,
+        "snapshot JSON should expose current friend trust store schema metadata");
     requireCondition(
         readyJson.find(
             "\"friend_mesh_update_reason\": \"previous host unavailable; handoff continuity is degraded\"") !=

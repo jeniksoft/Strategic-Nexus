@@ -2559,6 +2559,10 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         return status;
     }
 
+    status.sourceSchemaVersion = store.sourceSchemaVersion;
+    status.schemaCompatibilityState = store.schemaCompatibilityState;
+    status.schemaCompatibilityNote = store.schemaCompatibilityNote;
+    status.schemaCompatibilityKnown = true;
     for (const auto& friendEntry : store.friends) {
         if (friendEntry.trustState == "trusted") {
             ++status.trustedFriendCount;
@@ -2581,6 +2585,12 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         "trusted friends can be revoked, blocked, or have auto-sync disabled through the trust-store update command";
     status.controlsNextStep =
         "Use the trust-store update command with the target node_id, trust_state, auto_sync_enabled flag, and updated_at timestamp.";
+    if (status.schemaCompatibilityState != "current" && !status.schemaCompatibilityNote.empty()) {
+        status.controlsState = "degraded";
+        status.controlsReason = status.schemaCompatibilityNote;
+        status.controlsNextStep =
+            "Regenerate the friend trust store before relying on friend mesh sync.";
+    }
     return status;
 }
 
@@ -3260,6 +3270,19 @@ std::string buildStatusCenterSummaryText(
     if (!friendTrustStore.path.empty()) {
         text << "friend_trust_store_path: " << pathString(friendTrustStore.path) << "\n";
     }
+    if (friendTrustStore.schemaCompatibilityKnown) {
+        text << "friend_trust_store_source_schema_version: " << friendTrustStore.sourceSchemaVersion << "\n";
+        text << "friend_trust_store_schema_compatibility_state: "
+             << friendTrustStore.schemaCompatibilityState << "\n";
+        if (!friendTrustStore.schemaCompatibilityNote.empty()) {
+            text << "friend_trust_store_schema_compatibility_note: "
+                 << friendTrustStore.schemaCompatibilityNote << "\n";
+            if (friendTrustStore.schemaCompatibilityState != "current") {
+                text << "friend_trust_store_owner_note: "
+                     << friendTrustStore.schemaCompatibilityNote << "\n";
+            }
+        }
+    }
     text << "friend_trust_store_trusted_count: "
          << friendTrustStore.trustedFriendCount << "\n";
     text << "friend_trust_store_revoked_count: "
@@ -3743,6 +3766,13 @@ void writeFriendTrustStoreJson(
     output << indent << "  \"state\": " << jsonString(status.state) << ",\n";
     output << indent << "  \"reason\": " << jsonString(status.reason) << ",\n";
     output << indent << "  \"path\": " << jsonString(pathString(status.path)) << ",\n";
+    if (status.schemaCompatibilityKnown) {
+        output << indent << "  \"source_schema_version\": " << status.sourceSchemaVersion << ",\n";
+        output << indent << "  \"schema_compatibility_state\": "
+               << jsonString(status.schemaCompatibilityState) << ",\n";
+        output << indent << "  \"schema_compatibility_note\": "
+               << jsonString(status.schemaCompatibilityNote) << ",\n";
+    }
     output << indent << "  \"trusted_friend_count\": " << status.trustedFriendCount << ",\n";
     output << indent << "  \"revoked_friend_count\": " << status.revokedFriendCount << ",\n";
     output << indent << "  \"blocked_friend_count\": " << status.blockedFriendCount << ",\n";
@@ -4327,6 +4357,14 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"friend_trust_store_status\": ";
     writeFriendTrustStoreJson(output, snapshot.friendTrustStore, "  ");
     output << ",\n";
+    if (snapshot.friendTrustStore.schemaCompatibilityKnown) {
+        output << "  \"friend_trust_store_source_schema_version\": "
+               << snapshot.friendTrustStore.sourceSchemaVersion << ",\n";
+        output << "  \"friend_trust_store_schema_compatibility_state\": "
+               << jsonString(snapshot.friendTrustStore.schemaCompatibilityState) << ",\n";
+        output << "  \"friend_trust_store_schema_compatibility_note\": "
+               << jsonString(snapshot.friendTrustStore.schemaCompatibilityNote) << ",\n";
+    }
     output << "  \"friend_trust_store_controls_state\": "
            << jsonString(snapshot.friendTrustStore.controlsState) << ",\n";
     output << "  \"friend_trust_store_controls_reason\": "

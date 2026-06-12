@@ -46,6 +46,9 @@ struct SncTrustedFriend {
 struct SncFriendTrustStore {
     bool ok = false;
     std::string reason;
+    int sourceSchemaVersion = 1;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
     std::vector<SncTrustedFriend> friends;
 };
 

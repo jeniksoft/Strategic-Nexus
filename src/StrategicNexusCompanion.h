@@ -326,6 +326,10 @@ struct CompanionFriendTrustStoreStatus {
     std::string state = "not_configured";
     std::string reason = "friend trust store not present; automatic friend sync disabled";
     std::filesystem::path path;
+    int sourceSchemaVersion = 1;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
+    bool schemaCompatibilityKnown = false;
     std::string mpSyncTransportAdapterKind = "shared-folder/cloud-folder";
     std::filesystem::path mpSyncTransportAdapterPath;
     std::size_t trustedFriendCount = 0;

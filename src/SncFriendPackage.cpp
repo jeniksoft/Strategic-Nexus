@@ -514,9 +514,18 @@ SncFriendTrustStore parseSncFriendTrustStoreJson(const std::string& json)
     }
 
     const auto schemaVersion = extractJsonSize(json, "schema_version");
-    if (!schemaVersion.has_value() || *schemaVersion != 1) {
+    if (!schemaVersion.has_value() || (*schemaVersion != 0 && *schemaVersion != 1)) {
         store.reason = "unsupported friend trust store schema";
         return store;
+    }
+    store.sourceSchemaVersion = static_cast<int>(*schemaVersion);
+    if (store.sourceSchemaVersion == 0) {
+        store.schemaCompatibilityState = "partial_compatibility";
+        store.schemaCompatibilityNote =
+            "migrated legacy friend trust store schema_version 0 to current schema_version 1";
+    } else {
+        store.schemaCompatibilityState = "current";
+        store.schemaCompatibilityNote.clear();
     }
 
     const auto friendsBody = extractArrayBody(json, "friends");
@@ -790,7 +799,11 @@ std::string serializeSncFriendTrustStore(const SncFriendTrustStore& store)
 {
     std::ostringstream json;
     json << "{\n";
-    json << "  \"schema_version\": 1,\n";
+    const auto schemaVersion = store.sourceSchemaVersion == 0 ? 0 : 1;
+    json << "  \"schema_version\": " << schemaVersion << ",\n";
+    json << "  \"source_schema_version\": " << schemaVersion << ",\n";
+    json << "  \"schema_compatibility_state\": \"" << jsonEscape(store.schemaCompatibilityState) << "\",\n";
+    json << "  \"schema_compatibility_note\": \"" << jsonEscape(store.schemaCompatibilityNote) << "\",\n";
     json << "  \"friends\": [\n";
     for (std::size_t index = 0; index < store.friends.size(); ++index) {
         writeTrustedFriend(json, store.friends[index]);

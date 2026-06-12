@@ -121,16 +121,49 @@ int main()
     const auto storeJson = strategic_nexus::serializeSncFriendTrustStore(store);
     const auto parsedStore = strategic_nexus::parseSncFriendTrustStoreJson(storeJson);
     requireCondition(parsedStore.ok, "valid friend trust store should parse");
+    requireCondition(parsedStore.sourceSchemaVersion == 1, "current trust store should preserve source schema version");
+    requireCondition(
+        parsedStore.schemaCompatibilityState == "current",
+        "current trust store should expose current compatibility state");
+    requireCondition(
+        parsedStore.schemaCompatibilityNote.empty(),
+        "current trust store should keep compatibility note empty");
     requireCondition(parsedStore.friends.size() == 2, "friend trust store should preserve friend count");
     requireCondition(parsedStore.friends[0].trustState == "trusted", "trusted friend state should roundtrip");
     requireCondition(parsedStore.friends[0].autoSyncEnabled, "trusted friend auto-sync flag should roundtrip");
     requireCondition(parsedStore.friends[1].trustState == "revoked", "revoked friend state should roundtrip");
     requireCondition(!parsedStore.friends[1].autoSyncEnabled, "revoked friend should keep auto-sync disabled");
+    requireCondition(
+        storeJson.find("\"schema_version\": 1") != std::string::npos &&
+            storeJson.find("\"source_schema_version\": 1") != std::string::npos &&
+            storeJson.find("\"schema_compatibility_state\": \"current\"") != std::string::npos,
+        "friend trust store JSON should expose current compatibility metadata");
+
+    auto legacyStoreJson = storeJson;
+    const auto storeSchemaMarker = legacyStoreJson.find("\"schema_version\": 1");
+    requireCondition(storeSchemaMarker != std::string::npos, "trust store JSON should expose schema version");
+    legacyStoreJson.replace(storeSchemaMarker, std::string("\"schema_version\": 1").size(), "\"schema_version\": 0");
+    const auto legacyStore = strategic_nexus::parseSncFriendTrustStoreJson(legacyStoreJson);
+    requireCondition(legacyStore.ok, "legacy friend trust store should parse");
+    requireCondition(legacyStore.sourceSchemaVersion == 0, "legacy trust store should preserve source schema version");
+    requireCondition(
+        legacyStore.schemaCompatibilityState == "partial_compatibility",
+        "legacy trust store should expose partial compatibility");
+    requireCondition(
+        legacyStore.schemaCompatibilityNote == "migrated legacy friend trust store schema_version 0 to current schema_version 1",
+        "legacy trust store should explain the migration note");
+    requireCondition(
+        strategic_nexus::serializeSncFriendTrustStore(legacyStore).find(
+            "\"schema_compatibility_note\": \"migrated legacy friend trust store schema_version 0 to current schema_version 1\"") != std::string::npos,
+        "legacy trust store JSON should preserve compatibility metadata");
 
     auto futureStoreJson = storeJson;
-    const auto storeSchemaMarker = futureStoreJson.find("\"schema_version\": 1");
-    requireCondition(storeSchemaMarker != std::string::npos, "trust store JSON should expose schema version");
-    futureStoreJson.replace(storeSchemaMarker, std::string("\"schema_version\": 1").size(), "\"schema_version\": 2");
+    const auto futureStoreSchemaMarker = futureStoreJson.find("\"schema_version\": 1");
+    requireCondition(futureStoreSchemaMarker != std::string::npos, "trust store JSON should expose schema version");
+    futureStoreJson.replace(
+        futureStoreSchemaMarker,
+        std::string("\"schema_version\": 1").size(),
+        "\"schema_version\": 2");
     const auto futureStore = strategic_nexus::parseSncFriendTrustStoreJson(futureStoreJson);
     requireCondition(!futureStore.ok, "future trust store schema should fail closed");
 

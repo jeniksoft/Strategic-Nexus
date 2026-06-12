@@ -3027,6 +3027,25 @@
         "tools/smoke_snc_tray.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-268-surface-friend-trust-store-legacy-schema-compatibility",
+      "title": "Surface friend trust store schema compatibility",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "12C. Backward Migration Rules / friend trust store reader",
+      "goal": "Add explicit source schema version plus compatibility state/note metadata to the friend trust store reader and surface the degraded legacy schema note in owner-visible SNC status output.",
+      "acceptance": [
+        "SncFriendTrustStore accepts schema_version 0 as partial compatibility and preserves explicit source schema version plus compatibility state/note metadata.",
+        "Companion and tray status output surface the friend trust store schema compatibility metadata and owner-visible degraded note for legacy schema_version 0 trust stores.",
+        "The friend package test and companion regression pass on current head."
+      ],
+      "preferred_tests": [
+        "dist/snc_friend_package_test.exe",
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }

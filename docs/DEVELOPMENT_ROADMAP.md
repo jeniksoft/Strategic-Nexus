@@ -1735,6 +1735,7 @@ The autosave archive verifier and summarizer now also accept legacy schema_versi
 The save entry point analysis artifact now also emits explicit source schema version plus compatibility state/note metadata so downstream post-play evidence can treat it like the other long-lived migrated artifacts.
 The SNC decision input package reader now also accepts legacy schema_version 0 as partial compatibility and surfaces explicit source schema version plus compatibility state/note metadata in the serialized contract.
 The post-play package builder now also carries the save entry point analysis schema provenance through to downstream evidence JSON, so the same degraded-state metadata stays visible after the analysis is wrapped into a post-play artifact.
+The SNC friend trust store reader now also accepts legacy schema_version 0 as partial compatibility and surfaces explicit source schema version plus compatibility state/note metadata in companion and tray status output.
 The next bounded slice should extend the same explicit degraded-state pattern to any remaining long-lived artifact readers so old campaigns do not rely on silent compatibility assumptions.
 
 ---
