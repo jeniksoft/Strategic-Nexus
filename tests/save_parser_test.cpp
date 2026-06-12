@@ -133,7 +133,7 @@ war={
     requireCondition(summary.homeSystemName == "Aeel System", "home system should parse");
     requireCondition(summary.ownedFleetCount == 1, "owned fleet count should filter by owner");
     requireCondition(summary.activeWarCount == 1, "active war count should parse");
-    requireCondition(summary.fieldAvailability.size() >= 6, "field availability map should be populated");
+    requireCondition(summary.fieldAvailability.size() == 10, "field availability map should include all bounded groups");
 
     const auto* identityAvailability = findFieldAvailability(summary.fieldAvailability, "identity");
     requireCondition(identityAvailability != nullptr, "identity availability should exist");
@@ -228,11 +228,67 @@ species={
             diplomacyAvailability->missingReasons.front() == "diplomatic_relationships_not_extracted_yet",
         "diplomacy should explain the missing relationship evidence");
 
+    const auto* subjectAvailability = findFieldAvailability(summary.fieldAvailability, "subject");
+    requireCondition(subjectAvailability != nullptr, "subject availability should exist");
+    requireCondition(!subjectAvailability->available, "subject should remain unavailable");
+    requireCondition(
+        subjectAvailability->sourceQuality == "not_extracted_yet",
+        "subject should report not extracted yet source quality");
+    requireCondition(
+        !subjectAvailability->missingReasons.empty() &&
+            subjectAvailability->missingReasons.front() == "subject_relationships_not_extracted_yet",
+        "subject should explain the missing relationship evidence");
+
+    const auto* federationAvailability = findFieldAvailability(summary.fieldAvailability, "federation");
+    requireCondition(federationAvailability != nullptr, "federation availability should exist");
+    requireCondition(!federationAvailability->available, "federation should remain unavailable");
+    requireCondition(
+        federationAvailability->sourceQuality == "not_extracted_yet",
+        "federation should report not extracted yet source quality");
+    requireCondition(
+        !federationAvailability->missingReasons.empty() &&
+            federationAvailability->missingReasons.front() == "federation_relationships_not_extracted_yet",
+        "federation should explain the missing relationship evidence");
+
+    const auto* borderAvailability = findFieldAvailability(summary.fieldAvailability, "border");
+    requireCondition(borderAvailability != nullptr, "border availability should exist");
+    requireCondition(!borderAvailability->available, "border should remain unavailable");
+    requireCondition(
+        borderAvailability->sourceQuality == "not_extracted_yet",
+        "border should report not extracted yet source quality");
+    requireCondition(
+        !borderAvailability->missingReasons.empty() &&
+            borderAvailability->missingReasons.front() == "border_relationships_not_extracted_yet",
+        "border should explain the missing relationship evidence");
+
+    const auto* intelAvailability = findFieldAvailability(summary.fieldAvailability, "intel");
+    requireCondition(intelAvailability != nullptr, "intel availability should exist");
+    requireCondition(!intelAvailability->available, "intel should remain unavailable");
+    requireCondition(
+        intelAvailability->sourceQuality == "not_extracted_yet",
+        "intel should report not extracted yet source quality");
+    requireCondition(
+        !intelAvailability->missingReasons.empty() &&
+            intelAvailability->missingReasons.front() == "intel_relationships_not_extracted_yet",
+        "intel should explain the missing relationship evidence");
+
     const std::string json = parser.parseSummaryJson(root);
     requireCondition(json.find("\"empire_name\": \"Aeel Corp\"") != std::string::npos, "json should include empire name");
     requireCondition(
         json.find("\"field_group\":\"diplomacy\"") != std::string::npos,
         "json should include diplomacy field availability");
+    requireCondition(
+        json.find("\"field_group\":\"subject\"") != std::string::npos,
+        "json should include subject field availability");
+    requireCondition(
+        json.find("\"field_group\":\"federation\"") != std::string::npos,
+        "json should include federation field availability");
+    requireCondition(
+        json.find("\"field_group\":\"border\"") != std::string::npos,
+        "json should include border field availability");
+    requireCondition(
+        json.find("\"field_group\":\"intel\"") != std::string::npos,
+        "json should include intel field availability");
     requireCondition(
         json.find("\"field_group\":\"country_core\"") != std::string::npos,
         "json should include country core field availability");
