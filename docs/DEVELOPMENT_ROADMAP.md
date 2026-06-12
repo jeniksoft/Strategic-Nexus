@@ -1581,6 +1581,7 @@ Current progress:
   Current-head verification now also covers a balance_against_hegemon reject path for weak fearful empires under hegemonic pressure, which keeps the planner's hegemon response fail-closed when capability limits and fear still make immediate defense the safer answer.
   Current-head verification with `dist/personality_engine_test.exe` confirms the prompt and doctrine JSON still surface the bounded personality alignment note and personality bias when a focus empire is available.
   Current-head verification now also covers the trauma-guarded balance_against_hegemon reject path for empires with high war trauma and low federation trust, keeping the adaptive-state fields visible in the same owner-facing note flow.
+  Current-head verification now also covers a low-trust, low-pressure balance_against_hegemon reject path without war trauma, so distrust alone can still fail closed before coalition balancing becomes a default fallback.
   The remaining 9C work is broader contradiction coverage and any additional owner-facing surface that should expose the note more prominently.
 
 ---

@@ -140,6 +140,44 @@ int main()
         traumaBalanceRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "trauma-guarded balance reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState lowTrustEmpire = boldEmpire;
+    lowTrustEmpire.id = "empire_low_trust";
+    lowTrustEmpire.power.fleetPower = 82;
+    lowTrustEmpire.power.economicRank = 3;
+    lowTrustEmpire.power.technologyRank = 3;
+    lowTrustEmpire.personality.boldness = 0.43;
+    lowTrustEmpire.personality.paranoia = 0.24;
+    lowTrustEmpire.personality.honor = 0.55;
+    lowTrustEmpire.personality.opportunism = 0.39;
+    lowTrustEmpire.adaptiveState.fearOfPlayer = 0.21;
+    lowTrustEmpire.adaptiveState.warTrauma = 0.18;
+    lowTrustEmpire.adaptiveState.trustInFederations = 0.24;
+
+    const auto lowTrustBalanceReject = engine.refineDoctrineDecision(
+        lowTrustEmpire,
+        traumaBalanceSummary,
+        proposedHegemonBalance);
+    requireCondition(
+        lowTrustBalanceReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "low-trust empire under low pressure should reject balance-against-hegemon in favor of defense");
+    requireCondition(
+        lowTrustBalanceReject.rationale ==
+            "Rejected balance against hegemon: low federation trust and low pressure do not justify coalition balancing yet.",
+        "low-trust balance reject should explain the contradiction");
+    requireCondition(
+        lowTrustBalanceReject.confidence == 0.42,
+        "low-trust balance reject should clamp confidence");
+    const auto lowTrustBalanceRejectNote = engine.buildDoctrineAlignmentNote(
+        lowTrustEmpire,
+        proposedHegemonBalance,
+        lowTrustBalanceReject);
+    requireCondition(
+        lowTrustBalanceRejectNote.find("rejected balance_against_hegemon in favor of defensive_posture") != std::string::npos,
+        "low-trust balance reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        lowTrustBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
+        "low-trust balance reject note should still expose the personality bias");
+
     strategic_nexus::StrategicSummary severePressureSummary = quietSummary;
     severePressureSummary.instability = 0.08;
 
