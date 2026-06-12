@@ -3916,6 +3916,26 @@
         "dist/personality_engine_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-317-verify-campaign-library-plan-and-pinned-manifest-degraded-state-warnings-on-current-head",
+      "title": "Verify campaign library plan and pinned-manifest degraded-state warnings on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "12C. Backward Migration Rules",
+      "goal": "Confirm the current-head companion and tray surfaces still expose the campaign library plan and pinned-manifest legacy degraded-state warnings, so the migration-reader visibility stays explicit while broader reader work remains queued separately.",
+      "acceptance": [
+        "dist/campaign_library_planner_test.exe passes on current head.",
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "Current-head companion and tray surfaces still expose campaign_library_owner_note and the legacy schema_version 0 degraded-state wording for the campaign library plan and pinned-manifest surfaces."
+      ],
+      "preferred_tests": [
+        "dist/campaign_library_planner_test.exe",
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
