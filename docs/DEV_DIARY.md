@@ -64,6 +64,40 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-12
+
+Dnesni commitova vlna se soustreduje na presnejsi verifikaci transport-adapter cesty a na dalsi zpevneni reject path coverage v host-authoritative modelu. Nejviditelnejsi commity jsou `Add transport-adapter selection verification chunk`, `Add transport adapter evidence-chain verification slice`, `Mark v0-sprint-276 verified`, `Add 9C verification chunk for hegemon reject path`, `Add balance-against-hegemon reject path`, `Broaden 9C consolidate reject coverage` a `Broaden personality consolidate reject coverage`. Jde porad o praci na integration boundary a o zprehledneni scripted event/effect path, ne o zmenu runtime pravomoci.
+
+Co pribylo v repozitari:
+
+* Transport-adapter selection ma novy verification chunk, ktery lepe ukotvuje, jak se ma cist evidence chain a kde uz ma rozhodovani zustat fail-closed.
+* Dalsi slice pro transport adapter evidence chain zpřesnuje navaznost mezi overenym stavem, konzolidaci a dalsim krokem v pipeline.
+* `v0-sprint-276` byl oznacen jako verified a navazujici 9C/ personality reject coverage rozsiruje pokryti pro sporne nebo nejednoznacne vetve.
+* Celkovy smer je porad stejný: posilovat runtime interoperability research bez naruseni host-authoritative modelu a bez obchazeni bezicich boundary pravidel.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt dale zpresnuje, jak se ma cist a vyhodnocovat evidence chain pri prechodu mezi transport adapter vrstvou a dalsim scripted event/effect krokem.
+* Reject coverage pomaha drzet fail-closed chovani i tam, kde by jinak mohla vzniknout nejednoznacnost v interpretaci stavu.
+* Dnesni smer je spis o verifikaci a boundary hygiene nez o novych funkcich pro beziici session.
+
+Testy a stav overeni:
+
+* Pro aktualni local HEAD `327769e` neni k dispozici verejny GitHub Actions workflow run ani combined status; commit jeste nebyl zverejnen na `origin/master`.
+* Posledni verejne dohledatelne `Windows Tests` behy na `master` jsou uspesne z 11. 6. 2026; pro dnezni local head zatim neexistuje novy public signal.
+* Novy plny lokalni test run jsem dnes nespoustel; tento zapis vychazi z commit historie a dostupneho CI kontextu.
+
+Blokery a rizika:
+
+* Hlavni riziko zustava stejne: verifikace a status signal jsou silnejsi nez finalni release workflow, ale samy o sobe jeste neuzaviraji checksum-safe packaging a distribuci generated overlay artefaktu.
+* Dokud je local head jen v pracovnim stromu, chybí i verejny CI signal pro aktualni commit vlnu.
+* Dalsi krok musi stale drzet hranici mezi overenym stavem a jakymkoli pokusem o rozsireni runtime zasahu.
+
+Doporuceny dalsi krok:
+
+* Dopsat nebo overit navazujici test coverage pro transport-adapter evidence chain, pak pushnout aktualni head a pockat na verejny CI signal.
+* Po potvrzeni stability navazat na release boundary a checksum-safe export workflow, aby dalsi session navazovala z auditovatelneho stavu.
+
 ## 2026-06-11
 
 Dnesni commitova vlna se soustredi hlavne na presnejsi owner-facing stav, kampanovou identitu a dalsi zpevneni MP handoff hranic. Nejviditelnejsi commity jsou `Surface campaign library pin action`, `Surface campaign identity in real-session loop`, `Surface friend MP sync inbox-plan gate state`, `Polish SNC support report wording`, `Add campaign library pin manifest support`, `Mark archive status chunk done`, `Surface archive status next action` a `Surface post-play campaign identity summary`. Nejde o novy runtime zasah do bezici session, ale o dalsi zprehledneni integration boundary a scripted event/effect path.
