@@ -2954,5 +2954,24 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-264-verify-outbox-plan-template-on-current-head",
+      "title": "Verify outbox-plan template on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / outbox-plan template surface",
+      "goal": "Verify that the current-head companion, tray, and v0 pipeline surfaces keep the friend MP sync outbox-plan command template visible with the no-send/no-upload/no-staging wording already wired into the release-companion contract.",
+      "acceptance": [
+        "Companion and tray status surfaces expose friend_mp_sync_outbox_plan_command_template on current head.",
+        "The visible dashboard copy action and status center summary keep the outbox-plan template and the no-send/no-upload/no-staging wording visible on current head.",
+        "Companion/tray smoke and the v0 pipeline regression pass on current head."
+      ],
+      "preferred_tests": [
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }
