@@ -6322,6 +6322,7 @@ std::string buildStatusCenterSummaryText(
     if (!memoryRecoveryStatePath.empty()) {
         summary << "memory_recovery_state_path: " << pathString(memoryRecoveryStatePath) << "\n";
         summary << "memory_recovery_state_note: selected latest-loadable-save memory recovery anchor persists between launches\n";
+        summary << "branch_aware_memory_reconstruction_state: " << memoryRecovery.state << "\n";
     }
     summary << "memory_recovery_compatible_archived_evidence_count: "
             << memoryRecovery.compatibleArchivedEvidenceCount << "\n";
@@ -7607,6 +7608,8 @@ void writeStatus(
          << companionSnapshot.postPlayPipeline.memoryRecovery.laterArchivedEvidenceCount << ",\n";
     json << "  \"memory_recovery_state_path\": \""
          << jsonEscape(pathString(companionSnapshot.memoryRecoveryStatePath)) << "\",\n";
+    json << "  \"branch_aware_memory_reconstruction_state\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.memoryRecovery.state) << "\",\n";
     json << "  \"entry_point_readiness\": \"" << jsonEscape(effectiveEntryPointReadiness) << "\",\n";
     json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(effectivePostPlayPackagePath)) << "\",\n";
     json << "  \"post_play_package_readiness\": \"" << jsonEscape(effectivePostPlayPackageReadiness) << "\",\n";

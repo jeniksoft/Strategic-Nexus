@@ -1094,6 +1094,7 @@ Required:
 
 Current progress:
 Real-session loop output, companion snapshot JSON, Status Center summary text, tray JSON, compare output, trend output, and tray smoke coverage now expose a fail-closed memory recovery state, confidence, warning visibility, selected latest-loadable-save recovery anchor, `branch_aware_memory_reconstruction_state`, and `memory_recovery_state_path`. Degraded or attention-needed recovery can become the top-level `review_memory_recovery_status` next action with an evidence path. Remaining work is durable campaign memory merge and deeper branch-aware reconstruction from only entry-point-compatible evidence.
+The companion snapshot, tray snapshot, and memory-recovery sidecar now also surface the explicit `branch_aware_memory_reconstruction_state` alias so the durable branch-aware recovery state stays visible without reopening the nested memory-recovery object.
 Current-head verification confirms the companion, tray, real-session loop, compare, trend, and v0 pipeline surfaces still expose `review_memory_recovery_status`, the selected latest-loadable-save recovery anchor, `branch_aware_memory_reconstruction_state`, and `memory_recovery_state_path` on current head, so the durable sidecar path stays visible across the whole recovery chain.
 
 ---

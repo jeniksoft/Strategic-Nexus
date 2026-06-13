@@ -3241,12 +3241,18 @@ int main()
             content.find("\"memory_recovery_state_path\": \"") != std::string::npos,
             "status snapshot should include memory recovery state path");
         requireCondition(
+            content.find("\"branch_aware_memory_reconstruction_state\": \"degraded\"") != std::string::npos,
+            "status snapshot should include the branch-aware memory reconstruction state");
+        requireCondition(
             content.find("status_ui_state_note: active page and normal window placement persist between launches") != std::string::npos,
             "status snapshot summary should describe status UI state persistence");
         requireCondition(
             content.find("memory_recovery_state_note: selected latest-loadable-save memory recovery anchor persists between launches") !=
                 std::string::npos,
             "status snapshot summary should describe memory recovery state persistence");
+        requireCondition(
+            content.find("branch_aware_memory_reconstruction_state: degraded") != std::string::npos,
+            "status snapshot summary should expose the branch-aware memory reconstruction state");
         std::ifstream memoryRecoveryStateIn(statusConfig.memoryRecoveryStatePath, std::ios::binary);
         const std::string memoryRecoveryStateContent(
             (std::istreambuf_iterator<char>(memoryRecoveryStateIn)),
@@ -3254,6 +3260,8 @@ int main()
         requireCondition(
             memoryRecoveryStateContent.find("\"schema_version\": 1") != std::string::npos &&
                 memoryRecoveryStateContent.find("\"branch_ambiguity_detected\": true") != std::string::npos &&
+                memoryRecoveryStateContent.find("\"branch_aware_memory_reconstruction_state\": \"degraded\"") !=
+                    std::string::npos &&
                 memoryRecoveryStateContent.find("\"state\": \"degraded\"") != std::string::npos &&
                 memoryRecoveryStateContent.find("\"next_action\": \"review_entry_point_ambiguity\"") != std::string::npos,
             "memory recovery state sidecar should persist the durable merged branch-ambiguity state");

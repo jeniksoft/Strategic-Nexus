@@ -4322,6 +4322,24 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-339-surface-branch-aware-memory-reconstruction-state-alias",
+      "title": "Surface branch-aware memory reconstruction state alias",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "4C. Daemon-Loss Memory Recovery / branch-aware recovery visibility",
+      "goal": "Expose branch_aware_memory_reconstruction_state in the companion snapshot, tray snapshot, status summary text, and memory-recovery sidecar so durable branch-aware recovery remains visible without reopening the nested memory-recovery object.",
+      "acceptance": [
+        "Companion snapshot JSON, tray snapshot JSON, and status summary text expose branch_aware_memory_reconstruction_state.",
+        "The memory-recovery state sidecar also includes branch_aware_memory_reconstruction_state alongside the existing fail-closed recovery fields.",
+        "tools/run_v0_pipeline_tests.cmd and tools/smoke_snc_tray.cmd pass on current head after the alias is added."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd",
+        "tools/smoke_snc_tray.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }

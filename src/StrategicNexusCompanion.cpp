@@ -3460,6 +3460,7 @@ std::string buildStatusCenterSummaryText(
     if (!memoryRecoveryStatePath.empty()) {
         text << "memory_recovery_state_path: " << pathString(memoryRecoveryStatePath) << "\n";
         text << "memory_recovery_state_note: selected latest-loadable-save memory recovery anchor persists between launches\n";
+        text << "branch_aware_memory_reconstruction_state: " << postPlayPipeline.memoryRecovery.state << "\n";
     }
     return text.str();
 }
@@ -3959,6 +3960,8 @@ void writeMemoryRecoveryStateJson(
            << jsonString(snapshot.postPlayPipeline.reason) << ",\n";
     output << indent << "  \"branch_ambiguity_detected\": "
            << (snapshot.postPlayPipeline.branchAmbiguityDetected ? "true" : "false") << ",\n";
+    output << indent << "  \"branch_aware_memory_reconstruction_state\": "
+           << jsonString(snapshot.postPlayPipeline.memoryRecovery.state) << ",\n";
     output << indent << "  \"memory_recovery\": {\n";
     output << indent << "    \"state\": " << jsonString(snapshot.postPlayPipeline.memoryRecovery.state) << ",\n";
     output << indent << "    \"reason\": " << jsonString(snapshot.postPlayPipeline.memoryRecovery.reason) << ",\n";
@@ -4548,6 +4551,8 @@ std::string serializeCompanionStatusSnapshot(const CompanionStatusSnapshot& snap
     output << "  \"owner_test_playbook_path\": " << jsonString(pathString(snapshot.ownerTestPlaybookPath)) << ",\n";
     output << "  \"status_ui_state_path\": " << jsonString(pathString(snapshot.statusUiStatePath)) << ",\n";
     output << "  \"memory_recovery_state_path\": " << jsonString(pathString(snapshot.memoryRecoveryStatePath)) << ",\n";
+    output << "  \"branch_aware_memory_reconstruction_state\": "
+           << jsonString(snapshot.postPlayPipeline.memoryRecovery.state) << ",\n";
     output << "  \"status_center_summary_text\": " << jsonString(snapshot.statusCenterSummaryText) << "\n";
     output << "}\n";
     return output.str();
