@@ -6749,6 +6749,7 @@ void writeNextStepsBrief(
     const bool generatedOverlayPublishAllowed,
     const strategic_nexus::CompanionGeneratedOverlayPublishGateStatus& generatedOverlayPublishGate,
     const strategic_nexus::CompanionMpOverlayPackageStatus& mpOverlayPackage,
+    const strategic_nexus::CompanionLocalLlmStatus& localLlm,
     const strategic_nexus::CompanionFriendTrustStoreStatus& friendTrustStore,
     const strategic_nexus::CompanionLifecycleStatus& lifecycle,
     const strategic_nexus::CompanionSupportReportStatus& supportReport,
@@ -6796,6 +6797,16 @@ void writeNextStepsBrief(
     if (!postPlayPackagePersonalityProfilePromptOutputNote.empty()) {
         brief << "- Post-play personality profile note: "
               << ownerFacingStatusValueUtf8(postPlayPackagePersonalityProfilePromptOutputNote) << "\n";
+    }
+    if (!localLlm.summary.empty()) {
+        brief << "- Local LLM model manager summary: " << ownerFacingStatusValueUtf8(localLlm.summary) << "\n";
+    }
+    if (!localLlm.modelStatePath.empty()) {
+        brief << "- Local LLM model state path: " << pathString(localLlm.modelStatePath) << "\n";
+    }
+    if (!localLlm.installGuidance.empty()) {
+        brief << "- Local LLM install guidance: "
+              << ownerFacingStatusValueUtf8(localLlm.installGuidance) << "\n";
     }
     if (campaignLibraryPlanPresent) {
         brief << "- Campaign library plan: " << pathString(campaignLibraryPlanPath) << "\n";
@@ -7395,6 +7406,7 @@ void writeStatus(
         effectiveGeneratedOverlayPublishAllowed,
         companionSnapshot.generatedOverlayPublishGate,
         companionSnapshot.mpOverlayPackage,
+        companionSnapshot.localLlm,
         companionSnapshot.friendTrustStore,
         companionSnapshot.lifecycle,
         companionSnapshot.supportReport,

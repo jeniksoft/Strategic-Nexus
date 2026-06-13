@@ -878,6 +878,20 @@ try {
                         throw "SNC tray local LLM attention state did not point next_action_path at local_llm_model_state_path."
                     }
                 }
+                $briefMatched = $false
+                for ($briefAttempt = 0; $briefAttempt -lt 10; $briefAttempt++) {
+                    $briefText = Get-Content -Raw -LiteralPath $json.next_steps_brief_path
+                    if ($briefText -like "*Local LLM model manager summary:*" -and
+                        $briefText -like "*Local LLM model state path:*" -and
+                        $briefText -like "*Local LLM install guidance:*") {
+                        $briefMatched = $true
+                        break
+                    }
+                    Start-Sleep -Milliseconds 200
+                }
+                if (-not $briefMatched) {
+                    throw "SNC tray next-steps brief did not expose the local LLM model-manager lines."
+                }
                 if ([string]::IsNullOrWhiteSpace([string]$json.friend_trust_store_state)) {
                     throw "SNC tray status JSON did not expose friend_trust_store_state."
                 }
