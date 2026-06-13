@@ -644,6 +644,7 @@ The support report preview helper now also emits a direct open-command hint for 
 The tray next-action routing now also mirrors `review_support_report_status` when support report is the selected follow-up, preserving the support report preview/open/prepare hints while higher-priority recovery, MP handoff, and local LLM guidance still win first.
 The companion next-action routing now also exposes a top-level support-report review action when the support report is the selected release-companion follow-up, while still leaving crash recovery, MP handoff, and local LLM attention ahead of it in priority.
 Archive setup or accessibility attention now routes to `review_archive_status` with archive-root recovery as the next action path, so the companion and tray surfaces distinguish archive recovery from the generic status fallback.
+Current-head verification now also confirms `dist/strategic_nexus_companion_test.exe`, `tools/smoke_snc_tray.cmd`, and `tools/run_v0_pipeline_tests.cmd` pass on current head, so the support-report preview/open-command-hint contract remains visible and the broader release-companion workflow can stay queued separately.
 
 ---
 

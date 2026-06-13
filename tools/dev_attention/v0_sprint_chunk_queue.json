@@ -9,6 +9,26 @@
   "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, visible outbox-plan template action, and the new transport-adapter probe CLI are implemented or wired in. The companion now also surfaces the explicit host-owned automatic handoff sync gap for host rotation, so the remaining 15G work stays discoverable and fail closed. The canonical multiplayer season guide now also names the trust-store control surface, so revoke/block/disable-auto-sync guidance stays discoverable alongside the manual MP fallback. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. The 9C pressure-band opportunistic-expansion reject refinements are now covered on current head, and the next queue slice adds a trauma/trust reject refinement while the remaining visible queue item is still the blocked 15G transport adapter. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract, and the next verification step is to keep zero-history bootstrap provenance visible on current head while the remaining target-specific gameplay rule generation stays deferred. The next worker-ready 6E slice surfaces post-play campaign identity state summary in companion and tray owner-facing status text, and the next worker-ready verification slice checks personality-profile store reuse in the integrated empire-state builder on current head.",
   "chunks": [
     {
+      "id": "v0-sprint-319-verify-support-report-preview-open-command-hints-on-current-head",
+      "title": "Verify support report preview and open-command hints on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "1J. Release Companion Orchestrator UX",
+      "goal": "Confirm the support report preview helper and companion/tray follow-up surfaces still expose the local preview, open-command hint, and approval-gated prepare path on current head.",
+      "acceptance": [
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head.",
+        "Current-head companion and tray surfaces still expose the support-report preview path, open-command hint, and approval-gated prepare wording."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    },
+    {
       "id": "v0-sprint-285-surface-integrated-empire-field-availability-summary",
       "title": "Surface integrated empire field availability summary",
       "status": "done",
