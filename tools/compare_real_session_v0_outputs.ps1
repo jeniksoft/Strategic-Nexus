@@ -355,8 +355,12 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
     $previousMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $previousEvidence -Property "memory_recovery_anchor_entry_point_id"
     $previousMemoryRecoveryStatePath = Get-OptionalString -Object $previousEvidence -Property "memory_recovery_state_path"
     $previousBranchAwareMemoryReconstructionState = Get-OptionalString -Object $previousEvidence -Property "branch_aware_memory_reconstruction_state"
+    $previousEntryPointCampaignKey = ""
+    $previousEntryPointEmpireName = ""
     $previousPostPlayPackageCampaignIdentityStateSummary = ""
     if ($null -ne $previousEvidence.entry_point_post_play) {
+        $previousEntryPointCampaignKey = Get-OptionalString -Object $previousEvidence.entry_point_post_play -Property "entry_point_campaign_key"
+        $previousEntryPointEmpireName = Get-OptionalString -Object $previousEvidence.entry_point_post_play -Property "entry_point_empire_name"
         $previousPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $previousEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
         if ($null -ne $previousEvidence.entry_point_post_play.integrated_empire_state) {
             $previousIntegratedEmpireStatePresent = Get-OptionalString -Object $previousEvidence.entry_point_post_play.integrated_empire_state -Property "present"
@@ -386,6 +390,12 @@ if (Test-Path -LiteralPath $previousEvidencePath) {
             $previousPostPlayPersonalityProfileZeroHistoryBootstrap = Get-OptionalString -Object $previousEvidence.entry_point_post_play.personality_profile -Property "zero_history_bootstrap"
             if ([string]::IsNullOrWhiteSpace($previousPostPlayPersonalityProfileZeroHistoryBootstrap)) { $previousPostPlayPersonalityProfileZeroHistoryBootstrap = "false" }
         }
+    }
+    if ([string]::IsNullOrWhiteSpace($previousEntryPointCampaignKey)) {
+        $previousEntryPointCampaignKey = $previousIntegratedEmpireStateCampaignKey
+    }
+    if ([string]::IsNullOrWhiteSpace($previousEntryPointEmpireName)) {
+        $previousEntryPointEmpireName = $previousIntegratedEmpireStateEmpireName
     }
     $previousGeneratedOverlayPublishAllowed = Get-OptionalString -Object $previousEvidence -Property "generated_overlay_publish_allowed"
     if ($null -ne $previousEvidence.campaign_library) {
@@ -459,8 +469,12 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
     $currentMemoryRecoveryAnchorEntryPointId = Get-OptionalString -Object $currentEvidence -Property "memory_recovery_anchor_entry_point_id"
     $currentMemoryRecoveryStatePath = Get-OptionalString -Object $currentEvidence -Property "memory_recovery_state_path"
     $currentBranchAwareMemoryReconstructionState = Get-OptionalString -Object $currentEvidence -Property "branch_aware_memory_reconstruction_state"
+    $currentEntryPointCampaignKey = ""
+    $currentEntryPointEmpireName = ""
     $currentPostPlayPackageCampaignIdentityStateSummary = ""
     if ($null -ne $currentEvidence.entry_point_post_play) {
+        $currentEntryPointCampaignKey = Get-OptionalString -Object $currentEvidence.entry_point_post_play -Property "entry_point_campaign_key"
+        $currentEntryPointEmpireName = Get-OptionalString -Object $currentEvidence.entry_point_post_play -Property "entry_point_empire_name"
         $currentPostPlayPackageCampaignIdentityStateSummary = Get-OptionalString -Object $currentEvidence.entry_point_post_play -Property "post_play_package_campaign_identity_state_summary"
         if ($null -ne $currentEvidence.entry_point_post_play.integrated_empire_state) {
             $currentIntegratedEmpireStatePresent = Get-OptionalString -Object $currentEvidence.entry_point_post_play.integrated_empire_state -Property "present"
@@ -490,6 +504,12 @@ if (Test-Path -LiteralPath $currentEvidencePath) {
             $currentPostPlayPersonalityProfileZeroHistoryBootstrap = Get-OptionalString -Object $currentEvidence.entry_point_post_play.personality_profile -Property "zero_history_bootstrap"
             if ([string]::IsNullOrWhiteSpace($currentPostPlayPersonalityProfileZeroHistoryBootstrap)) { $currentPostPlayPersonalityProfileZeroHistoryBootstrap = "false" }
         }
+    }
+    if ([string]::IsNullOrWhiteSpace($currentEntryPointCampaignKey)) {
+        $currentEntryPointCampaignKey = $currentIntegratedEmpireStateCampaignKey
+    }
+    if ([string]::IsNullOrWhiteSpace($currentEntryPointEmpireName)) {
+        $currentEntryPointEmpireName = $currentIntegratedEmpireStateEmpireName
     }
     $currentGeneratedOverlayPublishAllowed = Get-OptionalString -Object $currentEvidence -Property "generated_overlay_publish_allowed"
     if ($null -ne $currentEvidence.campaign_library) {
@@ -871,6 +891,16 @@ $result = [ordered]@{
         previous = $previousEntryPointReason
         current = $currentEntryPointReason
         changed = ($previousEntryPointReason -ne $currentEntryPointReason)
+    }
+    entry_point_campaign_key = [ordered]@{
+        previous = $previousEntryPointCampaignKey
+        current = $currentEntryPointCampaignKey
+        changed = ($previousEntryPointCampaignKey -ne $currentEntryPointCampaignKey)
+    }
+    entry_point_empire_name = [ordered]@{
+        previous = $previousEntryPointEmpireName
+        current = $currentEntryPointEmpireName
+        changed = ($previousEntryPointEmpireName -ne $currentEntryPointEmpireName)
     }
     entry_point_count = [ordered]@{
         previous = $previousEntryPointCount
@@ -1375,6 +1405,12 @@ Write-Host ("real_session_v0_compare_entry_point_readiness_changed=" + ((($previ
 Write-Host ("real_session_v0_compare_entry_point_reason_current=" + $currentEntryPointReason)
 Write-Host ("real_session_v0_compare_entry_point_reason_previous=" + $previousEntryPointReason)
 Write-Host ("real_session_v0_compare_entry_point_reason_changed=" + ((($previousEntryPointReason -ne $currentEntryPointReason).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_entry_point_campaign_key_current=" + $currentEntryPointCampaignKey)
+Write-Host ("real_session_v0_compare_entry_point_campaign_key_previous=" + $previousEntryPointCampaignKey)
+Write-Host ("real_session_v0_compare_entry_point_campaign_key_changed=" + ((($previousEntryPointCampaignKey -ne $currentEntryPointCampaignKey).ToString().ToLowerInvariant())))
+Write-Host ("real_session_v0_compare_entry_point_empire_name_current=" + $currentEntryPointEmpireName)
+Write-Host ("real_session_v0_compare_entry_point_empire_name_previous=" + $previousEntryPointEmpireName)
+Write-Host ("real_session_v0_compare_entry_point_empire_name_changed=" + ((($previousEntryPointEmpireName -ne $currentEntryPointEmpireName).ToString().ToLowerInvariant())))
 Write-Host ("real_session_v0_compare_entry_point_count_current=" + $currentEntryPointCount)
 Write-Host ("real_session_v0_compare_entry_point_count_previous=" + $previousEntryPointCount)
 Write-Host ("real_session_v0_compare_entry_point_count_changed=" + ((($previousEntryPointCount -ne $currentEntryPointCount).ToString().ToLowerInvariant())))

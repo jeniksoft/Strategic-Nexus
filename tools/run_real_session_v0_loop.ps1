@@ -757,6 +757,8 @@ $entryPointReadiness = [string]$entryPointAnalysisJson.readiness
 $entryPointReason = [string]$entryPointAnalysisJson.reason
 $entryPointCount = [string]$entryPointAnalysisJson.entry_point_count
 $entryPointBranchAmbiguity = [string]([bool]$entryPointAnalysisJson.branch_ambiguity_detected).ToString().ToLowerInvariant()
+$entryPointCampaignKey = ""
+$entryPointEmpireName = ""
 $branchAwareMemoryReconstructionState = "entry_point_compatible"
 if ([string]::IsNullOrWhiteSpace($entryPointAnalysisPath) -or [string]::IsNullOrWhiteSpace($entryPointReadiness)) {
     $branchAwareMemoryReconstructionState = "entry_point_analysis_missing"
@@ -923,6 +925,9 @@ foreach ($candidateDecision in @($candidateDecisionPackageJson.candidate_decisio
         break
     }
 }
+
+$entryPointCampaignKey = [string]$integratedEmpireStateCampaignKey
+$entryPointEmpireName = [string]$integratedEmpireStateEmpireName
 
 if ($sncGeneratedOverlayDraftEligible) {
     Write-Host "==> build snc dsl draft package"
@@ -1398,6 +1403,8 @@ Write-Host ("real_session_v0_loop_archive_copied_save_count=" + $archiveCopiedSa
 Write-Host ("real_session_v0_loop_entry_point_analysis_path=" + $entryPointAnalysisPath)
 Write-Host ("real_session_v0_loop_entry_point_readiness=" + $entryPointReadiness)
 Write-Host ("real_session_v0_loop_entry_point_reason=" + $entryPointReason)
+Write-Host ("real_session_v0_loop_entry_point_campaign_key=" + $entryPointCampaignKey)
+Write-Host ("real_session_v0_loop_entry_point_empire_name=" + $entryPointEmpireName)
 Write-Host ("real_session_v0_loop_entry_point_count=" + $entryPointCount)
 Write-Host ("real_session_v0_loop_entry_point_branch_ambiguity=" + $entryPointBranchAmbiguity)
 Write-Host ("real_session_v0_loop_memory_recovery_state=" + $memoryRecoveryState)
@@ -1660,6 +1667,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     $compareEntryPointReasonCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_reason_current"
     $compareEntryPointReasonPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_reason_previous"
     $compareEntryPointReasonChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_reason_changed"
+    $compareEntryPointCampaignKeyCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_campaign_key_current"
+    $compareEntryPointCampaignKeyPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_campaign_key_previous"
+    $compareEntryPointCampaignKeyChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_campaign_key_changed"
+    $compareEntryPointEmpireNameCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_empire_name_current"
+    $compareEntryPointEmpireNamePrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_empire_name_previous"
+    $compareEntryPointEmpireNameChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_empire_name_changed"
     $compareEntryPointCountCurrent = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_count_current"
     $compareEntryPointCountPrevious = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_count_previous"
     $compareEntryPointCountChanged = Get-KeyValueLineValue -Lines $compareLines -Key "real_session_v0_compare_entry_point_count_changed"
@@ -1995,6 +2008,12 @@ if (-not [string]::IsNullOrWhiteSpace($PreviousSessionDirForCompare)) {
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_reason_current=" + $compareEntryPointReasonCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_reason_previous=" + $compareEntryPointReasonPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_reason_changed=" + $compareEntryPointReasonChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_entry_point_campaign_key_current=" + $compareEntryPointCampaignKeyCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_entry_point_campaign_key_previous=" + $compareEntryPointCampaignKeyPrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_entry_point_campaign_key_changed=" + $compareEntryPointCampaignKeyChanged)
+    Write-Host ("real_session_v0_loop_compare_auto_entry_point_empire_name_current=" + $compareEntryPointEmpireNameCurrent)
+    Write-Host ("real_session_v0_loop_compare_auto_entry_point_empire_name_previous=" + $compareEntryPointEmpireNamePrevious)
+    Write-Host ("real_session_v0_loop_compare_auto_entry_point_empire_name_changed=" + $compareEntryPointEmpireNameChanged)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_count_current=" + $compareEntryPointCountCurrent)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_count_previous=" + $compareEntryPointCountPrevious)
     Write-Host ("real_session_v0_loop_compare_auto_entry_point_count_changed=" + $compareEntryPointCountChanged)
@@ -2489,6 +2508,12 @@ if ($EmitTrendSummary) {
     $trendEntryPointReasonCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_reason_current"
     $trendEntryPointReasonPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_reason_previous"
     $trendEntryPointReasonChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_reason_changed"
+    $trendEntryPointCampaignKeyCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_campaign_key_current"
+    $trendEntryPointCampaignKeyPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_campaign_key_previous"
+    $trendEntryPointCampaignKeyChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_campaign_key_changed"
+    $trendEntryPointEmpireNameCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_empire_name_current"
+    $trendEntryPointEmpireNamePrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_empire_name_previous"
+    $trendEntryPointEmpireNameChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_empire_name_changed"
     $trendEntryPointCountCurrent = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_count_current"
     $trendEntryPointCountPrevious = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_count_previous"
     $trendEntryPointCountChanged = Get-KeyValueLineValue -Lines $trendLines -Key "real_session_v0_trend_entry_point_count_changed"
@@ -2799,6 +2824,12 @@ if ($EmitTrendSummary) {
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_reason_current=" + $trendEntryPointReasonCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_reason_previous=" + $trendEntryPointReasonPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_reason_changed=" + $trendEntryPointReasonChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_entry_point_campaign_key_current=" + $trendEntryPointCampaignKeyCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_entry_point_campaign_key_previous=" + $trendEntryPointCampaignKeyPrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_entry_point_campaign_key_changed=" + $trendEntryPointCampaignKeyChanged)
+    Write-Host ("real_session_v0_loop_trend_auto_entry_point_empire_name_current=" + $trendEntryPointEmpireNameCurrent)
+    Write-Host ("real_session_v0_loop_trend_auto_entry_point_empire_name_previous=" + $trendEntryPointEmpireNamePrevious)
+    Write-Host ("real_session_v0_loop_trend_auto_entry_point_empire_name_changed=" + $trendEntryPointEmpireNameChanged)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_count_current=" + $trendEntryPointCountCurrent)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_count_previous=" + $trendEntryPointCountPrevious)
     Write-Host ("real_session_v0_loop_trend_auto_entry_point_count_changed=" + $trendEntryPointCountChanged)
@@ -3343,6 +3374,8 @@ $sessionEvidence = [ordered]@{
         entry_point_analysis_path = $entryPointAnalysisPath
         entry_point_readiness = $entryPointReadiness
         entry_point_reason = $entryPointReason
+        entry_point_campaign_key = $entryPointCampaignKey
+        entry_point_empire_name = $entryPointEmpireName
         entry_point_count = $entryPointCount
         entry_point_branch_ambiguity = $entryPointBranchAmbiguity
         branch_aware_memory_reconstruction_state = $branchAwareMemoryReconstructionState

@@ -501,6 +501,12 @@ if ($sessionCount -ge 2) {
     $compareEntryPointReasonCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_reason_current=*" } | Select-Object -First 1
     $compareEntryPointReasonPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_reason_previous=*" } | Select-Object -First 1
     $compareEntryPointReasonChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_reason_changed=*" } | Select-Object -First 1
+    $compareEntryPointCampaignKeyCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_campaign_key_current=*" } | Select-Object -First 1
+    $compareEntryPointCampaignKeyPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_campaign_key_previous=*" } | Select-Object -First 1
+    $compareEntryPointCampaignKeyChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_campaign_key_changed=*" } | Select-Object -First 1
+    $compareEntryPointEmpireNameCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_empire_name_current=*" } | Select-Object -First 1
+    $compareEntryPointEmpireNamePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_empire_name_previous=*" } | Select-Object -First 1
+    $compareEntryPointEmpireNameChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_empire_name_changed=*" } | Select-Object -First 1
     $compareEntryPointCountCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_count_current=*" } | Select-Object -First 1
     $compareEntryPointCountPreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_count_previous=*" } | Select-Object -First 1
     $compareEntryPointCountChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_entry_point_count_changed=*" } | Select-Object -First 1
@@ -1035,6 +1041,24 @@ if ($sessionCount -ge 2) {
     }
     if (-not [string]::IsNullOrWhiteSpace($compareEntryPointReasonChangedLine)) {
         $latestEntryPointReasonChanged = $compareEntryPointReasonChangedLine.Substring("real_session_v0_compare_entry_point_reason_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointCampaignKeyCurrentLine)) {
+        $latestEntryPointCampaignKeyCurrent = $compareEntryPointCampaignKeyCurrentLine.Substring("real_session_v0_compare_entry_point_campaign_key_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointCampaignKeyPreviousLine)) {
+        $latestEntryPointCampaignKeyPrevious = $compareEntryPointCampaignKeyPreviousLine.Substring("real_session_v0_compare_entry_point_campaign_key_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointCampaignKeyChangedLine)) {
+        $latestEntryPointCampaignKeyChanged = $compareEntryPointCampaignKeyChangedLine.Substring("real_session_v0_compare_entry_point_campaign_key_changed=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointEmpireNameCurrentLine)) {
+        $latestEntryPointEmpireNameCurrent = $compareEntryPointEmpireNameCurrentLine.Substring("real_session_v0_compare_entry_point_empire_name_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointEmpireNamePreviousLine)) {
+        $latestEntryPointEmpireNamePrevious = $compareEntryPointEmpireNamePreviousLine.Substring("real_session_v0_compare_entry_point_empire_name_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($compareEntryPointEmpireNameChangedLine)) {
+        $latestEntryPointEmpireNameChanged = $compareEntryPointEmpireNameChangedLine.Substring("real_session_v0_compare_entry_point_empire_name_changed=".Length)
     }
     if (-not [string]::IsNullOrWhiteSpace($compareEntryPointCountCurrentLine)) {
         $latestEntryPointCountCurrent = $compareEntryPointCountCurrentLine.Substring("real_session_v0_compare_entry_point_count_current=".Length)
@@ -1636,6 +1660,14 @@ $result = [ordered]@{
         previous = $latestPostPlayPackageCampaignIdentityStateSummaryPrevious
         changed = $latestPostPlayPackageCampaignIdentityStateSummaryChanged
     }
+    latest_entry_point_identity = [ordered]@{
+        campaign_key_current = $latestEntryPointCampaignKeyCurrent
+        campaign_key_previous = $latestEntryPointCampaignKeyPrevious
+        campaign_key_changed = $latestEntryPointCampaignKeyChanged
+        empire_name_current = $latestEntryPointEmpireNameCurrent
+        empire_name_previous = $latestEntryPointEmpireNamePrevious
+        empire_name_changed = $latestEntryPointEmpireNameChanged
+    }
     latest_integrated_empire_state = [ordered]@{
         present_current = $latestIntegratedEmpireStatePresentCurrent
         present_previous = $latestIntegratedEmpireStatePresentPrevious
@@ -2044,6 +2076,12 @@ Write-Host ("real_session_v0_trend_entry_point_readiness_changed=" + $latestEntr
 Write-Host ("real_session_v0_trend_entry_point_reason_current=" + $latestEntryPointReasonCurrent)
 Write-Host ("real_session_v0_trend_entry_point_reason_previous=" + $latestEntryPointReasonPrevious)
 Write-Host ("real_session_v0_trend_entry_point_reason_changed=" + $latestEntryPointReasonChanged)
+Write-Host ("real_session_v0_trend_entry_point_campaign_key_current=" + $latestEntryPointCampaignKeyCurrent)
+Write-Host ("real_session_v0_trend_entry_point_campaign_key_previous=" + $latestEntryPointCampaignKeyPrevious)
+Write-Host ("real_session_v0_trend_entry_point_campaign_key_changed=" + $latestEntryPointCampaignKeyChanged)
+Write-Host ("real_session_v0_trend_entry_point_empire_name_current=" + $latestEntryPointEmpireNameCurrent)
+Write-Host ("real_session_v0_trend_entry_point_empire_name_previous=" + $latestEntryPointEmpireNamePrevious)
+Write-Host ("real_session_v0_trend_entry_point_empire_name_changed=" + $latestEntryPointEmpireNameChanged)
 Write-Host ("real_session_v0_trend_entry_point_count_current=" + $latestEntryPointCountCurrent)
 Write-Host ("real_session_v0_trend_entry_point_count_previous=" + $latestEntryPointCountPrevious)
 Write-Host ("real_session_v0_trend_entry_point_count_changed=" + $latestEntryPointCountChanged)
