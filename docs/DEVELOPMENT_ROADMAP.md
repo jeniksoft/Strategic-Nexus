@@ -1551,6 +1551,7 @@ A durable campaign-empire personality profile store now exists as a bounded JSON
   The post-play package and real-session compare/trend/evidence pipeline now carry the same summary-only personality profile provenance fields end to end, so owner-visible session artifacts can report whether a validated profile was actually applied without reopening the nested profile store.
   The post-play package prompt-output note is now also surfaced in companion and tray owner-facing status text and brief output, so the summary-only personality profile context stays visible without reopening the raw package JSON.
   Current-head verification now also confirms personality profile store reuse on current head with the bounded store and integrated-state tests, so broader generation/prompt-output reuse work can stay queued separately.
+  Current-head verification now also confirms the post-play package personality profile prompt-output note stays visible across compare, trend, and loop evidence outputs on current head, so the summary-only profile context remains readable end to end.
 
 ---
 

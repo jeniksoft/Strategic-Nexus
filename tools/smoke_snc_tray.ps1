@@ -277,6 +277,7 @@ function Initialize-ReadyOwnerTestFixture {
       "capabilities": ["mp_package_sync", "handoff_sync"],
       "trust_state": "trusted",
       "auto_sync_enabled": true,
+      "mp_sync_transport_adapter_path": "dist/generated_overlay_mp_package_cli",
       "accepted_at": "2026-06-08T17:36:00Z",
       "updated_at": "2026-06-08T17:36:00Z"
     },

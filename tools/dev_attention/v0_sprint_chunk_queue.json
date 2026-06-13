@@ -4033,5 +4033,23 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-323-verify-post-play-personality-profile-prompt-output-note-on-current-head",
+      "title": "Verify post-play personality profile prompt-output note on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "9B. Campaign-Empire Personality Profile Store",
+      "goal": "Confirm the current-head real-session compare, trend, loop, and evidence outputs still forward the post_play_package_personality_profile_prompt_output_note field, so summary-only versus validated profile context stays visible outside the raw post-play JSON.",
+      "acceptance": [
+        "tools/run_v0_pipeline_tests.cmd passes on current head.",
+        "Current-head compare, trend, loop, and evidence outputs still forward post_play_package_personality_profile_prompt_output_note and its drift fields where applicable.",
+        "The verification remains read-only and does not change personality generation behavior or schema contracts."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }
