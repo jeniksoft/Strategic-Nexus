@@ -195,6 +195,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::BalanceAgainstHegemon && traumatized && !distrustsFederations
+        && !weakCapability && !fearful && !summary.hegemonyDetected && summary.instability >= 0.30) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected balance against hegemon: war trauma and rising pressure do not justify coalition balancing yet.";
+        decision.confidence = 0.44;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::BalanceAgainstHegemon && distrustsFederations && !traumatized
         && summary.hegemonyDetected) {
         decision.type = DoctrineType::DefensivePosture;
