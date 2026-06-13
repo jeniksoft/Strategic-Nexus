@@ -4067,6 +4067,28 @@
         "dist/personality_engine_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-325-verify-branch-aware-memory-recovery-degradation-on-current-head",
+      "title": "Verify branch-aware memory recovery degradation on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "4C. Daemon-Loss Memory Recovery / branch-aware recovery visibility",
+      "goal": "Confirm the current-head companion, tray, and real-session outputs still keep branch-aware memory recovery degraded when entry-point branch ambiguity or missing analysis is present, with the latest compatible loadable-save anchor visible and review_entry_point_ambiguity still taking precedence over review_memory_recovery_status.",
+      "acceptance": [
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head.",
+        "Current-head surfaces still expose degraded memory recovery with reduced confidence, the selected latest-compatible loadable-save recovery anchor, and the review_entry_point_ambiguity precedence over review_memory_recovery_status."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": [
+        "v0-sprint-320-verify-branch-aware-memory-recovery-and-sidecar-path-on-current-head"
+      ]
     }
   ]
 }
