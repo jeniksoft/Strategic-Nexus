@@ -168,6 +168,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::BalanceAgainstHegemon && summary.hegemonyDetected
+        && empire.personality.honor < 0.4 && empire.personality.opportunism > 0.65) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected balance against hegemon: low honor and high opportunism make coalition balancing unreliable under pressure.";
+        decision.confidence = 0.45;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::BalanceAgainstHegemon && traumatized && distrustsFederations
         && summary.hegemonyDetected) {
         decision.type = DoctrineType::DefensivePosture;

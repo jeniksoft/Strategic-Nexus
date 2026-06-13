@@ -262,6 +262,45 @@ int main()
         lowTrustHegemonRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
         "low-trust hegemon reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState lowHonorHegemonEmpire = boldEmpire;
+    lowHonorHegemonEmpire.id = "empire_low_honor_hegemon";
+    lowHonorHegemonEmpire.power.fleetPower = 90;
+    lowHonorHegemonEmpire.power.economicRank = 3;
+    lowHonorHegemonEmpire.power.technologyRank = 3;
+    lowHonorHegemonEmpire.personality.boldness = 0.42;
+    lowHonorHegemonEmpire.personality.paranoia = 0.27;
+    lowHonorHegemonEmpire.personality.honor = 0.29;
+    lowHonorHegemonEmpire.personality.opportunism = 0.73;
+    lowHonorHegemonEmpire.adaptiveState.fearOfPlayer = 0.24;
+    lowHonorHegemonEmpire.adaptiveState.warTrauma = 0.15;
+    lowHonorHegemonEmpire.adaptiveState.trustInFederations = 0.56;
+
+    const auto lowHonorHegemonReject = engine.refineDoctrineDecision(
+        lowHonorHegemonEmpire,
+        lowTrustHegemonSummary,
+        proposedHegemonBalance);
+    requireCondition(
+        lowHonorHegemonReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "low-honor empire under hegemonic pressure should reject balance-against-hegemon in favor of defense");
+    requireCondition(
+        lowHonorHegemonReject.rationale ==
+            "Rejected balance against hegemon: low honor and high opportunism make coalition balancing unreliable under pressure.",
+        "low-honor balance reject should explain the contradiction");
+    requireCondition(
+        lowHonorHegemonReject.confidence == 0.45,
+        "low-honor balance reject should clamp confidence");
+    const auto lowHonorHegemonRejectNote = engine.buildDoctrineAlignmentNote(
+        lowHonorHegemonEmpire,
+        proposedHegemonBalance,
+        lowHonorHegemonReject);
+    requireCondition(
+        lowHonorHegemonRejectNote.find("rejected balance_against_hegemon in favor of defensive_posture") !=
+            std::string::npos,
+        "low-honor hegemon reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        lowHonorHegemonRejectNote.find("bias = opportunistic pressure") != std::string::npos,
+        "low-honor hegemon reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState lowTrustRisingPressureEmpire = boldEmpire;
     lowTrustRisingPressureEmpire.id = "empire_low_trust_rising_pressure";
     lowTrustRisingPressureEmpire.power.fleetPower = 84;
