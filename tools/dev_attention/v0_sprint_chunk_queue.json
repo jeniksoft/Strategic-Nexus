@@ -4305,6 +4305,23 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-338-verify-friend-mp-sync-inbox-stage-helper-on-current-head",
+      "title": "Verify friend MP sync inbox stage helper on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / selected-folder receive staging",
+      "goal": "Confirm the current-head pipeline still exercises the bounded friend MP sync inbox staging helper, including the deterministic transport manifest and fail-closed selected-folder receive-side path, so the selected-folder receive seam stays verified alongside the existing outbox staging helper.",
+      "acceptance": [
+        "tools/run_v0_pipeline_tests.cmd passes on current head.",
+        "The pipeline regression exercises --stage-snc-friend-mp-sync-inbox with a valid envelope/payload pair and confirms the staged directory and manifest path outputs.",
+        "The manifest written by the inbox stage helper keeps the deterministic staged_for_inbox state and the expected campaign/overlay identifiers."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }

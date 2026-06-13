@@ -4528,6 +4528,30 @@ Assert-Contains -Name "snc friend mp sync outbox stage cli manifest" -Text $sncF
 Assert-Contains -Name "snc friend mp sync outbox stage cli manifest" -Text $sncFriendTransportStageManifestJson -Expected '"campaign_id": "campaign-mp-cli-001"'
 Assert-Contains -Name "snc friend mp sync outbox stage cli manifest" -Text $sncFriendTransportStageManifestJson -Expected '"overlay_version": "overlay-v0-cli-001"'
 
+$sncFriendInboxStageOutput = & $exePath `
+    --stage-snc-friend-mp-sync-inbox `
+    $sncFriendMpSyncEnvelopePath `
+    $sncFriendMpSyncEncryptedPayloadPath `
+    $sncFriendTransportAdapterPath `
+    "false"
+if ($LASTEXITCODE -ne 0) {
+    throw "SNC friend MP sync inbox stage CLI failed. Actual output:`n$($sncFriendInboxStageOutput -join "`n")"
+}
+$sncFriendInboxStageText = $sncFriendInboxStageOutput -join "`n"
+Assert-Contains -Name "snc friend mp sync inbox stage cli" -Text $sncFriendInboxStageText -Expected "snc_friend_mp_sync_inbox_stage_success=true"
+Assert-Contains -Name "snc friend mp sync inbox stage cli" -Text $sncFriendInboxStageText -Expected "snc_friend_mp_sync_inbox_stage_state=staged_for_inbox"
+Assert-Contains -Name "snc friend mp sync inbox stage cli" -Text $sncFriendInboxStageText -Expected "snc_friend_mp_sync_inbox_stage_stellaris_running=false"
+Assert-Contains -Name "snc friend mp sync inbox stage cli" -Text $sncFriendInboxStageText -Expected "snc_friend_mp_sync_inbox_stage_directory=$sncFriendTransportAdapterPathText"
+Assert-Contains -Name "snc friend mp sync inbox stage cli" -Text $sncFriendInboxStageText -Expected "snc_friend_mp_sync_inbox_stage_manifest_path="
+$sncFriendInboxStageManifestPath = Join-Path $sncFriendTransportAdapterPath "snc_friend_mp_sync_inbox\campaign-mp-cli-001\overlay-v0-cli-001\snc-node-host-cli-001\snc-node-client-cli-001\snc_friend_mp_sync_transport_manifest.json"
+if (-not (Test-Path -LiteralPath $sncFriendInboxStageManifestPath)) {
+    throw "SNC friend MP sync inbox stage CLI did not write the transport manifest."
+}
+$sncFriendInboxStageManifestJson = Get-Content -LiteralPath $sncFriendInboxStageManifestPath -Raw
+Assert-Contains -Name "snc friend mp sync inbox stage cli manifest" -Text $sncFriendInboxStageManifestJson -Expected '"stage_state": "staged_for_inbox"'
+Assert-Contains -Name "snc friend mp sync inbox stage cli manifest" -Text $sncFriendInboxStageManifestJson -Expected '"campaign_id": "campaign-mp-cli-001"'
+Assert-Contains -Name "snc friend mp sync inbox stage cli manifest" -Text $sncFriendInboxStageManifestJson -Expected '"overlay_version": "overlay-v0-cli-001"'
+
 $sncFriendManualInboxPlanOutput = & $exePath `
     --plan-snc-friend-mp-sync-inbox `
     $sncFriendMpSyncEnvelopePath `
