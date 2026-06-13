@@ -894,6 +894,48 @@ int main()
         capabilityDrivenNote.find("bias = opportunistic pressure") != std::string::npos,
         "capability-driven downgrade note should expose the opportunistic bias");
 
+    strategic_nexus::EmpireState fearfulCapableExpansionEmpire = boldEmpire;
+    fearfulCapableExpansionEmpire.id = "empire_fearful_capable_expansion";
+    fearfulCapableExpansionEmpire.power.fleetPower = 92;
+    fearfulCapableExpansionEmpire.power.economicRank = 4;
+    fearfulCapableExpansionEmpire.power.technologyRank = 4;
+    fearfulCapableExpansionEmpire.personality.boldness = 0.33;
+    fearfulCapableExpansionEmpire.personality.paranoia = 0.79;
+    fearfulCapableExpansionEmpire.personality.honor = 0.47;
+    fearfulCapableExpansionEmpire.personality.opportunism = 0.71;
+    fearfulCapableExpansionEmpire.adaptiveState.fearOfPlayer = 0.73;
+    fearfulCapableExpansionEmpire.adaptiveState.warTrauma = 0.19;
+    fearfulCapableExpansionEmpire.adaptiveState.trustInFederations = 0.48;
+
+    strategic_nexus::StrategicSummary fearfulCapableExpansionSummary = quietSummary;
+    fearfulCapableExpansionSummary.instability = 0.12;
+
+    const auto fearfulCapableExpansionReject = engine.refineDoctrineDecision(
+        fearfulCapableExpansionEmpire,
+        fearfulCapableExpansionSummary,
+        proposedExpansion);
+    requireCondition(
+        fearfulCapableExpansionReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "capable fearful empire under low pressure should still reject opportunistic expansion in favor of defense");
+    requireCondition(
+        fearfulCapableExpansionReject.rationale ==
+            "Personality and capability do not support opportunistic expansion yet.",
+        "capable fearful opportunistic fallback should explain the contradiction");
+    requireCondition(
+        fearfulCapableExpansionReject.confidence == 0.52,
+        "capable fearful opportunistic fallback should clamp confidence");
+    const auto fearfulCapableExpansionRejectNote = engine.buildDoctrineAlignmentNote(
+        fearfulCapableExpansionEmpire,
+        proposedExpansion,
+        fearfulCapableExpansionReject);
+    requireCondition(
+        fearfulCapableExpansionRejectNote.find("downgraded from opportunistic_expansion to defensive_posture") !=
+            std::string::npos,
+        "capable fearful opportunistic fallback note should explain the alignment shift");
+    requireCondition(
+        fearfulCapableExpansionRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
+        "capable fearful opportunistic fallback note should still expose the personality bias");
+
     strategic_nexus::EmpireState steadyEmpire;
     steadyEmpire.id = "empire_steady";
     steadyEmpire.power.fleetPower = 88;

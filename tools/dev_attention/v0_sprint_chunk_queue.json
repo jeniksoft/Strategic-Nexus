@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-13T12:47:43.0000000+02:00",
+  "updated_at": "2026-06-13T12:50:46.8330557+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the blocked 15G signed/encrypted transport adapter remains the long-term gap while the next bounded 9C trauma/trust reject slice is queued on current head.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G real-session evidence before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -4148,7 +4148,7 @@
     {
       "id": "v0-sprint-329-verify-owner-facing-czech-copy-polish-on-current-head",
       "title": "Verify owner-facing Czech copy polish on current head",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "1I. SNC Owner UI And Presentation",
       "goal": "Confirm the owner-facing Czech copy polish remains visible on current head across the companion and tray surfaces, then keep broader UI polish queued separately.",
@@ -4160,6 +4160,23 @@
       "preferred_tests": [
         "dist/strategic_nexus_companion_test.exe",
         "tools/smoke_snc_tray.cmd"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-330-verify-generic-fear-only-opportunistic-fallback-on-current-head",
+      "title": "Verify generic fear-only opportunistic fallback on current head",
+      "status": "not_started",
+      "lane": "verification",
+      "roadmap_anchor": "9C. Personality-To-Rule Validation",
+      "goal": "Confirm the current-head personality engine still downgrades opportunistic expansion for a capable but fearful empire even when capability is adequate and no specific trauma/trust reject branch applies.",
+      "acceptance": [
+        "tests/personality_engine_test.cpp covers a capable, fearful empire with opportunistic expansion proposed under low pressure and no hegemonic pressure.",
+        "dist/personality_engine_test.exe passes on current head after the new regression is added.",
+        "The generic fallback still yields the defensive posture rationale and a downgrade note rather than a new special-case rejection string."
+      ],
+      "preferred_tests": [
+        "dist/personality_engine_test.exe"
       ],
       "dependencies": []
     }
