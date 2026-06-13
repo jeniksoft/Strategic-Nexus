@@ -2535,6 +2535,7 @@ function Invoke-RealSessionTrendHandoffContinuityPriorityCase {
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_entry_point_count_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_entry_point_branch_ambiguity_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_branch_aware_memory_reconstruction_state_current="
+    Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_post_play_doctrine_alignment_note_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_memory_recovery_anchor_entry_point_id_current="
     Assert-Contains -Name "real session trend handoff continuity compare" -Text $compareText -Expected "real_session_v0_compare_memory_recovery_state_path_current="
 
@@ -2554,6 +2555,7 @@ function Invoke-RealSessionTrendHandoffContinuityPriorityCase {
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_entry_point_count_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_entry_point_branch_ambiguity_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_branch_aware_memory_reconstruction_state_current="
+    Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_post_play_doctrine_alignment_note_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_memory_recovery_anchor_entry_point_id_current="
     Assert-Contains -Name "real session trend handoff continuity" -Text $trendText -Expected "real_session_v0_trend_memory_recovery_state_path_current="
     Write-Host "[PASS] real_session_trend_handoff_continuity_priority"
@@ -2931,6 +2933,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_applied="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_schema_compatibility_state="
     Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_package_personality_profile_validated_update_summary="
+    Assert-Contains -Name "real session loop mismatch forwarding output" -Text $text -Expected "real_session_v0_loop_post_play_doctrine_alignment_note="
     $runIdLine = ($output | Where-Object { $_ -like "real_session_v0_loop_run_id=*" } | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($runIdLine)) {
         throw "real session loop mismatch forwarding case missing run id line."
@@ -2957,6 +2960,7 @@ function Invoke-RealSessionLoopMismatchForwardingCase {
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"status_snapshot_present_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"status_snapshot_present_previous"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"status_snapshot_present_changed"'
+    Assert-Contains -Name "real session loop mismatch forwarding evidence compare" -Text $evidenceText -Expected '"post_play_doctrine_alignment_note"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence status center" -Text $evidenceText -Expected '"summary_text"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence save root compare" -Text $evidenceText -Expected '"save_root_resolution_current"'
     Assert-Contains -Name "real session loop mismatch forwarding evidence save root compare" -Text $evidenceText -Expected '"save_root_path_current"'

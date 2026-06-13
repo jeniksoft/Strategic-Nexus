@@ -244,6 +244,9 @@ $latestPostPlayPersonalityProfileValidatedUpdateSummaryChanged = ""
 $latestPostPlayPersonalityProfilePromptOutputNoteCurrent = ""
 $latestPostPlayPersonalityProfilePromptOutputNotePrevious = ""
 $latestPostPlayPersonalityProfilePromptOutputNoteChanged = ""
+$latestPostPlayDoctrineAlignmentNoteCurrent = ""
+$latestPostPlayDoctrineAlignmentNotePrevious = ""
+$latestPostPlayDoctrineAlignmentNoteChanged = ""
 $latestPostPlayPersonalityProfileSourceSaveDateCurrent = ""
 $latestPostPlayPersonalityProfileSourceSaveDatePrevious = ""
 $latestPostPlayPersonalityProfileSourceSaveDateChanged = ""
@@ -528,6 +531,9 @@ if ($sessionCount -ge 2) {
     $comparePostPlayPersonalityProfilePromptOutputNoteCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_prompt_output_note_current=*" } | Select-Object -First 1
     $comparePostPlayPersonalityProfilePromptOutputNotePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_prompt_output_note_previous=*" } | Select-Object -First 1
     $comparePostPlayPersonalityProfilePromptOutputNoteChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_prompt_output_note_changed=*" } | Select-Object -First 1
+    $comparePostPlayDoctrineAlignmentNoteCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_doctrine_alignment_note_current=*" } | Select-Object -First 1
+    $comparePostPlayDoctrineAlignmentNotePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_doctrine_alignment_note_previous=*" } | Select-Object -First 1
+    $comparePostPlayDoctrineAlignmentNoteChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_doctrine_alignment_note_changed=*" } | Select-Object -First 1
     $comparePostPlayPersonalityProfileSourceSaveDateCurrentLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_save_date_current=*" } | Select-Object -First 1
     $comparePostPlayPersonalityProfileSourceSaveDatePreviousLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_save_date_previous=*" } | Select-Object -First 1
     $comparePostPlayPersonalityProfileSourceSaveDateChangedLine = $compareLines | Where-Object { $_ -like "real_session_v0_compare_post_play_personality_profile_source_save_date_changed=*" } | Select-Object -First 1
@@ -1120,6 +1126,15 @@ if ($sessionCount -ge 2) {
     if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfilePromptOutputNoteChangedLine)) {
         $latestPostPlayPersonalityProfilePromptOutputNoteChanged = $comparePostPlayPersonalityProfilePromptOutputNoteChangedLine.Substring("real_session_v0_compare_post_play_personality_profile_prompt_output_note_changed=".Length)
     }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayDoctrineAlignmentNoteCurrentLine)) {
+        $latestPostPlayDoctrineAlignmentNoteCurrent = $comparePostPlayDoctrineAlignmentNoteCurrentLine.Substring("real_session_v0_compare_post_play_doctrine_alignment_note_current=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayDoctrineAlignmentNotePreviousLine)) {
+        $latestPostPlayDoctrineAlignmentNotePrevious = $comparePostPlayDoctrineAlignmentNotePreviousLine.Substring("real_session_v0_compare_post_play_doctrine_alignment_note_previous=".Length)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($comparePostPlayDoctrineAlignmentNoteChangedLine)) {
+        $latestPostPlayDoctrineAlignmentNoteChanged = $comparePostPlayDoctrineAlignmentNoteChangedLine.Substring("real_session_v0_compare_post_play_doctrine_alignment_note_changed=".Length)
+    }
     if (-not [string]::IsNullOrWhiteSpace($comparePostPlayPersonalityProfileSourceSaveDateCurrentLine)) {
         $latestPostPlayPersonalityProfileSourceSaveDateCurrent = $comparePostPlayPersonalityProfileSourceSaveDateCurrentLine.Substring("real_session_v0_compare_post_play_personality_profile_source_save_date_current=".Length)
     }
@@ -1657,6 +1672,9 @@ $result = [ordered]@{
         prompt_output_note_current = $latestPostPlayPersonalityProfilePromptOutputNoteCurrent
         prompt_output_note_previous = $latestPostPlayPersonalityProfilePromptOutputNotePrevious
         prompt_output_note_changed = $latestPostPlayPersonalityProfilePromptOutputNoteChanged
+        doctrine_alignment_note_current = $latestPostPlayDoctrineAlignmentNoteCurrent
+        doctrine_alignment_note_previous = $latestPostPlayDoctrineAlignmentNotePrevious
+        doctrine_alignment_note_changed = $latestPostPlayDoctrineAlignmentNoteChanged
         source_save_date_current = $latestPostPlayPersonalityProfileSourceSaveDateCurrent
         source_save_date_previous = $latestPostPlayPersonalityProfileSourceSaveDatePrevious
         source_save_date_changed = $latestPostPlayPersonalityProfileSourceSaveDateChanged
@@ -2071,6 +2089,9 @@ Write-Host ("real_session_v0_trend_post_play_personality_profile_validated_updat
 Write-Host ("real_session_v0_trend_post_play_personality_profile_prompt_output_note_current=" + $latestPostPlayPersonalityProfilePromptOutputNoteCurrent)
 Write-Host ("real_session_v0_trend_post_play_personality_profile_prompt_output_note_previous=" + $latestPostPlayPersonalityProfilePromptOutputNotePrevious)
 Write-Host ("real_session_v0_trend_post_play_personality_profile_prompt_output_note_changed=" + $latestPostPlayPersonalityProfilePromptOutputNoteChanged)
+Write-Host ("real_session_v0_trend_post_play_doctrine_alignment_note_current=" + $latestPostPlayDoctrineAlignmentNoteCurrent)
+Write-Host ("real_session_v0_trend_post_play_doctrine_alignment_note_previous=" + $latestPostPlayDoctrineAlignmentNotePrevious)
+Write-Host ("real_session_v0_trend_post_play_doctrine_alignment_note_changed=" + $latestPostPlayDoctrineAlignmentNoteChanged)
 Write-Host ("real_session_v0_trend_post_play_personality_profile_source_save_date_current=" + $latestPostPlayPersonalityProfileSourceSaveDateCurrent)
 Write-Host ("real_session_v0_trend_post_play_personality_profile_source_save_date_previous=" + $latestPostPlayPersonalityProfileSourceSaveDatePrevious)
 Write-Host ("real_session_v0_trend_post_play_personality_profile_source_save_date_changed=" + $latestPostPlayPersonalityProfileSourceSaveDateChanged)
