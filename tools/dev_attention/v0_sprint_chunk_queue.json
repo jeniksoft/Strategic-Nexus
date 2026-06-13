@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-13T18:23:16.0905386+02:00",
+  "updated_at": "2026-06-13T18:56:59.6439668+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the blocked 15G signed/encrypted transport adapter remains the long-term gap while the next bounded 15G verification slice is queued on current head.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G boundary verification before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -4309,7 +4309,7 @@
     {
       "id": "v0-sprint-338-verify-friend-mp-sync-inbox-stage-helper-on-current-head",
       "title": "Verify friend MP sync inbox stage helper on current head",
-      "status": "ready",
+      "status": "done",
       "lane": "verification",
       "roadmap_anchor": "15G. Release Companion MP Package UX / selected-folder receive staging",
       "goal": "Confirm the current-head pipeline still exercises the bounded friend MP sync inbox staging helper, including the deterministic transport manifest and fail-closed selected-folder receive-side path, so the selected-folder receive seam stays verified alongside the existing outbox staging helper.",
