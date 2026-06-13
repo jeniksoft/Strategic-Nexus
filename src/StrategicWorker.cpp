@@ -8,6 +8,7 @@
 #include "LlmClient.h"
 #include "MemoryStore.h"
 #include "ModIntegration.h"
+#include "PersonalityProfileStore.h"
 #include "PersonalityEngine.h"
 #include "SaveParser.h"
 
@@ -27,24 +28,40 @@ int StrategicWorker::processRequest(const StrategicRequest& request) const
     const GalaxyAnalyzer analyzer;
     const StrategicSummary summary = analyzer.summarize(state);
 
-    const DoctrinePlanner planner;
-    const DoctrineDecision proposedDecision = planner.chooseDoctrine(summary);
-
-    const EmpireState* focusEmpire = nullptr;
-    for (const auto& empire : state.empires) {
-        if (empire.id == summary.dominantEmpireId) {
-            focusEmpire = &empire;
-            break;
+    const PersonalityProfileStore profileStore;
+    EmpireState focusEmpire;
+    const EmpireState* focusEmpirePtr = nullptr;
+    if (!summary.dominantEmpireId.empty()) {
+        for (const auto& empire : state.empires) {
+            if (empire.id == summary.dominantEmpireId) {
+                focusEmpire = empire;
+                focusEmpirePtr = &focusEmpire;
+                break;
+            }
         }
     }
 
+    if (focusEmpirePtr != nullptr && !request.campaignId.empty() && !request.personalityProfileRoot.empty()) {
+        const auto loadedProfile = profileStore.load(
+            request.personalityProfileRoot,
+            request.campaignId,
+            focusEmpirePtr->id);
+        if (loadedProfile.ok) {
+            focusEmpire.personality = loadedProfile.personality;
+            focusEmpirePtr = &focusEmpire;
+        }
+    }
+
+    const DoctrinePlanner planner;
+    const DoctrineDecision proposedDecision = planner.chooseDoctrine(summary);
+
     const PersonalityEngine personalityEngine;
-    const DoctrineDecision decision = focusEmpire != nullptr
-        ? personalityEngine.refineDoctrineDecision(*focusEmpire, summary, proposedDecision)
+    const DoctrineDecision decision = focusEmpirePtr != nullptr
+        ? personalityEngine.refineDoctrineDecision(*focusEmpirePtr, summary, proposedDecision)
         : proposedDecision;
     const std::string personalityAlignmentNote =
-        focusEmpire != nullptr
-            ? personalityEngine.buildDoctrineAlignmentNote(*focusEmpire, proposedDecision, decision)
+        focusEmpirePtr != nullptr
+            ? personalityEngine.buildDoctrineAlignmentNote(*focusEmpirePtr, proposedDecision, decision)
             : std::string();
     DoctrineDecision decisionWithAlignmentNote = decision;
     decisionWithAlignmentNote.personalityAlignmentNote = personalityAlignmentNote;
@@ -53,7 +70,7 @@ int StrategicWorker::processRequest(const StrategicRequest& request) const
     const std::string prompt = llmClient.buildPrompt(
         summary,
         decisionWithAlignmentNote,
-        focusEmpire != nullptr ? personalityEngine.describeStrategicBias(*focusEmpire) : std::string());
+        focusEmpirePtr != nullptr ? personalityEngine.describeStrategicBias(*focusEmpirePtr) : std::string());
 
     const ModIntegration modIntegration;
     modIntegration.writeDoctrineJson(request.outputDoctrinePath, request, decisionWithAlignmentNote);

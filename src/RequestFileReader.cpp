@@ -110,12 +110,20 @@ StrategicRequest RequestFileReader::read(const std::filesystem::path& requestPat
         request.trigger = requestTriggerFromString(*trigger);
     }
 
+    if (const auto campaignId = readJsonStringField(text, "campaign_id")) {
+        request.campaignId = *campaignId;
+    }
+
     if (const auto snapshotPath = readJsonStringField(text, "snapshot_path")) {
         request.snapshotPath = *snapshotPath;
     }
 
     if (const auto outputDoctrinePath = readJsonStringField(text, "output_doctrine_path")) {
         request.outputDoctrinePath = *outputDoctrinePath;
+    }
+
+    if (const auto personalityProfileRoot = readJsonStringField(text, "personality_profile_root")) {
+        request.personalityProfileRoot = *personalityProfileRoot;
     }
 
     if (const auto asynchronous = readJsonBoolField(text, "async")) {

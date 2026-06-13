@@ -125,6 +125,25 @@ $personalityProfileStoreSourceFiles = @(
     (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
     (Join-Path $repoRoot "src/common/JsonSanity.cpp")
 )
+$strategicWorkerProfileReuseExePath = Join-Path $repoRoot "dist/strategic_worker_profile_reuse_test.exe"
+$strategicWorkerProfileReuseSourceFiles = @(
+    (Join-Path $repoRoot "tests/strategic_worker_profile_reuse_test.cpp"),
+    (Join-Path $repoRoot "src/StrategicWorker.cpp"),
+    (Join-Path $repoRoot "src/RequestFileReader.cpp"),
+    (Join-Path $repoRoot "src/SaveParser.cpp"),
+    (Join-Path $repoRoot "src/PersonalityProfileStore.cpp"),
+    (Join-Path $repoRoot "src/GalaxyAnalyzer.cpp"),
+    (Join-Path $repoRoot "src/MemoryStore.cpp"),
+    (Join-Path $repoRoot "src/DoctrinePlanner.cpp"),
+    (Join-Path $repoRoot "src/PersonalityEngine.cpp"),
+    (Join-Path $repoRoot "src/LlmClient.cpp"),
+    (Join-Path $repoRoot "src/ModIntegration.cpp"),
+    (Join-Path $repoRoot "src/StrategicRequest.cpp"),
+    (Join-Path $repoRoot "src/BridgeContract.cpp"),
+    (Join-Path $repoRoot "src/common/FileUtil.cpp"),
+    (Join-Path $repoRoot "src/common/JsonExtract.cpp"),
+    (Join-Path $repoRoot "src/common/JsonSanity.cpp")
+)
 $personalityEngineExePath = Join-Path $repoRoot "dist/personality_engine_test.exe"
 $personalityEngineSourceFiles = @(
     (Join-Path $repoRoot "tests/personality_engine_test.cpp"),
@@ -436,6 +455,7 @@ try {
     Invoke-ClCompile -Name "observer_target_profile_builder_test" -SourceFiles $observerTargetProfileBuilderSourceFiles -OutputPath $observerTargetProfileBuilderExePath
     Invoke-ClCompile -Name "integrated_empire_state_builder_test" -SourceFiles $integratedEmpireStateBuilderSourceFiles -OutputPath $integratedEmpireStateBuilderExePath
     Invoke-ClCompile -Name "personality_profile_store_test" -SourceFiles $personalityProfileStoreSourceFiles -OutputPath $personalityProfileStoreExePath
+    Invoke-ClCompile -Name "strategic_worker_profile_reuse_test" -SourceFiles $strategicWorkerProfileReuseSourceFiles -OutputPath $strategicWorkerProfileReuseExePath
     Invoke-ClCompile -Name "personality_engine_test" -SourceFiles $personalityEngineSourceFiles -OutputPath $personalityEngineExePath
     Invoke-ClCompile -Name "v0_cabinet_contract_test" -SourceFiles $cabinetContractSourceFiles -OutputPath $cabinetContractExePath
     Invoke-ClCompile -Name "v0_priority_score_test" -SourceFiles $priorityScoreSourceFiles -OutputPath $priorityScoreExePath
@@ -4152,6 +4172,11 @@ if ($LASTEXITCODE -ne 0) {
 & $personalityProfileStoreExePath
 if ($LASTEXITCODE -ne 0) {
     throw "personality profile store tests failed."
+}
+
+& $strategicWorkerProfileReuseExePath
+if ($LASTEXITCODE -ne 0) {
+    throw "strategic worker profile reuse tests failed."
 }
 
 & $personalityEngineExePath

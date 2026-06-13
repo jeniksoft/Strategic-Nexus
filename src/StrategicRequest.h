@@ -22,8 +22,10 @@ enum class RequestTrigger {
 struct StrategicRequest {
     std::string requestId = "manual";
     RequestTrigger trigger = RequestTrigger::Manual;
+    std::string campaignId;
     std::filesystem::path snapshotPath;
     std::filesystem::path outputDoctrinePath = "resources/doctrine_output.json";
+    std::filesystem::path personalityProfileRoot = "dist/private_reports/personality_profiles";
     bool asynchronous = true;
 };
 

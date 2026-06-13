@@ -4359,6 +4359,23 @@
         "dist/strategic_nexus_companion_test.exe"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-341-wire-request-campaign-id-into-strategic-worker-profile-reuse",
+      "title": "Wire request campaign id into StrategicWorker profile reuse",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "9B. Campaign-Empire Personality Profile Store",
+      "goal": "Allow StrategicWorker and request-file parsing to reuse a validated personality profile when the caller supplies the campaign id, so prompt-output bias can reflect stored validated state instead of treating every run as fresh.",
+      "acceptance": [
+        "StrategicRequest and RequestFileReader accept an optional campaign_id and personality_profile_root field.",
+        "StrategicWorker reuses a validated profile for the dominant empire when campaign id and profile root are supplied.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head with a regression that proves the loaded profile changes the prompt-output personality bias."
+      ],
+      "preferred_tests": [
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
