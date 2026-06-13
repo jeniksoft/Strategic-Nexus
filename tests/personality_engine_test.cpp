@@ -178,6 +178,48 @@ int main()
         lowTrustBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
         "low-trust balance reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState traumaTrustExpansionEmpire = boldEmpire;
+    traumaTrustExpansionEmpire.id = "empire_trauma_trust_expansion";
+    traumaTrustExpansionEmpire.power.fleetPower = 94;
+    traumaTrustExpansionEmpire.power.economicRank = 3;
+    traumaTrustExpansionEmpire.power.technologyRank = 3;
+    traumaTrustExpansionEmpire.personality.boldness = 0.46;
+    traumaTrustExpansionEmpire.personality.paranoia = 0.28;
+    traumaTrustExpansionEmpire.personality.honor = 0.49;
+    traumaTrustExpansionEmpire.personality.opportunism = 0.53;
+    traumaTrustExpansionEmpire.adaptiveState.fearOfPlayer = 0.23;
+    traumaTrustExpansionEmpire.adaptiveState.warTrauma = 0.79;
+    traumaTrustExpansionEmpire.adaptiveState.trustInFederations = 0.22;
+
+    strategic_nexus::StrategicSummary traumaTrustExpansionSummary = quietSummary;
+    traumaTrustExpansionSummary.instability = 0.22;
+
+    const auto traumaTrustExpansionReject = engine.refineDoctrineDecision(
+        traumaTrustExpansionEmpire,
+        traumaTrustExpansionSummary,
+        proposedExpansion);
+    requireCondition(
+        traumaTrustExpansionReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "trauma-guarded low-trust empire should reject opportunistic expansion in favor of defense");
+    requireCondition(
+        traumaTrustExpansionReject.rationale ==
+            "Rejected opportunistic expansion: war trauma and low federation trust do not support expansion yet.",
+        "trauma-trust opportunistic reject should explain the contradiction");
+    requireCondition(
+        traumaTrustExpansionReject.confidence == 0.47,
+        "trauma-trust opportunistic reject should clamp confidence");
+    const auto traumaTrustExpansionRejectNote = engine.buildDoctrineAlignmentNote(
+        traumaTrustExpansionEmpire,
+        proposedExpansion,
+        traumaTrustExpansionReject);
+    requireCondition(
+        traumaTrustExpansionRejectNote.find("rejected opportunistic_expansion in favor of defensive_posture") !=
+            std::string::npos,
+        "trauma-trust opportunistic reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        traumaTrustExpansionRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
+        "trauma-trust opportunistic reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState lowTrustHegemonEmpire = boldEmpire;
     lowTrustHegemonEmpire.id = "empire_low_trust_hegemon";
     lowTrustHegemonEmpire.power.fleetPower = 86;

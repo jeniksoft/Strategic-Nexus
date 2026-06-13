@@ -1598,8 +1598,9 @@ Current-head verification now also covers a rising-pressure balance_against_hege
   Current-head verification now also covers a weak-capability consolidate reject path for calm empires once pressure reaches the moderate band without a confirmed hegemon, so passive consolidation stays fail-closed as soon as the low-pressure window closes.
   Current-run verification now also covers a low-trust opportunistic-expansion reject path under low pressure, so distrust can still fail closed before opportunistic doctrine is treated as safe on current head.
   The remaining 9C work is broader contradiction coverage and any additional owner-facing surface that should expose the note more prominently.
+  Current-head verification now also covers a trauma-guarded opportunistic-expansion reject path for capable low-trust empires, so war trauma and federation distrust can still fail closed before expansion becomes the default fallback.
 
----
+--- 
 
 ## 9D. Strategic Culture And Reputation Interpretation
 

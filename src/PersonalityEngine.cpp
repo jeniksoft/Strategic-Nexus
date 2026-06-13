@@ -151,6 +151,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::OpportunisticExpansion && traumatized && distrustsFederations
+        && !weakCapability && !fearful) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected opportunistic expansion: war trauma and low federation trust do not support expansion yet.";
+        decision.confidence = 0.47;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::BalanceAgainstHegemon && weakCapability && fearful && summary.hegemonyDetected) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale =
