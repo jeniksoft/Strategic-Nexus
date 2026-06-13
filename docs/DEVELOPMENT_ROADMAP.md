@@ -564,6 +564,7 @@ Current-head verification confirms `local_llm_install_guidance`, `local_llm_mode
 The owner-facing local LLM summary and install guidance now use polished Czech wording with diacritics while preserving the same readiness fields and fail-closed behavior.
 Current-head verification now also confirms `dist/strategic_nexus_companion_test.exe` and `tools/smoke_snc_tray.cmd` pass on current head after the copy polish, so the owner-facing summary and open-state path remain visible.
 Current-head verification now also confirms the owner-facing model-manager summary and open-state path remain visible on current head after the copy polish, so the broader LLM handoff work can stay queued separately.
+2026-06-13 current-head verification also confirms `dist/snc_candidate_decision_package_builder_test.exe`, `dist/snc_dsl_draft_package_builder_test.exe`, and `tools/run_v0_pipeline_tests.cmd` still keep model output untrusted and route the candidate-to-DSL draft handoff through validated candidate packages instead of raw or trusted model output.
 
 ---
 

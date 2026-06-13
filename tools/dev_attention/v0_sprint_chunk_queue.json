@@ -4376,6 +4376,25 @@
         "tools/run_v0_pipeline_tests.cmd"
       ],
       "dependencies": []
+    },
+    {
+      "id": "v0-sprint-342-verify-model-output-boundary-for-candidate-to-dsl-draft-handoff-on-current-head",
+      "title": "Verify model output boundary for candidate-to-DSL draft handoff on current head",
+      "status": "ready",
+      "lane": "verification",
+      "roadmap_anchor": "1G. Local LLM Model Manager / validator-owned promotion from model output to DSL/generated overlay",
+      "goal": "Confirm the current-head candidate decision and DSL draft builders still treat model output as untrusted, require validated candidate packages, and keep the first validated candidate-to-DSL handoff fail closed for raw or trusted model output.",
+      "acceptance": [
+        "dist/snc_candidate_decision_package_builder_test.exe passes on current head and still reports model_output_used/model_output_trusted as false for the validated path.",
+        "dist/snc_dsl_draft_package_builder_test.exe passes on current head and still rejects candidate packages that claim model_output_used or model_output_trusted.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head with the candidate-to-DSL draft handoff still routed through validated candidate packages, not raw model output."
+      ],
+      "preferred_tests": [
+        "dist/snc_candidate_decision_package_builder_test.exe",
+        "dist/snc_dsl_draft_package_builder_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     }
   ]
 }
