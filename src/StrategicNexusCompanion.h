@@ -204,6 +204,9 @@ struct CompanionPostPlayPipelineStatus {
     std::filesystem::path postPlayPackagePath;
     std::string postPlayPackageReadiness;
     std::string postPlayPackageReason;
+    int postPlayPackageEntryPointAnalysisSourceSchemaVersion = 1;
+    std::string postPlayPackageEntryPointAnalysisSchemaCompatibilityState = "current";
+    std::string postPlayPackageEntryPointAnalysisSchemaCompatibilityNote;
     std::string postPlayPackageCampaignIdentityStateSummary;
     std::string postPlayPackagePersonalityProfilePromptOutputNote;
     std::filesystem::path doctrineOutputPath;

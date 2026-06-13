@@ -2089,6 +2089,12 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
         postPlayAvailable = true;
         status.postPlayPackageReadiness = common::extractJsonString(json, "readiness").value_or("");
         status.postPlayPackageReason = common::extractJsonString(json, "reason").value_or("");
+        status.postPlayPackageEntryPointAnalysisSourceSchemaVersion = static_cast<int>(
+            extractJsonSize(json, "entry_point_analysis_source_schema_version").value_or(0));
+        status.postPlayPackageEntryPointAnalysisSchemaCompatibilityState =
+            common::extractJsonString(json, "entry_point_analysis_schema_compatibility_state").value_or("");
+        status.postPlayPackageEntryPointAnalysisSchemaCompatibilityNote =
+            common::extractJsonString(json, "entry_point_analysis_schema_compatibility_note").value_or("");
         status.postPlayPackageCampaignIdentityStateSummary =
             common::extractJsonString(json, "campaign_identity_state_summary").value_or("");
         status.postPlayPackagePersonalityProfilePromptOutputNote =
@@ -3005,6 +3011,16 @@ std::string buildStatusCenterSummaryText(
     }
     if (!postPlayPipeline.postPlayPackageReason.empty()) {
         text << "post_play_package_reason: " << postPlayPipeline.postPlayPackageReason << "\n";
+    }
+    text << "post_play_package_entry_point_analysis_source_schema_version: "
+         << postPlayPipeline.postPlayPackageEntryPointAnalysisSourceSchemaVersion << "\n";
+    if (!postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityState.empty()) {
+        text << "post_play_package_entry_point_analysis_schema_compatibility_state: "
+             << postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityState << "\n";
+    }
+    if (!postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityNote.empty()) {
+        text << "post_play_package_entry_point_analysis_schema_compatibility_note: "
+             << postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityNote << "\n";
     }
     if (!postPlayPipeline.postPlayPackageCampaignIdentityStateSummary.empty()) {
         text << "post_play_package_campaign_identity_state_summary: "
@@ -4087,6 +4103,12 @@ void writePostPlayPipelineJson(
     output << indent << "  \"post_play_package_path\": " << jsonString(pathString(status.postPlayPackagePath)) << ",\n";
     output << indent << "  \"post_play_package_readiness\": " << jsonString(status.postPlayPackageReadiness) << ",\n";
     output << indent << "  \"post_play_package_reason\": " << jsonString(status.postPlayPackageReason) << ",\n";
+    output << indent << "  \"post_play_package_entry_point_analysis_source_schema_version\": "
+           << status.postPlayPackageEntryPointAnalysisSourceSchemaVersion << ",\n";
+    output << indent << "  \"post_play_package_entry_point_analysis_schema_compatibility_state\": "
+           << jsonString(status.postPlayPackageEntryPointAnalysisSchemaCompatibilityState) << ",\n";
+    output << indent << "  \"post_play_package_entry_point_analysis_schema_compatibility_note\": "
+           << jsonString(status.postPlayPackageEntryPointAnalysisSchemaCompatibilityNote) << ",\n";
     output << indent << "  \"post_play_package_campaign_identity_state_summary\": "
            << jsonString(status.postPlayPackageCampaignIdentityStateSummary) << ",\n";
     output << indent << "  \"post_play_package_personality_profile_prompt_output_note\": "

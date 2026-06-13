@@ -300,6 +300,9 @@ int main()
         "  \"schema_version\": 1,\n"
         "  \"reason\": \"post-play package built; some entry points need more history or parsing\",\n"
         "  \"readiness\": \"ready_partial\",\n"
+        "  \"entry_point_analysis_source_schema_version\": 1,\n"
+        "  \"entry_point_analysis_schema_compatibility_state\": \"current\",\n"
+        "  \"entry_point_analysis_schema_compatibility_note\": \"\",\n"
         "  \"campaign_identity_state_summary\": \"folder_alias_fallback\",\n"
         "  \"personality_profile_prompt_output_note\": \"summary-only prompt-output context; no validated personality profile loaded\",\n"
         "  \"decision_ready_entry_count\": 2,\n"
@@ -2533,6 +2536,16 @@ int main()
             std::string::npos,
         "JSON should include post-play package reason");
     requireCondition(
+        json.find("\"post_play_package_entry_point_analysis_source_schema_version\":") != std::string::npos,
+        "JSON should include post-play entry point analysis source schema version");
+    requireCondition(
+        json.find("\"post_play_package_entry_point_analysis_schema_compatibility_state\": \"current\"") !=
+            std::string::npos,
+        "JSON should include post-play entry point analysis compatibility state");
+    requireCondition(
+        json.find("\"post_play_package_entry_point_analysis_schema_compatibility_note\": \"\"") != std::string::npos,
+        "JSON should include post-play entry point analysis compatibility note");
+    requireCondition(
         json.find("\"post_play_package_campaign_identity_state_summary\": \"folder_alias_fallback\"") !=
             std::string::npos,
         "JSON should include post-play package campaign identity state summary");
@@ -2557,6 +2570,14 @@ int main()
         ready.statusCenterSummaryText.find("post_play_package_campaign_identity_state_summary: folder_alias_fallback") !=
             std::string::npos,
         "status center summary should include the post-play identity summary");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "post_play_package_entry_point_analysis_source_schema_version:") != std::string::npos,
+        "status center summary should include post-play entry point analysis source schema version");
+    requireCondition(
+        ready.statusCenterSummaryText.find(
+            "post_play_package_entry_point_analysis_schema_compatibility_state: current") != std::string::npos,
+        "status center summary should include post-play entry point analysis compatibility state");
     requireCondition(
         ready.statusCenterSummaryText.find(
             "post_play_package_personality_profile_prompt_output_note: summary-only prompt-output context; no validated personality profile loaded") !=

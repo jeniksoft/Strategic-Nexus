@@ -6306,6 +6306,20 @@ std::string buildStatusCenterSummaryText(
             summary << "post_play_package_campaign_identity_owner_note: save-content identity fell back to folder alias; keep generated rules conservative until identity resolves from save contents\n";
         }
     }
+    appendOwnerFacingStatusValueLine(
+        summary,
+        "post_play_package_entry_point_analysis_source_schema_version",
+        std::to_string(postPlayPipeline.postPlayPackageEntryPointAnalysisSourceSchemaVersion));
+    appendOwnerFacingStatusValueLine(
+        summary,
+        "post_play_package_entry_point_analysis_schema_compatibility_state",
+        postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityState);
+    if (!postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityNote.empty()) {
+        appendOwnerFacingStatusValueLine(
+            summary,
+            "post_play_package_entry_point_analysis_schema_compatibility_note",
+            postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityNote);
+    }
     if (!postPlayPipeline.postPlayPackagePersonalityProfilePromptOutputNote.empty()) {
         appendOwnerFacingStatusValueLine(
             summary,
@@ -7534,6 +7548,14 @@ void writeStatus(
     json << "  \"entry_point_readiness\": \"" << jsonEscape(effectiveEntryPointReadiness) << "\",\n";
     json << "  \"post_play_package_path\": \"" << jsonEscape(pathString(effectivePostPlayPackagePath)) << "\",\n";
     json << "  \"post_play_package_readiness\": \"" << jsonEscape(effectivePostPlayPackageReadiness) << "\",\n";
+    json << "  \"post_play_package_entry_point_analysis_source_schema_version\": "
+         << companionSnapshot.postPlayPipeline.postPlayPackageEntryPointAnalysisSourceSchemaVersion << ",\n";
+    json << "  \"post_play_package_entry_point_analysis_schema_compatibility_state\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityState)
+         << "\",\n";
+    json << "  \"post_play_package_entry_point_analysis_schema_compatibility_note\": \""
+         << jsonEscape(companionSnapshot.postPlayPipeline.postPlayPackageEntryPointAnalysisSchemaCompatibilityNote)
+         << "\",\n";
     json << "  \"post_play_package_campaign_identity_state_summary\": \""
          << jsonEscape(effectivePostPlayPackageCampaignIdentityStateSummary) << "\",\n";
     json << "  \"post_play_package_personality_profile_prompt_output_note\": \""
