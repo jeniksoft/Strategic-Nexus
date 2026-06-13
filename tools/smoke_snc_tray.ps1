@@ -854,6 +854,12 @@ try {
                 if ([string]$json.local_llm_install_guidance -notlike "*--prepare-local-llm-model*") {
                     throw "SNC tray local_llm_install_guidance did not reuse the prepare command hint."
                 }
+                if ([string]::IsNullOrWhiteSpace([string]$json.local_llm_prepare_command_hint)) {
+                    throw "SNC tray status JSON did not expose local_llm_prepare_command_hint."
+                }
+                if ([string]$json.local_llm_prepare_command_hint -notlike "*--prepare-local-llm-model*") {
+                    throw "SNC tray local_llm_prepare_command_hint did not reuse the prepare command hint."
+                }
                 if ($summaryText -notlike "*local_llm_install_guidance:*") {
                     throw "SNC tray summary text did not expose local_llm_install_guidance."
                 }

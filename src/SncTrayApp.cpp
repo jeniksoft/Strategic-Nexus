@@ -7354,6 +7354,8 @@ void writeStatus(
          << jsonEscape(companionSnapshot.localLlm.installGuidance) << "\",\n";
     json << "  \"local_llm_model_state_path\": \""
          << jsonEscape(pathString(companionSnapshot.localLlm.modelStatePath)) << "\",\n";
+    json << "  \"local_llm_prepare_command_hint\": \""
+         << jsonEscape(companionSnapshot.localLlm.prepareCommandHint) << "\",\n";
     json << "  \"local_llm_model_manager_summary\": \""
          << jsonEscape(companionSnapshot.localLlm.summary) << "\",\n";
     json << "  \"crash_recovery_state\": \""
