@@ -302,6 +302,48 @@ int main()
         risingPressureBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
         "rising-pressure low-trust balance reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState traumaLowTrustRisingBalanceEmpire = traumaTrustExpansionEmpire;
+    traumaLowTrustRisingBalanceEmpire.id = "empire_trauma_low_trust_rising_balance";
+    traumaLowTrustRisingBalanceEmpire.power.fleetPower = 92;
+    traumaLowTrustRisingBalanceEmpire.power.economicRank = 3;
+    traumaLowTrustRisingBalanceEmpire.power.technologyRank = 3;
+    traumaLowTrustRisingBalanceEmpire.personality.boldness = 0.45;
+    traumaLowTrustRisingBalanceEmpire.personality.paranoia = 0.29;
+    traumaLowTrustRisingBalanceEmpire.personality.honor = 0.5;
+    traumaLowTrustRisingBalanceEmpire.personality.opportunism = 0.41;
+    traumaLowTrustRisingBalanceEmpire.adaptiveState.fearOfPlayer = 0.24;
+    traumaLowTrustRisingBalanceEmpire.adaptiveState.warTrauma = 0.8;
+    traumaLowTrustRisingBalanceEmpire.adaptiveState.trustInFederations = 0.23;
+
+    strategic_nexus::StrategicSummary traumaLowTrustRisingBalanceSummary = quietSummary;
+    traumaLowTrustRisingBalanceSummary.instability = 0.36;
+
+    const auto traumaLowTrustRisingBalanceReject = engine.refineDoctrineDecision(
+        traumaLowTrustRisingBalanceEmpire,
+        traumaLowTrustRisingBalanceSummary,
+        proposedHegemonBalance);
+    requireCondition(
+        traumaLowTrustRisingBalanceReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "traumatized low-trust empire under rising pressure should reject balance-against-hegemon in favor of defense");
+    requireCondition(
+        traumaLowTrustRisingBalanceReject.rationale ==
+            "Rejected balance against hegemon: war trauma, low federation trust, and rising pressure do not justify coalition balancing yet.",
+        "traumatized low-trust rising-pressure balance reject should explain the contradiction");
+    requireCondition(
+        traumaLowTrustRisingBalanceReject.confidence == 0.44,
+        "traumatized low-trust rising-pressure balance reject should clamp confidence");
+    const auto traumaLowTrustRisingBalanceRejectNote = engine.buildDoctrineAlignmentNote(
+        traumaLowTrustRisingBalanceEmpire,
+        proposedHegemonBalance,
+        traumaLowTrustRisingBalanceReject);
+    requireCondition(
+        traumaLowTrustRisingBalanceRejectNote.find("rejected balance_against_hegemon in favor of defensive_posture") !=
+            std::string::npos,
+        "traumatized low-trust rising-pressure balance reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        traumaLowTrustRisingBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
+        "traumatized low-trust rising-pressure balance reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState steadyNoHegemonEmpire = boldEmpire;
     steadyNoHegemonEmpire.id = "empire_steady_no_hegemon";
     steadyNoHegemonEmpire.power.fleetPower = 88;

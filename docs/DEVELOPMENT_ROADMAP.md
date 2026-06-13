@@ -533,6 +533,7 @@ Current progress:
 `--publish-generated-overlay`, `--publish-snc-generated-overlay`, status snapshot fields, Status Center summary fields, and gameplay-acceptance status plumbing exist. Remaining work is hardening owner-facing publish/review UX and validating the full real-session publish path.
 The real-session compare/trend/loop path now also forwards generated-overlay publish-gate state, reason, can_publish, and publish-command drift, so publish readiness stays visible in session deltas instead of only in the live status snapshot.
 Current-head verification confirms the companion tray smoke and v0 pipeline still expose the generated-overlay publish gate state, reason, can_publish, and publish-command follow-up on the current head.
+2026-06-13 current-head verification reran `dist/snc_generated_overlay_publish_gate_test.exe` and `tools/run_v0_pipeline_tests.cmd`; both passed, so the publish gate current-head contract remains visible after the queue refresh.
 
 ---
 
@@ -1594,6 +1595,7 @@ Current-head verification now also covers a rising-pressure balance_against_hege
   Current-head verification now also covers a low-trust, low-pressure balance_against_hegemon reject path without war trauma, so distrust alone can still fail closed before coalition balancing becomes a default fallback.
   Current-head verification now also covers a low-trust balance_against_hegemon reject path under confirmed hegemonic pressure, so coalition balancing stays fail-closed even when trauma is not the deciding signal.
   Current-head verification now also covers a no-hegemon balance_against_hegemon reject path for otherwise steady empires, so the doctrine gate stays fail-closed when coalition balancing is proposed without a confirmed target.
+  Current-head verification now also covers a traumatized low-trust balance_against_hegemon reject path under rising pressure without confirmed hegemonic pressure, so coalition balancing stays fail-closed across the remaining pressure band.
   Current-head verification now also covers a weak-capability consolidate reject path for calm empires under low pressure, so passive consolidation stays fail-closed even when fear is not the deciding signal.
   Current-head verification now also covers a weak-capability consolidate reject path for calm empires once pressure reaches the moderate band without a confirmed hegemon, so passive consolidation stays fail-closed as soon as the low-pressure window closes.
   Current-run verification now also covers a low-trust opportunistic-expansion reject path under low pressure, so distrust can still fail closed before opportunistic doctrine is treated as safe on current head.
