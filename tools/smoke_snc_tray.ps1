@@ -933,6 +933,16 @@ try {
                     [string]$json.friend_mp_sync_outbox_plan_command_template -notlike "*[friend_auto_sync_enabled:true|false]*") {
                     throw "SNC tray friend_mp_sync_outbox_plan_command_template did not include the manual outbox-plan gate inputs."
                 }
+                if ([string]$json.friend_mp_sync_inbox_stage_command_template -notlike "*--stage-snc-friend-mp-sync-inbox*" -or
+                    [string]$json.friend_mp_sync_inbox_stage_command_template -notlike "*<transport_adapter_path>*" -or
+                    [string]$json.friend_mp_sync_inbox_stage_command_template -notlike "*[stellaris_running:true|false]*") {
+                    throw "SNC tray friend_mp_sync_inbox_stage_command_template did not include the manual inbox-stage inputs."
+                }
+                if ([string]$json.friend_mp_sync_outbox_stage_command_template -notlike "*--stage-snc-friend-mp-sync-outbox*" -or
+                    [string]$json.friend_mp_sync_outbox_stage_command_template -notlike "*<transport_adapter_path>*" -or
+                    [string]$json.friend_mp_sync_outbox_stage_command_template -notlike "*[stellaris_running:true|false]*") {
+                    throw "SNC tray friend_mp_sync_outbox_stage_command_template did not include the manual outbox-stage inputs."
+                }
                 if ([string]$json.friend_mp_sync_transport_state -ne "disabled_not_implemented") {
                     throw "SNC tray status JSON did not expose disabled friend_mp_sync_transport_state."
                 }
@@ -1032,6 +1042,10 @@ try {
                     $summaryText -notlike "*friend_mp_sync_transport_adapter_reason:*" -or
                     $summaryText -notlike "*friend_mp_sync_transport_adapter_next_step:*") {
                     throw "SNC tray summary text did not expose friend MP sync transport adapter seam."
+                }
+                if ($summaryText -notlike "*friend_mp_sync_inbox_stage_command_template: Strategic Nexus.exe --stage-snc-friend-mp-sync-inbox*" -or
+                    $summaryText -notlike "*friend_mp_sync_outbox_stage_command_template: Strategic Nexus.exe --stage-snc-friend-mp-sync-outbox*") {
+                    throw "SNC tray summary text did not expose friend MP sync stage command templates."
                 }
                 if ($sncTraySource -notlike "*metadata_verified_transport_not_implemented*" -or
                     $sncTraySource -notlike "*Metadata verified, transport not implemented yet*") {

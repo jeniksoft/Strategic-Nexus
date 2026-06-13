@@ -2530,6 +2530,18 @@ CompanionFriendTrustStoreStatus buildFriendTrustStoreStatus(const CompanionStatu
         "\"<friend_mp_sync_envelope_path>\" "
         "\"<encrypted_payload_path>\" "
         "[stellaris_running:true|false] [friend_auto_sync_enabled:true|false]";
+    status.mpSyncInboxStageCommandTemplate =
+        "Strategic Nexus.exe --stage-snc-friend-mp-sync-inbox "
+        "\"<friend_mp_sync_envelope_path>\" "
+        "\"<encrypted_payload_path>\" "
+        "\"<transport_adapter_path>\" "
+        "[stellaris_running:true|false]";
+    status.mpSyncOutboxStageCommandTemplate =
+        "Strategic Nexus.exe --stage-snc-friend-mp-sync-outbox "
+        "\"<friend_mp_sync_envelope_path>\" "
+        "\"<encrypted_payload_path>\" "
+        "\"<transport_adapter_path>\" "
+        "[stellaris_running:true|false]";
     status.mpSyncInboxPlanState = "disabled_not_implemented";
     status.mpSyncInboxPlanReason =
         "signed/encrypted friend MP sync transport adapter is not implemented; automatic download and package staging disabled";
@@ -3375,6 +3387,14 @@ std::string buildStatusCenterSummaryText(
         text << "friend_mp_sync_outbox_plan_command_template: "
              << friendTrustStore.mpSyncOutboxPlanCommandTemplate << "\n";
     }
+    if (!friendTrustStore.mpSyncInboxStageCommandTemplate.empty()) {
+        text << "friend_mp_sync_inbox_stage_command_template: "
+             << friendTrustStore.mpSyncInboxStageCommandTemplate << "\n";
+    }
+    if (!friendTrustStore.mpSyncOutboxStageCommandTemplate.empty()) {
+        text << "friend_mp_sync_outbox_stage_command_template: "
+             << friendTrustStore.mpSyncOutboxStageCommandTemplate << "\n";
+    }
     if (!friendTrustStore.mpSyncInboxPlanState.empty()) {
         text << "friend_mp_sync_inbox_plan_state: "
              << friendTrustStore.mpSyncInboxPlanState << "\n";
@@ -3865,6 +3885,10 @@ void writeFriendTrustStoreJson(
            << jsonString(status.mpSyncInboxPlanCommandTemplate) << ",\n";
     output << indent << "  \"mp_sync_outbox_plan_command_template\": "
            << jsonString(status.mpSyncOutboxPlanCommandTemplate) << ",\n";
+    output << indent << "  \"mp_sync_inbox_stage_command_template\": "
+           << jsonString(status.mpSyncInboxStageCommandTemplate) << ",\n";
+    output << indent << "  \"mp_sync_outbox_stage_command_template\": "
+           << jsonString(status.mpSyncOutboxStageCommandTemplate) << ",\n";
     output << indent << "  \"mp_sync_inbox_plan_state\": "
            << jsonString(status.mpSyncInboxPlanState) << ",\n";
     output << indent << "  \"mp_sync_inbox_plan_reason\": "

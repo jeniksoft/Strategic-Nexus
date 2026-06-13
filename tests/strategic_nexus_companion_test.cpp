@@ -648,6 +648,12 @@ int main()
         ready.statusCenterSummaryText.find("friend_mp_sync_outbox_plan_command_template: Strategic Nexus.exe --plan-snc-friend-mp-sync-outbox ") != std::string::npos,
         "status center summary should expose the manual friend MP sync outbox-plan command template");
     requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_inbox_stage_command_template: Strategic Nexus.exe --stage-snc-friend-mp-sync-inbox ") != std::string::npos,
+        "status center summary should expose the manual friend MP sync inbox-stage command template");
+    requireCondition(
+        ready.statusCenterSummaryText.find("friend_mp_sync_outbox_stage_command_template: Strategic Nexus.exe --stage-snc-friend-mp-sync-outbox ") != std::string::npos,
+        "status center summary should expose the manual friend MP sync outbox-stage command template");
+    requireCondition(
         ready.statusCenterSummaryText.find("friend_mp_sync_transport_state: disabled_not_implemented") != std::string::npos,
         "status center summary should expose disabled friend MP sync transport state");
     requireCondition(
@@ -3272,6 +3278,14 @@ int main()
         requireCondition(
             content.find("\"mp_sync_outbox_plan_command_template\": \"Strategic Nexus.exe --plan-snc-friend-mp-sync-outbox ") != std::string::npos,
             "status snapshot should include friend MP sync outbox-plan command template");
+        requireCondition(
+            content.find("\"mp_sync_inbox_stage_command_template\": \"Strategic Nexus.exe --stage-snc-friend-mp-sync-inbox ") !=
+                std::string::npos,
+            "status snapshot should include friend MP sync inbox-stage command template");
+        requireCondition(
+            content.find("\"mp_sync_outbox_stage_command_template\": \"Strategic Nexus.exe --stage-snc-friend-mp-sync-outbox ") !=
+                std::string::npos,
+            "status snapshot should include friend MP sync outbox-stage command template");
         requireCondition(
             content.find("\"mp_sync_transport_state\": \"disabled_not_implemented\"") != std::string::npos,
             "status snapshot should include disabled friend MP sync transport state");

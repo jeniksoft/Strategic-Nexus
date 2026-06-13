@@ -213,6 +213,8 @@ struct StatusDashboardData {
     std::wstring friendMpSyncEnvelopeCommandTemplate;
     std::wstring friendMpSyncInboxPlanCommandTemplate;
     std::wstring friendMpSyncOutboxPlanCommandTemplate;
+    std::wstring friendMpSyncInboxStageCommandTemplate;
+    std::wstring friendMpSyncOutboxStageCommandTemplate;
     std::wstring friendMpSyncInboxPlanState;
     std::wstring friendMpSyncInboxPlanReason;
     bool friendMpSyncInboxAutomaticDownloadEnabled = false;
@@ -578,6 +580,8 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data);
 std::wstring buildDashboardBottomText(const StatusDashboardData& data);
 std::wstring buildStatusPageDetailsText(StatusPageId page, const StatusDashboardData& data);
 std::string buildFriendPairingCommandTemplateUtf8();
+std::string buildFriendMpSyncInboxStageCommandTemplateUtf8();
+std::string buildFriendMpSyncOutboxStageCommandTemplateUtf8();
 std::wstring utf8ToWide(const std::string& value);
 std::string wideToUtf8(const std::wstring& value);
 SncUiLanguage detectSncUiLanguage();
@@ -2572,6 +2576,28 @@ std::string buildFriendMpSyncOutboxPlanCommandTemplateUtf8()
     return command;
 }
 
+std::string buildFriendMpSyncInboxStageCommandTemplateUtf8()
+{
+    std::string command;
+    command += "Strategic Nexus.exe --stage-snc-friend-mp-sync-inbox ";
+    command += "\"<friend_mp_sync_envelope_path>\" ";
+    command += "\"<encrypted_payload_path>\" ";
+    command += "\"<transport_adapter_path>\" ";
+    command += "[stellaris_running:true|false]";
+    return command;
+}
+
+std::string buildFriendMpSyncOutboxStageCommandTemplateUtf8()
+{
+    std::string command;
+    command += "Strategic Nexus.exe --stage-snc-friend-mp-sync-outbox ";
+    command += "\"<friend_mp_sync_envelope_path>\" ";
+    command += "\"<encrypted_payload_path>\" ";
+    command += "\"<transport_adapter_path>\" ";
+    command += "[stellaris_running:true|false]";
+    return command;
+}
+
 std::string buildFriendTrustStoreUpdateCommandTemplateUtf8()
 {
     std::string command;
@@ -2689,6 +2715,8 @@ StatusDashboardData loadStatusDashboardData()
     data.friendMpSyncEnvelopeCommandTemplate = utf8ToWide(buildFriendMpSyncEnvelopeCommandTemplateUtf8());
     data.friendMpSyncInboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncInboxPlanCommandTemplateUtf8());
     data.friendMpSyncOutboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncOutboxPlanCommandTemplateUtf8());
+    data.friendMpSyncInboxStageCommandTemplate = utf8ToWide(buildFriendMpSyncInboxStageCommandTemplateUtf8());
+    data.friendMpSyncOutboxStageCommandTemplate = utf8ToWide(buildFriendMpSyncOutboxStageCommandTemplateUtf8());
     data.friendMpSyncTransportState = formatOwnerFacingStatusValue("disabled_not_implemented");
     data.friendMpSyncTransportReason =
         formatOwnerFacingStatusReason(
@@ -2884,6 +2912,16 @@ StatusDashboardData loadStatusDashboardData()
     if (data.friendMpSyncOutboxPlanCommandTemplate.empty()) {
         data.friendMpSyncOutboxPlanCommandTemplate = utf8ToWide(buildFriendMpSyncOutboxPlanCommandTemplateUtf8());
     }
+    data.friendMpSyncInboxStageCommandTemplate =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_inbox_stage_command_template").value_or(""));
+    if (data.friendMpSyncInboxStageCommandTemplate.empty()) {
+        data.friendMpSyncInboxStageCommandTemplate = utf8ToWide(buildFriendMpSyncInboxStageCommandTemplateUtf8());
+    }
+    data.friendMpSyncOutboxStageCommandTemplate =
+        utf8ToWide(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_outbox_stage_command_template").value_or(""));
+    if (data.friendMpSyncOutboxStageCommandTemplate.empty()) {
+        data.friendMpSyncOutboxStageCommandTemplate = utf8ToWide(buildFriendMpSyncOutboxStageCommandTemplateUtf8());
+    }
     data.friendMpSyncTransportState =
         formatOwnerFacingStatusValue(strategic_nexus::common::extractJsonString(json, "friend_mp_sync_transport_state").value_or(""));
     if (data.friendMpSyncTransportState.empty()) {
@@ -3052,6 +3090,10 @@ std::wstring buildDashboardBottomText(const StatusDashboardData& data)
         L"\r\nSNC MP sync outbox plan: fail-closed status plan; no upload, send, download, decrypt, staging, or apply."});
     text += L"\r\nSNC MP sync outbox plan template: ";
     text += data.friendMpSyncOutboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncOutboxPlanCommandTemplate;
+    text += L"\r\nSNC MP sync inbox stage template: ";
+    text += data.friendMpSyncInboxStageCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncInboxStageCommandTemplate;
+    text += L"\r\nSNC MP sync outbox stage template: ";
+    text += data.friendMpSyncOutboxStageCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncOutboxStageCommandTemplate;
     text += L"\r\nSNC MP sync transport: ";
     text += data.friendMpSyncTransportState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportState;
     text += L"\r\nSNC MP sync transport duvod: ";
@@ -3278,6 +3320,10 @@ std::wstring buildDashboardCopyText(const StatusDashboardData& data)
         L"\nSNC MP sync outbox plan: fail-closed status plan; no upload, send, download, decrypt, staging, or apply."});
     text += L"\nSNC MP sync outbox plan template: ";
     text += data.friendMpSyncOutboxPlanCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncOutboxPlanCommandTemplate;
+    text += L"\nSNC MP sync inbox stage template: ";
+    text += data.friendMpSyncInboxStageCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncInboxStageCommandTemplate;
+    text += L"\nSNC MP sync outbox stage template: ";
+    text += data.friendMpSyncOutboxStageCommandTemplate.empty() ? kStatusEmptyValue : data.friendMpSyncOutboxStageCommandTemplate;
     text += L"\nSNC MP sync transport: ";
     text += data.friendMpSyncTransportState.empty() ? kStatusEmptyValue : data.friendMpSyncTransportState;
     text += L"\nSNC MP sync transport duvod: ";
@@ -6377,6 +6423,14 @@ std::string buildStatusCenterSummaryText(
         summary << "friend_trust_store_update_command_template: "
                 << friendTrustStore.controlsCommandTemplate << "\n";
     }
+    if (!buildFriendMpSyncInboxStageCommandTemplateUtf8().empty()) {
+        summary << "friend_mp_sync_inbox_stage_command_template: "
+                << buildFriendMpSyncInboxStageCommandTemplateUtf8() << "\n";
+    }
+    if (!buildFriendMpSyncOutboxStageCommandTemplateUtf8().empty()) {
+        summary << "friend_mp_sync_outbox_stage_command_template: "
+                << buildFriendMpSyncOutboxStageCommandTemplateUtf8() << "\n";
+    }
     const auto friendMeshUpdate = strategic_nexus::buildFriendMeshUpdateStatus(friendTrustStore, mpOverlayPackage);
     summary << "friend_mesh_update_state: " << friendMeshUpdate.state << "\n";
     summary << "friend_mesh_update_reason: " << friendMeshUpdate.reason << "\n";
@@ -6944,6 +6998,10 @@ void writeNextStepsBrief(
     brief << "- SNC friend pairing auto-sync: vypnuto, dokud neni hotovy signed/encrypted transport.\n";
     brief << "- SNC friend pairing command template: "
           << buildFriendPairingCommandTemplateUtf8() << "\n";
+    brief << "- SNC MP sync inbox stage command template: "
+          << buildFriendMpSyncInboxStageCommandTemplateUtf8() << "\n";
+    brief << "- SNC MP sync outbox stage command template: "
+          << buildFriendMpSyncOutboxStageCommandTemplateUtf8() << "\n";
     brief << "- Human control guard: ";
     brief << ownerFacingStatusValueUtf8(
                  mpOverlayPackage.humanControlGuardState.empty() ? std::string("unknown") : mpOverlayPackage.humanControlGuardState)
@@ -7477,6 +7535,10 @@ void writeStatus(
     json << "  \"friend_mp_sync_inbox_plan_package_staging_allowed\": false,\n";
     json << "  \"friend_mp_sync_outbox_plan_command_template\": \""
          << jsonEscape(buildFriendMpSyncOutboxPlanCommandTemplateUtf8()) << "\",\n";
+    json << "  \"friend_mp_sync_inbox_stage_command_template\": \""
+         << jsonEscape(buildFriendMpSyncInboxStageCommandTemplateUtf8()) << "\",\n";
+    json << "  \"friend_mp_sync_outbox_stage_command_template\": \""
+         << jsonEscape(buildFriendMpSyncOutboxStageCommandTemplateUtf8()) << "\",\n";
     const auto friendMpSyncTransport =
         strategic_nexus::buildFriendMpSyncTransportStatus(companionSnapshot.friendTrustStore);
     const auto friendMpSyncTransportAdapter =
