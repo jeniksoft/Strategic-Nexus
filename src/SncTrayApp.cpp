@@ -5689,7 +5689,7 @@ void prepareOrOpenSupportReport(HWND hwnd)
     if (g_supportReportPreviewPath.empty()) {
         MessageBoxW(
             hwnd,
-            L"SNC nema nastavenou cestu pro local support report preview.",
+            L"SNC nemá nastavenou cestu k lokálnímu náhledu support reportu.",
             L"Strategic Nexus Companion",
             MB_OK | MB_ICONWARNING);
         return;
@@ -5704,7 +5704,7 @@ void prepareOrOpenSupportReport(HWND hwnd)
     if (commandLine.empty()) {
         MessageBoxW(
             hwnd,
-            L"SNC nema pripraveny support report command.",
+            L"SNC nemá připravený příkaz pro support report.",
             L"Strategic Nexus Companion",
             MB_OK | MB_ICONWARNING);
         return;
@@ -5746,7 +5746,7 @@ void prepareOrOpenSupportReport(HWND hwnd)
     requestStatusWindowRefresh();
 
     std::wstring info =
-        L"Local support report preview je pripraven.\n\nBez tveho approvalu se nic neposila.\n\nPreview:\n";
+        L"Lokální náhled support reportu je připraven.\n\nBez tvého souhlasu se nic neodesílá.\n\nNáhled:\n";
     info += g_supportReportPreviewPath.wstring();
     MessageBoxW(
         hwnd,
