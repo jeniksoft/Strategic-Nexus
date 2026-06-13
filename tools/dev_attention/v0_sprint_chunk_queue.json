@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-13T15:28:05.3058442+02:00",
-  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the blocked 15G signed/encrypted transport adapter remains the long-term gap while the next bounded 9C trauma/trust reject slice is queued on current head.",
-  "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G real-session evidence before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
+  "updated_at": "2026-06-13T16:38:43.9932415+02:00",
+  "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the blocked 15G signed/encrypted transport adapter remains the long-term gap while the next bounded 15G verification slice is queued on current head.",
+  "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G boundary verification before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
   "chunk_finish_rule": "Targeted validation, fail-safe behavior for unsafe inputs where applicable, one coherent commit before the next implementation chunk.",
   "current_source": "The acceptance plan is documented, indexed, surfaced in sprint mode, surfaced in the owner collaboration model, surfaced in the master architecture index, and surfaced in the v0 scope/pipeline plan; the current MP handoff slice now covers the status-window open action plus share and continuity hints in the tray/status surfaces. The first SNC friend MP sync envelope contract, manual create/verify CLI fallback, companion/tray command-template status surface, visible dashboard copy action, verify-time apply gate, visible apply-gate template input, fail-closed inbox/staging plan gate, visible inbox-plan template action, fail-closed outbox/send plan gate, visible outbox-plan template action, and the new transport-adapter probe CLI are implemented or wired in. The companion now also surfaces the explicit host-owned automatic handoff sync gap for host rotation, so the remaining 15G work stays discoverable and fail closed. The canonical multiplayer season guide now also names the trust-store control surface, so revoke/block/disable-auto-sync guidance stays discoverable alongside the manual MP fallback. Post-play handoff now blocks all decision inputs for campaign-level branch ambiguity instead of allowing partial generated-rule candidates from an unclear branch; release-grade companion UI still needs actual signed/encrypted transport, decrypt/verify staging, and real season validation. The 9C pressure-band opportunistic-expansion reject refinements are now covered on current head, and the next queue slice adds a trauma/trust reject refinement while the remaining visible queue item is still the blocked 15G transport adapter. 3A now has a deterministic confidence-scored target memory summary on the summary-only profile contract, and the next verification step is to keep zero-history bootstrap provenance visible on current head while the remaining target-specific gameplay rule generation stays deferred. The next worker-ready 6E slice surfaces post-play campaign identity state summary in companion and tray owner-facing status text, and the next worker-ready verification slice checks personality-profile store reuse in the integrated empire-state builder on current head.",
@@ -4248,6 +4248,24 @@
       ],
       "preferred_tests": [
         "dist/personality_engine_test.exe"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "v0-sprint-335-verify-friend-mp-sync-transport-adapter-boundary-on-current-head",
+      "title": "Verify friend MP sync transport-adapter boundary on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / transport adapters",
+      "goal": "Confirm the current-head companion, tray, and Status Center surfaces still expose friend_mp_sync_transport_adapter_kind/path/state/reason/next_step with the expected ready_disabled and fail-closed wording while the signed/encrypted adapter remains unimplemented.",
+      "acceptance": [
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "Current-head companion, tray, and Status Center surfaces still expose friend_mp_sync_transport_adapter_kind/path/state/reason/next_step with ready_disabled when the shared-folder/cloud-folder adapter path is configured and readable, and explicit fail-closed states when the trust store or folder is missing."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd"
       ],
       "dependencies": []
     }
