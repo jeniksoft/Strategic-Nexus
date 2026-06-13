@@ -1524,6 +1524,7 @@ Required:
 
 Current progress:
 Generated overlay metadata carries source-quality and bootstrap provenance, and the architecture requires zero-history variation. Remaining work is full personality profile generation and owner-visible coverage across all generated campaign rules.
+Current-head verification now also confirms `dist/strategic_nexus_companion_test.exe` and `tools/smoke_snc_tray.cmd` keep zero-history bootstrap provenance visible across companion, tray, and Status Center surfaces, including `generated_overlay_source_qualities`, `generated_overlay_bootstrap_campaign_count`, `mp_source_quality`, and `mp_bootstrap_campaign_count`.
 
 ---
 
