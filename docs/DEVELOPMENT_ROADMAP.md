@@ -1091,11 +1091,8 @@ Required:
 * owner-visible degraded-memory warning
 
 Current progress:
-Real-session loop output, companion snapshot JSON, Status Center summary text, tray JSON, and tray smoke coverage now expose a fail-closed memory recovery state, confidence, warning visibility, and selected latest-loadable-save recovery anchor. Degraded or attention-needed recovery can become the top-level `review_memory_recovery_status` next action with an evidence path. Remaining work is durable campaign memory merge and deeper branch-aware reconstruction from only entry-point-compatible evidence.
-Current-head verification confirms the companion, tray, and v0 pipeline still expose `review_memory_recovery_status`, the selected latest-loadable-save recovery anchor, and degraded-memory warning visibility on current head.
-The current head now also persists that selected memory recovery anchor into `dist/private_reports/snc_memory_recovery_state.json`, and the companion/tray status text and JSON surfaces expose the sidecar path so the durable merge stays visible between launches.
-Current-head verification now also covers `real_session_v0_loop_memory_recovery_state_path=` in the real-session loop snapshot contract, so the sidecar path is visible directly in the loop output as well as the compare/trend and evidence artifacts.
-Next worker-ready slice: forward `memory_recovery_state_path` through the real-session loop, compare/trend outputs, and evidence JSON so the durable sidecar stays visible across the whole recovery chain.
+Real-session loop output, companion snapshot JSON, Status Center summary text, tray JSON, compare output, trend output, and tray smoke coverage now expose a fail-closed memory recovery state, confidence, warning visibility, selected latest-loadable-save recovery anchor, `branch_aware_memory_reconstruction_state`, and `memory_recovery_state_path`. Degraded or attention-needed recovery can become the top-level `review_memory_recovery_status` next action with an evidence path. Remaining work is durable campaign memory merge and deeper branch-aware reconstruction from only entry-point-compatible evidence.
+Current-head verification confirms the companion, tray, real-session loop, compare, trend, and v0 pipeline surfaces still expose `review_memory_recovery_status`, the selected latest-loadable-save recovery anchor, `branch_aware_memory_reconstruction_state`, and `memory_recovery_state_path` on current head, so the durable sidecar path stays visible across the whole recovery chain.
 
 ---
 
