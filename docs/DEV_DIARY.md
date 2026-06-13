@@ -64,6 +64,40 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-13
+
+Dnesni commitova vlna se soustreduje na dalsi verifikaci a zpevneni owner-facing status povrchu, ne na zmenu runtime pravomoci. Nejvyraznejsi lokalni commity jsou `Record repeat 12C verification`, `Document current-head 2C verification`, `Surface local LLM prepare hint in tray JSON`, `Refresh campaign library verification note`, `Mark 5C MP fallback validation verified`, `Mark support report verification done`, `Verify support report preview contract`, `Add loop memory recovery state path coverage` a `Add transport adapter fail-closed probe coverage`. Smer zustava stejny: drzet integration boundary prehlednou a host-authoritative model bounded.
+
+Co pribylo v repozitari:
+
+* `SncFriendPackage` a navazujici `StrategicNexusCompanion`/tray povrch byly rozsirene o dalsi stavove a verifikacni vetve, aby bylo citelnejsi, co je pripraveny krok a co je jeste jen potvrzeny signal.
+* `PersonalityEngine`, `IntegratedEmpireStateBuilder` a `ObserverTargetProfileBuilder` rozsirily modelovou a vykazovaci vrstvu pro dalsi offline analyzu a rozhodovani na integration boundary.
+* `support report preview` a `loop memory recovery` cesty dostaly dalsi coverage, takze se lip hlida konzistence mezi reportem, pameti a dalsim scripted event/effect path krokem.
+* `transport adapter fail-closed probe` a souvisejici 12C/5C verifikace zpevnuji konzervativni chovani tam, kde by jinak mohlo vzniknout nejasne rozhodnuti.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt se dale posouva k presnejsimu popisu toho, jak ma companion a tray vrstva cist stav bez toho, aby prebiraly prava host-authoritative runtime.
+* Verification-heavy commity pomahaji udrzet jasnou integration boundary mezi archivem, modelovou vrstvou, reporty a dalsim krokem pro scripted event/effect path.
+* Dnesni prace je vic o citelnosti, fail-closed pravidlech a evidenci stavu nez o novych funkcich pro bezici session.
+
+Testy a stav overeni:
+
+* Pro lokalni HEAD `933bbbdbb9d0bf88c2f1e34ebbfec98eb6884228` neni k dispozici verejny GitHub Actions workflow run ani combined status; `master` je stale `ahead 86` oproti `origin/master`.
+* Aktualni commitova vlna je tedy zatim jen lokalne overena pres repo historii a verifikacni commity, ne pres novy public CI signal.
+* Dnesni zapis nespoustel novy plny lokalni test run.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty mezi multiplayer ucastniky.
+* Dokud je aktualni hlava jen v lokalnim pracovnim stromu, chybi verejna CI verifikace pro tuto sadu commitů.
+* Cast prace je zamerene verifikacni a dokumentacni; to je spravne, ale samo o sobe to jeste neuzavira finalni export/import contract ani doruceni pres integration boundary.
+
+Doporuceny dalsi krok:
+
+* Dokoncit kratke lokalni overeni pro novou verifikacni vlnu, potom pushnout aktualni head a pockat na verejny CI signal.
+* Dale navazat na generated overlay export workflow a checksum-safe distribuci tak, aby dalsi session navazovala z jasne auditovatelneho stavu.
+
 ## 2026-06-12
 
 Dnesni commitova vlna se soustreduje na presnejsi verifikaci transport-adapter cesty a na dalsi zpevneni reject path coverage v host-authoritative modelu. Nejviditelnejsi commity jsou `Add transport-adapter selection verification chunk`, `Add transport adapter evidence-chain verification slice`, `Mark v0-sprint-276 verified`, `Add 9C verification chunk for hegemon reject path`, `Add balance-against-hegemon reject path`, `Broaden 9C consolidate reject coverage` a `Broaden personality consolidate reject coverage`. Jde porad o praci na integration boundary a o zprehledneni scripted event/effect path, ne o zmenu runtime pravomoci.
