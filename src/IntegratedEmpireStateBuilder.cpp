@@ -180,6 +180,7 @@ IntegratedEmpireState IntegratedEmpireStateBuilder::build(
     state.empireId = effectiveEmpire.id;
     state.sourceBriefQuality = brief.sourceLedgerQuality;
     state.sourceEmpireStateQuality = "summary_only_empire_state_contract";
+    state.capabilityConstraintsSummary = "capability summary pending";
     state.personalityProfileApplied = loadedPersonalityProfile;
     state.personalityProfileSourceSchemaVersion = loadedPersonalityProfile ? loadedProfile.sourceSchemaVersion : 0;
     state.personalityProfileSchemaCompatibilityState = loadedPersonalityProfile ? loadedProfile.schemaCompatibilityState : "not_loaded";
@@ -275,6 +276,11 @@ IntegratedEmpireState IntegratedEmpireStateBuilder::build(
         describeInertiaBand("doctrine inertia", state.doctrineInertia.inertia);
     state.doctrineInertia.reformCostSummary =
         describeInertiaBand("reform cost", state.doctrineInertia.reformCost);
+    state.capabilityConstraintsSummary =
+        "power-only capability summary; economy band=" + bandFor(economicScore) +
+        "; technology band=" + bandFor(techScore) +
+        "; influence band=" + bandFor(diplomaticScore) +
+        "; infrastructure/logistics/transition-cost evidence missing";
 
     state.fieldAvailability = {
         { "identity", "summary_only_empire_state_contract", true, {} },
@@ -348,6 +354,8 @@ std::string serializeIntegratedEmpireState(const IntegratedEmpireState& state)
     json << "  \"empire_id\": \"" << jsonEscape(state.empireId) << "\",\n";
     json << "  \"source_brief_quality\": \"" << jsonEscape(state.sourceBriefQuality) << "\",\n";
     json << "  \"source_empire_state_quality\": \"" << jsonEscape(state.sourceEmpireStateQuality) << "\",\n";
+    json << "  \"capability_constraints_summary\": \""
+         << jsonEscape(state.capabilityConstraintsSummary) << "\",\n";
     json << "  \"personality_profile\": {\n";
     json << "    \"applied\": " << (state.personalityProfileApplied ? "true" : "false") << ",\n";
     json << "    \"source_schema_version\": " << state.personalityProfileSourceSchemaVersion << ",\n";

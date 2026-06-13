@@ -51,6 +51,7 @@ struct IntegratedEmpireState {
     std::string empireId;
     std::string sourceBriefQuality;
     std::string sourceEmpireStateQuality;
+    std::string capabilityConstraintsSummary;
     bool personalityProfileApplied = false;
     int personalityProfileSourceSchemaVersion = 0;
     std::string personalityProfileSchemaCompatibilityState;

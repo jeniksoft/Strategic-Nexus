@@ -144,6 +144,10 @@ int main()
         requireCondition(state.empireId == "empire_alpha", "empire id should be preserved");
         requireCondition(state.sourceBriefQuality == "metadata_plus_save_headline", "brief quality should be preserved");
         requireCondition(state.sourceEmpireStateQuality == "summary_only_empire_state_contract", "empire-state quality should be explicit");
+        requireCondition(
+            state.capabilityConstraintsSummary ==
+                "power-only capability summary; economy band=high; technology band=high; influence band=low; infrastructure/logistics/transition-cost evidence missing",
+            "capability constraints summary should stay explicit and summary-only");
         requireCondition(state.evidenceReferences.size() == 3, "evidence references should combine facts and uncertainties");
         requireCondition(state.fieldAvailability.size() == 13, "field availability map should cover the integrated state");
         requireCondition(state.fieldAvailabilityAvailableCount == 6, "field availability should count available groups");
@@ -168,6 +172,7 @@ int main()
         requireCondition(json.find("\"strategic_reputation\": {") != std::string::npos, "JSON should include strategic reputation");
         requireCondition(json.find("\"doctrine_inertia\": {") != std::string::npos, "JSON should include doctrine inertia");
         requireCondition(json.find("\"personality_profile\": {") != std::string::npos, "JSON should include personality profile provenance");
+        requireCondition(json.find("\"capability_constraints_summary\": \"power-only capability summary; economy band=high; technology band=high; influence band=low; infrastructure/logistics/transition-cost evidence missing\"") != std::string::npos, "JSON should expose the capability constraints summary");
         requireCondition(json.find("\"applied\": false") != std::string::npos, "JSON should expose unloaded profile state");
         requireCondition(json.find("\"schema_compatibility_state\": \"not_loaded\"") != std::string::npos, "JSON should expose not-loaded compatibility state");
         requireCondition(json.find("\"prompt_output_note\": \"summary-only prompt-output context; no validated personality profile loaded\"") != std::string::npos, "JSON should expose summary-only prompt-output context");
