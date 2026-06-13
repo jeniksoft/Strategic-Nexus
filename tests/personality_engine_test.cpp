@@ -479,6 +479,44 @@ int main()
         elevatedPressureExpansionRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "elevated-pressure opportunistic expansion reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState lowTrustExpansionEmpire = boldEmpire;
+    lowTrustExpansionEmpire.id = "empire_low_trust_expansion";
+    lowTrustExpansionEmpire.power.fleetPower = 90;
+    lowTrustExpansionEmpire.power.economicRank = 4;
+    lowTrustExpansionEmpire.power.technologyRank = 4;
+    lowTrustExpansionEmpire.personality.boldness = 0.46;
+    lowTrustExpansionEmpire.personality.paranoia = 0.23;
+    lowTrustExpansionEmpire.personality.honor = 0.54;
+    lowTrustExpansionEmpire.personality.opportunism = 0.45;
+    lowTrustExpansionEmpire.adaptiveState.fearOfPlayer = 0.20;
+    lowTrustExpansionEmpire.adaptiveState.warTrauma = 0.14;
+    lowTrustExpansionEmpire.adaptiveState.trustInFederations = 0.24;
+
+    const auto lowTrustExpansionReject = engine.refineDoctrineDecision(
+        lowTrustExpansionEmpire,
+        quietSummary,
+        proposedExpansion);
+    requireCondition(
+        lowTrustExpansionReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "low-trust empire under low pressure should reject opportunistic expansion in favor of defense");
+    requireCondition(
+        lowTrustExpansionReject.rationale ==
+            "Rejected opportunistic expansion: low federation trust and low pressure do not support it yet.",
+        "low-trust opportunistic expansion reject should explain the contradiction");
+    requireCondition(
+        lowTrustExpansionReject.confidence == 0.43,
+        "low-trust opportunistic expansion reject should clamp confidence");
+    const auto lowTrustExpansionRejectNote = engine.buildDoctrineAlignmentNote(
+        lowTrustExpansionEmpire,
+        proposedExpansion,
+        lowTrustExpansionReject);
+    requireCondition(
+        lowTrustExpansionRejectNote.find("rejected opportunistic_expansion in favor of defensive_posture") != std::string::npos,
+        "low-trust opportunistic expansion reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        lowTrustExpansionRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
+        "low-trust opportunistic expansion reject note should still expose the personality bias");
+
     const auto moderatePressureConsolidateReject = engine.refineDoctrineDecision(
         fearfulEmpire,
         moderatePressureSummary,
