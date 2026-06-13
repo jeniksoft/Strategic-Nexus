@@ -3605,6 +3605,14 @@ std::string buildCompanionNextActionCommandHint(const CompanionStatusSnapshot& s
     if (buildCompanionNextAction(snapshot) == "review_archive_status" && !archiveAttentionPath(snapshot).empty()) {
         return "open " + pathString(archiveAttentionPath(snapshot));
     }
+    if (buildCompanionNextAction(snapshot) == "review_staged_overlay_status" &&
+        !snapshot.postPlayPipeline.generatedOverlayStagingStatusPath.empty()) {
+        return "open " + pathString(snapshot.postPlayPipeline.generatedOverlayStagingStatusPath);
+    }
+    if (buildCompanionNextAction(snapshot) == "review_published_overlay_status" &&
+        !snapshot.generatedOverlayPublishGate.publishStatusPath.empty()) {
+        return "open " + pathString(snapshot.generatedOverlayPublishGate.publishStatusPath);
+    }
     if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
         return snapshot.mpOverlayPackage.verifyCommand;
     }
@@ -3651,6 +3659,12 @@ std::string buildCompanionNextActionCommandHintSource(const CompanionStatusSnaps
     }
     if (buildCompanionNextAction(snapshot) == "review_archive_status") {
         return "archive_root_path";
+    }
+    if (buildCompanionNextAction(snapshot) == "review_staged_overlay_status") {
+        return "generated_overlay_staging_status_path";
+    }
+    if (buildCompanionNextAction(snapshot) == "review_published_overlay_status") {
+        return "generated_overlay_publish_status_path";
     }
     if (snapshot.mpOverlayPackage.state == "needs_attention" && !snapshot.mpOverlayPackage.verifyCommand.empty()) {
         return "mp_overlay_package_verify_command";

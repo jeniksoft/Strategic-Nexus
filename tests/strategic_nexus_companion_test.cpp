@@ -2167,6 +2167,12 @@ int main()
         publishedSnapshot.nextAction == "review_published_overlay_status",
         "published snapshot without ready acceptance should stay fail-closed on owner test guidance");
     requireCondition(
+        publishedSnapshot.nextActionCommandHint == "open " + publishStatusPath.generic_string(),
+        "published snapshot should expose a direct publish status command hint");
+    requireCondition(
+        publishedSnapshot.nextActionCommandHintSource == "generated_overlay_publish_status_path",
+        "published snapshot should expose the publish status command-hint source");
+    requireCondition(
         publishedSnapshot.statusCenterSummaryText.find("owner_test_contract_state: ready_for_monthly_reactive_session_test") ==
             std::string::npos,
         "published snapshot without ready acceptance should not advertise owner test contract");
