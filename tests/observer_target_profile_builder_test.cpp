@@ -51,6 +51,9 @@ int main()
         requireCondition(profile.targetMemorySummaryConfidenceBand == "low", "profile should classify the summary confidence band");
         requireCondition(profile.targetMemorySummary.find("target_empire_002") != std::string::npos, "profile should describe the target empire in the memory summary");
         requireCondition(profile.targetMemorySummary.find("confidence_band=low") != std::string::npos, "profile should describe the confidence band in the memory summary");
+        requireCondition(profile.predictiveDimensions.size() == 1, "profile should infer one bounded predictive dimension from the shared event evidence");
+        requireCondition(profile.predictiveDimensions[0] == "breaks_agreements", "profile should interpret trade breakdown evidence as agreement-breaking risk");
+        requireCondition(profile.predictiveDimensionsSummary.find("breaks_agreements") != std::string::npos, "profile should summarize inferred predictive dimensions");
         requireCondition(profile.allowedRuleDomains.size() == 4, "profile should advertise bounded allowed rule domains");
         requireCondition(profile.targetSpecificRuleCandidates.empty(), "profile should not emit gameplay rule candidates yet");
         requireCondition(!profile.ruleCandidateValidation.ready, "profile should keep candidate validation locked at summary-only stage");
@@ -93,6 +96,9 @@ int main()
         requireCondition(json.find("\"target_memory_summary\": \"summary_only target memory for target_empire_002") != std::string::npos, "profile JSON should include target memory summary");
         requireCondition(json.find("\"target_memory_summary_confidence\": 0.42") != std::string::npos, "profile JSON should include target memory summary confidence");
         requireCondition(json.find("\"target_memory_summary_confidence_band\": \"low\"") != std::string::npos, "profile JSON should include target memory summary confidence band");
+        requireCondition(json.find("\"predictive_dimensions\": [") != std::string::npos, "profile JSON should include predictive dimensions");
+        requireCondition(json.find("\"breaks_agreements\"") != std::string::npos, "profile JSON should include the inferred predictive dimension");
+        requireCondition(json.find("\"predictive_dimensions_summary\": \"summary_only predictive dimensions; confidence_band=low; inferred=breaks_agreements; gameplay_rule_candidates=blocked\"") != std::string::npos, "profile JSON should include the predictive dimensions summary");
         requireCondition(json.find("\"field_availability_available_count\": 2") != std::string::npos, "profile JSON should include available field count");
         requireCondition(json.find("\"field_availability_missing_count\": 8") != std::string::npos, "profile JSON should include missing field count");
         requireCondition(
@@ -166,6 +172,9 @@ int main()
         requireCondition(
             observerOneProfile.evidenceReferences == observerTwoProfile.evidenceReferences,
             "shared event evidence should remain consistent across observer profiles");
+        requireCondition(
+            observerOneProfile.predictiveDimensions == observerTwoProfile.predictiveDimensions,
+            "shared event evidence should infer the same predictive dimensions across observer profiles");
 
         const auto observerOneJson = strategic_nexus::serializeObserverTargetProfile(observerOneProfile);
         const auto observerTwoJson = strategic_nexus::serializeObserverTargetProfile(observerTwoProfile);

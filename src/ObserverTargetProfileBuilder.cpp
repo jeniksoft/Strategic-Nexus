@@ -4,6 +4,7 @@
 #include "ObserverTargetProfileBuilder.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <iomanip>
 #include <sstream>
@@ -163,6 +164,64 @@ std::string confidenceBandFor(const double confidence)
     return "low";
 }
 
+std::string toLowerCopy(const std::string& value)
+{
+    std::string lowered = value;
+    std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](const unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return lowered;
+}
+
+void addUniqueValue(std::vector<std::string>& values, const std::string& value)
+{
+    if (std::find(values.begin(), values.end(), value) == values.end()) {
+        values.push_back(value);
+    }
+}
+
+std::vector<std::string> buildPredictiveDimensions(const std::vector<std::string>& evidenceReferences)
+{
+    std::vector<std::string> predictiveDimensions;
+    for (const auto& evidenceReference : evidenceReferences) {
+        const std::string lowered = toLowerCopy(evidenceReference);
+
+        if (lowered.find("trade_breakdown") != std::string::npos ||
+            lowered.find("agreement_break") != std::string::npos ||
+            lowered.find("betray") != std::string::npos ||
+            lowered.find("oathbreak") != std::string::npos) {
+            addUniqueValue(predictiveDimensions, "breaks_agreements");
+        }
+
+        if (lowered.find("support_allies") != std::string::npos ||
+            lowered.find("defend_allies") != std::string::npos ||
+            lowered.find("ally_support") != std::string::npos) {
+            addUniqueValue(predictiveDimensions, "defends_allies");
+        }
+
+        if (lowered.find("border") != std::string::npos && lowered.find("tension") != std::string::npos) {
+            addUniqueValue(predictiveDimensions, "escalates_border_tension");
+        }
+
+        if (lowered.find("revenge") != std::string::npos || lowered.find("humiliation") != std::string::npos) {
+            addUniqueValue(predictiveDimensions, "seeks_revenge");
+        }
+
+        if ((lowered.find("trade") != std::string::npos &&
+             lowered.find("breakdown") == std::string::npos &&
+             lowered.find("unreliable") == std::string::npos) ||
+            lowered.find("trade_reliable") != std::string::npos) {
+            addUniqueValue(predictiveDimensions, "trades_reliably");
+        }
+
+        if (lowered.find("coalition") != std::string::npos || lowered.find("alliance") != std::string::npos) {
+            addUniqueValue(predictiveDimensions, "joins_stronger_coalitions");
+        }
+    }
+
+    return predictiveDimensions;
+}
+
 std::string buildTargetMemorySummary(
     const ObserverTargetProfile& profile,
     const std::size_t evidenceCount)
@@ -256,6 +315,17 @@ ObserverTargetProfile ObserverTargetProfileBuilder::build(
     profile.targetMemorySummaryConfidence = confidence;
     profile.targetMemorySummaryConfidenceBand = confidenceBandFor(confidence);
     profile.targetMemorySummary = buildTargetMemorySummary(profile, profile.evidenceReferences.size());
+    profile.predictiveDimensions = buildPredictiveDimensions(profile.evidenceReferences);
+    if (profile.predictiveDimensions.empty()) {
+        profile.predictiveDimensionsSummary =
+            "summary_only predictive dimensions not inferred yet; gameplay_rule_candidates=blocked";
+    } else {
+        profile.predictiveDimensionsSummary =
+            "summary_only predictive dimensions; confidence_band=" +
+            profile.targetMemorySummaryConfidenceBand +
+            "; inferred=" + joinStrings(profile.predictiveDimensions, ",") +
+            "; gameplay_rule_candidates=blocked";
+    }
     const std::size_t evidenceCount = profile.evidenceReferences.size();
     const double evidenceBonus = static_cast<double>(std::min<std::size_t>(evidenceCount, 4)) * 0.03;
     const double sourceQualityBonus =
@@ -338,6 +408,8 @@ std::string serializeObserverTargetProfile(const ObserverTargetProfile& profile)
     json << "  \"target_memory_summary\": \"" << jsonEscape(profile.targetMemorySummary) << "\",\n";
     json << "  \"target_memory_summary_confidence\": " << profile.targetMemorySummaryConfidence << ",\n";
     json << "  \"target_memory_summary_confidence_band\": \"" << jsonEscape(profile.targetMemorySummaryConfidenceBand) << "\",\n";
+    writeStringArray(json, "predictive_dimensions", profile.predictiveDimensions, true);
+    json << "  \"predictive_dimensions_summary\": \"" << jsonEscape(profile.predictiveDimensionsSummary) << "\",\n";
     json << "  \"field_availability_available_count\": " << profile.fieldAvailabilityAvailableCount << ",\n";
     json << "  \"field_availability_missing_count\": " << profile.fieldAvailabilityMissingCount << ",\n";
     json << "  \"field_availability_summary\": \"" << jsonEscape(profile.fieldAvailabilitySummary) << "\",\n";
