@@ -110,7 +110,54 @@ int main()
     const auto json = strategic_nexus::serializeSncDslDraftPackage(package);
     requireCondition(json.find("\"dsl_rule_count\": 1") != std::string::npos, "audit JSON should expose DSL rule count");
     requireCondition(json.find("\"overlay_compile_allowed\": false") != std::string::npos, "audit JSON should keep overlay compile disabled");
+    requireCondition(json.find("\"source_candidate_schema_version\": 1") != std::string::npos, "audit JSON should expose source schema version");
+    requireCondition(json.find("\"schema_compatibility_state\": \"current\"") != std::string::npos, "audit JSON should expose current compatibility state");
     requireCondition(json.find("\"publishes_overlay\": true") == std::string::npos, "audit JSON must never publish overlay in this slice");
+
+    std::string legacyCandidateJson = candidateJson;
+    const std::string schemaToken = "\"schema_version\": 1,";
+    const std::string sourceSchemaToken = "\"source_schema_version\": 1,";
+    const std::string legacyNote =
+        "\"schema_compatibility_note\": \"migrated legacy decision input package schema_version 0 to current schema_version 1\",";
+    const auto schemaPos = legacyCandidateJson.find(schemaToken);
+    requireCondition(schemaPos != std::string::npos, "candidate JSON should include current schema version token");
+    legacyCandidateJson.replace(schemaPos, schemaToken.size(), std::string("\"schema_version\": 0,\n  ") + legacyNote);
+    const auto sourceSchemaPos = legacyCandidateJson.find(sourceSchemaToken);
+    requireCondition(sourceSchemaPos != std::string::npos, "candidate JSON should include source schema version token");
+    legacyCandidateJson.replace(sourceSchemaPos, sourceSchemaToken.size(), "\"source_schema_version\": 0,");
+
+    const auto legacyReadResult = strategic_nexus::parseSncCandidateDecisionPackageJson(legacyCandidateJson);
+    requireCondition(legacyReadResult.ok, "legacy candidate package should still parse");
+    requireCondition(legacyReadResult.package.sourceSchemaVersion == 0, "legacy candidate should report source schema version 0");
+    requireCondition(
+        legacyReadResult.package.schemaCompatibilityState == "partial_compatibility",
+        "legacy candidate should expose partial compatibility state");
+    requireCondition(
+        legacyReadResult.package.schemaCompatibilityNote ==
+            "migrated legacy decision input package schema_version 0 to current schema_version 1",
+        "legacy candidate should preserve compatibility note");
+
+    const auto legacyPackage = builder.build(legacyReadResult.package, std::filesystem::path("dist/snc_candidate_decision_package.json"));
+    requireCondition(legacyPackage.ok, "legacy candidate package should still build a DSL draft");
+    requireCondition(legacyPackage.sourceCandidateSchemaVersion == 0, "legacy DSL draft should remember source schema version");
+    requireCondition(
+        legacyPackage.schemaCompatibilityState == "partial_compatibility",
+        "legacy DSL draft should expose partial compatibility");
+    requireCondition(
+        legacyPackage.schemaCompatibilityNote ==
+            "migrated legacy decision input package schema_version 0 to current schema_version 1",
+        "legacy DSL draft should carry the compatibility note");
+    const auto legacyJson = strategic_nexus::serializeSncDslDraftPackage(legacyPackage);
+    requireCondition(
+        legacyJson.find("\"source_candidate_schema_version\": 0") != std::string::npos,
+        "legacy audit JSON should expose source schema version 0");
+    requireCondition(
+        legacyJson.find("\"schema_compatibility_state\": \"partial_compatibility\"") != std::string::npos,
+        "legacy audit JSON should expose partial compatibility state");
+    requireCondition(
+        legacyJson.find("\"schema_compatibility_note\": \"migrated legacy decision input package schema_version 0 to current schema_version 1\"") !=
+            std::string::npos,
+        "legacy audit JSON should expose compatibility note");
 
     auto ineligibleSource = candidatePackage;
     ineligibleSource.candidateDecisions.front().empireState.parsed = false;

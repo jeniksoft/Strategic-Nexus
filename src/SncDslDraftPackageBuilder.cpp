@@ -537,6 +537,14 @@ SncDslDraftPackage SncDslDraftPackageBuilder::build(
     SncDslDraftPackage package;
     package.sourceCandidateDecisionPackagePath = sourceCandidateDecisionPackagePath;
     package.sourceCandidateReadiness = candidatePackage.readiness;
+    package.sourceCandidateSchemaVersion = candidatePackage.sourceSchemaVersion;
+    if (package.sourceCandidateSchemaVersion == 0) {
+        package.schemaCompatibilityState = "partial_compatibility";
+        package.schemaCompatibilityNote = candidatePackage.schemaCompatibilityNote;
+    } else {
+        package.schemaCompatibilityState = "current";
+        package.schemaCompatibilityNote.clear();
+    }
     package.candidateDecisionCount = candidatePackage.candidateDecisionCount;
     package.warningCodes = candidatePackage.warningCodes;
 
@@ -633,6 +641,9 @@ std::string serializeSncDslDraftPackage(const SncDslDraftPackage& package)
     json << "  \"overlay_compile_allowed\": " << (package.overlayCompileAllowed ? "true" : "false") << ",\n";
     json << "  \"source_candidate_decision_package_path\": \"" << jsonEscape(package.sourceCandidateDecisionPackagePath.generic_string()) << "\",\n";
     json << "  \"source_candidate_readiness\": \"" << jsonEscape(package.sourceCandidateReadiness) << "\",\n";
+    json << "  \"source_candidate_schema_version\": " << package.sourceCandidateSchemaVersion << ",\n";
+    json << "  \"schema_compatibility_state\": \"" << jsonEscape(package.schemaCompatibilityState) << "\",\n";
+    json << "  \"schema_compatibility_note\": \"" << jsonEscape(package.schemaCompatibilityNote) << "\",\n";
     json << "  \"candidate_decision_count\": " << package.candidateDecisionCount << ",\n";
     json << "  \"eligible_candidate_count\": " << package.eligibleCandidateCount << ",\n";
     json << "  \"skipped_candidate_count\": " << package.skippedCandidateCount << ",\n";

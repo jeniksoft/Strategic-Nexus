@@ -6200,6 +6200,9 @@ std::string buildStatusCenterSummaryText(
     const std::size_t candidateDecisionCount,
     const std::filesystem::path& dslDraftPath,
     const std::string& dslDraftReadiness,
+    const std::size_t dslDraftSourceSchemaVersion,
+    const std::string& dslDraftSchemaCompatibilityState,
+    const std::string& dslDraftSchemaCompatibilityNote,
     const std::size_t dslDraftRuleCount,
     const strategic_nexus::CompanionMemoryRecoveryStatus& memoryRecovery,
     const std::filesystem::path& memoryRecoveryStatePath,
@@ -6440,6 +6443,17 @@ std::string buildStatusCenterSummaryText(
     if (!dslDraftReadiness.empty()) {
         appendOwnerFacingStatusValueLine(summary, "dsl_draft_readiness", dslDraftReadiness);
     }
+    if (dslDraftSourceSchemaVersion > 0) {
+        summary << "dsl_draft_source_schema_version: " << dslDraftSourceSchemaVersion << "\n";
+    } else {
+        summary << "dsl_draft_source_schema_version: 0\n";
+    }
+    if (!dslDraftSchemaCompatibilityState.empty()) {
+        appendOwnerFacingStatusValueLine(summary, "dsl_draft_schema_compatibility_state", dslDraftSchemaCompatibilityState);
+    }
+    if (!dslDraftSchemaCompatibilityNote.empty()) {
+        appendOwnerFacingStatusValueLine(summary, "dsl_draft_schema_compatibility_note", dslDraftSchemaCompatibilityNote);
+    }
     summary << "dsl_draft_rule_count: " << dslDraftRuleCount << "\n";
     if (!generatedOverlayStagingDirectory.empty()) {
         summary << "generated_overlay_staging_directory: " << pathString(generatedOverlayStagingDirectory) << "\n";
@@ -6658,6 +6672,9 @@ void writeNextStepsBrief(
     const std::string& candidateDecisionPackageReadiness,
     const std::filesystem::path& dslDraftPath,
     const std::string& dslDraftReadiness,
+    const std::size_t dslDraftSourceSchemaVersion,
+    const std::string& dslDraftSchemaCompatibilityState,
+    const std::string& dslDraftSchemaCompatibilityNote,
     const std::filesystem::path& generatedOverlayStagingStatusPath,
     const std::string& generatedOverlayStagingReadiness,
     const bool generatedOverlayPublishAllowed,
@@ -6769,6 +6786,12 @@ void writeNextStepsBrief(
     brief << "- DSL draft: " << pathString(dslDraftPath);
     if (!dslDraftReadiness.empty()) {
         brief << " (" << ownerFacingStatusValueUtf8(dslDraftReadiness) << ")";
+    }
+    if (dslDraftSourceSchemaVersion > 0) {
+        brief << "; schema " << dslDraftSourceSchemaVersion;
+    }
+    if (!dslDraftSchemaCompatibilityState.empty()) {
+        brief << "; compat " << ownerFacingStatusValueUtf8(dslDraftSchemaCompatibilityState);
     }
     brief << "\n";
     brief << "- SNC staged overlay status: " << pathString(generatedOverlayStagingStatusPath);
@@ -6988,6 +7011,9 @@ void writeStatus(
     const std::filesystem::path& dslDraftPath = std::filesystem::path(),
     const std::filesystem::path& dslDraftAuditPath = std::filesystem::path(),
     const std::string& dslDraftReadiness = std::string(),
+    const std::size_t dslDraftSourceSchemaVersion = 0,
+    const std::string& dslDraftSchemaCompatibilityState = std::string(),
+    const std::string& dslDraftSchemaCompatibilityNote = std::string(),
     const std::size_t dslDraftRuleCount = 0,
     const bool dslDraftValidatorPassed = false,
     const std::filesystem::path& generatedOverlayStagingDirectory = std::filesystem::path(),
@@ -7108,6 +7134,14 @@ void writeStatus(
     const auto effectiveDslDraftPath = choosePath(dslDraftPath, diskPipeline.dslDraftPath);
     const auto effectiveDslDraftAuditPath = choosePath(dslDraftAuditPath, diskPipeline.dslDraftAuditPath);
     const auto effectiveDslDraftReadiness = chooseString(dslDraftReadiness, diskPipeline.dslDraftReadiness);
+    const auto effectiveDslDraftSourceSchemaVersion =
+        chooseSize(dslDraftSourceSchemaVersion, diskPipeline.dslDraftSourceSchemaVersion);
+    const auto effectiveDslDraftSchemaCompatibilityState = chooseString(
+        dslDraftSchemaCompatibilityState,
+        diskPipeline.dslDraftSchemaCompatibilityState);
+    const auto effectiveDslDraftSchemaCompatibilityNote = chooseString(
+        dslDraftSchemaCompatibilityNote,
+        diskPipeline.dslDraftSchemaCompatibilityNote);
     const auto effectiveDslDraftRuleCount = chooseSize(dslDraftRuleCount, diskPipeline.dslDraftRuleCount);
     const bool effectiveDslDraftValidatorPassed =
         dslDraftValidatorPassed || diskPipeline.dslDraftValidatorPassed;
@@ -7228,6 +7262,9 @@ void writeStatus(
         effectiveCandidateDecisionCount,
         effectiveDslDraftPath,
         effectiveDslDraftReadiness,
+        effectiveDslDraftSourceSchemaVersion,
+        effectiveDslDraftSchemaCompatibilityState,
+        effectiveDslDraftSchemaCompatibilityNote,
         effectiveDslDraftRuleCount,
         companionSnapshot.postPlayPipeline.memoryRecovery,
         companionSnapshot.memoryRecoveryStatePath,
@@ -7277,6 +7314,9 @@ void writeStatus(
         effectiveCandidateDecisionPackageReadiness,
         effectiveDslDraftPath,
         effectiveDslDraftReadiness,
+        effectiveDslDraftSourceSchemaVersion,
+        effectiveDslDraftSchemaCompatibilityState,
+        effectiveDslDraftSchemaCompatibilityNote,
         effectiveGeneratedOverlayStagingStatusPath,
         effectiveGeneratedOverlayStagingReadiness,
         effectiveGeneratedOverlayPublishAllowed,
@@ -7748,6 +7788,9 @@ void workerLoop(HWND hwnd)
     std::filesystem::path lastDslDraftPath;
     std::filesystem::path lastDslDraftAuditPath;
     std::string lastDslDraftReadiness;
+    std::size_t lastDslDraftSourceSchemaVersion = 0;
+    std::string lastDslDraftSchemaCompatibilityState;
+    std::string lastDslDraftSchemaCompatibilityNote;
     std::size_t lastDslDraftRuleCount = 0;
     bool lastDslDraftValidatorPassed = false;
     std::filesystem::path lastGeneratedOverlayStagingDirectory;
@@ -7808,6 +7851,9 @@ void workerLoop(HWND hwnd)
             lastDslDraftPath.clear();
             lastDslDraftAuditPath.clear();
             lastDslDraftReadiness.clear();
+            lastDslDraftSourceSchemaVersion = 0;
+            lastDslDraftSchemaCompatibilityState.clear();
+            lastDslDraftSchemaCompatibilityNote.clear();
             lastDslDraftRuleCount = 0;
             lastDslDraftValidatorPassed = false;
             lastGeneratedOverlayStagingDirectory.clear();
@@ -7983,6 +8029,9 @@ void workerLoop(HWND hwnd)
             lastDslDraftPath.clear();
             lastDslDraftAuditPath.clear();
             lastDslDraftReadiness = dslDraftPackage.readiness;
+            lastDslDraftSourceSchemaVersion = dslDraftPackage.sourceCandidateSchemaVersion;
+            lastDslDraftSchemaCompatibilityState = dslDraftPackage.schemaCompatibilityState;
+            lastDslDraftSchemaCompatibilityNote = dslDraftPackage.schemaCompatibilityNote;
             lastDslDraftRuleCount = dslDraftPackage.dslRuleCount;
             lastDslDraftValidatorPassed = dslDraftPackage.validatorPassed;
             lastGeneratedOverlayStagingDirectory.clear();
@@ -8099,6 +8148,9 @@ void workerLoop(HWND hwnd)
                 lastDslDraftPath,
                 lastDslDraftAuditPath,
                 lastDslDraftReadiness,
+                lastDslDraftSourceSchemaVersion,
+                lastDslDraftSchemaCompatibilityState,
+                lastDslDraftSchemaCompatibilityNote,
                 lastDslDraftRuleCount,
                 lastDslDraftValidatorPassed,
                 lastGeneratedOverlayStagingDirectory,
@@ -8173,6 +8225,9 @@ void workerLoop(HWND hwnd)
                 lastDslDraftPath,
                 lastDslDraftAuditPath,
                 lastDslDraftReadiness,
+                lastDslDraftSourceSchemaVersion,
+                lastDslDraftSchemaCompatibilityState,
+                lastDslDraftSchemaCompatibilityNote,
                 lastDslDraftRuleCount,
                 lastDslDraftValidatorPassed,
                 lastGeneratedOverlayStagingDirectory,
@@ -8226,6 +8281,9 @@ void workerLoop(HWND hwnd)
         lastDslDraftPath,
         lastDslDraftAuditPath,
         lastDslDraftReadiness,
+        lastDslDraftSourceSchemaVersion,
+        lastDslDraftSchemaCompatibilityState,
+        lastDslDraftSchemaCompatibilityNote,
         lastDslDraftRuleCount,
         lastDslDraftValidatorPassed,
         lastGeneratedOverlayStagingDirectory,

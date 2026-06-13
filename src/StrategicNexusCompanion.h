@@ -230,6 +230,9 @@ struct CompanionPostPlayPipelineStatus {
     std::filesystem::path dslDraftAuditPath;
     std::string dslDraftReadiness;
     std::string dslDraftReason;
+    std::size_t dslDraftSourceSchemaVersion = 0;
+    std::string dslDraftSchemaCompatibilityState;
+    std::string dslDraftSchemaCompatibilityNote;
     std::size_t dslDraftRuleCount = 0;
     std::size_t dslDraftEligibleCandidateCount = 0;
     std::size_t dslDraftSkippedCandidateCount = 0;

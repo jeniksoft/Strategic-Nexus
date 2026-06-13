@@ -2045,6 +2045,11 @@ CompanionPostPlayPipelineStatus buildPostPlayPipelineStatus(
         dslDraftAvailable = true;
         status.dslDraftReadiness = common::extractJsonString(json, "readiness").value_or("");
         status.dslDraftReason = common::extractJsonString(json, "reason").value_or("");
+        status.dslDraftSourceSchemaVersion = extractJsonSize(json, "source_candidate_schema_version").value_or(0);
+        status.dslDraftSchemaCompatibilityState =
+            common::extractJsonString(json, "schema_compatibility_state").value_or("");
+        status.dslDraftSchemaCompatibilityNote =
+            common::extractJsonString(json, "schema_compatibility_note").value_or("");
         status.dslDraftRuleCount = extractJsonSize(json, "dsl_rule_count").value_or(0);
         status.dslDraftEligibleCandidateCount = extractJsonSize(json, "eligible_candidate_count").value_or(0);
         status.dslDraftSkippedCandidateCount = extractJsonSize(json, "skipped_candidate_count").value_or(0);
@@ -3110,6 +3115,13 @@ std::string buildStatusCenterSummaryText(
     if (!postPlayPipeline.dslDraftReason.empty()) {
         text << "dsl_draft_reason: " << postPlayPipeline.dslDraftReason << "\n";
     }
+    text << "dsl_draft_source_schema_version: " << postPlayPipeline.dslDraftSourceSchemaVersion << "\n";
+    if (!postPlayPipeline.dslDraftSchemaCompatibilityState.empty()) {
+        text << "dsl_draft_schema_compatibility_state: " << postPlayPipeline.dslDraftSchemaCompatibilityState << "\n";
+    }
+    if (!postPlayPipeline.dslDraftSchemaCompatibilityNote.empty()) {
+        text << "dsl_draft_schema_compatibility_note: " << postPlayPipeline.dslDraftSchemaCompatibilityNote << "\n";
+    }
     text << "dsl_draft_rule_count: " << postPlayPipeline.dslDraftRuleCount << "\n";
     text << "dsl_draft_eligible_candidate_count: " << postPlayPipeline.dslDraftEligibleCandidateCount << "\n";
     text << "dsl_draft_skipped_candidate_count: " << postPlayPipeline.dslDraftSkippedCandidateCount << "\n";
@@ -4144,6 +4156,11 @@ void writePostPlayPipelineJson(
     output << indent << "  \"dsl_draft_audit_path\": " << jsonString(pathString(status.dslDraftAuditPath)) << ",\n";
     output << indent << "  \"dsl_draft_readiness\": " << jsonString(status.dslDraftReadiness) << ",\n";
     output << indent << "  \"dsl_draft_reason\": " << jsonString(status.dslDraftReason) << ",\n";
+    output << indent << "  \"dsl_draft_source_schema_version\": " << status.dslDraftSourceSchemaVersion << ",\n";
+    output << indent << "  \"dsl_draft_schema_compatibility_state\": "
+           << jsonString(status.dslDraftSchemaCompatibilityState) << ",\n";
+    output << indent << "  \"dsl_draft_schema_compatibility_note\": "
+           << jsonString(status.dslDraftSchemaCompatibilityNote) << ",\n";
     output << indent << "  \"dsl_draft_rule_count\": " << status.dslDraftRuleCount << ",\n";
     output << indent << "  \"dsl_draft_eligible_candidate_count\": " << status.dslDraftEligibleCandidateCount << ",\n";
     output << indent << "  \"dsl_draft_skipped_candidate_count\": " << status.dslDraftSkippedCandidateCount << ",\n";

@@ -2897,6 +2897,12 @@ int Application::run(const RunConfig& config) const
                       << sanitizeCliValue(stdoutPath(snapshot.postPlayPipeline.dslDraftAuditPath)) << "\n";
             std::cout << "snc_dsl_draft_readiness="
                       << sanitizeCliValue(snapshot.postPlayPipeline.dslDraftReadiness) << "\n";
+            std::cout << "snc_dsl_draft_source_schema_version="
+                      << snapshot.postPlayPipeline.dslDraftSourceSchemaVersion << "\n";
+            std::cout << "snc_dsl_draft_schema_compatibility_state="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.dslDraftSchemaCompatibilityState) << "\n";
+            std::cout << "snc_dsl_draft_schema_compatibility_note="
+                      << sanitizeCliValue(snapshot.postPlayPipeline.dslDraftSchemaCompatibilityNote) << "\n";
             std::cout << "snc_dsl_draft_rule_count=" << snapshot.postPlayPipeline.dslDraftRuleCount << "\n";
             std::cout << "snc_dsl_draft_validator_passed="
                       << (snapshot.postPlayPipeline.dslDraftValidatorPassed ? "true" : "false") << "\n";

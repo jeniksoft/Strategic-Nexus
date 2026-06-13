@@ -24,6 +24,9 @@ struct SncDslDraftPackage {
     bool overlayCompileAllowed = false;
     std::filesystem::path sourceCandidateDecisionPackagePath;
     std::string sourceCandidateReadiness;
+    std::size_t sourceCandidateSchemaVersion = 0;
+    std::string schemaCompatibilityState = "current";
+    std::string schemaCompatibilityNote;
     std::size_t candidateDecisionCount = 0;
     std::size_t eligibleCandidateCount = 0;
     std::size_t skippedCandidateCount = 0;
