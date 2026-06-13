@@ -4341,5 +4341,24 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-340-polish-local-llm-model-page-copy",
+      "title": "Polish local LLM model page copy",
+      "status": "not_started",
+      "lane": "implementation",
+      "roadmap_anchor": "1I. SNC Owner UI And Presentation / local LLM model-manager copy polish",
+      "goal": "Tighten the owner-facing Czech copy for the local LLM model page so the status dashboard reads naturally without changing readiness behavior or the fail-closed contract.",
+      "acceptance": [
+        "Tray status page description for the local LLM section uses the cleaner Czech wording.",
+        "Current-head tray smoke and companion verification still pass after the copy polish.",
+        "The change stays bounded to owner-facing wording and does not alter local LLM readiness or next-action routing."
+      ],
+      "preferred_tests": [
+        "tools/smoke_snc_tray.cmd",
+        "dist/strategic_nexus_companion_test.exe"
+      ],
+      "dependencies": []
+    }
   ]
 }

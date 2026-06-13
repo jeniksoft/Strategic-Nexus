@@ -614,7 +614,7 @@ Required:
 
 Current progress:
 The native SNC window exists, uses a branded icon, and has TB-inspired styling. `SNC_UI_STYLE_GUIDE.md` exists. Visible MP package affordances now use Czech diacritics in the status window and tray menu. The status dashboard action bar now wraps into two rows when the visible action set would otherwise overflow the minimum owner-facing window width. Custom status scrollbars now also use hover highlighting. The local LLM model-manager page and summary wording were tightened for clearer Czech owner-facing labels, and the support-report wording now reads more naturally too; remaining work is only any last copy polish.
-The local LLM model-manager reason strings and install guidance were polished further so reduced-mode and ready states read more naturally in owner-facing Czech without changing readiness behavior.
+The local LLM model-manager reason strings and install guidance were polished further so reduced-mode and ready states read more naturally in owner-facing Czech without changing readiness behavior. The local LLM section label on the tray was also tightened once more for cleaner Czech phrasing without changing readiness behavior.
 The support-report tray action labels now also use more natural Czech wording, keeping the owner-facing menu/button text aligned with the rest of the SNC presentation surface.
 The support-report preview prompt and tray warning text now also use more natural Czech wording on current head, while the companion, tray, and v0 pipeline regressions still pass.
 Next worker-ready verification slice: confirm the owner-facing Czech copy polish remains visible on current head across the companion and tray surfaces, then keep broader UI polish queued separately.

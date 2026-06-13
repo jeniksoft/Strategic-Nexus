@@ -522,7 +522,7 @@ const std::array<StatusPageSpec, kStatusPageCount> kStatusPages = {
         ID_STATUS_PAGE_LLM,
         {L"LLM", L"LLM"},
         {L"Lok\u00E1ln\u00ED LLM", L"Local LLM"},
-        {L"Modely, runtime a p\u0159\u00EDprava lok\u00E1ln\u00ED inference. Sem pat\u0159\u00ED jen akce kolem modelu.", L"Models, runtime, and local inference preparation. Model actions belong here."},
+        {L"Modely, runtime a p\u0159\u00EDprava lok\u00E1ln\u00ED inference. Pat\u0159\u00ED sem jen akce kolem model\u016F.", L"Models, runtime, and local inference preparation. Model actions belong here."},
         {5},
         {ID_STATUS_COPY_LLM_PREPARE, ID_STATUS_OPEN_LLM_MODEL_STATE}},
     StatusPageSpec{
