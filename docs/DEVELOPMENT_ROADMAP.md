@@ -878,6 +878,7 @@ Required:
 Current progress:
 The real-session loop can auto-resolve a bounded effective campaign and empire identity for single-campaign artifacts and fails closed on multi-campaign ambiguity. Remaining work is production SNC ownership of this path and stricter entry-point identity rules for branch/reload cases.
 Real-session compare/trend/loop outputs now also forward entry-point analysis path, readiness, reason, count, branch-ambiguity, and memory-recovery anchor entry-point fields so branch/reload continuity stays visible across session comparisons instead of disappearing after the first loop run.
+Current-head verification now also confirms `dist/strategic_nexus_companion_test.exe`, `tools/smoke_snc_tray.cmd`, and `tools/run_v0_pipeline_tests.cmd` pass on current head, so the entry-point identity handoff fields remain visible across companion, tray, and real-session evidence surfaces.
 
 ---
 
