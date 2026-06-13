@@ -56,7 +56,7 @@ In progress:
 * schema evolution rules
 * host-authoritative multiplayer architecture
 * offline campaign analysis architecture for autosave archiving and next-session mod refresh
-* full save parser production pipeline beyond the implemented narrow headline parser and archive-summary slice
+* full save parser production pipeline beyond the implemented narrow headline parser and archive-analysis spine, including the tested archive-summary, bounded ledger, empire brief, and ministry-input slices
 
 Not started:
 

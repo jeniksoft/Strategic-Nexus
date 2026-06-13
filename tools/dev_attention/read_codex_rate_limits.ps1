@@ -311,6 +311,7 @@ function Set-UsageBudgetStateFromRateLimits {
     $remaining = [int]$Snapshot.secondary.remaining_percent
     $used = [int]$Snapshot.secondary.used_percent
     $declaredOn = "$($Snapshot.collected_at_local) Europe/Prague"
+    $verifiedOn = "$($Snapshot.collected_at_local) Europe/Prague"
     $resetDate = if ($Snapshot.secondary.resets_at_local) {
         ([DateTime]::Parse($Snapshot.secondary.resets_at_local)).ToString(
             "yyyy-MM-dd HH:mm",
@@ -376,6 +377,38 @@ function Set-UsageBudgetStateFromRateLimits {
             [System.Text.RegularExpressions.MatchEvaluator]{
                 param($m)
                 return $m.Groups[1].Value + "$used%" + $m.Groups[2].Value
+            }
+        )
+        $text = [System.Text.RegularExpressions.Regex]::Replace(
+            $text,
+            '(?ms)(Latest Verified Local App-Server Reading:\s*```text\s*)[^`]+?(\s*```)',
+            [System.Text.RegularExpressions.MatchEvaluator]{
+                param($m)
+                return $m.Groups[1].Value + "$remaining%" + $m.Groups[2].Value
+            }
+        )
+        $text = [System.Text.RegularExpressions.Regex]::Replace(
+            $text,
+            '(?ms)(Verified remaining weekly usage from `account/rateLimits/read`:\s*```text\s*)[^`]+?(\s*```)',
+            [System.Text.RegularExpressions.MatchEvaluator]{
+                param($m)
+                return $m.Groups[1].Value + "$remaining%" + $m.Groups[2].Value
+            }
+        )
+        $text = [System.Text.RegularExpressions.Regex]::Replace(
+            $text,
+            '(?ms)(Verified used weekly usage from `account/rateLimits/read`:\s*```text\s*)[^`]+?(\s*```)',
+            [System.Text.RegularExpressions.MatchEvaluator]{
+                param($m)
+                return $m.Groups[1].Value + "$used%" + $m.Groups[2].Value
+            }
+        )
+        $text = [System.Text.RegularExpressions.Regex]::Replace(
+            $text,
+            '(?ms)(Verified on:\s*```text\s*)[^`]+?(\s*```)',
+            [System.Text.RegularExpressions.MatchEvaluator]{
+                param($m)
+                return $m.Groups[1].Value + $verifiedOn + $m.Groups[2].Value
             }
         )
         if ($resetDate) {
