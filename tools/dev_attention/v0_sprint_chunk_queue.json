@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "v0_sprint",
-  "updated_at": "2026-06-13T07:11:12.6984547+02:00",
+  "updated_at": "2026-06-13T07:39:21.8778094+02:00",
   "owner_priority": "Reach the first functional owner-testable Strategic Nexus v0 as quickly as safely possible; defer polish until the real-game validation loop exists. Current MP handoff copy/status surfaces now include the open action, share guidance, continuity hints, and the adapter probe step; real-session drift now also forwards trust-store controls and friend_mesh_update, and the blocked 15G signed/encrypted transport adapter remains the long-term gap while the next bounded 9C trauma/trust reject slice is queued on current head.",
   "selection_rule": "Take owner-approved suggestion chunks first, then the first ready unblocked roadmap chunk in order, unless current code already satisfies it; reactive policy-pack chunks supersede polish/convenience chunks when generated-overlay gameplay effect is the blocker; then verify and record evidence. After a queue exhaustion refresh, prefer the next small missing 9C personality-to-rule validation slice when it is the next visible missing step, otherwise prefer 15G real-session evidence before broader release-companion work. If the queue is otherwise exhausted, a 4C current-head verification slice for branch-aware memory recovery degradation is acceptable as a bounded fallback.",
   "exhaustion_rule": "If all queued chunks are completed while the roadmap still contains unblocked IN_PROGRESS or NOT_STARTED work, refresh this queue from the roadmap or implement the next obvious bounded roadmap chunk; do not end with no_safe_task.",
@@ -3417,6 +3417,26 @@
       "dependencies": [
         "v0-sprint-254-transport-adapter-probe-cli"
       ]
+    },
+    {
+      "id": "v0-sprint-322-verify-friend-mp-sync-transport-adapter-surface-on-current-head",
+      "title": "Verify friend MP sync transport adapter surface on current head",
+      "status": "done",
+      "lane": "verification",
+      "roadmap_anchor": "15G. Release Companion MP Package UX / transport-adapter status surface",
+      "goal": "Confirm the current-head companion, tray, and Status Center still expose friend_mp_sync_transport_adapter_kind/path/state/reason/next_step with the expected ready_disabled and fail-closed wording while the signed/encrypted adapter remains unimplemented.",
+      "acceptance": [
+        "dist/strategic_nexus_companion_test.exe passes on current head.",
+        "tools/smoke_snc_tray.cmd passes on current head.",
+        "tools/run_v0_pipeline_tests.cmd passes on current head.",
+        "Current-head companion, tray, and Status Center surfaces still expose friend_mp_sync_transport_adapter_kind/path/state/reason/next_step with ready_disabled when the shared-folder/cloud-folder adapter path is configured and readable, and explicit fail-closed states when the trust store or folder is missing."
+      ],
+      "preferred_tests": [
+        "dist/strategic_nexus_companion_test.exe",
+        "tools/smoke_snc_tray.cmd",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
     },
     {
       "id": "v0-sprint-287-verify-generated-overlay-publish-gate-visibility-on-current-head",
