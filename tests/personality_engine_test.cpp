@@ -398,6 +398,32 @@ int main()
     strategic_nexus::StrategicSummary moderatePressureSummary = quietSummary;
     moderatePressureSummary.instability = 0.22;
 
+    const auto moderatePressureNoHegemonConsolidateReject = engine.refineDoctrineDecision(
+        weakCalmEmpire,
+        moderatePressureSummary,
+        proposedConsolidate);
+    requireCondition(
+        moderatePressureNoHegemonConsolidateReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "weak calm empire under moderate pressure should reject consolidate in favor of defense");
+    requireCondition(
+        moderatePressureNoHegemonConsolidateReject.rationale ==
+            "Rejected consolidate: weak capability and moderate pressure still require immediate defense.",
+        "moderate-pressure no-hegemon consolidate reject should explain the contradiction");
+    requireCondition(
+        moderatePressureNoHegemonConsolidateReject.confidence == 0.44,
+        "moderate-pressure no-hegemon consolidate reject should clamp confidence");
+    const auto moderatePressureNoHegemonConsolidateRejectNote = engine.buildDoctrineAlignmentNote(
+        weakCalmEmpire,
+        proposedConsolidate,
+        moderatePressureNoHegemonConsolidateReject);
+    requireCondition(
+        moderatePressureNoHegemonConsolidateRejectNote.find("rejected consolidate in favor of defensive_posture") !=
+            std::string::npos,
+        "moderate-pressure no-hegemon consolidate reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        moderatePressureNoHegemonConsolidateRejectNote.find("bias = cautious consolidation") != std::string::npos,
+        "moderate-pressure no-hegemon consolidate reject note should still expose the personality bias");
+
     const auto moderatePressureExpansionReject = engine.refineDoctrineDecision(
         fearfulEmpire,
         moderatePressureSummary,

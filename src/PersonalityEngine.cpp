@@ -244,6 +244,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::Consolidate && weakCapability && !fearful
+        && !summary.hegemonyDetected && summary.instability >= 0.15) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected consolidate: weak capability and moderate pressure still require immediate defense.";
+        decision.confidence = 0.44;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::Consolidate && weakCapability && fearful && summary.instability < 0.15) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale =
