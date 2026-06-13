@@ -774,6 +774,7 @@ Required:
 
 Current progress:
 The PoC mod projects supported generated flags into visible gameplay-neutral country modifiers, generated output clears stale preference flags, and the load-safe monthly pulse refresh path is wired through `on_monthly_pulse_country`. Companion tests keep the owner-visible harmless marker surface explicit for the supported generated markers. Remaining work is full real-session functional acceptance that Stellaris applies these markers exactly as intended.
+Current-head verification now also confirms `dist/strategic_nexus_companion_test.exe`, `tools/smoke_snc_tray.cmd`, and `tools/run_v0_pipeline_tests.cmd` pass on current head, so the harmless marker surface stays explicit while the real-session acceptance gap remains separate.
 
 ---
 
