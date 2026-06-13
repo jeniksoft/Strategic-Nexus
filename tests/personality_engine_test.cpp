@@ -178,6 +178,49 @@ int main()
         lowTrustBalanceRejectNote.find("bias = trauma-guarded caution") != std::string::npos,
         "low-trust balance reject note should still expose the personality bias");
 
+    strategic_nexus::EmpireState lowHonorHegemonExpansionEmpire = boldEmpire;
+    lowHonorHegemonExpansionEmpire.id = "empire_low_honor_hegemon_expansion";
+    lowHonorHegemonExpansionEmpire.power.fleetPower = 90;
+    lowHonorHegemonExpansionEmpire.power.economicRank = 3;
+    lowHonorHegemonExpansionEmpire.power.technologyRank = 3;
+    lowHonorHegemonExpansionEmpire.personality.boldness = 0.48;
+    lowHonorHegemonExpansionEmpire.personality.paranoia = 0.23;
+    lowHonorHegemonExpansionEmpire.personality.honor = 0.31;
+    lowHonorHegemonExpansionEmpire.personality.opportunism = 0.79;
+    lowHonorHegemonExpansionEmpire.adaptiveState.fearOfPlayer = 0.2;
+    lowHonorHegemonExpansionEmpire.adaptiveState.warTrauma = 0.19;
+    lowHonorHegemonExpansionEmpire.adaptiveState.trustInFederations = 0.44;
+
+    strategic_nexus::StrategicSummary lowHonorHegemonExpansionSummary = quietSummary;
+    lowHonorHegemonExpansionSummary.hegemonyDetected = true;
+    lowHonorHegemonExpansionSummary.instability = 0.11;
+
+    const auto lowHonorHegemonExpansionReject = engine.refineDoctrineDecision(
+        lowHonorHegemonExpansionEmpire,
+        lowHonorHegemonExpansionSummary,
+        proposedExpansion);
+    requireCondition(
+        lowHonorHegemonExpansionReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "low-honor empire under hegemonic pressure should reject opportunistic expansion in favor of defense");
+    requireCondition(
+        lowHonorHegemonExpansionReject.rationale ==
+            "Rejected opportunistic expansion: low honor, high opportunism, and hegemonic pressure do not support it yet.",
+        "low-honor hegemon expansion reject should explain the contradiction");
+    requireCondition(
+        lowHonorHegemonExpansionReject.confidence == 0.48,
+        "low-honor hegemon expansion reject should clamp confidence");
+    const auto lowHonorHegemonExpansionRejectNote = engine.buildDoctrineAlignmentNote(
+        lowHonorHegemonExpansionEmpire,
+        proposedExpansion,
+        lowHonorHegemonExpansionReject);
+    requireCondition(
+        lowHonorHegemonExpansionRejectNote.find("rejected opportunistic_expansion in favor of defensive_posture") !=
+            std::string::npos,
+        "low-honor hegemon expansion reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        lowHonorHegemonExpansionRejectNote.find("bias = opportunistic pressure") != std::string::npos,
+        "low-honor hegemon expansion reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState traumaTrustExpansionEmpire = boldEmpire;
     traumaTrustExpansionEmpire.id = "empire_trauma_trust_expansion";
     traumaTrustExpansionEmpire.power.fleetPower = 94;

@@ -160,6 +160,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::OpportunisticExpansion && summary.hegemonyDetected
+        && empire.personality.honor < 0.4 && empire.personality.opportunism > 0.65) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected opportunistic expansion: low honor, high opportunism, and hegemonic pressure do not support it yet.";
+        decision.confidence = 0.48;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::BalanceAgainstHegemon && weakCapability && fearful && summary.hegemonyDetected) {
         decision.type = DoctrineType::DefensivePosture;
         decision.rationale =
