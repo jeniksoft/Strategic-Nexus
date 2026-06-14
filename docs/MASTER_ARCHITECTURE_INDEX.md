@@ -374,7 +374,7 @@ cabinet evaluates Y + U
 Status:
 
 * architecture rules exist
-* implementation is not started
+* full ministerial reasoning pipeline is not started; bounded v0 ministry-input and archive-fed harnesses already exist
 * v0 should use only a minimal subset
 
 Recommended v0 subset:
