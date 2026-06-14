@@ -4430,5 +4430,24 @@
       ],
       "dependencies": []
     }
+    ,
+    {
+      "id": "v0-sprint-345-reject-opportunistic-expansion-for-capable-empires-under-elevated-pressure",
+      "title": "Reject opportunistic expansion for capable empires under elevated pressure",
+      "status": "done",
+      "lane": "implementation",
+      "roadmap_anchor": "9C. Personality-To-Rule Validation",
+      "goal": "Add one bounded fail-closed opportunistic-expansion reject path for capable, calm empires when pressure is clearly elevated so the doctrine gate does not keep expansion open past the low-risk window.",
+      "acceptance": [
+        "PersonalityEngine rejects opportunistic_expansion to defensive_posture when the empire is capable, calm, and pressure is elevated without confirmed hegemonic pressure.",
+        "The alignment note explains the explicit contradiction rejection and still exposes the personality bias.",
+        "dist/personality_engine_test.exe and tools/run_v0_pipeline_tests.cmd pass on current head after the new reject path is added."
+      ],
+      "preferred_tests": [
+        "dist/personality_engine_test.exe",
+        "tools/run_v0_pipeline_tests.cmd"
+      ],
+      "dependencies": []
+    }
   ]
 }

@@ -1102,6 +1102,48 @@ int main()
         fearfulCapableExpansionRejectNote.find("bias = risk-sensitive balancing") != std::string::npos,
         "capable fearful opportunistic fallback note should still expose the personality bias");
 
+    strategic_nexus::EmpireState capableElevatedPressureExpansionEmpire = boldEmpire;
+    capableElevatedPressureExpansionEmpire.id = "empire_capable_elevated_pressure_expansion";
+    capableElevatedPressureExpansionEmpire.power.fleetPower = 92;
+    capableElevatedPressureExpansionEmpire.power.economicRank = 4;
+    capableElevatedPressureExpansionEmpire.power.technologyRank = 4;
+    capableElevatedPressureExpansionEmpire.personality.boldness = 0.71;
+    capableElevatedPressureExpansionEmpire.personality.paranoia = 0.28;
+    capableElevatedPressureExpansionEmpire.personality.honor = 0.49;
+    capableElevatedPressureExpansionEmpire.personality.opportunism = 0.74;
+    capableElevatedPressureExpansionEmpire.adaptiveState.fearOfPlayer = 0.18;
+    capableElevatedPressureExpansionEmpire.adaptiveState.warTrauma = 0.17;
+    capableElevatedPressureExpansionEmpire.adaptiveState.trustInFederations = 0.52;
+
+    strategic_nexus::StrategicSummary capableElevatedPressureExpansionSummary = quietSummary;
+    capableElevatedPressureExpansionSummary.instability = 0.50;
+
+    const auto capableElevatedPressureExpansionReject = engine.refineDoctrineDecision(
+        capableElevatedPressureExpansionEmpire,
+        capableElevatedPressureExpansionSummary,
+        proposedExpansion);
+    requireCondition(
+        capableElevatedPressureExpansionReject.type == strategic_nexus::DoctrineType::DefensivePosture,
+        "capable empire under elevated pressure should reject opportunistic expansion in favor of defense");
+    requireCondition(
+        capableElevatedPressureExpansionReject.rationale ==
+            "Rejected opportunistic expansion: elevated pressure does not support expansion yet.",
+        "elevated-pressure opportunistic reject should explain the contradiction");
+    requireCondition(
+        capableElevatedPressureExpansionReject.confidence == 0.46,
+        "elevated-pressure opportunistic reject should clamp confidence");
+    const auto capableElevatedPressureExpansionRejectNote = engine.buildDoctrineAlignmentNote(
+        capableElevatedPressureExpansionEmpire,
+        proposedExpansion,
+        capableElevatedPressureExpansionReject);
+    requireCondition(
+        capableElevatedPressureExpansionRejectNote.find("rejected opportunistic_expansion in favor of defensive_posture") !=
+            std::string::npos,
+        "elevated-pressure opportunistic reject note should explain the explicit contradiction rejection");
+    requireCondition(
+        capableElevatedPressureExpansionRejectNote.find("bias = assertive expansion") != std::string::npos,
+        "elevated-pressure opportunistic reject note should still expose the personality bias");
+
     strategic_nexus::EmpireState steadyEmpire;
     steadyEmpire.id = "empire_steady";
     steadyEmpire.power.fleetPower = 88;

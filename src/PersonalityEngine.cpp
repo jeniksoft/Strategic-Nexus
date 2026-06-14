@@ -160,6 +160,15 @@ DoctrineDecision PersonalityEngine::refineDoctrineDecision(
         return decision;
     }
 
+    if (decision.type == DoctrineType::OpportunisticExpansion && !summary.hegemonyDetected
+        && !weakCapability && !fearful && summary.instability >= 0.45) {
+        decision.type = DoctrineType::DefensivePosture;
+        decision.rationale =
+            "Rejected opportunistic expansion: elevated pressure does not support expansion yet.";
+        decision.confidence = 0.46;
+        return decision;
+    }
+
     if (decision.type == DoctrineType::OpportunisticExpansion && summary.hegemonyDetected
         && empire.personality.honor < 0.4 && empire.personality.opportunism > 0.65) {
         decision.type = DoctrineType::DefensivePosture;
