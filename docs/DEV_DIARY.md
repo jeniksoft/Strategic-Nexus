@@ -64,6 +64,39 @@ Current engineering stance:
 
 Poznamka k casove ose: denik je historicky zaznam prace a popisuje stav uvah v dobe daneho zapisu. Neni to zdroj aktivnich pravidel projektu. Pokud se smer, pravidlo nebo bezpecnostni vyklad pozdeji zmeni, ma se doplnit novy casove ukotveny kontext misto ticheho prepisovani historie.
 
+## 2026-06-14
+
+Dnesni commitova vlna se soustreduje na dalsi zpresneni ministerial pipeline statusu, handoff identity na entry-pointu a opatrne `opportunistic reject` cesty pro elevated-pressure pripady. Nejvyraznejsi lokalni commity jsou `Add elevated-pressure opportunistic reject`, `Clarify ministerial pipeline status in architecture index` a `Verify entry-point identity handoff`. Smer zustava stejny: drzet runtime interoperability research na integration boundary a zachovat host-authoritative model bez neomezeneho rozsireni pravomoci do beziici session.
+
+Co pribylo v repozitari:
+
+* `PersonalityEngine` dostal dalsi reject vetvu pro elevated-pressure situace, aby rozhodovani zustalo fail-closed i tam, kde by jinak mohla vzniknout nejednoznacnost.
+* `personality_engine_test.cpp` pribyla nove test coverage pro tuto cestu, takze zmena ma prime regression kryti.
+* `DEVELOPMENT_ROADMAP` i `MASTER_ARCHITECTURE_INDEX` byly zpresneny tak, aby bylo citelnejsi, kde lezi aktualni stav ministerial pipeline a jak se cte entry-point identity handoff.
+* `tools/dev_attention/v0_sprint_chunk_queue.json` byl doplnen o navazujici verifikacni krok, aby sprintova queue odpovidala skutecnemu stavu verifikace a ne jen planu.
+
+Co to znamena pro architekturu a runtime interoperability research:
+
+* Projekt dale upresnuje, jak ma probehnout runtime reverse engineering a runtime interoperability research bez rozmazani integration boundary.
+* Novy reject pruchod pomaha udrzet scripted event/effect path bounded, i kdyz vstupni stav vypada tlakove nebo nejednoznacne.
+* Ministerial pipeline status a entry-point identity handoff jsou ted citelneji popsane, takze dalsi rozhodnuti se lip opira o overeny stav nez o volnou interpretaci.
+
+Testy a stav overeni:
+
+* Lokalni HEAD je `da109ea` a je stale `ahead 21` oproti `origin/master`, takze pro tuto vlnu zatim neni k dispozici verejny GitHub Actions workflow run ani combined status.
+* Dnesni zapis vychazi z commit historie a pridane test coverage; novy plny lokalni test run jsem dnes nespoustel.
+
+Blokery a rizika:
+
+* Hlavni produkcni blocker se nemeni: stale chybi uzavreny checksum-safe packaging a distribucni workflow pro generated overlay artefakty.
+* Reject a status-zmeny zlepsuji bezpecnost rozhodovani, ale samy o sobe jeste neuzaviraji finalni export/import contract ani doruceni pres integration boundary.
+* Dokud zustava lokalni head nepushed, chybi i verejny CI signal pro tuto presnou sadu commitů.
+
+Doporuceny dalsi krok:
+
+* Dokoncit kratke lokalni overeni pro novou reject a handoff vlnu, potom pushnout aktualni head a pockat na verejny CI signal.
+* Nadvazat na to dalsim bounded krokem v generated overlay export workflow, aby dalsi session navazovala z auditovatelneho stavu.
+
 ## 2026-06-13
 
 Dnesni commitova vlna se soustreduje na dalsi verifikaci a zpevneni owner-facing status povrchu, ne na zmenu runtime pravomoci. Nejvyraznejsi lokalni commity jsou `Record repeat 12C verification`, `Document current-head 2C verification`, `Surface local LLM prepare hint in tray JSON`, `Refresh campaign library verification note`, `Mark 5C MP fallback validation verified`, `Mark support report verification done`, `Verify support report preview contract`, `Add loop memory recovery state path coverage` a `Add transport adapter fail-closed probe coverage`. Smer zustava stejny: drzet integration boundary prehlednou a host-authoritative model bounded.
